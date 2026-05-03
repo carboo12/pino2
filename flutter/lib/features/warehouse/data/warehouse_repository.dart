@@ -100,7 +100,7 @@ class WarehouseRepository {
       data: {
         'status': status,
         if (vendorId != null && vendorId.isNotEmpty) 'vendorId': vendorId,
-        if (notes != null) 'notes': notes,
+        'notes': ?notes,
       },
     );
   }
@@ -115,7 +115,7 @@ class WarehouseRepository {
       bearerToken: accessToken,
       queryParameters: {
         'storeId': storeId,
-        if (fecha != null) 'fecha': fecha,
+        'fecha': ?fecha,
       },
     );
     return list.map((e) => CargaCamion.fromJson(Map<String, dynamic>.from(e))).toList();
