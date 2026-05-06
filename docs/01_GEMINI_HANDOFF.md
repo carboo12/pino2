@@ -1,129 +1,136 @@
-# Handoff Para Gemini Local
+# Handoff Para IA — Sistema Multi-Tienda "Los Pinos"
+**Última actualización:** 6 de Mayo, 2026
 
-Este documento esta escrito para que una IA local entienda rapido como esta `pino` sin tener que descubrirlo desde cero.
+Este documento es la **fuente de verdad rápida** para que cualquier IA entienda el proyecto sin descubrirlo desde cero.
 
-## 1. Que es este proyecto
+---
 
-`pino` es un sistema MultiTienda con:
+## 1. Qué es este proyecto
 
-- backend NestJS + Fastify + Socket.IO + PostgreSQL
-- frontend React + Vite + Tailwind + Radix UI
-- una app Flutter móvil real dentro de `flutter/`
+`pino` (alias "Alacaja") es un sistema de distribución multi-tienda con:
 
-Hoy el alcance realmente implementado es:
+- **Backend:** NestJS + Fastify + Socket.IO + PostgreSQL (38 módulos)
+- **Web Admin:** React + Vite + Tailwind + Radix UI (desplegado en rhclaroni.com/dev)
+- **Web Página:** Next.js (en `pagina/`, desplegado en Firebase Hosting)
+- **App Móvil:** Flutter + Riverpod + Drift/SQLite (offline-first)
 
-- backend REST operativo
-- frontend React operativo
-- tiempo real por Socket.IO
-- Flutter con módulos móviles operativos del alcance actual
+## 2. Arquitectura de despliegue
 
-## 2. Como debes leer el proyecto
+| Componente | Ubicación | Acceso |
+|---|---|---|
+| Backend API | VPS rhclaroni.com, PM2 `pino-api-dev` | `/api-dev` (puerto 3035 interno) |
+| Web Admin (Vite) | VPS `/var/www/dev` | `rhclaroni.com/dev` |
+| Web Página (Next.js) | Firebase Hosting | `pino-5fe44.web.app` |
+| Base de datos | PostgreSQL `190.56.16.85:5432` | DB: `multitienda_db`, User: `alacaja` |
+| Git | github.com/galz35/pino2.git | Rama `main` |
 
-Orden recomendado:
+**Despliegue:** Push a GitHub → SSH al VPS → `./manual_update_dev.sh all` (o `backend` / `web`).
 
-1. `README.md`
-2. `docs/00_INDEX.md`
-3. `docs/02_MAPA_DEL_PROYECTO.md`
-4. `docs/03_ESTRUCTURA_DEL_SISTEMA.md`
-5. `docs/06_BASE_DE_DATOS_ESTADO_ACTUAL.md`
-6. `docs/07_FLUTTER_ESTRATEGIA_Y_PAUSA.md`
-7. `docs/08_VALIDACION_GEMINI_WAREHOUSE.md`
-8. `docs/12_CUMPLIMIENTO_REQUERIMIENTO_2026-04-02.md`
-9. `plan/2026-04-01/15-mapa-consumo-api-react.md`
-10. `plan/2026-04-01/17-barrido-backend-vs-requerimiento.md`
+## 3. Estructura de carpetas clave
 
-## 3. Fuentes de verdad
+```
+sistema_final/
+├── backend/          # NestJS API (src/modules/ tiene 38 módulos)
+├── web/              # React Vite Admin Panel
+├── flutter/          # App móvil Flutter
+├── docs/             # Documentación consolidada
+└── manual_update_dev.sh  # Script de despliegue
+```
 
-Cuando haya duda, usa este orden:
+También existe `pagina/` (hermano de `sistema_final/`) que es el sitio Next.js con Firebase.
 
-1. codigo vivo del repo
-2. base de datos viva
-3. `schema.sql` como DDL base
-4. documentacion de `docs/`
-5. documentos de `plan/`
+## 4. Autenticación y Roles
 
-Notas importantes:
+- **Método:** JWT (access_token 12h + refresh_token 7d)
+- **Token payload:** `{ sub, email, role, storeIds[] }`
+- **Tabla de asignación:** `user_stores` vincula usuarios a tiendas
 
-- `schema.sql` es la base estructural, pero la BD viva ya tiene tablas operativas adicionales.
-- la carpeta `plan/` contiene historia, hallazgos y decisiones; `docs/` contiene la referencia consolidada.
-- el frontend ya no usa `localhost` hardcodeado; usa configuracion por entorno.
-- no asumas que `plan/2026-04-01/03-analisis-gap-flutter.md` describe codigo Flutter existente; hoy es una referencia de estrategia, no de implementacion.
-- no asumas que `100% del alcance actual` equivale a `100% del requerimiento global`; para eso revisar `docs/12_CUMPLIMIENTO_REQUERIMIENTO_2026-04-02.md`
+### Roles del sistema y sus rutas
 
-## 4. Donde empezar segun la tarea
+| Rol en BD | Rol normalizado | Dashboard Web | Dashboard Flutter |
+|---|---|---|---|
+| `master-admin` | master-admin | `/master-admin/dashboard` | N/A |
+| `store-admin` | store-admin | `/store/{id}/dashboard` | N/A |
+| `cashier` | cashier | `/store/{id}/billing` | N/A |
+| `inventory` / `warehouse` | inventory | `/store/{id}/warehouse` | Bodega |
+| `sales-manager` | sales-manager | `/store/{id}/vendors/dashboard` | N/A |
+| `rutero` | rutero | `/store/{id}/delivery-route` | Entregas/Cobros |
+| `vendor` | vendor | `/store/{id}/vendors/quick-sale` | Preventa |
 
-Si la tarea es backend:
+**⚠️ IMPORTANTE:** Todo rol que no sea `master-admin` necesita tener una entrada en `user_stores`. Sin ella, el login queda atrapado en "Preparando tu espacio de trabajo..." porque `storeIds` viene vacío.
 
-- entra por `backend/src/app.module.ts`
-- luego revisa `backend/src/modules/`
-- despues revisa `backend/src/database/database.service.ts`
+### Usuarios operativos actuales
 
-Si la tarea es frontend:
+| Email | Clave | Rol |
+|---|---|---|
+| `admin@multitienda.com` | `admin123` o `123` | master-admin |
+| `dueno@lospinos.com` | `123` | master-admin |
+| `gerente@tienda.com` | `admin123` | store-admin |
+| `admin_test@lospinos.com` | `123` | store-admin |
+| `cajero@tienda.com` | `admin123` | cashier |
+| `bodeguero@tienda.com` | `admin123` | warehouse |
+| `bodeg@lospinos.com` | `123` | inventory |
+| `vendedor@tienda.com` | `admin123` | vendor |
+| `vender@lospinos.com` | `123` | cashier |
+| `gestor@lospinos.com` | `123` | sales-manager |
+| `rute@lospinos.com` | `123` | Rutero |
 
-- entra por `web/src/App.tsx`
-- luego `web/src/components/app-layout.tsx`
-- luego `web/src/services/api-client.ts`
-- despues usa `plan/2026-04-01/15-mapa-consumo-api-react.md`
+## 5. Dónde empezar según la tarea
 
-Si la tarea es Flutter:
+**Backend:**
+1. `backend/src/app.module.ts`
+2. `backend/src/modules/` (38 módulos)
+3. `backend/src/database/database.service.ts`
 
-- entra por `flutter/docs/00_INDEX.md`
-- luego `flutter/pubspec.yaml`
-- despues `flutter/README.md`
-- despues `flutter/docs/02_MAPA_MODULOS_Y_FLUJOS.md`
-- y `flutter/docs/03_MAPA_API_MOVIL.md`
+**Web Admin (Vite/React):**
+1. `web/src/App.tsx` (rutas y guards)
+2. `web/src/lib/redirect-logic.ts` y `web/src/lib/user-role.ts` (roles)
+3. `web/src/services/api-client.ts`
 
-Si la tarea es base de datos:
+**Web Página (Next.js):**
+1. `pagina/src/context/auth-context.tsx`
+2. `pagina/src/lib/redirect-logic.ts`
+3. `pagina/src/lib/api-client.ts`
 
-- revisa `backend/src/database/schema.sql`
-- revisa `backend/src/database/database.service.ts`
-- revisa `docs/06_BASE_DE_DATOS_ESTADO_ACTUAL.md`
+**Flutter:**
+1. `flutter/lib/features/` (14 módulos)
+2. `flutter/lib/core/network/api_client.dart`
+3. `flutter/lib/core/database/local_cache_repository.dart`
 
-## 5. Reglas practicas para tocar el proyecto
+**Base de datos:**
+1. `backend/src/database/schema.sql`
+2. `backend/migrations/`
 
-- no asumas offline completo ni hardware integrado; eso sigue como fase 2
-- no asumas que Flutter ya opera completo sin internet; hoy hay SQLite, cache útil de operación, cola base y refresh online-first, pero no sync offline integral
-- si cambias contratos de API, revisa `plan/2026-04-01/15-mapa-consumo-api-react.md`
-- si cambias rutas o guards de roles, revisa `web/src/App.tsx`, `web/src/lib/user-role.ts` y `web/src/lib/redirect-logic.ts`
-- si cambias flujos financieros, revisa tanto backend como `web/src/services/finance-service.ts`
-- si cambias la BD, actualiza `schema.sql` y `docs/06_BASE_DE_DATOS_ESTADO_ACTUAL.md`
+## 6. Reglas para tocar el proyecto
 
-## 6. Runtime actual
+- Si cambias contratos de API, revisar consumers en web Y flutter
+- Si cambias roles/guards, revisar `redirect-logic.ts` en web Y pagina
+- Si cambias la BD, actualizar `schema.sql` y correr migración
+- Si necesitas desplegar, hacer push a GitHub y correr `manual_update_dev.sh` en el VPS
+- Flutter usa offline-first con SQLite + cola de sync; no es sync offline integral aún
 
-Configuracion base del backend:
+## 7. Estado actual (Mayo 2026)
 
-- host BD: `127.0.0.1`
-- puerto BD: `5432`
-- base: `multitienda_db`
-- puerto backend: `3035`
-- prefijo API: `/api`
+### ✅ Completado
+- Auth JWT con refresh tokens
+- 38 módulos backend operativos
+- POS web, caja, catálogo, inventario
+- Pedidos, despacho, bodega (Kanban)
+- Vendedores, rutas, visitas, cobros
+- Cuentas por cobrar / pagar
+- Autorizaciones de precio
+- Sync y realtime (Socket.IO)
+- Flutter: preventa, bodega, rutero, cierre diario, cobros, devoluciones
+- Delta sync service para Flutter
+- Despliegue automatizado con PM2
 
-Configuracion base del frontend:
+### 🟡 Pendiente
+- Generar APK de producción
+- Pruebas en terreno con usuarios reales
+- Offline avanzado e integraciones de hardware móvil
 
-- basename: `/dev`
-- API base publica: `/api-dev`
-- socket path publico: `/api-dev/socket.io`
-- namespace socket: `/events`
+## 8. Bugs conocidos / gotchas
 
-## 7. Estado funcional actual
-
-Este corte deja fuerte:
-
-- autenticacion JWT
-- roles y redirects
-- POS web
-- caja
-- catalogo
-- inventario
-- pedidos y despacho
-- vendedores, rutas, visitas y cobros
-- cuentas por cobrar
-- cuentas por pagar
-- facturas de proveedor
-- autorizaciones
-- sync y realtime
-
-Pendiente deliberado:
-
-- offline avanzado y hardware móvil
-- integraciones fisicas de hardware
+- Usuarios sin entrada en `user_stores` no pueden hacer login (se queda en spinner infinito)
+- El role `warehouse` y `inventory` son equivalentes pero coexisten en la BD; ambos se normalizan a `inventory` en el frontend
+- Las contraseñas pueden ser `admin123` (seed original) o `123` (reset posterior); probar ambas
