@@ -6,6 +6,7 @@ import { OrdersService } from '../orders/orders.service';
 import { CollectionsService } from '../collections/collections.service';
 import { ReturnsService } from '../returns/returns.service';
 import { SyncStatus } from '../../common/constants/enums';
+import { SyncOperationDto } from './sync.dto';
 
 @Injectable()
 export class SyncService {
@@ -41,7 +42,7 @@ export class SyncService {
     return res.rows;
   }
 
-  async processBatchSync(storeId: string, operations: any[]) {
+  async processBatchSync(storeId: string, operations: SyncOperationDto[]) {
     this.logger.log(
       `Procesando lote de sincronización para tienda ${storeId}: ${operations.length} operaciones`,
     );
@@ -78,16 +79,16 @@ export class SyncService {
           let res: any;
           switch (op.type) {
             case 'SALE':
-              res = await this.salesService.processSale(opData, client);
+              res = await this.salesService.processSale(opData as any, client);
               break;
             case 'ORDER':
-              res = await this.ordersService.create(opData, client);
+              res = await this.ordersService.create(opData as any, client);
               break;
             case 'COLLECTION':
-              res = await this.collectionsService.create(opData, client);
+              res = await this.collectionsService.create(opData as any, client);
               break;
             case 'RETURN':
-              res = await this.returnsService.create(opData, client);
+              res = await this.returnsService.create(opData as any, client);
               break;
             default:
               this.logger.warn(`Tipo de operación no soportado: ${op.type}`);

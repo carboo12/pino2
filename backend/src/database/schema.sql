@@ -543,6 +543,17 @@ ALTER TABLE store_zones ADD COLUMN IF NOT EXISTS visit_day VARCHAR(30) DEFAULT '
 -- 4.7 Arquitectura Multi-Local Organizativa
 ALTER TABLE stores ADD COLUMN IF NOT EXISTS store_type VARCHAR(50) DEFAULT 'SUPERMERCADO';
 
+-- 4.8 Caja: Denominaciones de apertura/cierre (arqueo)
+ALTER TABLE cash_shifts ADD COLUMN IF NOT EXISTS opening_denominations JSONB;
+ALTER TABLE cash_shifts ADD COLUMN IF NOT EXISTS closing_denominations JSONB;
+
+-- 4.9 Productos: Precios por Bulto (niveles 1-5, espejo de price1..price5)
+ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_1 DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_2 DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_3 DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_4 DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_5 DECIMAL(12, 2) DEFAULT 0;
+
 -- ============================================================
 -- SECCIÓN 5: ÍNDICES DE PERFORMANCE
 -- ============================================================

@@ -32,20 +32,23 @@ export default function LiquidationRoutePage() {
     if (!selectedRutero || !selectedDate) return;
     try {
       setLoading(true);
-      // Asumiendo que tenemos un endpoint para consultar el estado
-      // Si no, simulamos los datos para la interfaz.
       const res = await apiClient.get(`/liquidaciones-ruta?storeId=${storeId}&ruteroId=${selectedRutero}&fecha=${selectedDate}`);
-      setData(res.data[0] || {
-         pedidos_entregados: 45,
-         pedidos_rechazados: 2,
-         cobros_contado: 12500,
-         cobros_credito: 4500,
-         devoluciones: 3,
-         diferencia_arqueo: 0,
-         status: 'PENDIENTE'
-      });
+      if (res.data && res.data.length > 0) {
+        setData(res.data[0]);
+      } else {
+        setData({
+           pedidos_entregados: 0,
+           pedidos_rechazados: 0,
+           cobros_contado: 0,
+           cobros_credito: 0,
+           devoluciones: 0,
+           diferencia_arqueo: 0,
+           status: 'SIN_DATOS'
+        });
+      }
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -57,7 +60,7 @@ export default function LiquidationRoutePage() {
         storeId,
         ruteroId: selectedRutero,
         fecha: selectedDate,
-        observaciones: 'Liquidacion automática prototipo'
+        observaciones: ''
       });
       toast({ title: 'Ruta Liquidada y Cerrada Correctamente' });
       setData({...data, status: 'LIQUIDADO'});
@@ -107,9 +110,13 @@ export default function LiquidationRoutePage() {
          <div className="space-y-6">
             <div className="flex items-center justify-between">
                <h3 className="text-xl font-bold">Resumen de Operación</h3>
-               <span className={`px-3 py-1 rounded-full text-xs font-bold ${data.status === 'LIQUIDADO' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                 ESTADO: {data.status}
-               </span>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  data.status === 'LIQUIDADO' ? 'bg-green-100 text-green-700' :
+                  data.status === 'SIN_DATOS' ? 'bg-gray-100 text-gray-500' :
+                  'bg-amber-100 text-amber-700'
+                }`}>
+                  ESTADO: {data.status === 'SIN_DATOS' ? 'SIN DATOS' : data.status}
+                </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

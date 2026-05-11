@@ -16,8 +16,9 @@ describe('Sales Integrity Flow (e2e)', () => {
   const cashierId = '00000000-0000-0000-0000-000000000000';
   let initialStock = 0;
 
+  jest.setTimeout(30000);
+
   beforeAll(async () => {
-    jest.setTimeout(30000);
     // DB Client for verification
     client = new Client({
       connectionString: "postgresql://alacaja:TuClaveFuerte@190.56.16.85:5432/multitienda_db",
@@ -50,6 +51,8 @@ describe('Sales Integrity Flow (e2e)', () => {
     // 1. Create a cash shift if needed (or just use a dummy one if the service allows)
     // For this test, we assume a valid cash shift or we create a dummy record in DB
     const cashShiftId = '00000000-0000-0000-0000-000000000001';
+    // Cleanup dependent sales first
+    await client.query('DELETE FROM sales WHERE cash_shift_id = $1', [cashShiftId]);
     await client.query('DELETE FROM cash_shifts WHERE id = $1', [cashShiftId]);
     await client.query(
       'INSERT INTO cash_shifts (id, store_id, opened_by, starting_cash, status) VALUES ($1, $2, $3, $4, $5)',

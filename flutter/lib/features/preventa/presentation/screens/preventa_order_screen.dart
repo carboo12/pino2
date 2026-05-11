@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/database/local_cache_repository.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../clients/domain/models/client_summary.dart';
 
 class PreventaOrderScreen extends ConsumerStatefulWidget {
   final String clientId;
@@ -18,14 +20,33 @@ class PreventaOrderScreen extends ConsumerStatefulWidget {
 class _PreventaOrderScreenState extends ConsumerState<PreventaOrderScreen> {
   final List<Map<String, dynamic>> _cart = [];
   bool _isCredit = false;
-  final double _creditLimit = 2000.0;
+  double _creditLimit = 0;
   List<Map<String, dynamic>> _catalog = [];
   bool _loadingCatalog = true;
+  bool _loadingClient = true;
 
   @override
   void initState() {
     super.initState();
     _loadCatalog();
+    _loadClientData();
+  }
+
+  Future<void> _loadClientData() async {
+    try {
+      final apiClient = ref.read(appApiClientProvider);
+      final session = ref.read(authControllerProvider).session;
+      if (session == null) return;
+      final data = await apiClient.getMap(
+        '/clients/${widget.clientId}',
+        bearerToken: session.accessToken,
+      );
+      final client = ClientSummary.fromJson(data);
+      _creditLimit = client.creditLimit?.toDouble() ?? 0;
+    } catch (_) {
+      _creditLimit = 0;
+    }
+    if (mounted) setState(() => _loadingClient = false);
   }
 
   Future<void> _loadCatalog() async {
@@ -246,7 +267,7 @@ class _PreventaOrderScreenState extends ConsumerState<PreventaOrderScreen> {
                       ? const Center(child: Text('Carrito vacío', style: TextStyle(color: Colors.grey)))
                       : ListView.separated(
                           itemCount: _cart.length,
-                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          separatorBuilder: (_, _) => const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final item = _cart[index];
                             return Padding(

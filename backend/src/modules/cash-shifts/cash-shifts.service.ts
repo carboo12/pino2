@@ -39,7 +39,7 @@ export class CashShiftsService {
     `;
   }
 
-  async openShift(storeId: string, userId: string, startingCash: number) {
+  async openShift(storeId: string, userId: string, startingCash: number, openingDenominations?: Record<string, number>) {
     if (!storeId || !userId) {
       throw new BadRequestException('storeId y userId son obligatorios');
     }
@@ -49,19 +49,22 @@ export class CashShiftsService {
       'startingCash',
     );
 
+    // Validar que ESTE CAJERO no tenga ya un turno abierto
     const openRes = await this.db.query(
-      "SELECT id FROM cash_shifts WHERE store_id = $1 AND status = 'OPEN'",
-      [storeId],
+      "SELECT id FROM cash_shifts WHERE store_id = $1 AND opened_by = $2 AND status = 'OPEN'",
+      [storeId, userId],
     );
     if (openRes.rowCount > 0)
       throw new BadRequestException(
-        'Ya existe un turno de caja abierto en esta tienda',
+        'Ya tienes un turno de caja abierto en esta tienda',
       );
 
+    const denomJson = openingDenominations ? JSON.stringify(openingDenominations) : null;
+
     const res = await this.db.query(
-      `INSERT INTO cash_shifts (store_id, opened_by, starting_cash, actual_cash, status) 
-       VALUES ($1, $2, $3, $4, 'OPEN') RETURNING *`,
-      [storeId, userId, normalizedStartingCash, normalizedStartingCash],
+      `INSERT INTO cash_shifts (store_id, opened_by, starting_cash, actual_cash, status, opening_denominations) 
+       VALUES ($1, $2, $3, $4, 'OPEN', $5) RETURNING *`,
+      [storeId, userId, normalizedStartingCash, normalizedStartingCash, denomJson],
     );
 
     return this.findOne(res.rows[0].id);
@@ -74,10 +77,25 @@ export class CashShiftsService {
     actualCash: number,
     difference: number,
     userId: string,
+    closingDenominations?: Record<string, number>,
   ) {
     if (!shiftId || !storeId || !userId) {
       throw new BadRequestException(
         'shiftId, storeId y userId son obligatorios',
+      );
+    }
+
+    // Validar que el cajero que cierra es el mismo que abrió
+    const shiftCheck = await this.db.query(
+      "SELECT opened_by FROM cash_shifts WHERE id = $1 AND store_id = $2 AND status = 'OPEN'",
+      [shiftId, storeId],
+    );
+    if (shiftCheck.rowCount === 0) {
+      throw new BadRequestException('Turno de caja no válido o ya cerrado');
+    }
+    if (shiftCheck.rows[0].opened_by !== userId) {
+      throw new BadRequestException(
+        'Solo el cajero que abrió este turno puede cerrarlo',
       );
     }
 
@@ -92,15 +110,18 @@ export class CashShiftsService {
       throw new BadRequestException('difference debe ser un monto valido');
     }
 
+    const denomJson = closingDenominations ? JSON.stringify(closingDenominations) : null;
+
     const res = await this.db.query(
       `UPDATE cash_shifts 
-       SET closed_by = $1, closed_at = NOW(), expected_cash = $2, actual_cash = $3, difference = $4, status = 'CLOSED' 
-       WHERE id = $5 AND store_id = $6 AND status = 'OPEN' RETURNING *`,
+       SET closed_by = $1, closed_at = NOW(), expected_cash = $2, actual_cash = $3, difference = $4, status = 'CLOSED', closing_denominations = $5
+       WHERE id = $6 AND store_id = $7 AND status = 'OPEN' RETURNING *`,
       [
         userId,
         normalizedExpectedCash,
         normalizedActualCash,
         normalizedDifference,
+        denomJson,
         shiftId,
         storeId,
       ],
@@ -111,14 +132,18 @@ export class CashShiftsService {
     return this.findOne(res.rows[0].id);
   }
 
-  async getActiveShift(storeId: string) {
-    const sql = `
+  async getActiveShift(storeId: string, userId?: string) {
+    let sql = `
       ${this.baseSelect()}
       WHERE cs.store_id = $1 AND cs.status = 'OPEN'
-      ORDER BY cs.opened_at DESC
-      LIMIT 1
     `;
-    const res = await this.db.query(sql, [storeId]);
+    const params: any[] = [storeId];
+    if (userId) {
+      sql += ` AND cs.opened_by = $2`;
+      params.push(userId);
+    }
+    sql += ` ORDER BY cs.opened_at DESC LIMIT 1`;
+    const res = await this.db.query(sql, params);
     return res.rowCount > 0 ? this.mapRow(res.rows[0]) : null;
   }
 

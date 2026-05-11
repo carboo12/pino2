@@ -39,6 +39,18 @@ class ClientPortfolioRepository {
       rethrow;
     }
   }
+
+  Future<void> updateClient({
+    required String clientId,
+    required String accessToken,
+    required Map<String, dynamic> data,
+  }) async {
+    await _client.patchMap(
+      '/clients/$clientId',
+      data: data,
+      bearerToken: accessToken,
+    );
+  }
 }
 
 final clientPortfolioRepositoryProvider =

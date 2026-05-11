@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './users.dto';
+import { UpdateUserDto, CreateUserDto } from './users.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -26,17 +26,7 @@ export class UsersController {
   @Post()
   @Roles('master-admin', 'store-admin')
   @ApiOperation({ summary: 'Crear un nuevo usuario (admin crea staff)' })
-  create(
-    @Body()
-    dto: {
-      email: string;
-      password: string;
-      name: string;
-      role: string;
-      storeId?: string;
-      storeIds?: string[];
-    },
-  ) {
+  create(@Body() dto: CreateUserDto) {
     return this.service.createUser(dto);
   }
 

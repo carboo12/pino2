@@ -17,11 +17,11 @@ import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 @ApiTags('Departments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, StoreAccessGuard)
-@Controller()
+@Controller('departments')
 export class DepartmentsController {
   constructor(private readonly service: DepartmentsService) {}
 
-  @Post('departments')
+  @Post()
   @ApiOperation({ summary: 'Crear un nuevo departamento en la tienda' })
   create(@Body() dto: { name: string; storeId: string }) {
     return this.service.create(dto);
@@ -35,19 +35,19 @@ export class DepartmentsController {
     return this.service.findAll(storeId, 'sub');
   }
 
-  @Get('departments')
+  @Get()
   @ApiOperation({ summary: 'Listar departamentos de una tienda' })
   findAll(@Query('storeId') storeId: string, @Query('type') type?: string) {
     return this.service.findAll(storeId, type);
   }
 
-  @Delete('departments/:id')
+  @Delete(':id')
   @ApiOperation({ summary: 'Eliminar departamento' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
 
-  @Patch('departments/:id')
+  @Patch(':id')
   @ApiOperation({ summary: 'Actualizar departamento' })
   update(@Param('id') id: string, @Body() dto: { name: string }) {
     return this.service.update(id, dto);

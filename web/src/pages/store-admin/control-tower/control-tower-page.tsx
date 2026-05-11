@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Activity, ShieldAlert, ShoppingBag, Truck, Lock, History, ClipboardCheck, Server, RefreshCw, Zap, ShieldCheck } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import apiClient from '@/services/api-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -16,29 +16,33 @@ export default function ControlTowerPage() {
     const [idempotencyLogs, setIdempotencyLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Mock data for the chart - In a real scenario, this would come from an endpoint
-    const chartData = useMemo(() => [
-        { hour: '08:00', orders: 12 },
-        { hour: '09:00', orders: 18 },
-        { hour: '10:00', orders: 45 },
-        { hour: '11:00', orders: 30 },
-        { hour: '12:00', orders: 25 },
-        { hour: '13:00', orders: 40 },
-        { hour: '14:00', orders: 55 },
-        { hour: '15:00', orders: 32 },
-    ], []);
+    const [chartData, setChartData] = useState<{ hour: string; orders: number }[]>([]);
+
+    const groupOrdersByHour = (orders: any[]) => {
+      const hourMap: Record<string, number> = {};
+      const hours = Array.from({ length: 10 }, (_, i) => `${String(i + 7).padStart(2, '0')}:00`);
+      hours.forEach(h => { hourMap[h] = 0; });
+      orders.forEach((o: any) => {
+        if (o.createdAt) {
+          const h = format(new Date(o.createdAt), 'HH:00');
+          if (hourMap[h] !== undefined) hourMap[h]++;
+        }
+      });
+      return hours.map(h => ({ hour: h, orders: hourMap[h] || 0 }));
+    };
 
     useEffect(() => {
         if (!storeId) return;
         const fetchStats = async () => {
             try {
-                const [orders, deliveries, auths, shifts, sync, logs] = await Promise.all([
+                const [orders, deliveries, auths, shifts, sync, logs, todayOrders] = await Promise.all([
                     apiClient.get('/pending-orders', { params: { storeId } }).catch(() => ({ data: [] })),
                     apiClient.get('/pending-deliveries', { params: { storeId } }).catch(() => ({ data: [] })),
                     apiClient.get('/authorizations', { params: { storeId, status: 'PENDING' } }).catch(() => ({ data: [] })),
                     apiClient.get('/cash-shifts', { params: { storeId, status: 'open' } }).catch(() => ({ data: [] })),
                     apiClient.get('/sync/statuses').catch(() => ({ data: [] })),
                     apiClient.get('/sync/idempotency-logs', { params: { storeId } }).catch(() => ({ data: [] })),
+                    apiClient.get('/orders', { params: { storeId, fromDate: format(new Date(), 'yyyy-MM-dd') } }).catch(() => ({ data: [] })),
                 ]);
                 setStats({
                     pendingOrders: orders.data?.length || 0,
@@ -48,6 +52,7 @@ export default function ControlTowerPage() {
                 });
                 setSyncStatuses(sync.data || []);
                 setIdempotencyLogs(logs.data || []);
+                setChartData(groupOrdersByHour(todayOrders.data || []));
             } catch { }
             setLoading(false);
         };

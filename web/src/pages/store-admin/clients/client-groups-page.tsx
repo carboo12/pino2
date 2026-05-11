@@ -26,6 +26,17 @@ export default function ClientGroupsPage() {
 
   const refetch = () => queryClient.invalidateQueries({ queryKey: ['grupos-clientes', storeId] });
 
+  const handleDelete = async (groupId: string, groupName: string) => {
+    if (!confirm(`¿Eliminar el grupo "${groupName}"? Los clientes no se eliminarán.`)) return;
+    try {
+      await apiClient.delete(`/grupos-clientes/${groupId}`);
+      toast({ title: 'Grupo eliminado exitosamente' });
+      refetch();
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       await apiClient.post('/grupos-clientes', { ...formData, storeId });
@@ -72,7 +83,7 @@ export default function ClientGroupsPage() {
               </div>
             </div>
             <div className="bg-muted/30 px-5 py-3 border-t flex justify-end">
-              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDelete(g.id, g.name)}>
                 <Trash2 className="h-4 w-4 mr-2" /> Eliminar
               </Button>
             </div>

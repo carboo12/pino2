@@ -50,17 +50,22 @@ async function bootstrap() {
     ],
   });
 
-  // Swagger
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('MultiTienda API (Fastify)')
-    .setDescription(
-      'API del sistema de punto de venta y gestión multi-tienda - Motor Fastify de alto rendimiento',
-    )
-    .setVersion('1.1')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  // Swagger - Solo habilitado en entornos no productivos
+  if (config.get('NODE_ENV') !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('MultiTienda API (Fastify)')
+      .setDescription(
+        'API del sistema de punto de venta y gestión multi-tienda - Motor Fastify de alto rendimiento',
+      )
+      .setVersion('1.1')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, document);
+    console.log(`📖 Swagger docs enabled at /docs`);
+  } else {
+    console.log(`🔒 Swagger docs disabled in production`);
+  }
 
   // --- FASTIFY SECURITY PLUGINS ---
   // 1. Helmet: Secure HTTP headers
@@ -90,6 +95,5 @@ async function bootstrap() {
   console.log(
     `⚡ MultiTienda API (FASTIFY) running on http://localhost:${port}`,
   );
-  console.log(`📖 Swagger docs at http://localhost:${port}/docs`);
 }
 bootstrap();

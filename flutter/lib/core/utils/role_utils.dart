@@ -9,6 +9,9 @@ enum AppRole {
   vendor,
   salesManager,
   preventa,
+  auxiliar,
+  supervisorCaja,
+  supervisorPasillo,
   unknown,
 }
 
@@ -52,6 +55,15 @@ AppRole normalizeRole(String? value) {
       return AppRole.salesManager;
     case 'preventa':
       return AppRole.preventa;
+    case 'auxiliar':
+    case 'auxiliar-administrativo':
+      return AppRole.auxiliar;
+    case 'supervisor-caja':
+    case 'supervisor-de-caja':
+      return AppRole.supervisorCaja;
+    case 'supervisor-pasillo':
+    case 'supervisor-de-pasillo':
+      return AppRole.supervisorPasillo;
     default:
       return AppRole.unknown;
   }
@@ -79,6 +91,12 @@ String roleLabel(AppRole role) {
       return 'Gestor de ventas';
     case AppRole.preventa:
       return 'Ejecutivo Preventa';
+    case AppRole.auxiliar:
+      return 'Auxiliar Administrativo';
+    case AppRole.supervisorCaja:
+      return 'Supervisor de Caja';
+    case AppRole.supervisorPasillo:
+      return 'Supervisor de Pasillo';
     case AppRole.unknown:
       return 'Rol no identificado';
   }

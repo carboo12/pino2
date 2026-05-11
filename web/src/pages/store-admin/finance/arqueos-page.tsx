@@ -49,10 +49,24 @@ export default function ArqueosPage() {
     if(!selectedRutero) return;
     try {
       setLoadingConfig(true);
-      // Asumiendo que el backend nos devuelve el saldo esperado a rendir
-      // O podemos simularlo si no tenemos el enpoint listo
-      // Para efectos del prototipo usamos un monto aleatorio basado en la ruta
-      setArqueoData({ monto_esperado: Math.floor(Math.random() * 50000) + 15000 });
+      // Obtener el saldo esperado del rutero desde el backend
+      const today = new Date().toISOString().substring(0, 10);
+      let montoEsperado = 0;
+      try {
+        const res = await apiClient.get('/daily-closings/summary', {
+          params: { storeId, userId: selectedRutero, date: today }
+        });
+        montoEsperado = parseFloat(res.data?.totalCash || res.data?.expectedAmount || 0);
+      } catch {
+        // Si no existe endpoint de summary, intentar con ventas del día
+        try {
+          const salesRes = await apiClient.get('/sales', {
+            params: { storeId, vendorId: selectedRutero, startDate: `${today}T00:00:00`, endDate: `${today}T23:59:59` }
+          });
+          montoEsperado = (salesRes.data || []).reduce((sum: number, s: any) => sum + parseFloat(s.total || 0), 0);
+        } catch { /* silenciar */ }
+      }
+      setArqueoData({ monto_esperado: montoEsperado });
       // Reset inputs
       setBilletes1000(0); setBilletes500(0); setBilletes200(0); setBilletes100(0); setBilletes50(0); setMonedas(0); setCheques(0);
       setObservaciones('');

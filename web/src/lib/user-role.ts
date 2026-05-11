@@ -17,6 +17,9 @@ export type NormalizedUserRole =
   | 'rutero'
   | 'vendor'
   | 'sales-manager'
+  | 'auxiliar'
+  | 'supervisor-caja'
+  | 'supervisor-pasillo'
   | 'unknown';
 
 export const normalizeUserRole = (value?: string | null): NormalizedUserRole => {
@@ -59,6 +62,15 @@ export const normalizeUserRole = (value?: string | null): NormalizedUserRole => 
     case 'gestor-ventas':
     case 'sales-manager':
       return 'sales-manager';
+    case 'auxiliar':
+    case 'auxiliar-administrativo':
+      return 'auxiliar';
+    case 'supervisor-caja':
+    case 'supervisor-de-caja':
+      return 'supervisor-caja';
+    case 'supervisor-pasillo':
+    case 'supervisor-de-pasillo':
+      return 'supervisor-pasillo';
     default:
       return 'unknown';
   }

@@ -18,7 +18,7 @@ import {
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { CreateProductDto, UpdateProductDto } from './products.dto';
+import { CreateProductDto, UpdateProductDto, ImportBulkProductsDto } from './products.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()
@@ -35,14 +35,7 @@ export class ProductsController {
 
   @Post('import')
   @ApiOperation({ summary: 'Importación masiva de productos (Transaccional)' })
-  importBulk(
-    @Body()
-    dto: {
-      storeId: string;
-      products: CreateProductDto[];
-      cashierName: string;
-    },
-  ) {
+  importBulk(@Body() dto: ImportBulkProductsDto) {
     return this.productsService.importBulk(dto);
   }
 

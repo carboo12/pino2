@@ -234,6 +234,14 @@ class _ProductCard extends StatelessWidget {
 
   final CatalogProduct product;
 
+  static bool _hasBulkPrices(CatalogProduct p) {
+    return p.bulkPrice1 > 0 ||
+        p.bulkPrice2 > 0 ||
+        p.bulkPrice3 > 0 ||
+        p.bulkPrice4 > 0 ||
+        p.bulkPrice5 > 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -332,6 +340,37 @@ class _ProductCard extends StatelessWidget {
               ),
             ],
           ),
+          if (_hasBulkPrices(product)) ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+            Text(
+              'PRECIOS POR BULTO',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.blueGrey.shade400,
+                letterSpacing: 1,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (product.bulkPrice1 > 0)
+                  _BulkPricePill(label: 'Detalle', price: product.bulkPrice1),
+                if (product.bulkPrice2 > 0)
+                  _BulkPricePill(label: 'Semi-May', price: product.bulkPrice2),
+                if (product.bulkPrice3 > 0)
+                  _BulkPricePill(label: 'Mayoreo', price: product.bulkPrice3),
+                if (product.bulkPrice4 > 0)
+                  _BulkPricePill(label: 'Especial', price: product.bulkPrice4),
+                if (product.bulkPrice5 > 0)
+                  _BulkPricePill(label: 'Mínimo', price: product.bulkPrice5),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -395,6 +434,47 @@ class _InfoPill extends StatelessWidget {
           Icon(icon, size: 16, color: const Color(0xFF475569)),
           const SizedBox(width: 8),
           Text(label),
+        ],
+      ),
+    );
+  }
+}
+
+class _BulkPricePill extends StatelessWidget {
+  const _BulkPricePill({required this.label, required this.price});
+
+  final String label;
+  final double price;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFBBF7D0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF166534),
+            ),
+          ),
+          Text(
+            'C\$ ${price.toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF15803D),
+            ),
+          ),
         ],
       ),
     );

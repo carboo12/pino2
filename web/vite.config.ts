@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -7,6 +8,11 @@ const appBase = process.env.VITE_APP_BASENAME || '/';
 const backendOrigin = process.env.VITE_DEV_BACKEND_ORIGIN || 'http://localhost:3010';
 
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+  },
   base: appBase,
   plugins: [
     react(),

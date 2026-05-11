@@ -46,6 +46,16 @@ export default function DispatcherPage() {
             } catch (err) { console.error(err); }
         };
         fetchSettings();
+
+        const fetchDefaultClient = async () => {
+            try {
+                const res = await apiClient.get('/clients', { params: { storeId, limit: 1 } });
+                if (res.data && res.data.length > 0) {
+                    setSelectedClient(res.data[0]);
+                }
+            } catch { /* usar fallback hardcodeado */ }
+        };
+        fetchDefaultClient();
     }, [storeId]);
 
     const handleSearch = async (term: string) => {

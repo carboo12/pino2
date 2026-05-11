@@ -802,6 +802,63 @@ class _RoleActionGrid extends StatelessWidget {
             routeKey: _RouteKey.clients,
           ),
         ];
+      case AppRole.auxiliar:
+        return const [
+          _ActionDescriptor(
+            title: 'Ajustes de Stock',
+            subtitle: 'Escanear y ajustar.',
+            icon: Icons.qr_code_scanner_rounded,
+            routeKey: _RouteKey.inventoryAdjustments,
+          ),
+          _ActionDescriptor(
+            title: 'Bodega',
+            subtitle: 'Apoyo en despacho.',
+            icon: Icons.warehouse_rounded,
+            routeKey: _RouteKey.warehouse,
+          ),
+          _ActionDescriptor(
+            title: 'Catálogo',
+            subtitle: 'Verificar precios.',
+            icon: Icons.inventory_2_rounded,
+            routeKey: _RouteKey.catalog,
+          ),
+        ];
+      case AppRole.supervisorCaja:
+        return const [
+          _ActionDescriptor(
+            title: 'Cobros',
+            subtitle: 'Validar pagos y cartera.',
+            icon: Icons.payments_rounded,
+            routeKey: _RouteKey.collections,
+          ),
+          _ActionDescriptor(
+            title: 'Cierre de Caja',
+            subtitle: 'Auditar cierres.',
+            icon: Icons.wallet_rounded,
+            routeKey: _RouteKey.dailyClosing,
+          ),
+          _ActionDescriptor(
+            title: 'Catálogo',
+            subtitle: 'Precios y productos.',
+            icon: Icons.inventory_2_rounded,
+            routeKey: _RouteKey.catalog,
+          ),
+        ];
+      case AppRole.supervisorPasillo:
+        return const [
+          _ActionDescriptor(
+            title: 'Catálogo',
+            subtitle: 'Consultar precios en piso.',
+            icon: Icons.inventory_2_rounded,
+            routeKey: _RouteKey.catalog,
+          ),
+          _ActionDescriptor(
+            title: 'Clientes',
+            subtitle: 'Datos del cliente.',
+            icon: Icons.people_alt_rounded,
+            routeKey: _RouteKey.clients,
+          ),
+        ];
       case AppRole.unknown:
         return const [
           _ActionDescriptor(

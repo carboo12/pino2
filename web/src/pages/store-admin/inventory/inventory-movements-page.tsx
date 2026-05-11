@@ -65,8 +65,8 @@ export default function InventoryMovementsPage() {
       const response = await apiClient.get('/inventory/movements', {
         params: { storeId, date: dateStr, type: selectedType }
       });
-      return response.data.map((m: any) => ({
-        id: m.id || Math.random().toString(),
+      return response.data.map((m: any, idx: number) => ({
+        id: m.id || `mov-${dateStr}-${idx}`,
         timestamp: m.createdAt || m.created_at || new Date(),
         productDescription: m.productDescription || m.product_description || 'Producto no especificado',
         movement: m.reference || m.movement || 'Ajuste',

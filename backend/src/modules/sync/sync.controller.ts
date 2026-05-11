@@ -11,6 +11,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SyncService } from './sync.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
+import { BatchSyncDto } from './sync.dto';
+
 @ApiTags('Sync')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -34,7 +36,7 @@ export class SyncController {
 
   @Post('batch')
   @ApiOperation({ summary: 'Recibir una carga batch de operaciones offline' })
-  processBatch(@Body() dto: { storeId: string; operations: any[] }) {
+  processBatch(@Body() dto: BatchSyncDto) {
     return this.service.processBatchSync(dto.storeId, dto.operations);
   }
 

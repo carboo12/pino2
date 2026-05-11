@@ -57,6 +57,11 @@ const productFormSchema = z.object({
   price3: z.coerce.number().optional(),
   price4: z.coerce.number().optional(),
   price5: z.coerce.number().optional(),
+  bulkPrice1: z.coerce.number().optional(),
+  bulkPrice2: z.coerce.number().optional(),
+  bulkPrice3: z.coerce.number().optional(),
+  bulkPrice4: z.coerce.number().optional(),
+  bulkPrice5: z.coerce.number().optional(),
   department: z.string({ required_error: 'Debes seleccionar un departamento.' }),
   subDepartment: z.string().optional(),
   supplierId: z.string().optional(),
@@ -154,6 +159,11 @@ export default function AddProductPage() {
       price3: 0,
       price4: 0,
       price5: 0,
+      bulkPrice1: 0,
+      bulkPrice2: 0,
+      bulkPrice3: 0,
+      bulkPrice4: 0,
+      bulkPrice5: 0,
     },
   });
 
@@ -421,6 +431,32 @@ export default function AddProductPage() {
                     )}
                   />
                 </div>
+
+                {packagingType === 'BULTO' && (
+                  <>
+                    <Separator />
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Precios por Bulto</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="bulkPrice1" render={({ field }) => (
+                        <FormItem><FormLabel>Precio Bulto 1 (Detalle)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name="bulkPrice2" render={({ field }) => (
+                        <FormItem><FormLabel>Precio Bulto 2 (Semi-Mayoreo)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <FormField control={form.control} name="bulkPrice3" render={({ field }) => (
+                        <FormItem><FormLabel>Precio Bulto 3 (Mayoreo)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name="bulkPrice4" render={({ field }) => (
+                        <FormItem><FormLabel>Precio Bulto 4 (Especial)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormDescription className="text-xs">Req. Autorización</FormDescription><FormMessage /></FormItem>
+                      )} />
+                      <FormField control={form.control} name="bulkPrice5" render={({ field }) => (
+                        <FormItem><FormLabel>Precio Bulto 5 (Mínimo)</FormLabel><FormControl><Input type="number" step="0.01" {...field} /></FormControl><FormDescription className="text-xs">Req. Autorización</FormDescription><FormMessage /></FormItem>
+                      )} />
+                    </div>
+                  </>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField

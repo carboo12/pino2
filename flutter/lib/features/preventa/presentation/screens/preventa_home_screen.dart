@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/network/delta_sync_service.dart';
 import '../../../../core/network/sync_queue_processor.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
@@ -14,6 +15,67 @@ class PreventaHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
+  Map<String, dynamic> _metrics = {
+    'visits': 0, 'totalVisits': 0,
+    'totalSold': 0.0, 'ordersCount': 0, 'pendingSync': 0,
+  };
+  List<Map<String, dynamic>> _recentOrders = [];
+  bool _loadingMetrics = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMetrics();
+  }
+
+  Future<void> _loadMetrics() async {
+    final session = ref.read(authControllerProvider).session;
+    if (session == null) return;
+    final apiClient = ref.read(appApiClientProvider);
+    final token = session.accessToken;
+    final userId = session.user.id;
+    final storeId = session.user.primaryStoreId;
+    if (storeId == null) return;
+
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    try {
+      final results = await Future.wait([
+        // visits today
+        apiClient.getList('/visit-logs?vendorId=$userId&date=$today', bearerToken: token).catchError((_) => <dynamic>[]),
+        // orders today (to get total and count)
+        apiClient.getList('/orders?vendorId=$userId&storeId=$storeId&fromDate=$today', bearerToken: token).catchError((_) => <dynamic>[]),
+      ]);
+
+      final visitLogs = results[0] as List;
+      final orders = results[1] as List;
+
+      double totalSold = 0;
+      for (final o in orders) {
+        totalSold += double.tryParse(o['total']?.toString() ?? '0') ?? 0;
+      }
+
+      setState(() {
+        _metrics = {
+          'visits': visitLogs.length,
+          'totalVisits': visitLogs.length,
+          'totalSold': totalSold,
+          'ordersCount': orders.length,
+          'pendingSync': 0,
+        };
+        _recentOrders = orders.take(5).map((o) => {
+          'client': o['clientName'] ?? o['client_id'] ?? 'Cliente',
+          'total': o['total']?.toString() ?? '0',
+          'time': o['createdAt']?.toString() ?? '',
+          'synced': o['status'] != 'PENDIENTE',
+        }).toList();
+        _loadingMetrics = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadingMetrics = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authControllerProvider);
@@ -24,7 +86,6 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    // Formatter date
     final todayStr = DateFormat('EEEE d \'de\' MMMM', 'es').format(DateTime.now());
 
     return Scaffold(
@@ -38,10 +99,9 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
             tooltip: 'Sincronizar ahora',
             icon: const Icon(Icons.sync_rounded),
             onPressed: () async {
-              // Trigger both delta sync (pull) and queue processing (push)
               await ref.read(deltaSyncServiceProvider).syncData();
               await ref.read(syncQueueProcessorProvider.notifier).processPendingQueue();
-              
+              await _loadMetrics();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Sincronización finalizada')),
@@ -65,7 +125,7 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
              decoration: BoxDecoration(
                borderRadius: BorderRadius.circular(24),
                gradient: const LinearGradient(
-                 colors: [Color(0xFF047857), Color(0xFF065F46)], // Emerald tones
+                 colors: [Color(0xFF047857), Color(0xFF065F46)],
                  begin: Alignment.topLeft,
                  end: Alignment.bottomRight,
                ),
@@ -102,24 +162,6 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
                    ],
                  ),
                  const SizedBox(height: 16),
-                 Container(
-                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                   decoration: BoxDecoration(
-                     color: Colors.white.withValues(alpha: 0.2),
-                     borderRadius: BorderRadius.circular(999),
-                   ),
-                   child: const Row(
-                     mainAxisSize: MainAxisSize.min,
-                     children: [
-                       Icon(Icons.check_circle_rounded, color: Color(0xFFA7F3D0), size: 16),
-                       SizedBox(width: 6),
-                       Text(
-                         'Sincronizado hace 5min',
-                         style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                       )
-                     ],
-                   ),
-                 )
                ],
              ),
            ),
@@ -127,44 +169,47 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
            const SizedBox(height: 24),
 
            // KPI Grid
-           GridView.count(
-             crossAxisCount: 2,
-             shrinkWrap: true,
-             physics: const NeverScrollableScrollPhysics(),
-             crossAxisSpacing: 16,
-             mainAxisSpacing: 16,
-             childAspectRatio: 1.4,
-             children: [
-               _buildKpiCard(
-                 title: 'Visitas',
-                 value: '8',
-                 subtitle: 'de 15 asignadas',
-                 icon: Icons.storefront_rounded,
-                 color: const Color(0xFF3B82F6),
-               ),
-               _buildKpiCard(
-                 title: 'Vendido',
-                 value: 'C\$ 12k',
-                 subtitle: 'Total del día',
-                 icon: Icons.attach_money_rounded,
-                 color: const Color(0xFF10B981),
-               ),
-               _buildKpiCard(
-                 title: 'Pedidos',
-                 value: '5',
-                 subtitle: 'Emitidos hoy',
-                 icon: Icons.shopping_basket_rounded,
-                 color: const Color(0xFFF59E0B),
-               ),
-               _buildKpiCard(
-                 title: 'Pendientes',
-                 value: '2',
-                 subtitle: 'Por sincronizar',
-                 icon: Icons.cloud_upload_rounded,
-                 color: const Color(0xFFEF4444),
-               ),
-             ],
-           ),
+           if (_loadingMetrics)
+             const Center(child: CircularProgressIndicator())
+           else
+             GridView.count(
+               crossAxisCount: 2,
+               shrinkWrap: true,
+               physics: const NeverScrollableScrollPhysics(),
+               crossAxisSpacing: 16,
+               mainAxisSpacing: 16,
+               childAspectRatio: 1.4,
+               children: [
+                 _buildKpiCard(
+                   title: 'Visitas',
+                   value: '${_metrics['visits']}',
+                   subtitle: 'de ${_metrics['totalVisits']} registradas',
+                   icon: Icons.storefront_rounded,
+                   color: const Color(0xFF3B82F6),
+                 ),
+                 _buildKpiCard(
+                   title: 'Vendido',
+                   value: 'C\$ ${NumberFormat('#,##0', 'es').format(_metrics['totalSold'])}',
+                   subtitle: 'Total del día',
+                   icon: Icons.attach_money_rounded,
+                   color: const Color(0xFF10B981),
+                 ),
+                 _buildKpiCard(
+                   title: 'Pedidos',
+                   value: '${_metrics['ordersCount']}',
+                   subtitle: 'Emitidos hoy',
+                   icon: Icons.shopping_basket_rounded,
+                   color: const Color(0xFFF59E0B),
+                 ),
+                 _buildKpiCard(
+                   title: 'Pendientes',
+                   value: '${_metrics['pendingSync']}',
+                   subtitle: 'Por sincronizar',
+                   icon: Icons.cloud_upload_rounded,
+                   color: const Color(0xFFEF4444),
+                 ),
+               ],
+             ),
 
            const SizedBox(height: 24),
 
@@ -194,33 +239,43 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
            const SizedBox(height: 24),
 
            // Ultimos pedidos
-           Text(
-             'Últimos pedidos del día',
-             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-           ),
-           const SizedBox(height: 12),
-           
-           Container(
-             decoration: BoxDecoration(
-               color: isDark ? const Color(0xFF1E293B) : Colors.white,
-               borderRadius: BorderRadius.circular(20),
-               boxShadow: [
-                 BoxShadow(
-                   color: Colors.black.withValues(alpha: 0.03),
-                   blurRadius: 10,
-                   offset: const Offset(0, 4),
-                 )
-               ],
-               border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+           if (_recentOrders.isNotEmpty) ...[
+             Text(
+               'Últimos pedidos del día',
+               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
              ),
-             child: Column(
-               children: [
-                 _buildRecentOrderRow('Pulp. Doña María', 'C\$ 450.00', '10:45 AM', true),
-                 const Divider(height: 1),
-                 _buildRecentOrderRow('Mini Súper El Sol', 'C\$ 1,200.00', '09:12 AM', false),
-               ],
+             const SizedBox(height: 12),
+             Container(
+               decoration: BoxDecoration(
+                 color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                 borderRadius: BorderRadius.circular(20),
+                 boxShadow: [
+                   BoxShadow(
+                     color: Colors.black.withValues(alpha: 0.03),
+                     blurRadius: 10,
+                     offset: const Offset(0, 4),
+                   )
+                 ],
+                 border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+               ),
+               child: Column(
+                 children: _recentOrders.map((o) {
+                   final idx = _recentOrders.indexOf(o);
+                   return Column(
+                     children: [
+                       if (idx > 0) const Divider(height: 1),
+                       _buildRecentOrderRow(
+                         o['client'] as String,
+                         'C\$ ${NumberFormat('#,##0.00', 'es').format(double.tryParse(o['total']?.toString() ?? '0') ?? 0)}',
+                         _formatTime(o['time'] as String),
+                         o['synced'] as bool,
+                       ),
+                     ],
+                   );
+                 }).toList(),
+               ),
              ),
-           )
+           ],
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -239,6 +294,16 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
         ],
       ),
     );
+  }
+
+  String _formatTime(String dateStr) {
+    if (dateStr.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(dateStr);
+      return DateFormat('HH:mm', 'es').format(dt);
+    } catch (_) {
+      return dateStr;
+    }
   }
 
   Widget _buildKpiCard({required String title, required String value, required String subtitle, required IconData icon, required Color color}) {

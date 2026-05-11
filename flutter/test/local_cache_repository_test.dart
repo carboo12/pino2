@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pino_mobile/core/database/app_database.dart';
@@ -125,4 +126,53 @@ void main() {
     },
     skip: _sqliteHostSkipReason,
   );
+  
+  group('Sync Queue Tests', () {
+    test('enqueues cash shift operation correctly', () async {
+      final payload = {
+        'storeId': 'store-1',
+        'startingCash': 500.0,
+        'openingDenominations': {'100': 5}
+      };
+      
+      final id = await repository.enqueueSyncAction(
+        method: 'POST',
+        endpoint: '/api/cash-shifts',
+        storeId: 'store-1',
+        operationType: 'CASH_SHIFT_OPEN',
+        payload: payload,
+      );
+      
+      final pending = await repository.getPendingSyncEntries();
+      
+      expect(id, isPositive);
+      expect(pending, hasLength(1));
+      expect(pending.first.operationType, 'CASH_SHIFT_OPEN');
+      expect(jsonDecode(pending.first.payloadJson!), payload);
+    });
+
+    test('enqueues order operation correctly', () async {
+      final payload = {
+        'clientId': 'client-1',
+        'total': 1250.0,
+        'items': [
+          {'productId': 'p-1', 'quantity': 10, 'price': 125.0}
+        ]
+      };
+      
+      await repository.enqueueSyncAction(
+        method: 'POST',
+        endpoint: '/api/orders',
+        storeId: 'store-1',
+        operationType: 'ORDER_CREATE',
+        payload: payload,
+      );
+      
+      final pending = await repository.getPendingSyncEntries();
+      
+      expect(pending, hasLength(1));
+      expect(pending.first.endpoint, '/api/orders');
+      expect(pending.first.operationType, 'ORDER_CREATE');
+    });
+  }, skip: _sqliteHostSkipReason);
 }

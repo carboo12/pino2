@@ -97,6 +97,7 @@ const EconomicGroupsPage = lazy(() => import('@/pages/store-admin/clients/econom
 const ClientReassignPage = lazy(() => import('@/pages/store-admin/clients/client-reassign-page'));
 const ArqueosPage = lazy(() => import('@/pages/store-admin/finance/arqueos-page'));
 const LiquidationRoutePage = lazy(() => import('@/pages/store-admin/finance/liquidation-route-page'));
+const InventoryValuationPage = lazy(() => import('@/pages/store-admin/reports/inventory-valuation-page'));
 
 const LoadingFallback = () => (
   <div className="flex h-screen items-center justify-center bg-background">
@@ -235,6 +236,7 @@ function App() {
                   <Route path="/store/:storeId/finance/liquidation" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><LiquidationRoutePage /></ProtectedRoute>} />
 
                   <Route path="/store/:storeId/reports" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><ReportsPage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/reports/inventory-valuation" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><InventoryValuationPage /></ProtectedRoute>} />
 
                   {/* CHAIN ADMIN */}
                   <Route path="/chain-admin/dashboard" element={<ProtectedRoute allowedRoles={['chain-admin', 'owner', 'master-admin']}><ChainDashboardPage /></ProtectedRoute>} />

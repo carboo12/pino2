@@ -40,6 +40,11 @@ interface ProductResponse {
   price3: number;
   price4: number;
   price5: number;
+  bulkPrice1?: number;
+  bulkPrice2?: number;
+  bulkPrice3?: number;
+  bulkPrice4?: number;
+  bulkPrice5?: number;
   departmentId?: string;
   supplierId?: string;
   subDepartment?: string;
@@ -61,6 +66,11 @@ interface ProductFormState {
   price3: string;
   price4: string;
   price5: string;
+  bulkPrice1: string;
+  bulkPrice2: string;
+  bulkPrice3: string;
+  bulkPrice4: string;
+  bulkPrice5: string;
   departmentId: string;
   supplierId: string;
   subDepartment: string;
@@ -82,6 +92,11 @@ const emptyForm: ProductFormState = {
   price3: '0',
   price4: '0',
   price5: '0',
+  bulkPrice1: '0',
+  bulkPrice2: '0',
+  bulkPrice3: '0',
+  bulkPrice4: '0',
+  bulkPrice5: '0',
   departmentId: '',
   supplierId: '',
   subDepartment: '',
@@ -104,6 +119,11 @@ function toFormData(product: ProductResponse): ProductFormState {
     price3: String(product.price3 ?? 0),
     price4: String(product.price4 ?? 0),
     price5: String(product.price5 ?? 0),
+    bulkPrice1: String(product.bulkPrice1 ?? 0),
+    bulkPrice2: String(product.bulkPrice2 ?? 0),
+    bulkPrice3: String(product.bulkPrice3 ?? 0),
+    bulkPrice4: String(product.bulkPrice4 ?? 0),
+    bulkPrice5: String(product.bulkPrice5 ?? 0),
     departmentId: product.departmentId || '',
     supplierId: product.supplierId || '',
     subDepartment: product.subDepartment || '',
@@ -224,6 +244,11 @@ export default function EditProductPage() {
         price3: Number(formData.price3 || 0),
         price4: Number(formData.price4 || 0),
         price5: Number(formData.price5 || 0),
+        bulkPrice1: Number(formData.bulkPrice1 || 0),
+        bulkPrice2: Number(formData.bulkPrice2 || 0),
+        bulkPrice3: Number(formData.bulkPrice3 || 0),
+        bulkPrice4: Number(formData.bulkPrice4 || 0),
+        bulkPrice5: Number(formData.bulkPrice5 || 0),
         departmentId: formData.departmentId || null,
         supplierId: formData.supplierId || null,
         subDepartment: formData.subDepartment || null,
@@ -286,10 +311,9 @@ export default function EditProductPage() {
                   id="barcode"
                   value={formData.barcode}
                   onChange={(event) => updateField('barcode', event.target.value)}
-                  disabled
                 />
                 <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
-                  Para cambiar o agregar códigos, use la sección de Códigos Alternativos abajo.
+                  Puede editar el código principal aquí o agregar códigos alternativos abajo.
                 </p>
               </div>
               <div className="space-y-2">
@@ -378,6 +402,34 @@ export default function EditProductPage() {
                 <Input id="price5" type="number" min="0" step="0.01" value={formData.price5} onChange={(event) => updateField('price5', event.target.value)} />
               </div>
             </div>
+
+            {Number(formData.unitsPerBulk || 1) > 1 && (
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="md:col-span-3">
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Precios por Bulto</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bulkPrice1">Precio Bulto 1 (Detalle)</Label>
+                  <Input id="bulkPrice1" type="number" min="0" step="0.01" value={formData.bulkPrice1} onChange={(event) => updateField('bulkPrice1', event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bulkPrice2">Precio Bulto 2 (Semi-Mayoreo)</Label>
+                  <Input id="bulkPrice2" type="number" min="0" step="0.01" value={formData.bulkPrice2} onChange={(event) => updateField('bulkPrice2', event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bulkPrice3">Precio Bulto 3 (Mayoreo)</Label>
+                  <Input id="bulkPrice3" type="number" min="0" step="0.01" value={formData.bulkPrice3} onChange={(event) => updateField('bulkPrice3', event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bulkPrice4">Precio Bulto 4 (Especial)</Label>
+                  <Input id="bulkPrice4" type="number" min="0" step="0.01" value={formData.bulkPrice4} onChange={(event) => updateField('bulkPrice4', event.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bulkPrice5">Precio Bulto 5 (Mínimo)</Label>
+                  <Input id="bulkPrice5" type="number" min="0" step="0.01" value={formData.bulkPrice5} onChange={(event) => updateField('bulkPrice5', event.target.value)} />
+                </div>
+              </div>
+            )}
 
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">

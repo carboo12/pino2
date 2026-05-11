@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/services/api-client';
 import { User as UserType } from '@/types';
+import { useAuth } from '@/contexts/auth-context';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
-import { ArrowRight, PackageOpen, Truck, CheckCircle2, User } from 'lucide-react';
+import { ArrowRight, PackageOpen, Truck, CheckCircle2, User, Activity } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import {
   Select,
@@ -45,6 +46,7 @@ interface OrderDetail extends Order {
 export default function WarehouseDashboardPage() {
   const { storeId } = useParams<{ storeId: string }>();
   const { toast } = useToast();
+  const { user } = useAuth();
   const { lastEvent } = useRealTimeEvents(storeId);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -231,6 +233,16 @@ export default function WarehouseDashboardPage() {
     );
   };
 
+  const isManager = user?.role === 'store-admin' || user?.role === 'master-admin' || user?.role === 'owner' || user?.role === 'chain-admin';
+  const isAuxiliar = user?.role === 'auxiliar';
+
+  const kpis = {
+    total: orders.length,
+    pending: orders.filter(o => o.status === 'RECIBIDO' || o.status === 'EN_PREPARACION').length,
+    ready: orders.filter(o => o.status === 'ALISTADO').length,
+    loaded: orders.filter(o => o.status === 'CARGADO_CAMION').length,
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="mb-6 flex justify-between items-center">
@@ -239,6 +251,51 @@ export default function WarehouseDashboardPage() {
           <ArrowRight className="h-4 w-4 rotate-180" /> Actualizar
         </Button>
       </div>
+
+      {isManager && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <Activity className="h-4 w-4" /> Flujo Total
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold text-primary">{kpis.total}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-amber-50 border-amber-200">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm font-medium text-amber-700 flex items-center gap-2">
+                <PackageOpen className="h-4 w-4" /> Por Alistar
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold text-amber-700">{kpis.pending}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-emerald-50 border-emerald-200">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm font-medium text-emerald-700 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" /> Listos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold text-emerald-700">{kpis.ready}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-gray-50 border-gray-200">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Truck className="h-4 w-4" /> Despachados
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold text-gray-700">{kpis.loaded}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {loading && orders.length === 0 ? (
         <div className="flex-1 flex justify-center items-center">
@@ -249,7 +306,7 @@ export default function WarehouseDashboardPage() {
           {renderColumn('Nuevos', 'RECIBIDO', <ArrowRight className="h-5 w-5 text-amber-600" />, 'bg-amber-100 text-amber-700 border border-amber-200')}
           {renderColumn('Preparando', 'EN_PREPARACION', <PackageOpen className="h-5 w-5 text-blue-600" />, 'bg-blue-100 text-blue-700 border border-blue-200')}
           {renderColumn('Listo', 'ALISTADO', <CheckCircle2 className="h-5 w-5 text-emerald-600" />, 'bg-emerald-100 text-emerald-700 border border-emerald-200')}
-          {renderColumn('Despachado', 'CARGADO_CAMION', <Truck className="h-5 w-5 text-gray-600" />, 'bg-gray-100 text-gray-700 border border-gray-200')}
+          {!isAuxiliar && renderColumn('Despachado', 'CARGADO_CAMION', <Truck className="h-5 w-5 text-gray-600" />, 'bg-gray-100 text-gray-700 border border-gray-200')}
         </div>
       )}
 

@@ -54,6 +54,7 @@ class DeltaSyncService {
       
     } catch (e) {
       // Log or handle error appropriately for background sync
+      // ignore: avoid_print
       print('DeltaSync Error: $e');
     }
   }

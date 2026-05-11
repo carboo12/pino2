@@ -19,6 +19,11 @@ interface ProductRow {
   price3: string | number;
   price4: string | number;
   price5: string | number;
+  bulk_price_1: string | number;
+  bulk_price_2: string | number;
+  bulk_price_3: string | number;
+  bulk_price_4: string | number;
+  bulk_price_5: string | number;
   current_stock: string | number;
   units_per_bulk: string | number;
   stock_bulks: string | number;
@@ -71,6 +76,7 @@ export class ProductsService {
          store_id, department_id, barcode, description, brand,
          sale_price, cost_price, wholesale_price,
          price1, price2, price3, price4, price5,
+         bulk_price_1, bulk_price_2, bulk_price_3, bulk_price_4, bulk_price_5,
          current_stock, units_per_bulk, stock_bulks, stock_units,
          min_stock, uses_inventory, supplier_id, sub_department
        )
@@ -78,8 +84,9 @@ export class ProductsService {
          $1, $2, $3, $4, $5,
          $6, $7, $8,
          $9, $10, $11, $12, $13,
-         $14, $15, $16, $17,
-         $18, $19, $20, $21
+         $14, $15, $16, $17, $18,
+         $19, $20, $21, $22,
+         $23, $24, $25, $26
        ) RETURNING id`,
       [
         dto.storeId,
@@ -95,6 +102,11 @@ export class ProductsService {
         dto.price3 ?? 0,
         dto.price4 ?? 0,
         dto.price5 ?? 0,
+        dto.bulkPrice1 ?? 0,
+        dto.bulkPrice2 ?? 0,
+        dto.bulkPrice3 ?? 0,
+        dto.bulkPrice4 ?? 0,
+        dto.bulkPrice5 ?? 0,
         inventory.currentStock,
         inventory.unitsPerBulk,
         inventory.stockBulks,
@@ -284,6 +296,11 @@ export class ProductsService {
       price3: 'price3',
       price4: 'price4',
       price5: 'price5',
+      bulkPrice1: 'bulk_price_1',
+      bulkPrice2: 'bulk_price_2',
+      bulkPrice3: 'bulk_price_3',
+      bulkPrice4: 'bulk_price_4',
+      bulkPrice5: 'bulk_price_5',
     };
 
     const sets: string[] = [];
@@ -490,6 +507,11 @@ export class ProductsService {
       price3: parseFloat(String(row.price3 || row.sale_price || 0)),
       price4: parseFloat(String(row.price4 || row.sale_price || 0)),
       price5: parseFloat(String(row.price5 || row.sale_price || 0)),
+      bulkPrice1: parseFloat(String(row.bulk_price_1 || 0)),
+      bulkPrice2: parseFloat(String(row.bulk_price_2 || 0)),
+      bulkPrice3: parseFloat(String(row.bulk_price_3 || 0)),
+      bulkPrice4: parseFloat(String(row.bulk_price_4 || 0)),
+      bulkPrice5: parseFloat(String(row.bulk_price_5 || 0)),
       currentStock: parseInt(String(row.current_stock || 0), 10),
       unitsPerBulk: parseInt(String(row.units_per_bulk || 1), 10),
       stockBulks: parseInt(String(row.stock_bulks || 0), 10),

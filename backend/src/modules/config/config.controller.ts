@@ -2,6 +2,7 @@ import { Controller, Get, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ConfigService } from './config.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { UpsertConfigDto } from './config.dto';
 
 @ApiTags('Config')
 @ApiBearerAuth()
@@ -24,7 +25,7 @@ export class ConfigController {
 
   @Put(':key')
   @ApiOperation({ summary: 'Crear o actualizar configuración' })
-  upsert(@Param('key') key: string, @Body() body: any) {
-    return this.service.upsert(key, body);
+  upsert(@Param('key') key: string, @Body() dto: UpsertConfigDto) {
+    return this.service.upsert(key, dto.value);
   }
 }

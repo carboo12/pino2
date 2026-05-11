@@ -183,6 +183,16 @@ export default function BillingPage() {
     };
     fetchSettings();
 
+    const fetchDefaultClient = async () => {
+      try {
+        const res = await apiClient.get('/clients', { params: { storeId, limit: 1 } });
+        if (res.data && res.data.length > 0) {
+          setSelectedClient(res.data[0]);
+        }
+      } catch { /* usar fallback hardcodeado */ }
+    };
+    fetchDefaultClient();
+
     let intervalId: any;
     const fetchActiveShift = async () => {
       try {

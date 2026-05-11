@@ -52,6 +52,9 @@ const STORE_ROLES = [
   { value: 'Vendedor Ambulante', label: 'VENDEDOR AMBULANTE' },
   { value: 'Gestor de Ventas', label: 'GESTOR DE VENTAS' },
   { value: 'Rutero', label: 'RUTERO' },
+  { value: 'auxiliar', label: 'AUXILIAR ADMINISTRATIVO' },
+  { value: 'supervisor-caja', label: 'SUPERVISOR DE CAJA' },
+  { value: 'supervisor-pasillo', label: 'SUPERVISOR DE PASILLO' },
 ] as const;
 
 const MASTER_EXTRA_ROLES = [

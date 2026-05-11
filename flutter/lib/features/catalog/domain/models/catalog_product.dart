@@ -20,6 +20,11 @@ class CatalogProduct {
     this.price3 = 0,
     this.price4 = 0,
     this.price5 = 0,
+    this.bulkPrice1 = 0,
+    this.bulkPrice2 = 0,
+    this.bulkPrice3 = 0,
+    this.bulkPrice4 = 0,
+    this.bulkPrice5 = 0,
   });
 
   final String id;
@@ -42,6 +47,11 @@ class CatalogProduct {
   final double price3;
   final double price4;
   final double price5;
+  final double bulkPrice1;
+  final double bulkPrice2;
+  final double bulkPrice3;
+  final double bulkPrice4;
+  final double bulkPrice5;
 
   bool get isLowStock => currentStock <= minStock;
 
@@ -75,8 +85,8 @@ class CatalogProduct {
       stockUnits: int.tryParse('${json['stockUnits'] ?? 0}') ?? 0,
       barcode: json['barcode']?.toString(),
       alternateBarcodes: (json['alternateBarcodes'] as List<dynamic>?)
-              ?.map((e) => e['barcode']?.toString() as String)
-              .where((b) => b != null)
+              ?.map((e) => e['barcode']?.toString())
+              .whereType<String>()
               .toList() ??
           [],
       brand: json['brand']?.toString(),
@@ -89,6 +99,11 @@ class CatalogProduct {
       price3: double.tryParse('${json['price3'] ?? sp}') ?? sp,
       price4: double.tryParse('${json['price4'] ?? sp}') ?? sp,
       price5: double.tryParse('${json['price5'] ?? sp}') ?? sp,
+      bulkPrice1: double.tryParse('${json['bulkPrice1'] ?? 0}') ?? 0,
+      bulkPrice2: double.tryParse('${json['bulkPrice2'] ?? 0}') ?? 0,
+      bulkPrice3: double.tryParse('${json['bulkPrice3'] ?? 0}') ?? 0,
+      bulkPrice4: double.tryParse('${json['bulkPrice4'] ?? 0}') ?? 0,
+      bulkPrice5: double.tryParse('${json['bulkPrice5'] ?? 0}') ?? 0,
     );
   }
 }

@@ -241,7 +241,7 @@ export default function ProductsPage() {
                                                 {product.usesInventory ? (
                                                     <div className="flex flex-col items-end sm:items-start">
                                                         <Badge variant="default" className={cn("text-base", getStockBadgeVariant(product.currentStock, product.minStock))}>
-                                                            {product.currentStock} T
+                                                            {product.currentStock}
                                                         </Badge>
                                                         {(product.unitsPerBulk || 1) > 1 && (
                                                             <p className="text-xs text-muted-foreground mt-1">

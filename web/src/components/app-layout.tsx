@@ -176,16 +176,19 @@ const getMasterAdminNav = (lang: 'es' | 'en'): NavItem[] => [
   { type: 'link', name: 'Configuración', href: '/master-admin/config', icon: Settings },
 ];
 
-// --- STORE ADMIN: 25 → 8 groups ---
-const getStoreAdminNav = (storeId: string, lang: 'es' | 'en', settings: StoreSettings): NavItem[] => {
+const getStoreAdminNav = (storeId: string, lang: 'es' | 'en', settings: StoreSettings, storeType: string): NavItem[] => {
   const t = translations[lang];
   const nav: NavItem[] = [];
+
+  const isSupermercado = storeType === 'SUPERMERCADO';
+  const isDistribuidora = storeType === 'DISTRIBUIDORA';
+  const isBodega = storeType === 'BODEGA';
 
   // 1. Caja — Always visible, primary action
   nav.push({ type: 'link', name: t.cashRegister, href: `/store/${storeId}/cash-register`, icon: WalletCards });
 
   // 2. Facturación (+ Comandas si están activas)
-  if (settings.enableDispatcherMode) {
+  if (settings.enableDispatcherMode || isDistribuidora) {
     nav.push({ type: 'link', name: t.pendingOrders, href: `/store/${storeId}/pending-orders`, icon: ClipboardCheck });
   }
   nav.push({ type: 'link', name: t.billing, href: `/store/${storeId}/facturacion`, icon: ShoppingCart });
@@ -210,24 +213,44 @@ const getStoreAdminNav = (storeId: string, lang: 'es' | 'en', settings: StoreSet
   }
   nav.push({ type: 'group', name: t.inventory, icon: Package, children: invChildren });
 
-  // 5. Finanzas (group)
+  // 5. Finanzas (group) - Oculto parcial en supermercados
+  if (!isSupermercado) {
+    nav.push({
+      type: 'group',
+      name: t.finances,
+      icon: Wallet,
+      children: [
+        { type: 'link', name: t.accountsReceivable, href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
+        { type: 'link', name: 'Arqueo de Ruteros', href: `/store/${storeId}/finance/arqueo`, icon: WalletCards },
+        { type: 'link', name: 'Liquidación de Ruta', href: `/store/${storeId}/finance/liquidation`, icon: ClipboardCheck },
+        { type: 'link', name: 'Aging Cartera', href: `/store/${storeId}/finance/aging`, icon: History },
+        { type: 'link', name: 'Cuentas por Pagar', href: `/store/${storeId}/finance/payables`, icon: Wallet },
+      ],
+    });
+  } else {
+    // Supermercado solo Cuentas por Pagar (Proveedores)
+    nav.push({
+      type: 'group',
+      name: t.finances,
+      icon: Wallet,
+      children: [
+        { type: 'link', name: 'Cuentas por Pagar', href: `/store/${storeId}/finance/payables`, icon: Wallet },
+      ],
+    });
+  }
+
+  // 6. Comercial / Ventas en Calle (group)
   nav.push({
     type: 'group',
-    name: t.finances,
-    icon: Wallet,
+    name: t.reports,
+    icon: AreaChart,
     children: [
-      { type: 'link', name: t.accountsReceivable, href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
-      { type: 'link', name: 'Arqueo de Ruteros', href: `/store/${storeId}/finance/arqueo`, icon: WalletCards },
-      { type: 'link', name: 'Liquidación de Ruta', href: `/store/${storeId}/finance/liquidation`, icon: ClipboardCheck },
-      { type: 'link', name: 'Aging Cartera', href: `/store/${storeId}/finance/aging`, icon: History },
-      { type: 'link', name: 'Cuentas por Pagar', href: `/store/${storeId}/finance/payables`, icon: Wallet },
+      { type: 'link', name: 'Reporte de Ventas', href: `/store/${storeId}/reports`, icon: AreaChart },
+      { type: 'link', name: 'Inventario Valorizado', href: `/store/${storeId}/reports/inventory-valuation`, icon: Package },
     ],
   });
 
-  // 6. Comercial / Ventas en Calle (group)
-  nav.push({ type: 'link', name: t.reports, href: `/store/${storeId}/reports`, icon: AreaChart });
-
-  if (settings.enableSalesManagerMode) {
+  if (settings.enableSalesManagerMode || isDistribuidora || isBodega) {
     nav.push({
       type: 'group',
       name: t.commercial,
@@ -320,6 +343,32 @@ const getDespachoNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => [
   { type: 'link', name: translations[lang].dispatcher, href: `/store/${storeId}/dispatcher`, icon: SendToBack },
   { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
 ];
+
+const getAuxiliarNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
+  const t = translations[lang];
+  return [
+    { type: 'link', name: t.adjustments, href: `/store/${storeId}/inventory/adjustments`, icon: Wrench },
+    { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
+    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
+  ];
+};
+
+const getSupervisorCajaNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
+  const t = translations[lang];
+  return [
+    { type: 'link', name: t.accountsReceivable, href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
+    { type: 'link', name: t.dailyClosing, href: `/store/${storeId}/cash-register`, icon: WalletCards }, // Reutilizando para auditoría
+    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
+  ];
+};
+
+const getSupervisorPasilloNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
+  const t = translations[lang];
+  return [
+    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
+    { type: 'link', name: 'Listado de Clientes', href: `/store/${storeId}/vendors/clients`, icon: Users },
+  ];
+};
 
 const getRuteroNav = (storeId: string, lang: 'es' | 'en', _settings: StoreSettings): NavItem[] => {
   return [
@@ -603,6 +652,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [language, setLanguage] = useState<'es' | 'en'>('es');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [storeType, setStoreType] = useState<string>('BODEGA');
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
     enableDispatcherMode: false,
     enableSalesManagerMode: false,
@@ -619,8 +669,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const fetchStoreSettings = async () => {
       try {
         const res = await apiClient.get(`/stores/${storeId}`);
-        if (res.data && res.data.settings) {
-          setStoreSettings(res.data.settings);
+        if (res.data) {
+          if (res.data.settings) setStoreSettings(res.data.settings);
+          if (res.data.store_type) setStoreType(res.data.store_type);
         }
       } catch (error) {
          // ignore
@@ -667,16 +718,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'owner':
         if (storeId) {
           // When master-admin is inside a store, show store nav
-          return getStoreAdminNav(storeId, language, storeSettings);
+          return getStoreAdminNav(storeId, language, storeSettings, storeType);
         }
         return getMasterAdminNav(language);
       case 'chain-admin':
         if (storeId) {
-          return getStoreAdminNav(storeId, language, storeSettings);
+          return getStoreAdminNav(storeId, language, storeSettings, storeType);
         }
         return getChainAdminNav(language);
       case 'store-admin':
-        return getStoreAdminNav(storeId || '', language, storeSettings);
+        return getStoreAdminNav(storeId || '', language, storeSettings, storeType);
       case 'inventory':
         return getBodegueroNav(storeId || '', language);
       case 'cashier':
@@ -689,10 +740,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         return getVendedorAmbulanteNav(storeId || '', language);
       case 'sales-manager':
         return getGestorVentasNav(storeId || '', language);
+      case 'auxiliar':
+        return getAuxiliarNav(storeId || '', language);
+      case 'supervisor-caja':
+        return getSupervisorCajaNav(storeId || '', language);
+      case 'supervisor-pasillo':
+        return getSupervisorPasilloNav(storeId || '', language);
       default:
-        return storeId ? getStoreAdminNav(storeId, language, storeSettings) : [];
+        return storeId ? getStoreAdminNav(storeId, language, storeSettings, storeType) : [];
     }
-  }, [user, language, storeId, storeSettings]);
+  }, [user, language, storeId, storeSettings, storeType]);
 
   // Flatten for AppHeader (mobile hamburger menu still uses flat list)
   const flatNav = useMemo(() => flattenNavItems(navItems), [navItems]);

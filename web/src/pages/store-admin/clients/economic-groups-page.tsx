@@ -78,7 +78,7 @@ export default function EconomicGroupsPage() {
                 </div>
                 <div className="bg-red-50 text-red-900 px-4 py-3 rounded-lg border border-red-100 flex flex-col">
                   <span className="text-xs font-semibold uppercase flex items-center gap-1"><TrendingDown className="h-3 w-3" /> Deuda Actual Estimada</span>
-                  <span className="text-xl font-black mt-1">N/D</span>
+                  <span className="text-xl font-black mt-1">{g.saldo_total != null ? `C$ ${parseFloat(g.saldo_total).toLocaleString()}` : 'C$ 0'}</span>
                 </div>
               </div>
               

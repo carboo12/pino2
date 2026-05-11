@@ -224,7 +224,7 @@ class SyncQueueProcessor extends Notifier<SyncQueueState> {
   Future<void> _refreshPendingCount() async {
     try {
       final pending = await _localCache.getPendingSyncEntries(limit: 100);
-      final failed = pending.where((e) => (e.attemptCount ?? 0) > 0).length;
+      final failed = pending.where((e) => e.attemptCount > 0).length;
       state = state.copyWith(
         pendingCount: pending.length,
         failedCount: failed,

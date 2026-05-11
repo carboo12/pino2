@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/daily_closing_repository.dart';
+import 'denomination_input_screen.dart';
 
 class DailyClosingScreen extends ConsumerStatefulWidget {
   const DailyClosingScreen({required this.storeId, this.storeName, super.key});
@@ -18,7 +19,6 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
   bool _isLoading = true;
   bool _isSubmitting = false;
   bool _alreadyClosed = false;
-  final _notesController = TextEditingController();
 
   List<Map<String, dynamic>> _deliveries = [];
   List<Map<String, dynamic>> _returns = [];
@@ -93,7 +93,6 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
 
   @override
   void dispose() {
-    _notesController.dispose();
     super.dispose();
   }
 
@@ -144,7 +143,7 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
     }
   }
 
-  Future<void> _submitClosing() async {
+  Future<void> _submitClosing(Map<String, dynamic> result) async {
     final session = ref.read(authControllerProvider).session;
     if (session == null) return;
 
@@ -152,7 +151,11 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
     final repo = ref.read(dailyClosingRepositoryProvider);
 
     try {
-      final result = await repo.submitClosing(
+      final finalNotes = (result['notes'] as String?)?.isNotEmpty == true
+          ? result['notes'] as String
+          : 'Cierre de caja — ${session.user.name} — $_todayFormatted';
+
+      final repoResult = await repo.submitClosing(
         storeId: widget.storeId,
         ruteroId: session.user.id,
         totalSales: _totalSales,
@@ -160,14 +163,13 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
         totalReturns: _totalReturns,
         cashTotal: _cashTotal,
         closingDate: _today,
-        notes: _notesController.text.isEmpty
-            ? 'Cierre de caja — ${session.user.name} — $_todayFormatted'
-            : _notesController.text,
+        notes: finalNotes,
+        denominations: result['denominations'] as Map<String, dynamic>?,
         accessToken: session.accessToken,
       );
 
       if (!mounted) return;
-      final queued = result['queuedOffline'] == true;
+      final queued = repoResult['queuedOffline'] == true;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -190,72 +192,19 @@ class _DailyClosingScreenState extends ConsumerState<DailyClosingScreen> {
     }
   }
 
-  void _showConfirmDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        title: const Text(
-          'Confirmar cierre de caja',
-          style: TextStyle(fontWeight: FontWeight.w800),
+  void _showConfirmDialog() async {
+    final result = await Navigator.push<Map<String, dynamic>?>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DenominationInputScreen(
+          expectedCash: _cashTotal,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Cierre del día $_todayFormatted',
-              style: const TextStyle(color: Colors.black54, fontSize: 13),
-            ),
-            const SizedBox(height: 16),
-              Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Text(
-                'Al confirmar, notificarás a bodega que finalizaste la jornada y comenzarás el arqueo físico de efectivo y producto no entregado.',
-                style: TextStyle(color: Colors.black87, fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _notesController,
-              minLines: 2,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Notas (opcional)',
-                hintText: 'Observaciones del día...',
-                alignLabelWithHint: true,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton.icon(
-            onPressed: _isSubmitting
-                ? null
-                : () {
-                    Navigator.pop(ctx);
-                    _submitClosing();
-                  },
-            icon: _isSubmitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check_circle_rounded),
-            label: const Text('Cerrar caja'),
-          ),
-        ],
       ),
     );
+
+    if (result != null && mounted) {
+      _submitClosing(result);
+    }
   }
 
   // ──── BUILD ────

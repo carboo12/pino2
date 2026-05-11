@@ -95,7 +95,6 @@ class DailyClosingRepository {
     }
   }
 
-  /// Submit the daily closing. Falls back to offline queue.
   Future<Map<String, dynamic>> submitClosing({
     required String storeId,
     required String ruteroId,
@@ -106,8 +105,9 @@ class DailyClosingRepository {
     required String closingDate,
     required String notes,
     required String accessToken,
+    Map<String, dynamic>? denominations,
   }) async {
-    final payload = {
+    final payload = <String, dynamic>{
       'storeId': storeId,
       'ruteroId': ruteroId,
       'totalSales': totalSales,
@@ -117,6 +117,9 @@ class DailyClosingRepository {
       'closingDate': closingDate,
       'notes': notes,
     };
+    if (denominations != null) {
+      payload['denominations'] = denominations;
+    }
 
     final online = await _connectivity.isOnline();
     if (online) {

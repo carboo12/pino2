@@ -47,6 +47,73 @@ class _ClientPortfolioScreenState extends ConsumerState<ClientPortfolioScreen> {
     super.dispose();
   }
 
+  Future<void> _showEditClientDialog(BuildContext context, ClientSummary client) async {
+    final limitCtrl = TextEditingController(text: client.creditLimit?.toString() ?? '0');
+    final daysCtrl = TextEditingController(text: client.creditDays?.toString() ?? '0');
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text('Editar Crédito: ${client.name}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: limitCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Límite de Crédito (C\$)'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: daysCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Días de Crédito'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true && context.mounted) {
+      final session = ref.read(authControllerProvider).session;
+      if (session == null) return;
+      try {
+        await ref.read(clientPortfolioRepositoryProvider).updateClient(
+          clientId: client.id,
+          accessToken: session.accessToken,
+          data: {
+            'limiteCredito': num.tryParse(limitCtrl.text) ?? 0,
+            'diasCredito': int.tryParse(daysCtrl.text) ?? 0,
+          },
+        );
+        ref.invalidate(clientPortfolioProvider(widget.storeId));
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cliente actualizado exitosamente')),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al actualizar: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final clientsAsync = ref.watch(clientPortfolioProvider(widget.storeId));
@@ -112,7 +179,10 @@ class _ClientPortfolioScreenState extends ConsumerState<ClientPortfolioScreen> {
                       ...filtered.map(
                         (client) => Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _ClientCard(client: client),
+                          child: _ClientCard(
+                            client: client,
+                            onEdit: () => _showEditClientDialog(context, client),
+                          ),
                         ),
                       ),
                   ],
@@ -227,9 +297,10 @@ class _ClientMetric extends StatelessWidget {
 }
 
 class _ClientCard extends StatelessWidget {
-  const _ClientCard({required this.client});
+  const _ClientCard({required this.client, this.onEdit});
 
   final ClientSummary client;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -252,12 +323,60 @@ class _ClientCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            client.name,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  client.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (onEdit != null)
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  onPressed: onEdit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+            ],
           ),
+          if (client.creditLimit != null || client.creditDays != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                if (client.creditLimit != null && client.creditLimit! > 0)
+                  Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Text(
+                      'Límite: C\$ ${client.creditLimit}',
+                      style: TextStyle(fontSize: 12, color: Colors.blue.shade700, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                if (client.creditDays != null && client.creditDays! > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: Colors.amber.shade200),
+                    ),
+                    child: Text(
+                      'Crédito: ${client.creditDays} días',
+                      style: TextStyle(fontSize: 12, color: Colors.amber.shade900, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
           if ((client.phone ?? '').isNotEmpty)
             _ClientLine(

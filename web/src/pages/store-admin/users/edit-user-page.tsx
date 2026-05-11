@@ -58,6 +58,8 @@ const STORE_ROLE_OPTIONS = [
   { value: 'Ayudante de Bodega', label: 'AYUDANTE DE BODEGA' },
   { value: 'auxiliar', label: 'AUXILIAR ADMIN' },
   { value: 'store-admin', label: 'ADMINISTRADOR DE TIENDA' },
+  { value: 'supervisor-caja', label: 'SUPERVISOR DE CAJA' },
+  { value: 'supervisor-pasillo', label: 'SUPERVISOR DE PASILLO' },
 ];
 
 const MASTER_ROLE_OPTIONS = [

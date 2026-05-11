@@ -100,6 +100,26 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   subDepartment?: string | null;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice1?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice2?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice3?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice4?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice5?: number;
 }
 
 export class UpdateProductDto {
@@ -194,6 +214,26 @@ export class UpdateProductDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice1?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice2?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice3?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice4?: number;
+
+  @IsNumber()
+  @IsOptional()
+  bulkPrice5?: number;
 }
 
 export interface Product {
@@ -213,6 +253,11 @@ export interface Product {
   price3: number;
   price4: number;
   price5: number;
+  bulkPrice1: number;
+  bulkPrice2: number;
+  bulkPrice3: number;
+  bulkPrice4: number;
+  bulkPrice5: number;
   currentStock: number;
   unitsPerBulk: number;
   stockBulks: number;
@@ -224,4 +269,22 @@ export interface Product {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
+
+export class ImportBulkProductsDto {
+  @IsString()
+  @IsNotEmpty()
+  storeId!: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductDto)
+  products!: CreateProductDto[];
+
+  @IsString()
+  @IsNotEmpty()
+  cashierName!: string;
 }
