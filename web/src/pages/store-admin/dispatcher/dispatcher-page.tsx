@@ -23,12 +23,10 @@ interface CartItem extends GlobalProduct {
 }
 
 
-const genericClient: Client = { id: 'generic', storeId: '', name: 'Cliente Genérico', phone: '', address: '', email: '' };
-
 export default function DispatcherPage() {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [settings, setSettings] = useState<{ applyVAT: boolean }>({ applyVAT: false });
-    const [selectedClient, setSelectedClient] = useState<Client>(genericClient);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<GlobalProduct[]>([]);
@@ -49,11 +47,16 @@ export default function DispatcherPage() {
 
         const fetchDefaultClient = async () => {
             try {
-                const res = await apiClient.get('/clients', { params: { storeId, limit: 1 } });
-                if (res.data && res.data.length > 0) {
-                    setSelectedClient(res.data[0]);
+                const res = await apiClient.get(`/stores/${storeId}/default-client`);
+                if (res.data) {
+                    setSelectedClient(res.data);
                 }
-            } catch { /* usar fallback hardcodeado */ }
+            } catch {
+                setSelectedClient({
+                    id: 'temp-mostrador', storeId: storeId,
+                    name: 'VENTA MOSTRADOR', phone: '', address: '', email: ''
+                });
+            }
         };
         fetchDefaultClient();
     }, [storeId]);
@@ -93,7 +96,7 @@ export default function DispatcherPage() {
     const tax = settings?.applyVAT ? subtotal * 0.15 : 0;
     const total = subtotal + tax;
 
-    const resetOrder = () => { setCart([]); setSelectedClient(genericClient); };
+    const resetOrder = () => { setCart([]); setSelectedClient(null); };
 
     const handleSendCommand = async () => {
         if (!user) { toast({ variant: 'destructive', title: 'Error', description: 'No se pudo identificar al despachador.' }); return; }
@@ -105,14 +108,14 @@ export default function DispatcherPage() {
                 storeId,
                 dispatcherId: user.id,
                 dispatcherName: user.name,
-                clientId: selectedClient.id !== 'generic' ? selectedClient.id : undefined,
-                clientName: selectedClient.name,
+                clientId: selectedClient?.id ?? undefined,
+                clientName: selectedClient?.name ?? 'VENTA MOSTRADOR',
                 items: cart.map(({ id, description, quantity, salePrice, costPrice }) => ({ productId: id, description, quantity, unitPrice: salePrice, costPrice: costPrice || 0 })),
                 subtotal, tax, total,
                 status: 'Pendiente',
             });
             
-            toast({ title: 'Comanda Enviada', description: `La comanda para ${selectedClient.name} está lista para ser cobrada.` });
+            toast({ title: 'Comanda Enviada', description: `La comanda para ${selectedClient?.name ?? 'VENTA MOSTRADOR'} está lista para ser cobrada.` });
 
             // Imprimir pre-ticket
             try {
@@ -122,7 +125,7 @@ export default function DispatcherPage() {
                     total,
                     subtotal,
                     discount: 0,
-                    clientName: selectedClient.name,
+                    clientName: selectedClient?.name ?? 'VENTA MOSTRADOR',
                     cashierName: `Despachador: ${user.name}`,
                     storeName: 'Ticket Pre-Cuenta',
                     paymentMethod: 'PENDIENTE DE PAGO',
@@ -192,7 +195,7 @@ export default function DispatcherPage() {
                         </div>
                         <div className="mt-2 p-4 border rounded-lg bg-muted/30 flex items-center gap-4">
                             <User className="h-8 w-8 text-muted-foreground" />
-                            <div><p className="font-semibold">{selectedClient.name}</p><p className="text-sm text-muted-foreground">{selectedClient.phone || 'Sin teléfono'}</p></div>
+                            <div><p className="font-semibold">{selectedClient?.name ?? 'VENTA MOSTRADOR'}</p><p className="text-sm text-muted-foreground">{selectedClient?.phone || 'Sin teléfono'}</p></div>
                         </div>
                     </CardContent>
                 </Card>

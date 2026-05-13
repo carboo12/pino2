@@ -74,6 +74,22 @@ export class StoresService {
     return this.findOne(id);
   }
 
+  async getDefaultClient(storeId: string) {
+    const existing = await this.db.query(
+      "SELECT * FROM clients WHERE store_id = $1 AND type = 'MOSTRADOR' LIMIT 1",
+      [storeId],
+    );
+    if (existing.rowCount > 0) {
+      return existing.rows[0];
+    }
+    const created = await this.db.query(
+      `INSERT INTO clients (store_id, name, phone, address, email, type)
+       VALUES ($1, 'VENTA MOSTRADOR', '', '', '', 'MOSTRADOR') RETURNING *`,
+      [storeId],
+    );
+    return created.rows[0];
+  }
+
   async remove(id: string) {
     await this.db.query(
       'UPDATE stores SET is_active = false, updated_at = NOW() WHERE id = $1',

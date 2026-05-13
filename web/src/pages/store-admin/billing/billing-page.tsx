@@ -76,15 +76,6 @@ interface Shift {
   openingTimestamp: string | Date;
 }
 
-const genericClient: Client = {
-  id: 'generic',
-  storeId: '',
-  name: 'Cliente Genérico',
-  phone: '',
-  address: '',
-  email: ''
-};
-
 function QuantityPromptDialog({
   isOpen,
   onClose,
@@ -145,7 +136,7 @@ export default function BillingPage() {
   const [settings, setSettings] = useState<StoreSettings>({ applyVAT: false, billingMode: 'scan-and-add', exchangeRate: 36.6 });
   const [activeShift, setActiveShift] = useState<Shift | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedClient, setSelectedClient] = useState<Client>(genericClient);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [productForQuantityPrompt, setProductForQuantityPrompt] = useState<Product | null>(null);
   const [amountReceived, setAmountReceived] = useState<number | string>('');
   const [paymentCurrency, setPaymentCurrency] = useState<'NIO' | 'USD'>('NIO');
@@ -185,11 +176,18 @@ export default function BillingPage() {
 
     const fetchDefaultClient = async () => {
       try {
-        const res = await apiClient.get('/clients', { params: { storeId, limit: 1 } });
-        if (res.data && res.data.length > 0) {
-          setSelectedClient(res.data[0]);
+        const res = await apiClient.get(`/stores/${storeId}/default-client`);
+        if (res.data) {
+          setSelectedClient(res.data);
         }
-      } catch { /* usar fallback hardcodeado */ }
+      } catch {
+        setSelectedClient({
+          id: 'temp-mostrador',
+          storeId: storeId,
+          name: 'VENTA MOSTRADOR',
+          phone: '', address: '', email: ''
+        });
+      }
     };
     fetchDefaultClient();
 
@@ -267,7 +265,7 @@ export default function BillingPage() {
 
   const resetSale = () => {
     setCart([]);
-    setSelectedClient(genericClient);
+    setSelectedClient(null);
     setAmountReceived('');
     setPaymentCurrency('NIO');
     setIsPaymentDialogOpen(false);
@@ -303,8 +301,8 @@ export default function BillingPage() {
         shiftId: activeShift.id,
         cashierId: user.id,
         cashierName: user.name,
-        clientId: selectedClient.id,
-        clientName: selectedClient.name,
+        clientId: selectedClient?.id ?? 'temp-mostrador',
+        clientName: selectedClient?.name ?? 'VENTA MOSTRADOR',
         items: cart.map(({ id, description, quantity, salePrice, costPrice, usesInventory, currentStock }) => ({ 
            id, description, quantity, salePrice, costPrice: costPrice || 0, usesInventory, currentStock 
         })),

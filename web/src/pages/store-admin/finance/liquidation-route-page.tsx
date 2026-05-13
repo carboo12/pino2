@@ -36,15 +36,7 @@ export default function LiquidationRoutePage() {
       if (res.data && res.data.length > 0) {
         setData(res.data[0]);
       } else {
-        setData({
-           pedidos_entregados: 0,
-           pedidos_rechazados: 0,
-           cobros_contado: 0,
-           cobros_credito: 0,
-           devoluciones: 0,
-           diferencia_arqueo: 0,
-           status: 'SIN_DATOS'
-        });
+        setData(null);
       }
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
@@ -105,6 +97,13 @@ export default function LiquidationRoutePage() {
             </Button>
          </div>
       </div>
+
+      {!data && !loading && selectedRutero && (
+        <div className="text-center py-12 text-muted-foreground bg-muted/20 border rounded-xl border-dashed">
+          <p className="text-lg font-medium">Sin datos de liquidación</p>
+          <p className="text-sm mt-1">No se encontraron operaciones del rutero para esta fecha.</p>
+        </div>
+      )}
 
       {data && (
          <div className="space-y-6">

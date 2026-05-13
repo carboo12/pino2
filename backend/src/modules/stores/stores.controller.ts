@@ -57,6 +57,12 @@ export class StoresController {
     return this.storesService.update(id, dto);
   }
 
+  @Get(':id/default-client')
+  @ApiOperation({ summary: 'Obtener o crear cliente por defecto de la tienda' })
+  async getDefaultClient(@Param('id') id: string) {
+    return this.storesService.getDefaultClient(id);
+  }
+
   @Patch(':id/settings')
   @Roles('master-admin', 'chain-admin', 'store-admin')
   @ApiOperation({ summary: 'Actualizar configuración JSONB de la tienda' })

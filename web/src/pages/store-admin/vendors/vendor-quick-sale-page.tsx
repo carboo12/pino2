@@ -26,22 +26,13 @@ interface CartItem extends GlobalProduct {
   quantity: number;
 }
 
-const genericClient: Client = {
-  id: 'generic',
-  storeId: '',
-  name: 'Cliente Genérico',
-  phone: '',
-  address: '',
-  email: '',
-};
-
 export default function VendorQuickSalePage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [settings, setSettings] = useState<{ applyVAT: boolean }>({
     applyVAT: false,
   });
   const [selectedClient, setSelectedClient] =
-    useState<Client>(genericClient);
+    useState<Client | null>(null);
   const [paymentType, setPaymentType] = useState<'Contado' | 'Crédito'>(
     'Contado',
   );
@@ -57,7 +48,7 @@ export default function VendorQuickSalePage() {
   const { toast } = useToast();
   const clientId = searchParams.get('clientId');
 
-  // Load store settings
+  // Load store settings + default client
   useEffect(() => {
     if (!storeId) return;
     apiClient
@@ -68,6 +59,16 @@ export default function VendorQuickSalePage() {
         }
       })
       .catch(() => {});
+    apiClient.get(`/stores/${storeId}/default-client`)
+      .then((res) => {
+        if (res.data) setSelectedClient(res.data);
+      })
+      .catch(() => {
+        setSelectedClient({
+          id: 'temp-mostrador', storeId: storeId,
+          name: 'VENTA MOSTRADOR', phone: '', address: '', email: ''
+        });
+      });
   }, [storeId]);
 
   // Load full catalog once
@@ -149,7 +150,7 @@ export default function VendorQuickSalePage() {
 
   const resetSale = () => {
     setCart([]);
-    setSelectedClient(genericClient);
+    setSelectedClient(null);
     setPaymentType('Contado');
   };
 
@@ -169,8 +170,8 @@ export default function VendorQuickSalePage() {
         storeId,
         vendorId: user.id,
         cashierName: user.name,
-        clientId: selectedClient.id !== 'generic' ? selectedClient.id : undefined,
-        clientName: selectedClient.name,
+        clientId: selectedClient?.id ?? undefined,
+        clientName: selectedClient?.name ?? 'VENTA MOSTRADOR',
         items: cart.map(({ id, description, quantity, salePrice, costPrice }) => ({
           productId: id, description, quantity, unitPrice: salePrice, costPrice: costPrice || 0,
         })),
@@ -179,7 +180,7 @@ export default function VendorQuickSalePage() {
         type: 'venta_directa',
       });
 
-      toast({ title: 'Venta registrada', description: `C$ ${total.toFixed(2)} — ${selectedClient.name}` });
+      toast({ title: 'Venta registrada', description: `C$ ${total.toFixed(2)} — ${selectedClient?.name ?? 'VENTA MOSTRADOR'}` });
       resetSale();
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: error?.response?.data?.message || 'No se pudo registrar la venta.' });
