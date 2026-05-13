@@ -13,6 +13,13 @@ export class ErrorsService {
     return res.rows.map(this.mapRow);
   }
 
+  async deleteOld() {
+    const res = await this.db.query(
+      `DELETE FROM error_logs WHERE created_at < NOW() - INTERVAL '24 hours'`,
+    );
+    return { deleted: res.rowCount };
+  }
+
   async create(dto: {
     message: string;
     stack?: string;

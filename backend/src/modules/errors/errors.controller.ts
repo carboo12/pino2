@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ErrorsService } from './errors.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -14,6 +14,12 @@ export class ErrorsController {
   @ApiOperation({ summary: 'Listar errores del sistema' })
   findAll(@Query('limit') limit?: string) {
     return this.service.findAll(limit ? parseInt(limit) : undefined);
+  }
+
+  @Delete('old')
+  @ApiOperation({ summary: 'Eliminar errores con más de 24h' })
+  deleteOld() {
+    return this.service.deleteOld();
   }
 
   @Post()

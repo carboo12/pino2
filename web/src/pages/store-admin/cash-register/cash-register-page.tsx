@@ -20,10 +20,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-    Dialog, 
-    DialogContent, 
-    DialogHeader, 
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
@@ -83,18 +84,18 @@ function DenominationGrid({
   onUpdate: (key: string, qty: number) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {DENOMINATIONS.map(d => (
-        <div key={d.key} className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
-          <span className="text-[11px] font-bold text-slate-500 flex-1 truncate">{d.label}</span>
+        <div key={d.key} className="flex items-center gap-3 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+          <span className="text-sm font-bold text-slate-600 flex-1">{d.label}</span>
           <Input
             type="number"
             min="0"
-            className="w-20 h-8 text-center text-sm font-bold bg-white border-slate-200 rounded-lg"
+            className="w-24 h-10 text-center text-base font-bold bg-white border-slate-200 rounded-lg"
             value={counts[d.key] || ''}
             onChange={e => onUpdate(d.key, parseInt(e.target.value) || 0)}
           />
-          <span className="text-xs font-mono text-slate-400 w-16 text-right">
+          <span className="text-sm font-mono font-bold text-slate-500 w-20 text-right">
             {((counts[d.key] || 0) * d.value).toFixed(d.value < 1 ? 2 : 0)}
           </span>
         </div>
@@ -377,16 +378,16 @@ export default function CashRegisterPage() {
 
       {/* ══════════════════════ DIALOGS ══════════════════════ */}
       
-      {/* Apertura de Caja — con denominaciones */}
+       {/* Apertura de Caja — con denominaciones */}
       <Dialog open={isOpeningShift} onOpenChange={setIsOpeningShift}>
-         <DialogContent className="rounded-[32px] border-none shadow-2xl p-0 overflow-hidden max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="bg-primary p-6 text-white">
-                <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-3 text-white">
+         <DialogContent className="rounded-[32px] border-none shadow-2xl p-0 overflow-hidden max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="bg-primary p-6 text-white">
+                <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3 text-white">
                     <DoorOpen className="h-6 w-6 text-white" />
                     Apertura de Turno
-                </h2>
+                </DialogTitle>
                 <p className="text-primary-foreground/80 font-medium mt-1 text-sm">Ingresa la cantidad de cada denominación en la gaveta.</p>
-            </div>
+            </DialogHeader>
             <div className="p-6 space-y-4">
                 <DenominationGrid counts={openDenom.counts} onUpdate={openDenom.update} />
 
@@ -406,16 +407,16 @@ export default function CashRegisterPage() {
          </DialogContent>
       </Dialog>
 
-      {/* Cierre de Caja — con denominaciones */}
+       {/* Cierre de Caja — con denominaciones */}
       <Dialog open={isClosingShift} onOpenChange={setIsClosingShift}>
-         <DialogContent className="rounded-[32px] border-none shadow-2xl p-0 overflow-hidden max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="bg-red-500 p-6 text-white">
-                <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-3 text-white">
+         <DialogContent className="rounded-[32px] border-none shadow-2xl p-0 overflow-hidden max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="bg-red-500 p-6 text-white">
+                <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3 text-white">
                     <Lock className="h-6 w-6 text-white" />
                     Cuadre y Cierre
-                </h2>
+                </DialogTitle>
                 <p className="text-white/80 font-medium mt-1 italic text-sm">Cuenta el efectivo físico por denominación.</p>
-            </div>
+            </DialogHeader>
             <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
@@ -461,15 +462,15 @@ export default function CashRegisterPage() {
       {/* Últimas 50 Ventas */}
       <Dialog open={showLastSales} onOpenChange={setShowLastSales}>
          <DialogContent className="rounded-[32px] border-none shadow-2xl p-0 overflow-hidden max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="bg-slate-800 p-6 text-white flex justify-between items-center">
-               <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+            <DialogHeader className="bg-slate-800 p-6 text-white flex flex-row items-center justify-between">
+               <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
                   <FileText className="h-6 w-6" />
                   Últimas 50 Ventas
-               </h2>
+               </DialogTitle>
                <Button variant="ghost" size="sm" onClick={() => setShowLastSales(false)} className="text-white hover:text-white/80">
                   <X className="h-5 w-5" />
                </Button>
-            </div>
+            </DialogHeader>
             <div className="p-6">
                {loadingLastSales ? (
                   <div className="space-y-3">

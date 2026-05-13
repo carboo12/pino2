@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, Terminal } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { AlertTriangle, Terminal, Trash2 } from 'lucide-react';
+import { formatDistanceToNow, format, subHours } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import apiClient from '@/services/api-client';
+import { toast } from '@/lib/swalert';
 
 interface ErrorLog { id: string; message: string; timestamp: string; context: { location: string; userEmail: string; [key: string]: any; }; }
 
@@ -16,12 +18,38 @@ export default function MasterMonitorPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const fetchErrors = useCallback(async () => {
+        try {
+            const res = await apiClient.get('/errors');
+            const logs = (res.data || []) as ErrorLog[];
+            const cutoff = subHours(new Date(), 24);
+            setErrorLogs(logs.filter((log) => {
+                if (!log.timestamp) return false;
+                const ts = new Date(log.timestamp);
+                return ts > cutoff;
+            }));
+        } catch {
+            setError('No se pudieron cargar los registros.');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const handleClearOld = async () => {
+        try {
+            const res = await apiClient.delete('/errors/old');
+            toast.success('Errores limpiados', `Se eliminaron ${res.data?.deleted || 0} registros antiguos.`);
+            fetchErrors();
+        } catch {
+            toast.error('Error', 'No se pudieron limpiar los errores.');
+        }
+    };
+
     useEffect(() => {
-        const fetchErrors = async () => { try { const res = await apiClient.get('/errors'); setErrorLogs(res.data || []); } catch { setError('No se pudieron cargar los registros.'); } finally { setLoading(false); } };
         fetchErrors();
         const interval = setInterval(fetchErrors, 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [fetchErrors]);
 
     const parseTimestamp = (ts: any): Date | null => {
         if (!ts) return null; if (ts instanceof Date) return ts; if (typeof ts === 'string') return new Date(ts); if (ts._seconds) return new Date(ts._seconds * 1000); return null;
@@ -55,7 +83,7 @@ export default function MasterMonitorPage() {
     return (
         <div>
             <div className="mb-6"><h1 className="text-2xl font-bold tracking-tight">Monitor del Sistema</h1><p className="text-muted-foreground">Supervisa errores y eventos importantes.</p></div>
-            <Card><CardHeader><CardTitle>Registros de Errores</CardTitle><CardDescription>Errores capturados, polling cada 30s.</CardDescription></CardHeader><CardContent>{renderContent()}</CardContent></Card>
+            <Card><CardHeader><div className="flex items-center justify-between"><div><CardTitle>Registros de Errores</CardTitle><CardDescription>Errores capturados, polling cada 30s. Solo muestra errores &lt; 24h.</CardDescription></div><Button variant="outline" size="sm" onClick={handleClearOld} className="gap-2"><Trash2 className="h-4 w-4" />Limpiar antiguos</Button></div></CardHeader><CardContent>{renderContent()}</CardContent></Card>
         </div>
     );
 }
