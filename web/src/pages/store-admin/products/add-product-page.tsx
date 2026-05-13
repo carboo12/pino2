@@ -115,7 +115,7 @@ export default function AddProductPage() {
   const { data: subDepartments = [] } = useQuery({
     queryKey: ['sub-departments', storeId],
     queryFn: async () => {
-      const res = await apiClient.get('/sub-departments', { params: { storeId } });
+      const res = await apiClient.get('/departments/sub-departments', { params: { storeId } });
       return (res.data || []).map((sd: any) => ({
         id: sd.id,
         name: sd.name || sd.nombre,

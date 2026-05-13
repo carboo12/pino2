@@ -164,7 +164,7 @@ export default function EditProductPage() {
   const { data: subDepartments = [], isLoading: loadingSubDepts } = useQuery({
     queryKey: ['sub-departments', storeId],
     queryFn: async () => {
-      const res = await apiClient.get('/sub-departments', { params: { storeId } });
+      const res = await apiClient.get('/departments/sub-departments', { params: { storeId } });
       return (res.data || []).map((subDepartment: any) => ({
         id: subDepartment.id,
         name: subDepartment.name || subDepartment.nombre,

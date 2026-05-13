@@ -74,7 +74,7 @@ export default function ProductsPage() {
             const [prodsRes, deptsRes, subDeptsRes] = await Promise.all([
                 apiClient.get('/products', { params: { storeId } }),
                 apiClient.get('/departments', { params: { storeId, type: 'main' } }),
-                apiClient.get('/sub-departments', { params: { storeId } }).catch(() => ({ data: [] })),
+                apiClient.get('/departments/sub-departments', { params: { storeId } }).catch(() => ({ data: [] })),
             ]);
             return {
                 products: prodsRes.data as Product[],

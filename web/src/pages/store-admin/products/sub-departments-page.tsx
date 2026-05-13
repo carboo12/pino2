@@ -80,7 +80,7 @@ export default function SubDepartmentsPage() {
     try {
       const [deptsRes, subDeptsRes] = await Promise.all([
         apiClient.get('/departments', { params: { storeId, type: 'main' } }),
-        apiClient.get('/sub-departments', { params: { storeId } }).catch(() => ({ data: [] })),
+        apiClient.get('/departments/sub-departments', { params: { storeId } }).catch(() => ({ data: [] })),
       ]);
       const depts = deptsRes.data;
       setDepartments(depts);
