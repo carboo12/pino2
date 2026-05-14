@@ -88,6 +88,15 @@ const AgingReportPage = lazy(() => import('@/pages/store-admin/finance/aging-rep
 const MultiStoreComparisonPage = lazy(() => import('@/pages/master-admin/multi-store-comparison-page'));
 const InventoryEntryPage = lazy(() => import('@/pages/store-admin/inventory/inventory-entry-page'));
 
+// WORKSPACE PAGES
+const WorkHomePage = lazy(() => import('@/pages/work/work-home-page'));
+const CashWorkspacePage = lazy(() => import('@/pages/work/cash-workspace-page'));
+const WarehouseWorkspacePage = lazy(() => import('@/pages/work/warehouse-workspace-page'));
+const SalesWorkspacePage = lazy(() => import('@/pages/work/sales-workspace-page'));
+const FinanceWorkspacePage = lazy(() => import('@/pages/work/finance-workspace-page'));
+const CatalogWorkspacePage = lazy(() => import('@/pages/work/catalog-workspace-page'));
+const AdminControlCenterPage = lazy(() => import('@/pages/work/admin-control-center-page'));
+
 // FASE 3: Nuevas Páginas
 const DispatchPage = lazy(() => import('@/pages/store-admin/dispatch/dispatch-page'));
 const DispatchCargasPage = lazy(() => import('@/pages/store-admin/dispatch/dispatch-cargas-page'));
@@ -224,6 +233,15 @@ function App() {
                   <Route path="/store/:storeId/daily-closing" element={<ProtectedRoute requireStoreAccess allowedRoles={DELIVERY_ROLES}><RuteroDailyClosingPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/daily-closings" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><AdminDailyClosingsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/orders-pipeline" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><OrdersPipelinePage /></ProtectedRoute>} />
+
+                  {/* WORKSPACE ROUTES */}
+                  <Route path="/store/:storeId/work" element={<ProtectedRoute requireStoreAccess><WorkHomePage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/work/cash" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><CashWorkspacePage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/work/warehouse" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><WarehouseWorkspacePage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/work/sales" element={<ProtectedRoute requireStoreAccess allowedRoles={SALES_TEAM_ROLES}><SalesWorkspacePage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/work/finance" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><FinanceWorkspacePage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/work/catalog" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><CatalogWorkspacePage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/work/admin" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><AdminControlCenterPage /></ProtectedRoute>} />
 
                   {/* FASE 3 ROUTES */}
                   <Route path="/store/:storeId/dispatch" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><DispatchPage /></ProtectedRoute>} />

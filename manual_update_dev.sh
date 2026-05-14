@@ -40,6 +40,18 @@ update_repo() {
   git -C "$ROOT_DIR" pull --ff-only origin "$BRANCH"
 }
 
+resolve_backend_entry() {
+  local candidate
+  for candidate in "$BACKEND_DIR/dist/main.js" "$BACKEND_DIR/dist/src/main.js"; do
+    if [ -f "$candidate" ]; then
+      echo "$candidate"
+      return 0
+    fi
+  done
+
+  die "No se generó entrypoint backend esperado (dist/main.js o dist/src/main.js)"
+}
+
 deploy_backend() {
   [ -f "$BACKEND_DIR/.env" ] || die "Falta $BACKEND_DIR/.env"
 
@@ -53,8 +65,9 @@ deploy_backend() {
   log "Compilando backend"
   npm --prefix "$BACKEND_DIR" run build
 
-  local entry="$BACKEND_DIR/dist/main.js"
-  [ -f "$entry" ] || die "No se generó $entry"
+  local entry
+  entry="$(resolve_backend_entry)"
+  log "Entrypoint backend detectado: $entry"
 
   if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
     local description
@@ -149,7 +162,7 @@ case "$MODE" in
     show_summary
     ;;
   *)
-    cat <<'EOF'
+    cat <<'USAGE'
 Uso:
   ./manual_update_dev.sh all
   ./manual_update_dev.sh backend
@@ -165,7 +178,7 @@ Modos:
   local-all      -> sin git pull, backend + web + pm2 save
   local-backend  -> sin git pull, solo backend + pm2 save
   local-web      -> sin git pull, solo web
-EOF
+USAGE
     exit 1
     ;;
 esac

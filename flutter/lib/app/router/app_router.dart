@@ -3,6 +3,11 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/warehouse/domain/models/warehouse_models.dart';
 import '../../features/deliveries/domain/models/delivery_summary.dart';
+import '../../features/workday/presentation/screens/workday_home_screen.dart';
+import '../../features/workday/presentation/screens/route_workday_screen.dart';
+import '../../features/workday/presentation/screens/client_work_screen.dart';
+import '../../features/workday/presentation/screens/mobile_order_screen.dart';
+import '../../features/workday/presentation/screens/sync_status_screen.dart';
 
 import '../../features/catalog/presentation/screens/product_catalog_screen.dart';
 import '../../features/clients/presentation/screens/client_portfolio_screen.dart';
@@ -37,6 +42,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/workday', builder: (context, state) => const WorkdayHomeScreen()),
+      GoRoute(path: '/workday/route', builder: (context, state) => const RouteWorkdayScreen()),
+      GoRoute(
+        path: '/workday/client/:clientId',
+        builder: (context, state) {
+          final clientId = state.pathParameters['clientId'] ?? '';
+          return ClientWorkScreen(clientId: clientId);
+        },
+      ),
+      GoRoute(
+        path: '/workday/order',
+        builder: (context, state) {
+          final clientId = state.uri.queryParameters['clientId'];
+          final clientName = state.uri.queryParameters['clientName'];
+          return MobileOrderScreen(clientId: clientId, clientName: clientName);
+        },
+      ),
+      GoRoute(path: '/sync', builder: (context, state) => const SyncStatusScreen()),
       GoRoute(path: '/preventa-route', builder: (context, state) => const PreventaRouteScreen()),
       GoRoute(path: '/preventa-clients', builder: (context, state) => const PreventaClientsScreen()),
       GoRoute(path: '/preventa-add-client', builder: (context, state) => const PreventaAddClientScreen()),

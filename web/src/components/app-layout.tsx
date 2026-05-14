@@ -6,12 +6,13 @@ import { AppHeader } from '@/components/app-header';
 import { cn } from '@/lib/utils';
 import { isGlobalAdminRole, normalizeUserRole } from '@/lib/user-role';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
+import { CommandSearch } from '@/components/workspace/command-search';
 import {
   LayoutDashboard, Store, Briefcase, Users, WalletCards, RefreshCw,
   FileText, Map, MapPin, Settings, LifeBuoy, Package, History, Wrench,
   ShoppingCart, ClipboardCheck, AreaChart, UsersRound, Truck, HandCoins,
   ShieldCheck, SendToBack, Route, DollarSign, ListOrdered, PackagePlus, ReceiptText, Boxes, Wallet, Undo2,
-  ChevronDown, PanelLeftClose, PanelLeft,
+  ChevronDown, PanelLeftClose, PanelLeft, Command,
 } from 'lucide-react';
 
 // --- Nav Item Types ---
@@ -176,234 +177,65 @@ const getMasterAdminNav = (lang: 'es' | 'en'): NavItem[] => [
   { type: 'link', name: 'Configuración', href: '/master-admin/config', icon: Settings },
 ];
 
-const getStoreAdminNav = (storeId: string, lang: 'es' | 'en', settings: StoreSettings, storeType: string): NavItem[] => {
+const getStoreAdminNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
   const t = translations[lang];
-  const nav: NavItem[] = [];
-
-  const isSupermercado = storeType === 'SUPERMERCADO';
-  const isDistribuidora = storeType === 'DISTRIBUIDORA';
-  const isBodega = storeType === 'BODEGA';
-
-  // 1. Caja — Always visible, primary action
-  nav.push({ type: 'link', name: t.cashRegister, href: `/store/${storeId}/cash-register`, icon: WalletCards });
-
-  // 2. Facturación (+ Comandas si están activas)
-  if (settings.enableDispatcherMode || isDistribuidora) {
-    nav.push({ type: 'link', name: t.pendingOrders, href: `/store/${storeId}/pending-orders`, icon: ClipboardCheck });
-  }
-  nav.push({ type: 'link', name: t.billing, href: `/store/${storeId}/facturacion`, icon: ShoppingCart });
-
-  // 3. Panel
-  nav.push({ type: 'link', name: t.dashboard, href: `/store/${storeId}/dashboard`, icon: LayoutDashboard });
-
-  nav.push({ type: 'separator' });
-
-  // 4. Inventario (group) — Productos + Entrada + Movimientos + Bodega + Proveedores + Facturas
-  const invChildren: NavLink[] = [
-    { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
-    { type: 'link', name: 'Entrada', href: `/store/${storeId}/inventory/entry`, icon: PackagePlus },
-    { type: 'link', name: t.movements, href: `/store/${storeId}/inventory/movements`, icon: History },
+  return [
+    { type: 'link', name: 'Pulso', href: `/store/${storeId}/work`, icon: LayoutDashboard },
+    { type: 'link', name: t.cashRegister, href: `/store/${storeId}/work/cash`, icon: WalletCards },
+    { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+    { type: 'link', name: 'Ventas/Ruta', href: `/store/${storeId}/work/sales`, icon: Route },
+    { type: 'link', name: t.finances, href: `/store/${storeId}/work/finance`, icon: Wallet },
+    { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
+    { type: 'link', name: 'Admin', href: `/store/${storeId}/work/admin`, icon: ShieldCheck },
   ];
-  if (settings.enableSupplierManagement) {
-    invChildren.push(
-      { type: 'link', name: t.suppliers, href: `/store/${storeId}/suppliers`, icon: Briefcase },
-      { type: 'link', name: t.supplierInvoices, href: `/store/${storeId}/suppliers/invoice`, icon: ReceiptText },
-    );
-  }
-  nav.push({ type: 'group', name: t.inventory, icon: Package, children: invChildren });
-
-  // 5. Finanzas (group) - Oculto parcial en supermercados
-  if (!isSupermercado) {
-    nav.push({
-      type: 'group',
-      name: t.finances,
-      icon: Wallet,
-      children: [
-        { type: 'link', name: t.accountsReceivable, href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
-        { type: 'link', name: 'Arqueo de Ruteros', href: `/store/${storeId}/finance/arqueo`, icon: WalletCards },
-        { type: 'link', name: 'Liquidación de Ruta', href: `/store/${storeId}/finance/liquidation`, icon: ClipboardCheck },
-        { type: 'link', name: 'Aging Cartera', href: `/store/${storeId}/finance/aging`, icon: History },
-        { type: 'link', name: 'Cuentas por Pagar', href: `/store/${storeId}/finance/payables`, icon: Wallet },
-      ],
-    });
-  } else {
-    // Supermercado solo Cuentas por Pagar (Proveedores)
-    nav.push({
-      type: 'group',
-      name: t.finances,
-      icon: Wallet,
-      children: [
-        { type: 'link', name: 'Cuentas por Pagar', href: `/store/${storeId}/finance/payables`, icon: Wallet },
-      ],
-    });
-  }
-
-  // 6. Comercial / Ventas en Calle (group)
-  nav.push({
-    type: 'group',
-    name: t.reports,
-    icon: AreaChart,
-    children: [
-      { type: 'link', name: 'Reporte de Ventas', href: `/store/${storeId}/reports`, icon: AreaChart },
-      { type: 'link', name: 'Inventario Valorizado', href: `/store/${storeId}/reports/inventory-valuation`, icon: Package },
-    ],
-  });
-
-  if (settings.enableSalesManagerMode || isDistribuidora || isBodega) {
-    nav.push({
-      type: 'group',
-      name: t.commercial,
-      icon: Truck,
-      children: [
-        { type: 'link', name: t.vendors, href: `/store/${storeId}/vendors`, icon: UsersRound },
-        { type: 'link', name: 'Rutas y Despacho', href: `/store/${storeId}/vendors/routes`, icon: MapPin },
-        { type: 'link', name: 'Zonas y Barrios', href: `/store/${storeId}/vendors/zones`, icon: Map },
-        { type: 'link', name: 'Flujo de Pedidos', href: `/store/${storeId}/orders-pipeline`, icon: ListOrdered },
-      ],
-    });
-
-    nav.push({
-      type: 'group',
-      name: 'Clientes',
-      icon: Users,
-      children: [
-        { type: 'link', name: 'Listado de Clientes', href: `/store/${storeId}/vendors/clients`, icon: Users },
-        { type: 'link', name: 'Grupos de Clientes', href: `/store/${storeId}/clients/groups`, icon: UsersRound },
-        { type: 'link', name: 'Grupos Económicos', href: `/store/${storeId}/clients/economic-groups`, icon: Briefcase },
-        { type: 'link', name: 'Reasignación', href: `/store/${storeId}/clients/reassign`, icon: Undo2 },
-      ]
-    });
-
-    nav.push({
-      type: 'group',
-      name: 'Despacho',
-      icon: SendToBack,
-      children: [
-        { type: 'link', name: 'Panel de Despacho', href: `/store/${storeId}/dispatch`, icon: LayoutDashboard },
-        { type: 'link', name: 'Cargas del Día', href: `/store/${storeId}/dispatch/cargas`, icon: Truck },
-      ]
-    });
-  }
-
-  nav.push({ type: 'separator' });
-
-  // 7. Equipo (group)
-  nav.push({
-    type: 'group',
-    name: t.team,
-    icon: Users,
-    children: [
-      { type: 'link', name: t.users, href: `/store/${storeId}/users`, icon: UsersRound },
-      { type: 'link', name: 'Autorizaciones', href: `/store/${storeId}/authorizations`, icon: ShieldCheck },
-      { type: 'link', name: 'Precios Pendientes', href: `/store/${storeId}/authorizations/prices`, icon: DollarSign },
-    ],
-  });
-
-  // 8. Configuración — link directo
-  nav.push({ type: 'link', name: t.settings, href: `/store/${storeId}/settings`, icon: Settings });
-
-  return nav;
 };
 
 // --- Simple role navs (already compact) ---
-const getBodegueroNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
-  const t = translations[lang];
-  return [
-    { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-    { type: 'separator' },
-    {
-      type: 'group',
-      name: t.inventory,
-      icon: Package,
-      children: [
-        { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
-        { type: 'link', name: 'Entrada', href: `/store/${storeId}/inventory/entry`, icon: PackagePlus },
-        { type: 'link', name: t.movements, href: `/store/${storeId}/inventory/movements`, icon: History },
-        { type: 'link', name: t.adjustments, href: `/store/${storeId}/inventory/adjustments`, icon: Wrench },
-        { type: 'link', name: t.suppliers, href: `/store/${storeId}/suppliers`, icon: Briefcase },
-        { type: 'link', name: t.supplierInvoices, href: `/store/${storeId}/suppliers/invoice`, icon: ReceiptText },
-      ],
-    },
-  ];
-};
-
-const getCashierNav = (storeId: string, lang: 'es' | 'en', settings: StoreSettings): NavItem[] => {
-  const nav: NavItem[] = [
-    { type: 'link', name: translations[lang].billing, href: `/store/${storeId}/facturacion`, icon: ShoppingCart },
-  ];
-  if (settings.enableDispatcherMode) {
-    nav.push({ type: 'link', name: translations[lang].pendingOrders, href: `/store/${storeId}/pending-orders`, icon: ClipboardCheck });
-  }
-  nav.push({ type: 'link', name: translations[lang].cashRegister, href: `/store/${storeId}/cash-register`, icon: WalletCards });
-  return nav;
-};
-
-const getDespachoNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => [
-  { type: 'link', name: translations[lang].dispatcher, href: `/store/${storeId}/dispatcher`, icon: SendToBack },
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
+const getBodegueroNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
 ];
 
-const getAuxiliarNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
-  const t = translations[lang];
-  return [
-    { type: 'link', name: t.adjustments, href: `/store/${storeId}/inventory/adjustments`, icon: Wrench },
-    { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
-  ];
-};
-
-const getSupervisorCajaNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
-  const t = translations[lang];
-  return [
-    { type: 'link', name: t.accountsReceivable, href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
-    { type: 'link', name: t.dailyClosing, href: `/store/${storeId}/cash-register`, icon: WalletCards }, // Reutilizando para auditoría
-    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
-  ];
-};
-
-const getSupervisorPasilloNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
-  const t = translations[lang];
-  return [
-    { type: 'link', name: t.products, href: `/store/${storeId}/products`, icon: Package },
-    { type: 'link', name: 'Listado de Clientes', href: `/store/${storeId}/vendors/clients`, icon: Users },
-  ];
-};
-
-const getRuteroNav = (storeId: string, lang: 'es' | 'en', _settings: StoreSettings): NavItem[] => {
-  return [
-    { type: 'link', name: translations[lang].deliveryRoute, href: `/store/${storeId}/delivery-route`, icon: Route },
-    { type: 'link', name: translations[lang].collections, href: `/store/${storeId}/vendors/collections`, icon: HandCoins },
-    { type: 'link', name: translations[lang].returns, href: `/store/${storeId}/vendors/returns`, icon: Undo2 },
-    { type: 'link', name: translations[lang].dailyClosing, href: `/store/${storeId}/daily-closing`, icon: WalletCards },
-  ];
-};
-
-const getVendedorAmbulanteNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => [
-  { type: 'link', name: translations[lang].quickSale, href: `/store/${storeId}/vendors/quick-sale`, icon: DollarSign },
-  { type: 'link', name: translations[lang].addClient, href: `/store/${storeId}/vendors/clients`, icon: Users },
-  { type: 'link', name: translations[lang].sales, href: `/store/${storeId}/vendors/sales`, icon: ListOrdered },
-  { type: 'link', name: translations[lang].collections, href: `/store/${storeId}/vendors/collections`, icon: HandCoins },
-  { type: 'link', name: translations[lang].returns, href: `/store/${storeId}/vendors/returns`, icon: Undo2 },
+const getCashierNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Vender', href: `/store/${storeId}/work/cash`, icon: ShoppingCart },
+  { type: 'link', name: 'Caja', href: `/store/${storeId}/cash-register`, icon: WalletCards },
 ];
 
-const getGestorVentasNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => [
-  { type: 'link', name: 'Tablero de Ventas', href: `/store/${storeId}/vendors/dashboard`, icon: Route },
-  { type: 'link', name: 'Rutas y Despacho', href: `/store/${storeId}/vendors/routes`, icon: MapPin },
-  { type: 'separator' },
-  {
-    type: 'group',
-    name: translations[lang].commercial,
-    icon: Truck,
-    children: [
-      { type: 'link', name: translations[lang].sales, href: `/store/${storeId}/vendors/sales`, icon: PackagePlus },
-      { type: 'link', name: translations[lang].addClient, href: `/store/${storeId}/vendors/clients`, icon: Users },
-      { type: 'link', name: 'Gestionar Zonas', href: `/store/${storeId}/vendors/zones`, icon: Map },
-      { type: 'link', name: translations[lang].collections, href: `/store/${storeId}/vendors/collections`, icon: HandCoins },
-      { type: 'link', name: translations[lang].vendorInventory, href: `/store/${storeId}/vendors/inventory`, icon: Boxes },
-      { type: 'link', name: translations[lang].routeStaff, href: `/store/${storeId}/vendors`, icon: UsersRound },
-    ],
-  },
+const getDespachoNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+];
+
+const getAuxiliarNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
+];
+
+const getSupervisorCajaNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Caja', href: `/store/${storeId}/work/cash`, icon: WalletCards },
+  { type: 'link', name: 'Finanzas', href: `/store/${storeId}/work/finance`, icon: Wallet },
+];
+
+const getSupervisorPasilloNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
+];
+
+const getRuteroNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Ruta', href: `/store/${storeId}/delivery-route`, icon: Route },
+  { type: 'link', name: 'Cobros', href: `/store/${storeId}/vendors/collections`, icon: HandCoins },
+  { type: 'link', name: 'Devolución', href: `/store/${storeId}/vendors/returns`, icon: Undo2 },
+  { type: 'link', name: 'Cierre', href: `/store/${storeId}/daily-closing`, icon: WalletCards },
+];
+
+const getVendedorAmbulanteNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Ruta/Ventas', href: `/store/${storeId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Cobros', href: `/store/${storeId}/vendors/collections`, icon: HandCoins },
+  { type: 'link', name: 'Devolución', href: `/store/${storeId}/vendors/returns`, icon: Undo2 },
+  { type: 'link', name: 'Cierre', href: `/store/${storeId}/daily-closing`, icon: WalletCards },
+];
+
+const getGestorVentasNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Ventas/Ruta', href: `/store/${storeId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Admin', href: `/store/${storeId}/work/admin`, icon: ShieldCheck },
 ];
 
 
@@ -717,39 +549,38 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'master-admin':
       case 'owner':
         if (storeId) {
-          // When master-admin is inside a store, show store nav
-          return getStoreAdminNav(storeId, language, storeSettings, storeType);
+          return getStoreAdminNav(storeId, language);
         }
         return getMasterAdminNav(language);
       case 'chain-admin':
         if (storeId) {
-          return getStoreAdminNav(storeId, language, storeSettings, storeType);
+          return getStoreAdminNav(storeId, language);
         }
         return getChainAdminNav(language);
       case 'store-admin':
-        return getStoreAdminNav(storeId || '', language, storeSettings, storeType);
+        return getStoreAdminNav(storeId || '', language);
       case 'inventory':
-        return getBodegueroNav(storeId || '', language);
+        return getBodegueroNav(storeId || '');
       case 'cashier':
-        return getCashierNav(storeId || '', language, storeSettings);
+        return getCashierNav(storeId || '');
       case 'dispatcher':
-        return getDespachoNav(storeId || '', language);
+        return getDespachoNav(storeId || '');
       case 'rutero':
-        return getRuteroNav(storeId || '', language, storeSettings);
+        return getRuteroNav(storeId || '');
       case 'vendor':
-        return getVendedorAmbulanteNav(storeId || '', language);
+        return getVendedorAmbulanteNav(storeId || '');
       case 'sales-manager':
-        return getGestorVentasNav(storeId || '', language);
+        return getGestorVentasNav(storeId || '');
       case 'auxiliar':
-        return getAuxiliarNav(storeId || '', language);
+        return getAuxiliarNav(storeId || '');
       case 'supervisor-caja':
-        return getSupervisorCajaNav(storeId || '', language);
+        return getSupervisorCajaNav(storeId || '');
       case 'supervisor-pasillo':
-        return getSupervisorPasilloNav(storeId || '', language);
+        return getSupervisorPasilloNav(storeId || '');
       default:
-        return storeId ? getStoreAdminNav(storeId, language, storeSettings, storeType) : [];
+        return storeId ? getStoreAdminNav(storeId, language) : [];
     }
-  }, [user, language, storeId, storeSettings, storeType]);
+  }, [user, language, storeId]);
 
   // Flatten for AppHeader (mobile hamburger menu still uses flat list)
   const flatNav = useMemo(() => flattenNavItems(navItems), [navItems]);
@@ -765,7 +596,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const sidebarWidth = sidebarCollapsed ? '64px' : '280px';
 
   return (
-    <div className="grid min-h-screen w-full grid-cols-1 md:grid-cols-[var(--sidebar-w)_1fr]" style={{ '--sidebar-w': sidebarWidth } as React.CSSProperties}>
+    <>
+      <CommandSearch />
+      <div className="grid min-h-screen w-full grid-cols-1 md:grid-cols-[var(--sidebar-w)_1fr]" style={{ '--sidebar-w': sidebarWidth } as React.CSSProperties}>
       <div className={cn(
         'hidden border-r bg-muted/40 md:block transition-all duration-300 ease-in-out overflow-hidden',
       )} style={{ width: sidebarWidth, minWidth: sidebarWidth }}>
@@ -905,5 +738,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </footer>
       </div>
     </div>
+    </>
   );
 }
