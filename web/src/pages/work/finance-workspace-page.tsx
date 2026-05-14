@@ -24,6 +24,8 @@ import {
 import { useAuth } from '@/contexts/auth-context';
 import { formatCurrency } from '@/lib/utils';
 import apiClient from '@/services/api-client';
+import financeService from '@/services/finance-service';
+import type { AccountReceivable, AccountPayable } from '@/services/finance-service';
 
 interface ExceptionFinance {
   id: string;
@@ -43,6 +45,33 @@ export default function FinanceWorkspacePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('excepciones');
+  const [accounts, setAccounts] = useState<AccountReceivable[]>([]);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [payables, setPayables] = useState<AccountPayable[]>([]);
+  const [loadingPayables, setLoadingPayables] = useState(false);
+
+  const loadAccounts = useCallback(async () => {
+    if (!storeId) return;
+    setLoadingAccounts(true);
+    try {
+      const data = await financeService.listReceivables(storeId);
+      setAccounts(data);
+    } catch { setAccounts([]); } finally { setLoadingAccounts(false); }
+  }, [storeId]);
+
+  const loadPayables = useCallback(async () => {
+    if (!storeId) return;
+    setLoadingPayables(true);
+    try {
+      const data = await financeService.listPayables(storeId);
+      setPayables(data);
+    } catch { setPayables([]); } finally { setLoadingPayables(false); }
+  }, [storeId]);
+
+  useEffect(() => {
+    if (activeTab === 'cartera') loadAccounts();
+    if (activeTab === 'pagos') loadPayables();
+  }, [activeTab, loadAccounts, loadPayables]);
 
   const loadData = useCallback(async () => {
     if (!storeId) return;
@@ -173,30 +202,56 @@ export default function FinanceWorkspacePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="cartera" className="mt-0 flex-1 p-6">
-          <EmptyState
-            title="Cuentas por cobrar"
-            description="Cartera de clientes, aging y arqueos — próximamente"
-            icon={HandCoins}
-            action={
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/receivables`)}>
-                Ir a cartera actual
-              </Button>
-            }
-          />
+        <TabsContent value="cartera" className="mt-0 flex-1 p-4">
+          {loadingAccounts ? <LoadingRows rows={5} /> : accounts.length === 0 ? (
+            <EmptyState title="Sin cuentas por cobrar" icon={HandCoins}
+              action={<Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/receivables`)}>Ir a cartera</Button>} />
+          ) : (
+            <div className="space-y-2">
+              {accounts.map((a) => (
+                <div key={a.id} className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3">
+                  <div>
+                    <p className="text-sm font-medium text-[#17202A]">{a.clientName}</p>
+                    <p className="text-xs text-[#5B6673]">Vencido • {a.description || ''}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <StatusChip variant={a.status === 'PENDING' ? 'warning' : a.status === 'PARTIAL' ? 'pending' : 'success'}
+                      label={a.status === 'PENDING' ? 'Pendiente' : a.status === 'PARTIAL' ? 'Parcial' : 'Pagado'} />
+                    <span className="text-sm font-semibold text-[#17202A]">{formatCurrency(a.remainingAmount)}</span>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/receivables?accountId=${a.id}`)}>
+                      Cobrar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
-        <TabsContent value="pagos" className="mt-0 flex-1 p-6">
-          <EmptyState
-            title="Cuentas por pagar"
-            description="Proveedores y facturas pendientes — próximamente"
-            icon={DollarSign}
-            action={
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables`)}>
-                Ir a pagos actuales
-              </Button>
-            }
-          />
+        <TabsContent value="pagos" className="mt-0 flex-1 p-4">
+          {loadingPayables ? <LoadingRows rows={5} /> : payables.length === 0 ? (
+            <EmptyState title="Sin cuentas por pagar" icon={DollarSign}
+              action={<Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables`)}>Ir a pagos</Button>} />
+          ) : (
+            <div className="space-y-2">
+              {payables.map((p) => (
+                <div key={p.id} className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3">
+                  <div>
+                    <p className="text-sm font-medium text-[#17202A]">{p.supplierName}</p>
+                    <p className="text-xs text-[#5B6673]">{p.dueDate ? `Vence: ${new Date(p.dueDate).toLocaleDateString()}` : ''}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <StatusChip variant={p.status === 'PENDING' ? 'warning' : p.status === 'PARTIAL' ? 'pending' : 'success'}
+                      label={p.status === 'PENDING' ? 'Pendiente' : p.status === 'PARTIAL' ? 'Parcial' : 'Pagado'} />
+                    <span className="text-sm font-semibold text-[#17202A]">{formatCurrency(p.remainingAmount)}</span>
+                    <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables?accountId=${p.id}`)}>
+                      Pagar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </WorkspaceShell>

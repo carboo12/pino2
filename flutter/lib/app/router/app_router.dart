@@ -60,6 +60,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(path: '/sync', builder: (context, state) => const SyncStatusScreen()),
+      GoRoute(
+        path: '/workday/collections',
+        builder: (context, state) {
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
+          return CollectionsScreen(
+            storeId: storeId,
+            storeName: state.uri.queryParameters['storeName'],
+          );
+        },
+      ),
+      GoRoute(
+        path: '/workday/returns',
+        builder: (context, state) => const RouteReturnsScreen(),
+      ),
+      GoRoute(
+        path: '/workday/closing',
+        builder: (context, state) {
+          final storeId = state.uri.queryParameters['storeId'] ?? '';
+          return DailyClosingScreen(
+            storeId: storeId,
+            storeName: state.uri.queryParameters['storeName'],
+          );
+        },
+      ),
       GoRoute(path: '/preventa-route', builder: (context, state) => const PreventaRouteScreen()),
       GoRoute(path: '/preventa-clients', builder: (context, state) => const PreventaClientsScreen()),
       GoRoute(path: '/preventa-add-client', builder: (context, state) => const PreventaAddClientScreen()),

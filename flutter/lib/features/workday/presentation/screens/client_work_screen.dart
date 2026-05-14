@@ -23,6 +23,80 @@ final _clientProvider = FutureProvider.family<ClientSummary?, String>(
   }
 });
 
+void _showPaymentSheet(BuildContext context, {double? defaultAmount}) {
+  final amountCtrl = TextEditingController(
+    text: defaultAmount?.toStringAsFixed(2) ?? '',
+  );
+  String method = 'Efectivo';
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          left: 24,
+          right: 24,
+          top: 24,
+        ),
+        child: StatefulBuilder(
+          builder: (ctx, setSheetState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Registrar cobro',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 20),
+              TextField(
+                controller: amountCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Monto',
+                  prefixText: '\$ ',
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Método de pago',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 8),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'Efectivo', label: Text('Efectivo')),
+                  ButtonSegment(value: 'Tarjeta', label: Text('Tarjeta')),
+                  ButtonSegment(value: 'Transferencia', label: Text('Transferencia')),
+                ],
+                selected: {method},
+                onSelectionChanged: (v) => setSheetState(() => method = v.first),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Cobro registrado: \$${amountCtrl.text} ($method)'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  child: const Text('Confirmar cobro'),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 class ClientWorkScreen extends ConsumerWidget {
   final String clientId;
 
@@ -69,35 +143,19 @@ class ClientWorkScreen extends ConsumerWidget {
                     WorkAction(
                       icon: Icons.shopping_cart_outlined,
                       label: 'Nuevo pedido',
-                      onTap: () {
-                        final session = ref.read(authControllerProvider).session;
-                        context.push(
-                          '/quick-order/${session?.user.primaryStoreId ?? ''}',
-                        );
-                      },
+                      onTap: () => context.push(
+                        '/quick-order/${ref.read(authControllerProvider).session?.user.primaryStoreId ?? ''}',
+                      ),
                     ),
                   WorkAction(
                     icon: Icons.payments_outlined,
                     label: 'Cobrar',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('Abrir cobro...'),
-                          behavior: SnackBarBehavior.floating,
-                          action: SnackBarAction(
-                            label: 'OK',
-                            onPressed: () {},
-                          ),
-                        ),
-                      );
-                    },
+                    onTap: () => _showPaymentSheet(context, defaultAmount: client.creditLimit?.toDouble()),
                   ),
                   WorkAction(
                     icon: Icons.replay_outlined,
                     label: 'Devolución',
-                    onTap: () {
-                      context.push('/returns/${storeId ?? ''}');
-                    },
+                    onTap: () => context.push('/returns/${storeId ?? ''}'),
                   ),
                   WorkAction(
                     icon: Icons.remove_red_eye_outlined,
@@ -133,10 +191,7 @@ class ClientWorkScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               TextButton.icon(
-                onPressed: () {
-                  // Report issue or skip
-                  context.pop();
-                },
+                onPressed: () => context.pop(),
                 icon: const Icon(Icons.skip_next),
                 label: const Text('No entregado / Saltar'),
               ),
