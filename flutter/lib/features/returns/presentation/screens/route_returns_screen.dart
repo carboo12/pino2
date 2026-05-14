@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 
@@ -38,7 +37,7 @@ class _RouteReturnsScreenState extends ConsumerState<RouteReturnsScreen> {
         bearerToken: token,
       );
       setState(() {
-        _inventory = (data as List).map((item) => item as Map<String, dynamic>).toList();
+        _inventory = data.map((item) => item as Map<String, dynamic>).toList();
         for (final item in _inventory) {
           _returnQtys[item['id']?.toString() ?? ''] = 0;
         }
@@ -134,7 +133,7 @@ class _RouteReturnsScreenState extends ConsumerState<RouteReturnsScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<int>(
-                  value: _selectedReasonIdx,
+                  initialValue: _selectedReasonIdx,
                   decoration: InputDecoration(
                     labelText: 'Motivo general de devolución',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

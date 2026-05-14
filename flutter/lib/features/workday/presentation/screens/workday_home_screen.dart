@@ -7,7 +7,6 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../home/data/home_repository.dart';
 import '../../../home/domain/models/store_summary.dart';
 import '../widgets/workday_scaffold.dart';
-import '../widgets/sync_status_strip.dart';
 
 final _assignedStoresProvider = FutureProvider<List<StoreSummary>>((ref) async {
   final authState = ref.watch(authControllerProvider);
@@ -38,10 +37,10 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
     final role = normalizeRole(session?.user.role);
     final theme = Theme.of(context);
 
-    final storeName = session?.user.storeName ?? 'Mi Tienda';
+    final storeName = storesAsync.value?.firstOrNull?.name ?? 'Mi Tienda';
     final storeId = session?.user.primaryStoreId;
 
-    Widget _buildNextAction() {
+    Widget buildNextAction() {
       switch (role) {
         case AppRole.vendor:
         case AppRole.preventa:
@@ -63,9 +62,7 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
           return _PulseCard(
             storesAsync: storesAsync,
             onSelectStore: (s) {
-              if (s.id != null) {
-                context.push('/workday/route');
-              }
+              context.push('/workday/route');
             },
           );
       }
@@ -160,7 +157,7 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildNextAction(),
+            buildNextAction(),
             const SizedBox(height: 24),
             Text(
               'Pendientes',
@@ -384,7 +381,7 @@ class _PulseCard extends StatelessWidget {
           child: Center(child: CircularProgressIndicator()),
         ),
       ),
-      error: (_, __) => Card(
+      error: (_, _) => Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Text('Error al cargar tiendas',
@@ -402,7 +399,7 @@ class _PulseCard extends StatelessWidget {
                       ?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               ...stores.map((s) => ListTile(
-                    title: Text(s.name ?? 'Sin nombre'),
+                    title: Text(s.name),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => onSelectStore(s),
                     dense: true,

@@ -23,7 +23,6 @@ class _PreventaOrderScreenState extends ConsumerState<PreventaOrderScreen> {
   double _creditLimit = 0;
   List<Map<String, dynamic>> _catalog = [];
   bool _loadingCatalog = true;
-  bool _loadingClient = true;
 
   @override
   void initState() {
@@ -46,7 +45,6 @@ class _PreventaOrderScreenState extends ConsumerState<PreventaOrderScreen> {
     } catch (_) {
       _creditLimit = 0;
     }
-    if (mounted) setState(() => _loadingClient = false);
   }
 
   Future<void> _loadCatalog() async {

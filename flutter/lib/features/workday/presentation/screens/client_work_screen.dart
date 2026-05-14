@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/database/local_cache_repository.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../clients/domain/models/client_summary.dart';

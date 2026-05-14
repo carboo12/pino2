@@ -11,6 +11,9 @@ const roleWorkspace: Record<string, string> = {
   'sales-manager': 'sales',
   rutero: 'sales',
   'store-admin': 'admin',
+  'chain-admin': 'admin',
+  'master-admin': 'admin',
+  owner: 'admin',
 };
 
 export default function WorkHomePage() {

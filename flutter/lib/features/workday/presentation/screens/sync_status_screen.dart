@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../../../core/network/sync_queue_processor.dart';
 
@@ -10,7 +9,7 @@ class SyncStatusScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final syncState = ref.watch(syncQueueProcessorProvider);
-    final isOnline = ref.watch(networkStatusProvider);
+    final isOnline = ref.watch(networkStatusProvider).value == NetworkStatus.online;
     final theme = Theme.of(context);
 
     return Scaffold(

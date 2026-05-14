@@ -5,8 +5,6 @@ import '../../../../core/database/local_cache_repository.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../clients/domain/models/client_summary.dart';
-import '../../../deliveries/domain/models/delivery_summary.dart';
-import '../widgets/workday_action_button.dart';
 import '../widgets/client_work_card.dart';
 
 final _routeClientsProvider = FutureProvider<List<ClientSummary>>((ref) async {
@@ -35,14 +33,12 @@ final _routeClientsProvider = FutureProvider<List<ClientSummary>>((ref) async {
 
   final visitedIds = visits
       .where((v) {
-        final d = v.visitedAt;
-        return d != null &&
-            d.year == now.year &&
+        final d = v.timestamp;
+        return d.year == now.year &&
             d.month == now.month &&
             d.day == now.day;
       })
       .map((v) => v.clientId)
-      .where((id) => id != null)
       .toSet();
 
   return clients

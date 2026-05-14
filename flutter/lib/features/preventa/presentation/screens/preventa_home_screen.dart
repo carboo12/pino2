@@ -47,8 +47,8 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
         apiClient.getList('/orders?vendorId=$userId&storeId=$storeId&fromDate=$today', bearerToken: token).catchError((_) => <dynamic>[]),
       ]);
 
-      final visitLogs = results[0] as List;
-      final orders = results[1] as List;
+      final visitLogs = results[0];
+      final orders = results[1];
 
       double totalSold = 0;
       for (final o in orders) {

@@ -3,20 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/database/local_cache_repository.dart';
 import '../../../../core/network/api_client.dart';
-import '../../../../core/network/connectivity_service.dart';
-import '../../../../core/network/sync_queue_processor.dart';
-import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../catalog/domain/models/catalog_product.dart';
-import '../../../clients/domain/models/client_summary.dart';
 
 class _CartItem {
   final CatalogProduct product;
-  int quantity;
+  int quantity = 1;
 
-  _CartItem({required this.product, this.quantity = 1});
+  _CartItem({required this.product});
 
-  double get total => (product.salePrice ?? 0) * quantity;
+  double get total => product.salePrice * quantity;
 }
 
 final _catalogProvider = FutureProvider.family<List<CatalogProduct>, String>(
@@ -90,9 +86,9 @@ class _MobileOrderScreenState extends ConsumerState<MobileOrderScreen> {
 
     try {
       final apiClient = ref.read(appApiClientProvider);
-      await apiClient.post(
+      await apiClient.postMap(
         '/orders',
-        {
+        data: {
           'storeId': storeId,
           'clientId': widget.clientId,
           'items': _cart
@@ -231,7 +227,7 @@ class _MobileOrderScreenState extends ConsumerState<MobileOrderScreen> {
               child: ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 itemCount: _filteredProducts.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, i) {
                   final p = _filteredProducts[i];
                   return ListTile(
@@ -243,7 +239,7 @@ class _MobileOrderScreenState extends ConsumerState<MobileOrderScreen> {
                             style: const TextStyle(fontSize: 10))
                         : null,
                     trailing: Text(
-                      '\$${(p.salePrice ?? 0).toStringAsFixed(2)}',
+                      '\$${p.salePrice.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: theme.colorScheme.primary,
