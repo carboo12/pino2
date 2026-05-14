@@ -27,6 +27,14 @@ import {
   Clock,
   AlertTriangle,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/auth-context';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/lib/swalert';
@@ -77,6 +85,9 @@ export default function WarehouseWorkspacePage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filter, setFilter] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [showVendorSelect, setShowVendorSelect] = useState(false);
+  const [vendors, setVendors] = useState<{ id: string; name: string }[]>([]);
+  const [selectedVendorId, setSelectedVendorId] = useState('');
 
   const fetchOrders = useCallback(async () => {
     if (!storeId) return;
@@ -101,6 +112,36 @@ export default function WarehouseWorkspacePage() {
     const interval = setInterval(fetchOrders, 15000);
     return () => clearInterval(interval);
   }, [fetchOrders]);
+
+  useEffect(() => {
+    if (!storeId) return;
+    apiClient.get('/users', { params: { storeId, role: 'rutero,vendor', limit: 50 } })
+      .then(res => setVendors(Array.isArray(res.data) ? res.data : res.data?.data || []))
+      .catch(() => {});
+  }, [storeId]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key) {
+        case 'F2': setFilter(''); break;
+        case 'F3':
+          if (selectedOrder) handleStatusChange(selectedOrder, 'EN_PREPARACION');
+          break;
+        case 'F5': fetchOrders(); break;
+        case '1': case '2': case '3': case '4':
+          const idx = parseInt(e.key) - 1;
+          const col = STATUS_ORDER[idx];
+          if (col) {
+            const first = filteredOrders.find(o => o.status === col);
+            if (first) handleLoadDetail(first);
+          }
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [selectedOrder, filteredOrders]);
 
   const handleStatusChange = async (order: Order, newStatus: string) => {
     if (!storeId) return;
@@ -265,7 +306,7 @@ export default function WarehouseWorkspacePage() {
                   <Button
                     className="w-full"
                     size="sm"
-                    onClick={() => handleStatusChange(selectedOrder, 'CARGADO_CAMION')}
+                    onClick={() => setShowVendorSelect(true)}
                     disabled={actionLoading}
                   >
                     <Truck className="mr-2 h-3.5 w-3.5" />
@@ -353,6 +394,51 @@ export default function WarehouseWorkspacePage() {
           ))}
         </div>
       )}
+
+      <Dialog open={showVendorSelect} onOpenChange={setShowVendorSelect}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Cargar camión</DialogTitle>
+            <DialogDescription className="text-xs">
+              Selecciona el responsable de la carga
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {vendors.length === 0 ? (
+              <p className="text-xs text-[#5B6673]">Cargando responsables...</p>
+            ) : (
+              vendors.map((v) => (
+                <button
+                  key={v.id}
+                  onClick={() => setSelectedVendorId(v.id)}
+                  className={`w-full rounded-md border px-3 py-2 text-left text-xs transition-all ${
+                    selectedVendorId === v.id
+                      ? 'border-[#0F766E] bg-[#0F766E]/5'
+                      : 'border-[#DDE2E8]'
+                  }`}
+                >
+                  {v.name}
+                </button>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setShowVendorSelect(false)}>
+              Cancelar
+            </Button>
+            <Button size="sm" disabled={!selectedVendorId || !selectedOrder} onClick={() => {
+              if (selectedOrder) {
+                handleStatusChange(selectedOrder, 'CARGADO_CAMION');
+              }
+              setShowVendorSelect(false);
+              setSelectedVendorId('');
+            }}>
+              <Truck className="mr-1.5 h-3.5 w-3.5" />
+              Confirmar carga
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </WorkspaceShell>
   );
 }

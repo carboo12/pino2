@@ -31,6 +31,15 @@ import {
   X,
   CheckCircle2,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/auth-context';
 import { usePos } from '@/contexts/pos-context';
 import { toast } from '@/lib/swalert';
@@ -63,6 +72,8 @@ export default function CashWorkspacePage() {
   const [recentSales, setRecentSales] = useState<any[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
+  const [showOpening, setShowOpening] = useState(false);
+  const [openingAmount, setOpeningAmount] = useState('');
 
   const total = cart.reduce((sum, item) => sum + (item.salePrice || 0) * item.quantity, 0);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -72,6 +83,22 @@ export default function CashWorkspacePage() {
       loadRecentSales();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key) {
+        case 'F2': setActiveTab('venta'); break;
+        case 'F3': setShowClientSearch(true); break;
+        case 'F4': if (cart.length > 0) setShowPayment(true); break;
+        case 'F6': setActiveTab('devolucion'); break;
+        case 'F8': setActiveTab('historial'); loadRecentSales(); break;
+        case 'F10': if (cart.length > 0) setShowPayment(true); break;
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [cart.length]);
 
   const loadRecentSales = async () => {
     if (!storeId) return;
@@ -343,11 +370,21 @@ export default function CashWorkspacePage() {
         </TabsContent>
 
         <TabsContent value="caja" className="mt-0 flex-1 p-6">
-          <EmptyState
-            title="Gestión de Caja"
-            description="Apertura, cierre y corte X — próximamente"
-            icon={WalletCards}
-          />
+          <div className="mx-auto max-w-md space-y-4">
+            <div className="rounded-lg border border-[#DDE2E8] bg-white p-6 text-center">
+              <WalletCards className="mx-auto mb-3 h-10 w-10 text-[#0F766E]" />
+              <h3 className="text-sm font-semibold text-[#17202A]">No hay caja abierta</h3>
+              <p className="mt-1 text-xs text-[#5B6673]">Abre la caja para comenzar a operar</p>
+              <Button size="sm" className="mt-4" onClick={() => setShowOpening(true)}>
+                Abrir caja
+              </Button>
+            </div>
+            <div className="rounded-lg border border-[#DDE2E8] bg-white p-4">
+              <h4 className="mb-2 text-xs font-semibold text-[#5B6673] uppercase">Corte X</h4>
+              <p className="text-xs text-[#5B6673]">Ventas del día: {formatCurrency(0)}</p>
+              <p className="text-xs text-[#5B6673]">Transacciones: 0</p>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="devolucion" className="mt-0 flex-1 p-6">
@@ -437,6 +474,44 @@ export default function CashWorkspacePage() {
           storeId={storeId || ''}
         />
       )}
+
+      <Dialog open={showOpening} onOpenChange={setShowOpening}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Abrir caja</DialogTitle>
+            <DialogDescription className="text-xs">
+              Ingresa el monto inicial o las denominaciones
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label className="text-xs">Monto inicial</Label>
+              <Input
+                type="number"
+                value={openingAmount}
+                onChange={(e) => setOpeningAmount(e.target.value)}
+                placeholder="0.00"
+                className="mt-1"
+              />
+            </div>
+            <p className="text-[10px] text-[#5B6673]">
+              Puedes ingresar denominaciones detalladas después de abrir
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setShowOpening(false)}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={() => {
+              toast.success('Caja abierta', `Monto inicial: ${formatCurrency(parseFloat(openingAmount) || 0)}`);
+              setShowOpening(false);
+              setOpeningAmount('');
+            }}>
+              Abrir caja
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </WorkspaceShell>
   );
 }

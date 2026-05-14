@@ -71,44 +71,75 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
       }
     }
 
-    void _onNavTap(int index) {
-      setState(() => _selectedIndex = index);
-      switch (index) {
-        case 0:
-          break;
-        case 1:
-          if (role == AppRole.vendor || role == AppRole.preventa) {
-            context.push('/workday/route');
-          }
-          break;
-        case 2:
-          context.push('/sync');
-          break;
-      }
-    }
-
     final navItems = <BottomNavItem>[
       BottomNavItem(
         icon: Icons.home_outlined,
         activeIcon: Icons.home,
         label: 'Inicio',
-        onTap: () => _onNavTap(0),
+        onTap: () => setState(() => _selectedIndex = 0),
         isSelected: _selectedIndex == 0,
       ),
-      if (role == AppRole.vendor || role == AppRole.preventa)
+      if (role == AppRole.vendor || role == AppRole.preventa) ...[
         BottomNavItem(
           icon: Icons.route_outlined,
           activeIcon: Icons.route,
           label: 'Ruta',
-          onTap: () => _onNavTap(1),
-          isSelected: _selectedIndex == 1,
+          onTap: () => context.push('/workday/route'),
+          isSelected: false,
         ),
+        BottomNavItem(
+          icon: Icons.shopping_cart_outlined,
+          activeIcon: Icons.shopping_cart,
+          label: 'Pedido',
+          onTap: () => context.push('/workday/order'),
+          isSelected: false,
+        ),
+      ],
+      if (role == AppRole.rutero) ...[
+        BottomNavItem(
+          icon: Icons.route_outlined,
+          activeIcon: Icons.route,
+          label: 'Ruta',
+          onTap: () => context.push('/workday/route'),
+          isSelected: false,
+        ),
+        BottomNavItem(
+          icon: Icons.payments_outlined,
+          activeIcon: Icons.payments,
+          label: 'Cobros',
+          onTap: () => context.push('/collections/${storeId ?? ""}'),
+          isSelected: false,
+        ),
+        BottomNavItem(
+          icon: Icons.replay_outlined,
+          activeIcon: Icons.replay,
+          label: 'Devolución',
+          onTap: () => context.push('/returns/${storeId ?? ""}'),
+          isSelected: false,
+        ),
+      ],
+      if (role == AppRole.inventory) ...[
+        BottomNavItem(
+          icon: Icons.inventory_2_outlined,
+          activeIcon: Icons.inventory_2,
+          label: 'Pedidos',
+          onTap: () => context.push('/warehouse/${storeId ?? ""}'),
+          isSelected: false,
+        ),
+        BottomNavItem(
+          icon: Icons.qr_code_scanner_outlined,
+          activeIcon: Icons.qr_code_scanner,
+          label: 'Picking',
+          onTap: () => context.push('/warehouse/${storeId ?? ""}'),
+          isSelected: false,
+        ),
+      ],
       BottomNavItem(
         icon: Icons.sync_outlined,
         activeIcon: Icons.sync,
         label: 'Sync',
-        onTap: () => _onNavTap(2),
-        isSelected: _selectedIndex == 2,
+        onTap: () => context.push('/sync'),
+        isSelected: false,
       ),
     ];
 
