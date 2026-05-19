@@ -56,7 +56,7 @@ class WorkdayScaffold extends ConsumerWidget {
           if (showSync)
             syncBanner ?? const SyncStatusStrip(),
           Expanded(child: body),
-          if (actionFooter case final footer?) footer,
+          ?actionFooter,
         ],
       ),
       bottomNavigationBar: NavigationBar(

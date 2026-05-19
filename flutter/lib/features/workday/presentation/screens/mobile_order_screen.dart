@@ -39,8 +39,8 @@ class _MobileOrderScreenState extends ConsumerState<MobileOrderScreen> {
   final List<_CartItem> _cart = [];
   final TextEditingController _searchCtrl = TextEditingController();
   List<CatalogProduct> _filteredProducts = [];
-  bool _isCredit = false;
-  double _creditLimit = 0;
+  final bool _isCredit = false;
+  final double _creditLimit = 0;
   bool _saving = false;
 
   @override

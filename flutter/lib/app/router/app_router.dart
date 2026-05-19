@@ -45,7 +45,7 @@ GoRoute _fadeRoute({
     pageBuilder: (context, state) => CustomTransitionPage<void>(
       key: state.pageKey,
       child: builder(context, state),
-      transitionsBuilder: (_, animation, __, child) =>
+      transitionsBuilder: (_, animation, _, child) =>
           FadeTransition(opacity: animation, child: child),
       transitionDuration: const Duration(milliseconds: 250),
     ),
