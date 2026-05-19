@@ -91,7 +91,7 @@ export default function CashWorkspacePage() {
         case 'F2': setActiveTab('venta'); break;
         case 'F3': setShowClientSearch(true); break;
         case 'F4': if (cart.length > 0) setShowPayment(true); break;
-        case 'F6': setActiveTab('devolucion'); break;
+        case 'F6': setShowReturns(true); break;
         case 'F8': setActiveTab('historial'); loadRecentSales(); break;
         case 'F10': if (cart.length > 0) setShowPayment(true); break;
       }
@@ -187,6 +187,10 @@ export default function CashWorkspacePage() {
           storeName={user?.storeName}
           actions={
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowReturns(true)}>
+                <Undo2 className="mr-1.5 h-3.5 w-3.5" />
+                Devolución
+              </Button>
               <ScanInput onScan={handleScan} placeholder="Escanear código..." autoFocus />
             </div>
           }
@@ -279,14 +283,7 @@ export default function CashWorkspacePage() {
             <ShoppingCart className="mr-1.5 h-3.5 w-3.5" />
             Venta
           </TabsTrigger>
-          <TabsTrigger value="caja" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <WalletCards className="mr-1.5 h-3.5 w-3.5" />
-            Caja
-          </TabsTrigger>
-          <TabsTrigger value="devolucion" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <Undo2 className="mr-1.5 h-3.5 w-3.5" />
-            Devolución
-          </TabsTrigger>
+
           <TabsTrigger value="historial" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
             <History className="mr-1.5 h-3.5 w-3.5" />
             Historial
@@ -296,6 +293,15 @@ export default function CashWorkspacePage() {
         <TabsContent value="venta" className="mt-0 flex-1 p-0">
           <div className="flex h-full">
             <div className="flex flex-1 flex-col">
+              <div className="flex items-center justify-between border-b border-[#DDE2E8] bg-[#F6F7F9] px-3 py-1.5">
+                <div className="flex items-center gap-2 text-xs">
+                  <WalletCards className="h-3.5 w-3.5 text-[#0F766E]" />
+                  <span className="font-medium text-[#5B6673]">Caja cerrada</span>
+                </div>
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowOpening(true)}>
+                  Abrir caja
+                </Button>
+              </div>
               <div className="border-b border-[#DDE2E8] bg-white p-3">
                 <ProductSearch onProductSelect={handleProductSelect} />
               </div>
@@ -367,37 +373,6 @@ export default function CashWorkspacePage() {
               </div>
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="caja" className="mt-0 flex-1 p-6">
-          <div className="mx-auto max-w-md space-y-4">
-            <div className="rounded-lg border border-[#DDE2E8] bg-white p-6 text-center">
-              <WalletCards className="mx-auto mb-3 h-10 w-10 text-[#0F766E]" />
-              <h3 className="text-sm font-semibold text-[#17202A]">No hay caja abierta</h3>
-              <p className="mt-1 text-xs text-[#5B6673]">Abre la caja para comenzar a operar</p>
-              <Button size="sm" className="mt-4" onClick={() => setShowOpening(true)}>
-                Abrir caja
-              </Button>
-            </div>
-            <div className="rounded-lg border border-[#DDE2E8] bg-white p-4">
-              <h4 className="mb-2 text-xs font-semibold text-[#5B6673] uppercase">Corte X</h4>
-              <p className="text-xs text-[#5B6673]">Ventas del día: {formatCurrency(0)}</p>
-              <p className="text-xs text-[#5B6673]">Transacciones: 0</p>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="devolucion" className="mt-0 flex-1 p-6">
-          <EmptyState
-            title="Devoluciones"
-            description="Buscar ticket y procesar devolución"
-            icon={Undo2}
-            action={
-              <Button variant="outline" size="sm" onClick={() => setShowReturns(true)}>
-                Abrir devolución
-              </Button>
-            }
-          />
         </TabsContent>
 
         <TabsContent value="historial" className="mt-0 flex-1 p-0">

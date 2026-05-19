@@ -2,60 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'PT Sans', sans-serif;
-}
-
 @layer base {
   :root {
-    --background: 220 13% 97%;
-    --foreground: 212 28% 13%;
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 212 28% 13%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 212 28% 13%;
-    --primary: 176 76% 26%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 212 12% 40%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 210 10% 96%;
-    --muted-foreground: 213 12% 40%;
-    --accent: 176 76% 26%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 79% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 212 16% 89%;
-    --input: 212 16% 89%;
-    --ring: 176 76% 26%;
-    --radius: 0.5rem;
-    --chart-1: 176 76% 26%;
-    --chart-2: 212 12% 40%;
-    --chart-3: 39 100% 44%;
-    --chart-4: 0 79% 51%;
-    --chart-5: 142 71% 35%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 263 70% 58%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
+    --chart-1: 217 91% 60%;
+    --chart-2: 263 70% 58%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 160 84% 39%;
   }
 
   .dark {
-    --background: 220 10% 11%;
-    --foreground: 210 20% 95%;
-    --card: 220 10% 15%;
-    --card-foreground: 210 20% 95%;
-    --popover: 220 10% 15%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 176 60% 35%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 215 10% 30%;
-    --secondary-foreground: 210 20% 95%;
-    --muted: 215 10% 20%;
-    --muted-foreground: 215 10% 65%;
-    --accent: 176 60% 35%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 60% 40%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 215 10% 25%;
-    --input: 215 10% 25%;
-    --ring: 176 60% 35%;
-    --radius: 0.5rem;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 263 70% 58%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 19% 27%;
+    --input: 217 19% 27%;
+    --ring: 217 91% 60%;
   }
 }
 
@@ -66,7 +61,34 @@ body {
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter Variable', 'Inter', sans-serif;
+    transition-property: color, background-color, border-color;
+    transition-duration: 150ms;
   }
+}
+
+.animate-in {
+  animation: fade-in 0.3s ease-out, slide-up 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
 }
 
 @media print {

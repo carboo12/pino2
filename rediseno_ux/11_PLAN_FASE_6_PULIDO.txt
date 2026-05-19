@@ -1,0 +1,164 @@
+================================================================================
+  FASE 6 — PULIDO FINAL
+  Tiempo estimado: ~3.5 horas
+================================================================================
+
+OBJETIVO:
+  Agregar las capas finales de polish que hacen que la app se sienta
+  premium y profesional.
+
+================================================================================
+TAREA 6.1 — Page Transitions Web
+================================================================================
+
+ARCHIVO:  pagina/src/components/app-layout.tsx + layouts de ruta
+TIEMPO:   30 minutos
+
+QUÉ HACER:
+  - Agregar clase animate-in al container de {children} en app-layout:
+    <main className="... animate-in fade-in slide-in-from-bottom-2 duration-300">
+  - Esto usa tailwindcss-animate que ya está instalado
+  - Cada vez que cambia la ruta, el contenido entra con animación sutil
+
+================================================================================
+TAREA 6.2 — Page Transitions Flutter
+================================================================================
+
+ARCHIVO:  sistema_final/flutter/lib/app/router/app_router.dart
+TIEMPO:   30 minutos
+
+QUÉ HACER:
+  - Crear CustomTransitionPage helper:
+
+    CustomTransitionPage<void> fadeTransitionPage({
+      required Widget child,
+      required GoRouterState state,
+    }) {
+      return CustomTransitionPage(
+        key: state.pageKey,
+        child: child,
+        transitionsBuilder: (_, animation, __, child) =>
+          FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 250),
+      );
+    }
+
+  - Aplicar a las rutas principales del GoRouter
+
+================================================================================
+TAREA 6.3 — Empty States
+================================================================================
+
+ARCHIVOS:  Varios (cada página que muestra listas/tablas)
+TIEMPO:    1 hora
+
+QUÉ HACER:
+  - Diseñar un componente EmptyState reutilizable:
+    * Icono grande (48x48) con color muted
+    * Título: "No hay [items] todavía"
+    * Descripción: texto explicativo
+    * Botón de acción (opcional): "Crear primero"
+
+  - Reemplazar todos los "No hay datos" / "No se encontraron resultados"
+    por el nuevo EmptyState
+
+  - Web: crear componente en src/components/ui/empty-state.tsx
+  - Flutter: crear widget en lib/core/widgets/empty_state.dart
+
+================================================================================
+TAREA 6.4 — Audit Final
+================================================================================
+
+TIEMPO: 1.5 horas
+
+CHECKLIST:
+
+  CONSISTENCIA VISUAL:
+  [ ] Colores primarios coinciden entre web y Flutter
+  [ ] Tipografía Inter funciona en ambas plataformas
+  [ ] Border radius es consistente (12px buttons, 16px cards)
+  [ ] Spacing es consistente (4px grid)
+
+  RESPONSIVE (Web):
+  [ ] Login se ve bien en mobile (320px)
+  [ ] Login se ve bien en tablet (768px)
+  [ ] Login se ve bien en desktop (1280px)
+  [ ] Sidebar colapsa correctamente en mobile
+  [ ] Dashboard cards se reorganizan en mobile
+  [ ] Tables son scrollables en mobile
+
+  DARK MODE (Web):
+  [ ] Login tiene dark mode funcional
+  [ ] Sidebar dark mode
+  [ ] Dashboard dark mode
+  [ ] Cards, buttons, inputs en dark mode
+  [ ] No hay texto ilegible en dark mode
+  [ ] No hay bordes invisibles en dark mode
+
+  FLUTTER:
+  [ ] Login se ve bien en diferentes tamaños de pantalla
+  [ ] Home se ve bien con pocos y muchos action cards
+  [ ] QuickPulseBar no se desborda con números grandes
+  [ ] Keyboard no tapa inputs en login
+  [ ] Safe area funciona correctamente
+
+  RENDIMIENTO:
+  [ ] Fuente Inter carga rápido (verificar FCP)
+  [ ] Animaciones son smooth (60fps)
+  [ ] No hay jank en transiciones de página
+  [ ] Dark mode toggle es instantáneo
+
+  ACCESIBILIDAD:
+  [ ] Contraste de texto suficiente (WCAG AA)
+  [ ] Focus states visibles en todos los inputs
+  [ ] Touch targets >= 44px en mobile
+  [ ] Screen reader labels en iconos de navegación
+
+================================================================================
+ORDEN DE EJECUCIÓN RECOMENDADO (RESUMEN TOTAL)
+================================================================================
+
+  DÍA 1:
+    Fase 0 completa (preparación)
+    Fase 1 completa (sistema de diseño)
+
+  DÍA 2-3:
+    Fase 2 completa (login web + Flutter)
+
+  DÍA 3-5:
+    Fase 3 completa (sidebar, header, nav mobile, Flutter AppBar)
+
+  DÍA 5-7:
+    Fase 4 completa (dashboard web + home Flutter)
+
+  DÍA 7-9:
+    Fase 5 completa (componentes UI base)
+
+  DÍA 9-10:
+    Fase 6 completa (page transitions, empty states, audit)
+
+================================================================================
+RESULTADO ESPERADO:
+================================================================================
+
+  ANTES:
+    - Login con neumorfismo anticuado
+    - Sidebar monótona tipo admin template
+    - Dashboard plano sin personalidad
+    - Colores verde militar / azul genérico
+    - Tipografía PT Sans aburrida
+    - Sin animaciones ni transiciones
+    - Web y Flutter se sienten como sistemas diferentes
+
+  DESPUÉS:
+    - Login con gradiente suave, branding Pino, animación de entrada
+    - Sidebar agrupada con iconos coloridos y active state prominente
+    - Dashboard con hero card, saludo, stats cards vibrantes
+    - Paleta azul-violeta-ámbar cálida y profesional
+    - Tipografía Inter moderna y legible
+    - Micro-animaciones en toda la interfaz
+    - Identidad visual coherente Web y Flutter
+
+================================================================================
+FIN DEL PLAN DE REDISEÑO UX/UI — SISTEMA PINO
+================================================================================

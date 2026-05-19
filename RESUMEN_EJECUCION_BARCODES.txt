@@ -63,3 +63,4 @@ ARQUITECTURA LISTA Y DEPLOYABLE
                      
 Todo está implementado técnicamente como querías.
 Para llevarlo a producción, solo bastará correr el archivo .sql en el VPS, reiniciar el backend (NestJS) y compilar/subir el nuevo APK para los celulares de ruta.
+

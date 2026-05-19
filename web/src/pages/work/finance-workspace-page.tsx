@@ -44,7 +44,7 @@ export default function FinanceWorkspacePage() {
   const [exceptions, setExceptions] = useState<ExceptionFinance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('excepciones');
+  const [activeTab, setActiveTab] = useState('atencion');
   const [accounts, setAccounts] = useState<AccountReceivable[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [payables, setPayables] = useState<AccountPayable[]>([]);
@@ -131,11 +131,11 @@ export default function FinanceWorkspacePage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
         <TabsList className="w-fit border-b border-[#DDE2E8] bg-transparent p-0">
           <TabsTrigger
-            value="excepciones"
+            value="atencion"
             className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]"
           >
             <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />
-            Excepciones
+            Atención
           </TabsTrigger>
           <TabsTrigger
             value="cartera"
@@ -153,7 +153,7 @@ export default function FinanceWorkspacePage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="excepciones" className="mt-0 flex-1 p-4">
+        <TabsContent value="atencion" className="mt-0 flex-1 p-4">
           {loading ? (
             <LoadingRows rows={5} />
           ) : error ? (

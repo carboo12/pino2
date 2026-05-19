@@ -73,11 +73,11 @@ export function StoreAdminDashboardMetrics({ storeId }: StoreAdminDashboardMetri
 
   if (loading || !stats) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-[250px] w-full" />
+      <div className="space-y-4 animate-pulse">
+        <div className="h-[250px] rounded-xl bg-muted" />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[150px] w-full" />
+            <div key={i} className="h-[150px] rounded-xl bg-muted" />
           ))}
         </div>
       </div>
@@ -100,40 +100,48 @@ export function StoreAdminDashboardMetrics({ storeId }: StoreAdminDashboardMetri
       />
       {settings.enableSalesManagerMode && deliveryStats && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Entregas del Día</CardTitle>
-              <Truck className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{deliveryStats.dailyDeliveries}</div>
+          <Card className="border-l-4 border-l-blue-500 transition-all duration-150 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-muted-foreground">Entregas del Día</span>
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
+                  <Truck className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              <div className="text-2xl font-extrabold">{deliveryStats.dailyDeliveries}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pedidos Pendientes</CardTitle>
-              <Package className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{deliveryStats.pendingDeliveries}</div>
+          <Card className="border-l-4 border-l-amber-500 transition-all duration-150 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-muted-foreground">Pedidos Pendientes</span>
+                <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
+                  <Package className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                </div>
+              </div>
+              <div className="text-2xl font-extrabold">{deliveryStats.pendingDeliveries}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pedidos Levantados Hoy</CardTitle>
-              <Package className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{deliveryStats.ordersToday}</div>
+          <Card className="border-l-4 border-l-violet-500 transition-all duration-150 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-muted-foreground">Pedidos Hoy</span>
+                <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-950/30 flex items-center justify-center">
+                  <Package className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+                </div>
+              </div>
+              <div className="text-2xl font-extrabold">{deliveryStats.ordersToday}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mejor Gestor (Mes)</CardTitle>
-              <Award className="h-4 w-4 text-purple-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold truncate">{deliveryStats.bestSalesManager}</div>
+          <Card className="border-l-4 border-l-emerald-500 transition-all duration-150 hover:shadow-md">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-muted-foreground">Mejor Gestor (Mes)</span>
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-center">
+                  <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </div>
+              <div className="text-xl font-extrabold truncate">{deliveryStats.bestSalesManager}</div>
             </CardContent>
           </Card>
         </div>

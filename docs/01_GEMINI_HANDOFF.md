@@ -7,7 +7,7 @@ Este documento es la **fuente de verdad rápida** para que cualquier IA entienda
 
 ## 1. Qué es este proyecto
 
-`pino` (alias "Alacaja") es un sistema de distribución multi-tienda con:
+`pino` (alias "pino") es un sistema de distribución multi-tienda con:
 
 - **Backend:** NestJS + Fastify + Socket.IO + PostgreSQL (38 módulos)
 - **Web Admin:** React + Vite + Tailwind + Radix UI (desplegado en rhclaroni.com/dev)
@@ -22,6 +22,8 @@ Este documento es la **fuente de verdad rápida** para que cualquier IA entienda
 | Web Admin (Vite) | VPS `/var/www/dev` | `rhclaroni.com/dev` |
 | Web Página (Next.js) | Firebase Hosting | `pino-5fe44.web.app` |
 | Base de datos | PostgreSQL `190.56.16.85:5432` | DB: `multitienda_db`, User: `alacaja` |
+DATABASE_URL="postgresql://alacaja:TuClaveFuerte@190.56.16.85:5432/multitienda_db"
+
 | Git | github.com/galz35/pino2.git | Rama `main` |
 
 **Despliegue:** Push a GitHub → SSH al VPS → `./manual_update_dev.sh all` (o `backend` / `web`).

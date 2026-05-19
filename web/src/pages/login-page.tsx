@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, TreePine } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { toast } from '@/lib/swalert';
 import { Preloader } from '@/components/preloader';
@@ -9,13 +9,18 @@ import { Link } from 'react-router-dom';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Buenos días';
+  if (hour < 18) return 'Buenas tardes';
+  return 'Buenas noches';
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -23,7 +28,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { login, user } = useAuth();
 
   const handleLogin = async (e: FormEvent) => {
@@ -47,28 +52,22 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-center px-4 bg-background">
-      <main className="flex-grow flex items-center justify-center w-full">
-        <Card className="w-full max-w-sm bg-background border-none shadow-[8px_8px_16px_#d1d9e6,-8px_-8px_16px_#ffffff]">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-10 w-10 text-primary"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-              </svg>
+    <div className="relative w-full h-screen flex flex-col items-center justify-center px-4 overflow-hidden bg-gradient-to-br from-background via-primary/5 to-primaryLight">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-secondary/5 blur-3xl" />
+      </div>
+      <main className="flex-grow flex items-center justify-center w-full relative z-10">
+        <Card className="w-full max-w-sm border-0 shadow-lg animate-in fade-in slide-up">
+          <CardHeader className="text-center pt-10">
+            <div className="flex justify-center mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center shadow-md">
+                <TreePine className="h-7 w-7 text-white" />
+              </div>
             </div>
-            <CardTitle className="text-2xl">Iniciar Sesión</CardTitle>
-            <CardDescription>
-              Ingresa tu correo para acceder a tu cuenta
-            </CardDescription>
+            <h1 className="text-2xl font-extrabold text-foreground">Pino</h1>
+            <p className="text-base font-medium text-foreground mt-1">{getGreeting()}</p>
+            <p className="text-sm text-muted-foreground">Sistema de Distribución</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="grid gap-4">
@@ -81,7 +80,6 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-background shadow-[inset_4px_4px_8px_#d1d9e6,inset_-4px_-4px_8px_#ffffff] focus-visible:shadow-none"
                   disabled={loading}
                 />
               </div>
@@ -94,7 +92,6 @@ export default function LoginPage() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-background shadow-[inset_4px_4px_8px_#d1d9e6,inset_-4px_-4px_8px_#ffffff] focus-visible:shadow-none"
                     disabled={loading}
                   />
                   <Button
@@ -119,20 +116,21 @@ export default function LoginPage() {
               {error && (
                 <p className="text-sm font-medium text-destructive">{error}</p>
               )}
-              <Button type="submit" className="w-full shadow-[6px_6px_12px_#d1d9e6,-6px_-6px_12px_#ffffff] active:shadow-[inset_6px_6px_12px_#d1d9e6,inset_-6px_-6px_12px_#ffffff]" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {loading ? 'Validando...' : 'Iniciar Sesión'}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col gap-3 justify-center text-center text-sm text-muted-foreground pt-4">
-            <span>Si olvidaste tu contraseña, solicita el reinicio a un administrador.</span>
-            <Link to="/forgot-password" className="text-primary hover:underline font-medium">O usa la herramienta automatizada</Link>
+          <CardFooter className="justify-center pb-8 pt-2">
+            <Link to="/forgot-password" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+              ¿Olvidaste tu contraseña?
+            </Link>
           </CardFooter>
         </Card>
       </main>
-      <footer className="text-center p-4 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} World Wide All in One Programing. Todos los derechos reservados.
+      <footer className="text-xs text-muted-foreground pb-4 relative z-10">
+        &copy; 2026 Pino &middot; Sistema de Distribución
       </footer>
     </div>
   );

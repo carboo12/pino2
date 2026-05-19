@@ -1,0 +1,133 @@
+================================================================================
+  STACK Y HERRAMIENTAS — QUÉ SE USA, QUÉ SE MANTIENE, QUÉ CAMBIA
+================================================================================
+
+================================================================================
+PLATAFORMA WEB (React / Next.js)
+================================================================================
+
+SE MANTIENE (sin cambios):
+────────────────────────────────────────────────
+  ✅ Next.js 15.5.7           Framework principal
+  ✅ React 19                  UI library
+  ✅ TailwindCSS 3.4.1         Framework CSS (se reconfiguran tokens)
+  ✅ tailwindcss-animate        Plugin de animaciones
+  ✅ shadcn/ui (Radix)         36 componentes UI (se actualizan estilos)
+  ✅ Lucide React              Librería de iconos
+  ✅ Recharts                  Gráficos/charts
+  ✅ date-fns                  Manejo de fechas
+  ✅ react-hook-form + zod     Formularios + validación
+  ✅ next-themes               Manejo de dark/light mode
+  ✅ Firebase                  Autenticación
+  ✅ Leaflet                   Mapas
+  ✅ PostCSS                   Procesador CSS
+
+SE MODIFICA (actualización de config/estilos):
+────────────────────────────────────────────────
+  🔧 globals.css               Nueva paleta de CSS variables
+  🔧 tailwind.config.ts        Nueva tipografía + keyframes
+  🔧 layout.tsx                Cambio de fuente PT Sans → Inter
+  🔧 Componentes shadcn/ui     Actualización visual de ~10 componentes clave
+  🔧 app-layout.tsx            Rediseño de sidebar
+  🔧 app-header.tsx            Simplificación del header
+
+SE AGREGA:
+────────────────────────────────────────────────
+  ➕ @fontsource/inter         Fuente Inter local (o Google Fonts link)
+     Alternativa: usar next/font/google con Inter
+     (Recomendado: next/font/google porque ya están usando esa técnica con PT Sans)
+
+SE ELIMINA:
+────────────────────────────────────────────────
+  ❌ @fontsource/pt-sans       Ya no se usa (si estaba instalado)
+     O se deja pero se deja de referenciar en layout.tsx
+
+NOTAS SOBRE TAILWINDCSS:
+────────────────────────────────────────────────
+  - NO se migra a Tailwind v4 (sería disruptivo e innecesario)
+  - NO se reemplaza por otra librería CSS
+  - El problema nunca fue TailwindCSS — fue la configuración de tokens y
+    cómo se aplicaron los estilos en los componentes
+  - shadcn/ui + Tailwind es la combinación estándar de la industria
+
+NOTAS SOBRE shadcn/ui:
+────────────────────────────────────────────────
+  - NO se reemplaza por otra librería (Ant Design, Material UI, etc.)
+  - shadcn/ui es "copy-paste" — los componentes están en src/components/ui/
+  - Esto significa que tenemos CONTROL TOTAL sobre los estilos
+  - Solo actualizamos los estilos CSS/Tailwind classes dentro de cada componente
+  - No necesitamos actualizar dependencias de Radix
+
+================================================================================
+PLATAFORMA FLUTTER (Mobile)
+================================================================================
+
+SE MANTIENE (sin cambios):
+────────────────────────────────────────────────
+  ✅ Flutter SDK               Framework principal
+  ✅ Dart                      Lenguaje
+  ✅ flutter_riverpod          State management
+  ✅ go_router                 Navegación
+  ✅ Material 3                Design system base
+  ✅ Toda la lógica de negocio Auth, API, sync, etc.
+
+SE MODIFICA:
+────────────────────────────────────────────────
+  🔧 app_theme.dart            Nuevo ThemeData completo
+  🔧 login_screen.dart         Nuevo diseño visual
+  🔧 home_screen.dart          Nuevo layout del home
+  🔧 action_cards.dart         Nuevos estilos de cards
+  🔧 app.dart                  Agregar dark theme
+
+SE AGREGA:
+────────────────────────────────────────────────
+  ➕ google_fonts (paquete)    Para usar Inter en Flutter
+  ➕ app_colors.dart (nuevo)   Constantes de colores centralizadas
+
+  Comando para agregar google_fonts:
+    flutter pub add google_fonts
+
+SE ELIMINA:
+────────────────────────────────────────────────
+  ❌ Nada — no se elimina ningún paquete
+
+================================================================================
+RESUMEN DE DEPENDENCIAS NUEVAS
+================================================================================
+
+WEB:
+  Opción A (Recomendada): Ninguna dependencia nueva
+    → Usar next/font/google que ya está disponible en Next.js 15
+    → Solo cambiar la importación en layout.tsx de PT_Sans a Inter
+
+  Opción B: npm install @fontsource-variable/inter
+    → Para self-hosting de la fuente (más rápido, sin Google CDN)
+
+FLUTTER:
+  → flutter pub add google_fonts
+  → Automáticamente agrega al pubspec.yaml
+
+================================================================================
+COMPATIBILIDAD Y RIESGOS
+================================================================================
+
+RIESGO BAJO:
+  ✅ Cambiar CSS variables no afecta lógica
+  ✅ Cambiar fuente no afecta funcionalidad
+  ✅ Actualizar estilos de componentes shadcn no rompe APIs
+  ✅ Actualizar ThemeData en Flutter no rompe widgets
+
+RIESGO MEDIO:
+  ⚠️  Rediseño de sidebar puede afectar navegación mobile
+      → Mitigación: mantener misma estructura de links, solo cambiar visual
+  ⚠️  Cambio de border-radius y padding puede desalinear layouts existentes
+      → Mitigación: revisar cada página después del cambio de tokens
+
+RIESGO CERO:
+  ✅ Backend NestJS no se toca
+  ✅ APIs no se tocan
+  ✅ Base de datos no se toca
+  ✅ Lógica de autenticación no se toca
+  ✅ Providers/Context no se tocan
+
+================================================================================

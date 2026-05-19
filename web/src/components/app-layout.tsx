@@ -12,7 +12,7 @@ import {
   FileText, Map, MapPin, Settings, LifeBuoy, Package, History, Wrench,
   ShoppingCart, ClipboardCheck, AreaChart, UsersRound, Truck, HandCoins,
   ShieldCheck, SendToBack, Route, DollarSign, ListOrdered, PackagePlus, ReceiptText, Boxes, Wallet, Undo2,
-  ChevronDown, PanelLeftClose, PanelLeft, Command,
+  ChevronDown, PanelLeftClose, PanelLeft, Command, TreePine,
 } from 'lucide-react';
 
 // --- Nav Item Types ---
@@ -69,126 +69,38 @@ interface RealtimeEvent {
   payload?: Record<string, any>;
 }
 
-const translations = {
-  es: {
-    dashboard: 'Panel',
-    stores: 'Tiendas',
-    users: 'Usuarios',
-    licenses: 'Licencias',
-    monitor: 'Monitor',
-    help: 'Ayuda',
-    billing: 'Facturación',
-    cashRegister: 'Caja',
-    products: 'Productos',
-    movements: 'Movimientos',
-    adjustments: 'Ajustes',
-    settings: 'Configuración',
-    reports: 'Reportes',
-    vendors: 'Vendedores',
-    assignInventory: 'Asignar Inventario',
-    myRoute: 'Ruta de Hoy',
-    addClient: 'Clientes',
-    sales: 'Historial Ventas',
-    dispatcher: 'Despacho',
-    pendingOrders: 'Comandas',
-    deliveryRoute: 'Ruta de Entrega',
-    registerOrder: 'Registrar Pedido',
-    assignRoute: 'Asignar Ruta',
-    suppliers: 'Proveedores',
-    quickSale: 'Emitir Venta',
-    authorizations: 'Autorizaciones',
-    accountsReceivable: 'Cuentas por Cobrar',
-    supplierInvoices: 'Facturas Proveedor',
-    routes: 'Rutas',
-    collections: 'Cobranzas',
-    vendorInventory: 'Stock Actual',
-    routeStaff: 'Personal de Ruta',
-    returns: 'Devoluciones',
-    dailyClosing: 'Cierre de Caja',
-    inventory: 'Inventario',
-    finances: 'Finanzas',
-    commercial: 'Comercial',
-    team: 'Equipo',
-  },
-  en: {
-    dashboard: 'Dashboard',
-    stores: 'Stores',
-    users: 'Users',
-    licenses: 'Licenses',
-    monitor: 'Monitor',
-    help: 'Help',
-    billing: 'Billing',
-    cashRegister: 'Cash Register',
-    products: 'Products',
-    movements: 'Movements',
-    adjustments: 'Adjustments',
-    settings: 'Settings',
-    reports: 'Reports',
-    vendors: 'Vendors',
-    assignInventory: 'Assign Inventory',
-    myRoute: 'My Route',
-    addClient: 'Clients',
-    sales: 'Sales',
-    dispatcher: 'Dispatcher',
-    pendingOrders: 'Orders',
-    deliveryRoute: 'Delivery Route',
-    registerOrder: 'Register Order',
-    assignRoute: 'Assign Route',
-    suppliers: 'Suppliers',
-    quickSale: 'Quick Sale',
-    authorizations: 'Authorizations',
-    accountsReceivable: 'Accounts Receivable',
-    supplierInvoices: 'Supplier Invoices',
-    routes: 'Routes',
-    collections: 'Collections',
-    vendorInventory: 'Vendor Inventory',
-    routeStaff: 'Route Staff',
-    returns: 'Returns',
-    dailyClosing: 'Daily Closing',
-    inventory: 'Inventory',
-    finances: 'Finances',
-    commercial: 'Commercial',
-    team: 'Team',
-  }
-};
-
 // ===================================================================
 // NAV DEFINITIONS — CONSOLIDATED WITH GROUPS
 // ===================================================================
 
-const getChainAdminNav = (lang: 'es' | 'en'): NavItem[] => [
-  { type: 'link', name: translations[lang].dashboard, href: '/chain-admin/dashboard', icon: LayoutDashboard },
-  { type: 'link', name: translations[lang].stores, href: '/master-admin/stores', icon: Store },
+const getChainAdminNav = (): NavItem[] => [
+  { type: 'link', name: 'Panel', href: '/chain-admin/dashboard', icon: LayoutDashboard },
+  { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
 ];
 
-const getMasterAdminNav = (lang: 'es' | 'en'): NavItem[] => [
-  { type: 'link', name: translations[lang].dashboard, href: '/master-admin/dashboard', icon: LayoutDashboard },
-  { type: 'link', name: translations[lang].stores, href: '/master-admin/stores', icon: Store },
-  { type: 'link', name: 'Cadenas', href: '/master-admin/chains', icon: Briefcase },
-  { type: 'link', name: translations[lang].users, href: '/master-admin/users', icon: Users },
-  { type: 'link', name: translations[lang].licenses, href: '/master-admin/licenses', icon: WalletCards },
+const getMasterAdminNav = (): NavItem[] => [
+  { type: 'link', name: 'Panel', href: '/master-admin/dashboard', icon: LayoutDashboard },
+  { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
+  { type: 'link', name: 'Usuarios', href: '/master-admin/users', icon: Users },
+  { type: 'link', name: 'Licencias', href: '/master-admin/licenses', icon: WalletCards },
   { type: 'separator' },
-  { type: 'link', name: 'Monitor de Sincronización', href: '/master-admin/sync-monitor', icon: RefreshCw },
-  { type: 'link', name: translations[lang].monitor, href: '/master-admin/monitor', icon: FileText },
-  { type: 'link', name: 'Comparar Tiendas', href: '/master-admin/comparison', icon: AreaChart },
+  { type: 'group', name: 'Operaciones', icon: AreaChart, children: [
+    { type: 'link', name: 'Sync Monitor', href: '/master-admin/sync-monitor', icon: RefreshCw, section: 'ops' },
+    { type: 'link', name: 'Comparar', href: '/master-admin/comparison', icon: AreaChart, section: 'ops' },
+    { type: 'link', name: 'Activity Log', href: '/master-admin/monitor', icon: FileText, section: 'ops' },
+  ]},
   { type: 'separator' },
-  { type: 'link', name: 'Zonas Globales', href: '/master-admin/config/zones', icon: Map },
-  { type: 'link', name: 'Sub-Zonas (Barrios)', href: '/master-admin/config/sub-zones', icon: MapPin },
   { type: 'link', name: 'Configuración', href: '/master-admin/config', icon: Settings },
 ];
 
-const getStoreAdminNav = (storeId: string, lang: 'es' | 'en'): NavItem[] => {
-  const t = translations[lang];
-  return [
-    { type: 'link', name: 'Pulso', href: `/store/${storeId}/work`, icon: LayoutDashboard },
-    { type: 'link', name: t.cashRegister, href: `/store/${storeId}/work/cash`, icon: WalletCards },
-    { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
-    { type: 'link', name: 'Ventas/Ruta', href: `/store/${storeId}/work/sales`, icon: Route },
-    { type: 'link', name: t.finances, href: `/store/${storeId}/work/finance`, icon: Wallet },
-    { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
-    { type: 'link', name: 'Admin', href: `/store/${storeId}/work/admin`, icon: ShieldCheck },
-  ];
-};
+const getStoreAdminNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Caja', href: `/store/${storeId}/work/cash`, icon: WalletCards },
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Ventas', href: `/store/${storeId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Finanzas', href: `/store/${storeId}/work/finance`, icon: Wallet },
+  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
+  { type: 'link', name: 'Admin', href: `/store/${storeId}/work/admin`, icon: ShieldCheck },
+];
 
 // --- Simple role navs (already compact) ---
 const getBodegueroNav = (storeId: string): NavItem[] => [
@@ -373,8 +285,8 @@ function NavGroupItem({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'flex items-center justify-between w-full gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
-          isChildActive && 'text-primary font-medium'
+          'flex items-center justify-between w-full gap-3 rounded-xl px-3 py-2.5 text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
+          isChildActive && 'text-primary font-semibold'
         )}
       >
         <div className="flex items-center gap-3">
@@ -404,8 +316,8 @@ function NavGroupItem({
                 to={child.href}
                 onClick={onLinkClick}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
-                  isActive && 'bg-muted text-primary font-medium'
+                  'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
+                  isActive && 'bg-primary/10 text-primary font-semibold'
                 )}
               >
                 <ChildIcon className="h-3.5 w-3.5" />
@@ -461,8 +373,8 @@ function MainNav({
             to={item.href}
             onClick={onLinkClick}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
-              isActive && 'bg-muted text-primary font-medium'
+              'flex items-center gap-3 rounded-xl px-3 py-2.5 text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
+              isActive && 'bg-primary/10 text-primary font-semibold'
             )}
           >
             <Icon className="h-4 w-4" />
@@ -482,7 +394,6 @@ function MainNav({
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { storeId } = useParams();
   const { user } = useAuth();
-  const [language, setLanguage] = useState<'es' | 'en'>('es');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [storeType, setStoreType] = useState<string>('BODEGA');
   const [storeSettings, setStoreSettings] = useState<StoreSettings>({
@@ -511,10 +422,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
     fetchStoreSettings();
   }, [storeId]);
-
-  const handleLanguageChange = (lang: string) => {
-    setLanguage(lang as 'es' | 'en');
-  };
 
   const handleNotificationClick = (notificationId: string) => {
     setNotifications((prev: Notification[]) =>
@@ -549,16 +456,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'master-admin':
       case 'owner':
         if (storeId) {
-          return getStoreAdminNav(storeId, language);
+          return getStoreAdminNav(storeId);
         }
-        return getMasterAdminNav(language);
+        return getMasterAdminNav();
       case 'chain-admin':
         if (storeId) {
-          return getStoreAdminNav(storeId, language);
+          return getStoreAdminNav(storeId);
         }
-        return getChainAdminNav(language);
+        return getChainAdminNav();
       case 'store-admin':
-        return getStoreAdminNav(storeId || '', language);
+        return getStoreAdminNav(storeId || '');
       case 'inventory':
         return getBodegueroNav(storeId || '');
       case 'cashier':
@@ -578,9 +485,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'supervisor-pasillo':
         return getSupervisorPasilloNav(storeId || '');
       default:
-        return storeId ? getStoreAdminNav(storeId, language) : [];
+        return storeId ? getStoreAdminNav(storeId) : [];
     }
-  }, [user, language, storeId]);
+  }, [user, storeId]);
 
   // Flatten for AppHeader (mobile hamburger menu still uses flat list)
   const flatNav = useMemo(() => flattenNavItems(navItems), [navItems]);
@@ -603,7 +510,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         'hidden border-r bg-muted/40 md:block transition-all duration-300 ease-in-out overflow-hidden',
       )} style={{ width: sidebarWidth, minWidth: sidebarWidth }}>
         <div className="flex h-full max-h-screen flex-col">
-          <div className="flex h-16 items-center border-b px-2 lg:h-[60px] justify-between">
+          <div className="flex h-16 items-center border-b px-4 lg:h-[60px] justify-between">
             {!sidebarCollapsed ? (
               <Link 
                 to={
@@ -613,21 +520,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       ? '/chain-admin/dashboard' 
                       : (storeId ? `/store/${storeId}/dashboard` : '/')
                 } 
-                className="flex items-center gap-2 font-semibold pl-2"
+                className="flex items-center gap-2.5 font-semibold"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-6 w-6 text-primary flex-shrink-0"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                </svg>
-                <span className="whitespace-nowrap">MultiTienda</span>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center shadow-sm">
+                  <TreePine className="h-4 w-4 text-white" />
+                </div>
+                <span className="whitespace-nowrap text-base">Pino</span>
               </Link>
             ) : (
               <Link 
@@ -639,20 +537,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       : (storeId ? `/store/${storeId}/dashboard` : '/')
                 } 
                 className="flex items-center justify-center w-full"
-                title="MultiTienda"
+                title="Pino"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="h-6 w-6 text-primary"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                </svg>
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center shadow-sm">
+                  <TreePine className="h-4 w-4 text-white" />
+                </div>
               </Link>
             )}
             <button
@@ -687,8 +576,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       to={item.href}
                       title={item.name}
                       className={cn(
-                        'flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
-                        isActive && 'bg-muted text-primary'
+                        'flex items-center justify-center rounded-xl p-2.5 text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
+                        isActive && 'bg-primary/10 text-primary'
                       )}
                     >
                       <Icon className="h-5 w-5" />
@@ -707,14 +596,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="border-t p-2">
             <Link
               to={helpHref}
-              title={translations[language].help}
+              title="Ayuda"
               className={cn(
-                'flex items-center rounded-lg px-3 py-2 text-xs text-muted-foreground transition-all hover:text-primary hover:bg-muted/50',
+                'flex items-center rounded-xl px-3 py-2.5 text-xs text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
                 sidebarCollapsed ? 'justify-center' : 'gap-3'
               )}
             >
               <LifeBuoy className="h-4 w-4 flex-shrink-0" />
-              {!sidebarCollapsed && translations[language].help}
+              {!sidebarCollapsed && 'Ayuda'}
             </Link>
           </div>
         </div>
@@ -722,8 +611,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col">
         <AppHeader
           navItems={flatNav}
-          language={language}
-          onLanguageChange={handleLanguageChange}
           exchangeRate={storeSettings.exchangeRate}
           notifications={notifications}
           onNotificationClick={handleNotificationClick}
@@ -734,7 +621,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
 
         <footer className="flex items-center justify-between p-4 text-xs text-muted-foreground border-t">
-          <span>© {new Date().getFullYear()} World Wide All in One Programing. Todos los derechos reservados.</span>
+          <span>&copy; {new Date().getFullYear()} Pino · Sistema de Distribución</span>
         </footer>
       </div>
     </div>

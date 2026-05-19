@@ -8,18 +8,14 @@ import {
   StatusChip,
 } from '@/components/workspace';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Users,
   ShoppingCart,
   HandCoins,
   Undo2,
-  Route,
   Search,
-  Plus,
   User,
   Phone,
   MapPin,
@@ -43,7 +39,6 @@ interface ClientSummary {
 export default function SalesWorkspacePage() {
   const { storeId } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('clientes');
   const [searchTerm, setSearchTerm] = useState('');
   const [clients, setClients] = useState<ClientSummary[]>([]);
   const [loading, setLoading] = useState(false);
@@ -127,71 +122,29 @@ export default function SalesWorkspacePage() {
         ) : null
       }
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
-        <TabsList className="w-fit border-b border-[#DDE2E8] bg-transparent p-0">
-          <TabsTrigger value="clientes" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <Users className="mr-1.5 h-3.5 w-3.5" /> Clientes
-          </TabsTrigger>
-          <TabsTrigger value="pedido" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <ShoppingCart className="mr-1.5 h-3.5 w-3.5" /> Pedido rápido
-          </TabsTrigger>
-          <TabsTrigger value="cobros" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <HandCoins className="mr-1.5 h-3.5 w-3.5" /> Cobros
-          </TabsTrigger>
-          <TabsTrigger value="devoluciones" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <Undo2 className="mr-1.5 h-3.5 w-3.5" /> Devoluciones
-          </TabsTrigger>
-          <TabsTrigger value="rutas" className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]">
-            <Route className="mr-1.5 h-3.5 w-3.5" /> Rutas
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="clientes" className="mt-0 flex-1 p-0">
-          <div className="flex-1 overflow-auto p-4">
-            {loading ? <LoadingRows rows={6} /> : clients.length === 0 ? (
-              <EmptyState title={searchTerm.length < 2 ? 'Busca un cliente' : 'Sin resultados'} icon={Users} />
-            ) : (
-              <div className="space-y-2">
-                {clients.map((c) => (
-                  <button key={c.id} onClick={() => setSelectedClient(c)}
-                    className={`w-full rounded-lg border p-3 text-left transition-all hover:shadow-sm ${
-                      selectedClient?.id === c.id ? 'border-[#0F766E] ring-1 ring-[#0F766E]/20' : 'border-[#DDE2E8]'
-                    }`}>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-[#17202A]">{c.name}</p>
-                      <ArrowRight className="h-3.5 w-3.5 text-[#5B6673]" />
-                    </div>
-                    {c.code && <p className="text-xs text-[#5B6673]">{c.code}</p>}
-                    {c.balance !== undefined && c.balance > 0 && (
-                      <p className="mt-1 text-xs font-medium text-[#DC2626]">Saldo: {formatCurrency(c.balance)}</p>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className="flex-1 overflow-auto p-4">
+        {loading ? <LoadingRows rows={6} /> : clients.length === 0 ? (
+          <EmptyState title={searchTerm.length < 2 ? 'Busca un cliente' : 'Sin resultados'} icon={Search} />
+        ) : (
+          <div className="space-y-2">
+            {clients.map((c) => (
+              <button key={c.id} onClick={() => setSelectedClient(c)}
+                className={`w-full rounded-lg border p-3 text-left transition-all hover:shadow-sm ${
+                  selectedClient?.id === c.id ? 'border-[#0F766E] ring-1 ring-[#0F766E]/20' : 'border-[#DDE2E8]'
+                }`}>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-[#17202A]">{c.name}</p>
+                  <ArrowRight className="h-3.5 w-3.5 text-[#5B6673]" />
+                </div>
+                {c.code && <p className="text-xs text-[#5B6673]">{c.code}</p>}
+                {c.balance !== undefined && c.balance > 0 && (
+                  <p className="mt-1 text-xs font-medium text-[#DC2626]">Saldo: {formatCurrency(c.balance)}</p>
+                )}
+              </button>
+            ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="pedido" className="mt-0 flex-1 p-6">
-          <EmptyState title="Pedido rápido" description="Crea un pedido para el cliente seleccionado" icon={ShoppingCart}
-            action={<Button size="sm" onClick={() => navigate(`/store/${storeId}/vendors/quick-sale`)}><Plus className="mr-1.5 h-3.5 w-3.5" /> Nuevo pedido</Button>} />
-        </TabsContent>
-
-        <TabsContent value="cobros" className="mt-0 flex-1 p-6">
-          <EmptyState title="Cobros" description="Gestiona cuentas por cobrar" icon={HandCoins}
-            action={<Button size="sm" variant="outline" onClick={() => navigate(`/store/${storeId}/vendors/collections`)}>Ir a cobros</Button>} />
-        </TabsContent>
-
-        <TabsContent value="devoluciones" className="mt-0 flex-1 p-6">
-          <EmptyState title="Devoluciones" description="Procesa devoluciones de productos" icon={Undo2}
-            action={<Button size="sm" variant="outline" onClick={() => navigate(`/store/${storeId}/vendors/returns`)}>Ir a devoluciones</Button>} />
-        </TabsContent>
-
-        <TabsContent value="rutas" className="mt-0 flex-1 p-6">
-          <EmptyState title="Rutas" description="Asignación y gestión de rutas de venta" icon={Route}
-            action={<Button size="sm" variant="outline" onClick={() => navigate(`/store/${storeId}/vendors/routes`)}>Ir a rutas</Button>} />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </WorkspaceShell>
   );
 }

@@ -1,0 +1,215 @@
+================================================================================
+  DIAGNÓSTICO — PLATAFORMA WEB (React / Next.js)
+================================================================================
+
+STACK ACTUAL:
+  - Next.js 15.5.7 + React 19
+  - TailwindCSS 3.4.1 + tailwindcss-animate
+  - shadcn/ui (36 componentes Radix)
+  - Lucide React icons
+  - Fuente: PT Sans (Google Fonts)
+  - Recharts (gráficos)
+
+================================================================================
+1. LOGIN — pagina/src/app/login/page.tsx
+================================================================================
+
+PROBLEMAS:
+
+  a) NEUMORFISMO FUERA DE LUGAR
+     - Los inputs tienen: shadow-[inset_4px_4px_8px_#d1d9e6,inset_-4px_-4px_8px_#ffffff]
+     - El botón tiene: shadow-[6px_6px_12px_#d1d9e6,-6px_-6px_12px_#ffffff]
+     - La card tiene: shadow-[8px_8px_16px_#d1d9e6,-8px_-8px_16px_#ffffff]
+     - Efecto neumórfico = anticuado, confuso para el usuario, pobre accesibilidad
+     - Los colores de sombra son HARDCODED (#d1d9e6, #ffffff) — no respetan dark mode
+
+  b) SIN IDENTIDAD DE MARCA
+     - Logo es un SVG genérico de 3 capas (<path d="M12 2L2 7l10 5...">)
+     - No hay logo de "Pino", no hay ilustración, no hay foto
+     - Título dice "Iniciar Sesión" — genérico, sin nombre del sistema
+
+  c) FONDO PLANO
+     - Solo bg-background (gris claro)
+     - No hay gradiente, patrón, ni visual que genere confianza
+     - Se ve como un formulario suelto en el espacio
+
+  d) FOOTER IMPERSONAL
+     - "© 2026 World Wide All in One Programing" — no dice "Pino"
+     - Texto demasiado técnico para un usuario operativo
+
+  e) SIN ANIMACIONES
+     - La card aparece de golpe sin transición
+     - No hay feedback visual al cargar
+
+================================================================================
+2. SIDEBAR / MENÚ — pagina/src/components/app-layout.tsx
+================================================================================
+
+PROBLEMAS:
+
+  a) LAYOUT TIPO ADMIN TEMPLATE GENÉRICO
+     - Grid: md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]
+     - Sidebar estática fija — clásico patrón "dashboard enterprise"
+     - No hay colapso/expansión de la sidebar
+
+  b) SIDEBAR MONÓTONA
+     - Fondo: bg-muted/40 — gris muy tenue, sin carácter
+     - Todos los links son iguales: flex items-center gap-3 rounded-lg px-3 py-2
+     - Active state: solo bg-muted text-primary — cambio muy sutil
+     - No hay jerarquía visual entre items
+
+  c) SIN AGRUPACIÓN
+     - Master Admin tiene 11 items en lista plana:
+       Panel, Tiendas, Cadenas, Usuarios, Licencias, Monitor Sync,
+       Monitor, Zonas, Barrios, Configuración, Ayuda
+     - Store Admin puede tener hasta 15+ items
+     - No hay separadores, secciones, ni headers de grupo
+
+  d) LOGO GENÉRICO
+     - Mismo SVG de 3 capas del login
+     - Texto "MultiTienda" — nombre genérico
+     - Sin color de acento, sin identidad
+
+  e) NOMBRE DEL SISTEMA INCONSISTENTE
+     - HTML title: "MultiTienda PWA"
+     - Sidebar: "MultiTienda"
+     - Flutter: "Pino"
+     - ¿Cuál es el nombre real?
+
+================================================================================
+3. HEADER — pagina/src/components/app-header.tsx
+================================================================================
+
+PROBLEMAS:
+
+  a) HEADER SATURADO (hasta 7 elementos)
+     - Exchange rate (C$ XX.XX : $ 1.00)
+     - SyncStatusBadge
+     - NetworkStatusIndicator
+     - Notificaciones (Bell icon)
+     - ThemeToggle
+     - UserNav (Avatar)
+     - Hamburger menu (mobile)
+
+  b) SIN JERARQUÍA
+     - Todo al mismo nivel visual
+     - El usuario no sabe qué es importante y qué es secundario
+
+  c) SIN BREADCRUMB
+     - El usuario no sabe dónde está
+     - No hay indicador de ruta actual
+
+  d) MOBILE SHEET BÁSICO
+     - El menú móvil es solo los mismos links en un Sheet
+     - Sin avatar, sin saludo, sin agrupación
+
+================================================================================
+4. DASHBOARD — pagina/src/app/store-admin/[storeId]/dashboard/page.tsx
+================================================================================
+
+PROBLEMAS:
+
+  a) CONTENIDO PLANO
+     - Solo <h1> + <p> + <StoreAdminDashboardMetrics>
+     - Sin hero card, sin contexto visual
+     - Sin saludo personalizado ("Hola, Juan")
+
+  b) STAT CARDS GENÉRICAS (stats-cards.tsx)
+     - Solo muestran: porcentaje + valor actual + valor anterior
+     - Sin colores diferenciadores prominentes
+     - Iconos pequeños (h-4 w-4) y en color muted
+     - Sin gradiente ni visual llamativo
+
+  c) SIN ACCESOS RÁPIDOS
+     - El usuario debe navegar por la sidebar para cualquier acción
+     - No hay "quick actions" como en la app móvil
+
+  d) LOADING STATE BÁSICO
+     - Solo <div>Cargando...</div> — sin skeleton, sin animación
+
+================================================================================
+5. USER NAV — pagina/src/components/user-nav.tsx
+================================================================================
+
+PROBLEMAS:
+
+  a) AVATAR PLACEHOLDER
+     - Siempre muestra /placeholder-user.jpg (que probablemente no existe)
+     - Fallback son solo iniciales — sin color de fondo personalizado
+
+  b) DROPDOWN MÍNIMO
+     - Solo muestra: nombre, email, "Cerrar sesión"
+     - Sin rol del usuario, sin tienda actual
+     - Sin link a perfil/configuración
+
+================================================================================
+6. PRELOADER — pagina/src/components/preloader.tsx
+================================================================================
+
+PROBLEMAS:
+
+  a) SVG GENÉRICO
+     - Mismo SVG de 3 capas con animate-pulse
+     - No es un logo real, es un patrón de capas
+
+  b) TIMEOUT LARGO
+     - 7 segundos antes de mostrar botón de fuerza
+     - El usuario queda mirando la pantalla sin feedback
+
+================================================================================
+7. COLORES — globals.css + tailwind.config.ts
+================================================================================
+
+  LIGHT:
+    background: 220 13% 95% (gris azulado claro)
+    primary:    207 68% 53% (azul genérico — tipo Bootstrap)
+    accent:     145 63% 49% (verde brillante — choca con primary)
+
+  DARK:
+    background: 224 10% 11% (casi negro)
+    primary:    207 68% 53% (mismo azul — no adaptado para dark)
+
+  PROBLEMAS:
+    - Primary azul es genérico, sin personalidad
+    - Accent verde no combina con primary azul
+    - No hay "warn" ni "info" colores definidos
+    - Las chart colors son arbitrarias
+
+================================================================================
+8. TIPOGRAFÍA
+================================================================================
+
+  Fuente: PT Sans (Google Fonts)
+    - Pesos disponibles: 400, 700 (solo 2)
+    - Estilo: Sans-serif funcional pero aburrida
+    - No transmite modernidad ni calidez
+    - No tiene variante "tabular" para números alineados
+
+================================================================================
+ARCHIVOS CLAVE AFECTADOS (WEB):
+================================================================================
+
+  pagina/src/app/globals.css
+  pagina/src/app/layout.tsx
+  pagina/src/app/login/page.tsx
+  pagina/src/app/page.tsx (home redirect)
+  pagina/src/app/store-admin/[storeId]/dashboard/page.tsx
+  pagina/src/app/master-admin/dashboard/page.tsx
+  pagina/src/components/app-layout.tsx
+  pagina/src/components/app-header.tsx
+  pagina/src/components/user-nav.tsx
+  pagina/src/components/preloader.tsx
+  pagina/src/components/dashboard/stats-cards.tsx
+  pagina/src/components/dashboard/store-admin-dashboard-metrics.tsx
+  pagina/src/components/dashboard/master-admin-dashboard-metrics.tsx
+  pagina/src/components/ui/card.tsx
+  pagina/src/components/ui/button.tsx
+  pagina/src/components/ui/input.tsx
+  pagina/src/components/ui/dialog.tsx
+  pagina/src/components/ui/sheet.tsx
+  pagina/src/components/ui/table.tsx
+  pagina/src/components/ui/skeleton.tsx
+  pagina/tailwind.config.ts
+  pagina/package.json
+
+================================================================================

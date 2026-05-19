@@ -1,0 +1,90 @@
+================================================================================
+  FASE 1 — SISTEMA DE DISEÑO (FUNDACIÓN)
+  Tiempo estimado: ~3 horas
+================================================================================
+
+OBJETIVO:
+  Reescribir los archivos de configuración base para establecer la nueva
+  identidad visual en ambas plataformas.
+
+================================================================================
+TAREA 1.1 — Reescribir globals.css
+================================================================================
+
+ARCHIVO:  pagina/src/app/globals.css
+TIEMPO:   45 minutos
+
+QUÉ HACER:
+  Reemplazar TODA la sección de CSS variables con la nueva paleta.
+  Ver valores HSL exactos en: 03_NUEVA_IDENTIDAD_VISUAL.txt
+
+  Cambios principales:
+  - :root → nuevos valores HSL para light mode
+  - .dark → nuevos valores HSL para dark mode
+  - body → font-family: 'Inter', sans-serif
+  - Agregar transiciones base:
+      * { transition-property: color, background-color, border-color; }
+      * { transition-duration: 150ms; }
+  - Agregar clase .animate-in para page transitions
+  - Eliminar neumorfismo global si existe
+
+================================================================================
+TAREA 1.2 — Actualizar tailwind.config.ts
+================================================================================
+
+ARCHIVO:  pagina/tailwind.config.ts
+TIEMPO:   30 minutos
+
+QUÉ HACER:
+  1. Actualizar fontFamily → Inter
+  2. Agregar nuevos keyframes:
+     - fade-in: opacity 0→1
+     - slide-up: translateY(8px) → 0
+     - scale-in: scale(0.95) → 1
+     - shimmer: background-position slide
+  3. Agregar animations correspondientes
+  4. Mantener todo lo demás igual
+
+================================================================================
+TAREA 1.3 — Reescribir app_theme.dart (Flutter)
+================================================================================
+
+ARCHIVO:  sistema_final/flutter/lib/app/theme/app_theme.dart
+TIEMPO:   1 hora
+
+QUÉ HACER:
+  1. Importar google_fonts y app_colors.dart
+  2. Nuevo ColorScheme usando AppColors
+  3. TextTheme con Inter (GoogleFonts.interTextTheme)
+  4. Actualizar AppBarTheme, FilledButtonTheme, OutlinedButtonTheme
+  5. Actualizar InputDecorationTheme con nuevos colores
+  6. Agregar CardTheme con nuevos border radius
+  7. Agregar BottomSheetTheme
+  8. Agregar DialogTheme
+  9. Opcionalmente crear AppTheme.dark()
+
+================================================================================
+TAREA 1.4 — Actualizar layout.tsx
+================================================================================
+
+ARCHIVO:  pagina/src/app/layout.tsx
+TIEMPO:   20 minutos
+
+QUÉ HACER:
+  1. Cambiar PT_Sans → Inter (ya detallado en Fase 0)
+  2. Actualizar meta theme-color: #2563EB
+  3. Actualizar apple-mobile-web-app-title: "Pino"
+  4. Actualizar <title>: "Pino"
+
+================================================================================
+VERIFICACIÓN FASE 1:
+================================================================================
+
+  [ ] globals.css tiene nueva paleta light + dark
+  [ ] tailwind.config.ts tiene Inter + nuevos keyframes
+  [ ] app_theme.dart usa Inter + AppColors
+  [ ] layout.tsx referencia Inter
+  [ ] Web compila y la interfaz se ve con nuevos colores
+  [ ] Flutter compila y la interfaz se ve con nuevos colores
+  [ ] Dark mode funciona correctamente en web
+================================================================================

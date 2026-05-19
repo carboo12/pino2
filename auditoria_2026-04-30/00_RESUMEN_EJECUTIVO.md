@@ -15,7 +15,7 @@ No se modifico codigo de aplicacion. Solo se genero esta documentacion.
 
 ## Lectura general
 
-El proyecto no esta en estado scaffold. Tiene una base funcional amplia y ya cubre POS, administracion multi-tienda, bodega, ventas en ruta, cobranza, devoluciones, cuentas por cobrar/pagar, sincronizacion, notificaciones, reportes y app movil operativa.
+El proyecto no esta en estado scaffold. Tiene una base funcional amplia y ya cubre POS, administracion multi-tienda, bodega, ventas en ruta, cobranza, devoluciones, cuentas po r cobrar/pagar, sincronizacion, notificaciones, reportes y app movil operativa.
 
 Tambien tiene deuda tecnica clara: contratos tipados incompletos, varios endpoints aceptan `any`, documentacion de subproyectos todavia generica, pruebas web inexistentes, riesgo de divergencia entre esquema maestro y migraciones, y pantallas con logica de datos/calculo dentro del componente.
 

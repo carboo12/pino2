@@ -86,7 +86,7 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    final todayStr = DateFormat('EEEE d \'de\' MMMM', 'es').format(DateTime.now());
+    final todayStr = DateFormat('EEE d \'de\' MMMM', 'es').format(DateTime.now());
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -119,122 +119,117 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         children: [
-           // Hero Session
-           Container(
-             padding: const EdgeInsets.all(22),
-             decoration: BoxDecoration(
-               borderRadius: BorderRadius.circular(24),
-               gradient: const LinearGradient(
-                 colors: [Color(0xFF047857), Color(0xFF065F46)],
-                 begin: Alignment.topLeft,
-                 end: Alignment.bottomRight,
-               ),
-               boxShadow: [
-                 BoxShadow(
-                   color: const Color(0xFF047857).withValues(alpha: 0.3),
-                   blurRadius: 16,
-                   offset: const Offset(0, 8),
-                 )
-               ]
-             ),
-             child: Column(
-               crossAxisAlignment: CrossAxisAlignment.start,
-               children: [
-                 Text(
-                   'Buenos días, ${session.user.name.split(' ').first}',
-                   style: theme.textTheme.headlineSmall?.copyWith(
-                     color: Colors.white,
-                     fontWeight: FontWeight.w800,
-                   ),
-                 ),
-                 const SizedBox(height: 8),
-                 Row(
-                   children: [
-                     const Icon(Icons.calendar_today_rounded, color: Colors.white70, size: 16),
-                     const SizedBox(width: 6),
-                     Text(
-                       todayStr.toUpperCase(),
-                       style: theme.textTheme.bodyMedium?.copyWith(
-                         color: Colors.white.withValues(alpha: 0.9),
-                         fontWeight: FontWeight.w600,
-                       ),
-                     ),
-                   ],
-                 ),
-                 const SizedBox(height: 16),
-               ],
-             ),
-           ),
+            // Hero Session
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF047857), Color(0xFF065F46)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF047857).withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  )
+                ]
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Buenos días, ${session.user.name.split(' ').first}',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today_rounded, color: Colors.white70, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        todayStr.toUpperCase(),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
 
-           const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-           // KPI Grid
+            // KPI Grid
            if (_loadingMetrics)
              const Center(child: CircularProgressIndicator())
            else
-             GridView.count(
-               crossAxisCount: 2,
-               shrinkWrap: true,
-               physics: const NeverScrollableScrollPhysics(),
-               crossAxisSpacing: 16,
-               mainAxisSpacing: 16,
-               childAspectRatio: 1.4,
-               children: [
-                 _buildKpiCard(
-                   title: 'Visitas',
-                   value: '${_metrics['visits']}',
-                   subtitle: 'de ${_metrics['totalVisits']} registradas',
-                   icon: Icons.storefront_rounded,
-                   color: const Color(0xFF3B82F6),
-                 ),
-                 _buildKpiCard(
-                   title: 'Vendido',
-                   value: 'C\$ ${NumberFormat('#,##0', 'es').format(_metrics['totalSold'])}',
-                   subtitle: 'Total del día',
-                   icon: Icons.attach_money_rounded,
-                   color: const Color(0xFF10B981),
-                 ),
-                 _buildKpiCard(
-                   title: 'Pedidos',
-                   value: '${_metrics['ordersCount']}',
-                   subtitle: 'Emitidos hoy',
-                   icon: Icons.shopping_basket_rounded,
-                   color: const Color(0xFFF59E0B),
-                 ),
-                 _buildKpiCard(
-                   title: 'Pendientes',
-                   value: '${_metrics['pendingSync']}',
-                   subtitle: 'Por sincronizar',
-                   icon: Icons.cloud_upload_rounded,
-                   color: const Color(0xFFEF4444),
-                 ),
-               ],
-             ),
+             LayoutBuilder(
+               builder: (context, constraints) {
+                 final isSmall = constraints.maxWidth < 360;
+                 return GridView.count(
+                   crossAxisCount: 2,
+                   shrinkWrap: true,
+                   physics: const NeverScrollableScrollPhysics(),
+                   crossAxisSpacing: isSmall ? 10 : 16,
+                   mainAxisSpacing: isSmall ? 10 : 16,
+                    childAspectRatio: isSmall ? 1.15 : 1.4,
+                    children: [
+                      _buildKpiCard(
+                        title: 'Visitas',
+                        value: '${_metrics['visits']}',
+                        subtitle: 'de ${_metrics['totalVisits']} registradas',
+                        icon: Icons.storefront_rounded,
+                        color: const Color(0xFF3B82F6),
+                      ),
+                      _buildKpiCard(
+                        title: 'Vendido',
+                        value: 'C\$ ${NumberFormat('#,##0', 'es').format(_metrics['totalSold'])}',
+                        subtitle: 'Total del día',
+                        icon: Icons.attach_money_rounded,
+                        color: const Color(0xFF10B981),
+                      ),
+                      _buildKpiCard(
+                        title: 'Pedidos',
+                        value: '${_metrics['ordersCount']}',
+                        subtitle: 'Emitidos hoy',
+                        icon: Icons.shopping_basket_rounded,
+                        color: const Color(0xFFF59E0B),
+                      ),
+                      _buildKpiCard(
+                        title: 'Pendientes',
+                        value: '${_metrics['pendingSync']}',
+                        subtitle: 'Por sincronizar',
+                        icon: Icons.cloud_upload_rounded,
+                        color: const Color(0xFFEF4444),
+                      ),
+                    ],
+                  );
+                },
+              ),
 
-           const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-           // Main Action
-           ElevatedButton(
-             onPressed: () {
-                context.push('/preventa-route');
-             },
-             style: ElevatedButton.styleFrom(
-               backgroundColor: const Color(0xFF0F172A),
-               foregroundColor: Colors.white,
-               padding: const EdgeInsets.symmetric(vertical: 20),
-               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-               elevation: 8,
-               shadowColor: const Color(0xFF0F172A).withValues(alpha: 0.4),
-             ),
-             child: const Row(
-               mainAxisAlignment: MainAxisAlignment.center,
-               children: [
-                 Icon(Icons.directions_car_rounded, size: 24),
-                 SizedBox(width: 12),
-                 Text('INICIAR RUTA DEL DÍA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
-               ],
-             ),
-           ),
+            // Main Action
+            FilledButton.icon(
+              onPressed: () => context.push('/preventa-route'),
+              icon: const Icon(Icons.directions_car_rounded, size: 22),
+              label: const Text('Iniciar Ruta'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF047857),
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+            ),
 
            const SizedBox(height: 24),
 
@@ -283,14 +278,20 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
         selectedItemColor: const Color(0xFF047857),
         unselectedItemColor: Colors.grey,
         onTap: (index) {
-          if (index == 1) {
-            context.push('/preventa-clients');
+          switch (index) {
+            case 1:
+              context.push('/preventa-clients');
+              break;
+            case 2:
+              final storeId = session.user.primaryStoreId ?? '';
+              context.push('/catalog/$storeId');
+              break;
           }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Mis Clientes'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_rounded), label: 'Catálogo'),
+          BottomNavigationBarItem(icon: Icon(Icons.people_alt_rounded), label: 'Clientes'),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_rounded), label: 'Catálogo'),
         ],
       ),
     );

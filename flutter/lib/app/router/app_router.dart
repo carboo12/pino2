@@ -33,25 +33,45 @@ import '../../features/preventa/presentation/screens/preventa_order_screen.dart'
 import '../../features/preventa/presentation/screens/preventa_clients_screen.dart';
 import '../../features/preventa/presentation/screens/preventa_add_client_screen.dart';
 
+import 'package:flutter/material.dart';
+
+GoRoute _fadeRoute({
+  required String path,
+  required Widget Function(BuildContext, GoRouterState) builder,
+  List<GoRoute> routes = const [],
+}) {
+  return GoRoute(
+    path: path,
+    pageBuilder: (context, state) => CustomTransitionPage<void>(
+      key: state.pageKey,
+      child: builder(context, state),
+      transitionsBuilder: (_, animation, __, child) =>
+          FadeTransition(opacity: animation, child: child),
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+    routes: routes,
+  );
+}
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
 
   return GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
-      GoRoute(path: '/workday', builder: (context, state) => const WorkdayHomeScreen()),
-      GoRoute(path: '/workday/route', builder: (context, state) => const RouteWorkdayScreen()),
-      GoRoute(
+      _fadeRoute(path: '/', builder: (context, state) => const SplashScreen()),
+      _fadeRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      _fadeRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      _fadeRoute(path: '/workday', builder: (context, state) => const WorkdayHomeScreen()),
+      _fadeRoute(path: '/workday/route', builder: (context, state) => const RouteWorkdayScreen()),
+      _fadeRoute(
         path: '/workday/client/:clientId',
         builder: (context, state) {
           final clientId = state.pathParameters['clientId'] ?? '';
           return ClientWorkScreen(clientId: clientId);
         },
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/workday/order',
         builder: (context, state) {
           final clientId = state.uri.queryParameters['clientId'];
@@ -59,8 +79,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return MobileOrderScreen(clientId: clientId, clientName: clientName);
         },
       ),
-      GoRoute(path: '/sync', builder: (context, state) => const SyncStatusScreen()),
-      GoRoute(
+      _fadeRoute(path: '/sync', builder: (context, state) => const SyncStatusScreen()),
+      _fadeRoute(
         path: '/workday/collections',
         builder: (context, state) {
           final storeId = state.uri.queryParameters['storeId'] ?? '';
@@ -70,11 +90,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/workday/returns',
         builder: (context, state) => const RouteReturnsScreen(),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/workday/closing',
         builder: (context, state) {
           final storeId = state.uri.queryParameters['storeId'] ?? '';
@@ -84,10 +104,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      GoRoute(path: '/preventa-route', builder: (context, state) => const PreventaRouteScreen()),
-      GoRoute(path: '/preventa-clients', builder: (context, state) => const PreventaClientsScreen()),
-      GoRoute(path: '/preventa-add-client', builder: (context, state) => const PreventaAddClientScreen()),
-      GoRoute(
+      _fadeRoute(path: '/preventa-route', builder: (context, state) => const PreventaRouteScreen()),
+      _fadeRoute(path: '/preventa-clients', builder: (context, state) => const PreventaClientsScreen()),
+      _fadeRoute(path: '/preventa-add-client', builder: (context, state) => const PreventaAddClientScreen()),
+      _fadeRoute(
         path: '/preventa-order',
         builder: (context, state) {
           final clientId = state.uri.queryParameters['clientId'] ?? 'unknown';
@@ -95,104 +115,104 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return PreventaOrderScreen(clientId: clientId, clientName: clientName);
         },
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/catalog/:storeId',
         builder: (context, state) => ProductCatalogScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/clients/:storeId',
         builder: (context, state) => ClientPortfolioScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/route-board/:storeId',
         builder: (context, state) => RouteBoardScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/quick-order/:storeId',
         builder: (context, state) => QuickOrderScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/collections/:storeId',
         builder: (context, state) => CollectionsScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/returns/:storeId',
         builder: (context, state) => ReturnsScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/warehouse/:storeId',
         builder: (context, state) => WarehouseBoardScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/daily-closing/:storeId',
         builder: (context, state) => DailyClosingScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/vendor-inventory/:storeId',
         builder: (context, state) => VendorInventoryScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/sales-history/:storeId',
         builder: (context, state) => SalesHistoryScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/inventory-adjustments/:storeId',
         builder: (context, state) => InventoryAdjustmentScreen(
           storeId: state.pathParameters['storeId'] ?? '',
           storeName: state.uri.queryParameters['storeName'],
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/picking-checklist',
         builder: (context, state) {
           final order = state.extra as WarehouseOrder;
           return PickingChecklistScreen(order: order);
         },
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/carga-camion/:storeId',
         builder: (context, state) => CargaCamionScreen(
           storeId: state.pathParameters['storeId'] ?? '',
         ),
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/delivery-detail',
         builder: (context, state) {
           final delivery = state.extra as DeliverySummary;
           return DeliveryDetailScreen(delivery: delivery);
         },
       ),
-      GoRoute(
+      _fadeRoute(
         path: '/route-returns',
         builder: (context, state) => const RouteReturnsScreen(),
       ),

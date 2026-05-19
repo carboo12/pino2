@@ -1,0 +1,83 @@
+================================================================================
+  PLAN DE REDISEÑO UX/UI — SISTEMA PINO
+  Resumen Ejecutivo
+================================================================================
+
+FECHA:        2026-05-19
+SISTEMA:      Pino (Multi-Tienda / Distribución)
+PLATAFORMAS:  React Web (Next.js 15) + Flutter Mobile
+ALCANCE:      Rediseño visual completo — sin cambios en lógica de negocio
+
+================================================================================
+OBJETIVO
+================================================================================
+
+Transformar la interfaz actual (que se siente rígida, tipo "PrimeFaces/enterprise")
+en una experiencia MODERNA, AMIGABLE, CÁLIDA y FAMILIAR que el usuario operativo
+disfrute usar todos los días.
+
+================================================================================
+DIAGNÓSTICO GENERAL
+================================================================================
+
+PROBLEMAS PRINCIPALES:
+  1. Neumorfismo anticuado en login web (sombras inset en inputs)
+  2. Colores verde militar (#14532D, #047857) — demasiado serios/fríos
+  3. Sidebar tipo admin template — lista plana de 11+ items sin agrupar
+  4. Tipografía PT Sans — funcional pero aburrida
+  5. Dashboard sin personalidad — solo números sin contexto visual
+  6. Sin animaciones — todo aparece de golpe, sin transiciones
+  7. Inconsistencia visual — web y Flutter se sienten como sistemas distintos
+
+================================================================================
+DECISIONES ESTRATÉGICAS
+================================================================================
+
+  FRAMEWORK CSS:     Mantener TailwindCSS 3 + shadcn/ui (se reconfigura, no se cambia)
+  TIPOGRAFÍA:        Inter (Google Fonts) — ambas plataformas
+  PALETA NUEVA:      Azul vivo #2563EB + Violeta #7C3AED + Ámbar #F59E0B
+  ENFOQUE:           Reconfigurar tokens + rediseñar pantallas clave
+
+================================================================================
+PLAN DE TRABAJO — 6 FASES
+================================================================================
+
+  Fase 0: Preparación                         ~1 hr
+  Fase 1: Sistema de Diseño (Fundación)       ~3 hr
+  Fase 2: Login (Primera Impresión)           ~3.5 hr
+  Fase 3: Navegación y Layout                 ~6 hr
+  Fase 4: Dashboard / Home                    ~6 hr
+  Fase 5: Componentes UI Base                 ~2.5 hr
+  Fase 6: Pulido Final                        ~3.5 hr
+  ─────────────────────────────────────────────────
+  TOTAL ESTIMADO:                             ~25.5 horas
+
+================================================================================
+LO QUE NO SE CAMBIA
+================================================================================
+
+  - No se cambia el framework (Next.js, Flutter, NestJS)
+  - No se cambia la librería de componentes (shadcn/ui se mantiene)
+  - No se cambia TailwindCSS (se reconfiguran los tokens)
+  - No se cambia la estructura de rutas ni la lógica de auth
+  - No se cambian los providers/context
+  - No se cambian las APIs ni el backend
+
+================================================================================
+ARCHIVOS EN ESTA CARPETA
+================================================================================
+
+  00_RESUMEN_EJECUTIVO.txt        ← Este archivo
+  01_DIAGNOSTICO_WEB.txt          ← Problemas detectados en React/Next.js
+  02_DIAGNOSTICO_FLUTTER.txt      ← Problemas detectados en Flutter Mobile
+  03_NUEVA_IDENTIDAD_VISUAL.txt   ← Paleta, tipografía, estilo propuesto
+  04_STACK_HERRAMIENTAS.txt       ← Qué se usa, qué se mantiene, qué cambia
+  05_PLAN_FASE_0_PREPARACION.txt  ← Instalación de fuentes y setup
+  06_PLAN_FASE_1_DISENO_BASE.txt  ← Sistema de diseño / fundación
+  07_PLAN_FASE_2_LOGIN.txt        ← Rediseño de login (web + flutter)
+  08_PLAN_FASE_3_NAVEGACION.txt   ← Sidebar, header, menú mobile
+  09_PLAN_FASE_4_DASHBOARD.txt    ← Dashboard/Home web + flutter
+  10_PLAN_FASE_5_COMPONENTES.txt  ← Componentes UI base (card, button, etc)
+  11_PLAN_FASE_6_PULIDO.txt       ← Animaciones, empty states, audit final
+
+================================================================================

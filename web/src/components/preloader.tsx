@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TreePine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,7 +17,7 @@ export function Preloader({ message = 'Cargando...', allowForceRedirect = false 
 
     const timer = setTimeout(() => {
       setShowForceButton(true);
-    }, 7000); // 7 seconds
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [allowForceRedirect]);
@@ -28,27 +29,22 @@ export function Preloader({ message = 'Cargando...', allowForceRedirect = false 
   return (
     <div className="fixed inset-0 z-50 flex h-screen w-full items-center justify-center bg-background p-4">
       <div className="flex flex-col items-center gap-6 text-center">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-16 w-16 animate-pulse text-primary"
-        >
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-        </svg>
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center shadow-md">
+          <TreePine className="h-8 w-8 text-white" />
+        </div>
         <div className="space-y-2">
           <p className="text-xl font-medium">{message}</p>
-          <p className="text-sm text-muted-foreground animate-pulse">
+          <p className="text-sm text-muted-foreground">
+            <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse mr-1" />
             Preparando tu espacio de trabajo...
           </p>
         </div>
+        <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-full bg-primary rounded-full animate-[shimmer_1.5s_ease-in-out_infinite]" style={{ width: '40%' }} />
+        </div>
 
         {showForceButton && (
-          <div className="mt-4 flex flex-col items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="mt-4 flex flex-col items-center gap-3 animate-in fade-in slide-up duration-500">
             <p className="text-sm text-destructive font-medium">
               Estamos tardando más de lo usual.
             </p>

@@ -1,0 +1,120 @@
+================================================================================
+  FASE 2 — LOGIN (PRIMERA IMPRESIÓN)
+  Tiempo estimado: ~3.5 horas
+================================================================================
+
+OBJETIVO:
+  El login es lo primero que ve el usuario. Debe transmitir confianza,
+  modernidad y calidez desde el primer segundo.
+
+================================================================================
+TAREA 2.1 — Rediseñar Login Web
+================================================================================
+
+ARCHIVO:  pagina/src/app/login/page.tsx
+TIEMPO:   1.5 horas
+
+ELIMINAR:
+  - Todo el neumorfismo (shadow-[inset_...] en inputs, botón y card)
+  - SVG genérico de 3 capas
+  - Footer "World Wide All in One Programing"
+
+AGREGAR:
+  - Fondo con gradiente suave (background → primaryLight)
+  - Patrón decorativo sutil (círculos/dots o formas geométricas con opacity)
+  - Logo/branding "Pino" (texto estilizado o icono + nombre)
+  - Card con:
+    * border-radius 20px
+    * sombra suave (shadow-lg)
+    * animación de entrada (animate-in fade-in slide-up)
+  - Inputs limpios:
+    * border 1px solid border
+    * focus: ring-2 ring-primary/30
+    * sin sombras internas
+  - Botón primario:
+    * bg-primary hover:bg-primaryDark
+    * text-white
+    * transition all 0.15s
+    * active: scale(0.98)
+  - Saludo contextual basado en hora:
+    * "Buenos días" / "Buenas tardes" / "Buenas noches"
+  - Footer: "© 2026 Pino · Sistema de Distribución"
+
+LAYOUT PROPUESTO:
+  ┌──────────────────────────────────────┐
+  │  Gradiente suave de fondo           │
+  │                                      │
+  │    ┌────────────────────────┐        │
+  │    │  🌲 Pino               │        │
+  │    │  Buenos días           │        │
+  │    │                        │        │
+  │    │  [📧 Correo         ] │        │
+  │    │  [🔒 Contraseña     ] │        │
+  │    │                        │        │
+  │    │  [ Iniciar Sesión   ] │        │
+  │    │                        │        │
+  │    │  ¿Olvidaste tu clave? │        │
+  │    └────────────────────────┘        │
+  │                                      │
+  │  © 2026 Pino                        │
+  └──────────────────────────────────────┘
+
+================================================================================
+TAREA 2.2 — Rediseñar Login Flutter
+================================================================================
+
+ARCHIVO:  sistema_final/flutter/lib/features/auth/presentation/screens/login_screen.dart
+TIEMPO:   1.5 horas
+
+ELIMINAR:
+  - Gradiente oscuro militar [0xFF0F172A, 0xFF064E3B, 0xFF0F172A]
+  - Colores hardcoded
+
+AGREGAR:
+  - Gradiente de fondo más cálido usando AppColors.loginBg
+  - Branding "Pino" consistente con web
+  - Card con animación de entrada (FadeTransition o AnimatedOpacity)
+  - Inputs usando los nuevos colores del tema
+  - Botón con AppColors.primary (azul vivo)
+  - Saludo contextual basado en hora del día
+
+LAYOUT PROPUESTO (mismo concepto que web):
+  - Fondo gradiente suave (claro)
+  - Card centrada con borderRadius 24
+  - Logo + texto "Pino" arriba
+  - Campos de correo y contraseña
+  - Botón "Entrar" prominente
+  - Link "¿Olvidaste tu contraseña?" (si aplica en mobile)
+
+================================================================================
+TAREA 2.3 — Rediseñar Preloader
+================================================================================
+
+ARCHIVO:  pagina/src/components/preloader.tsx
+TIEMPO:   30 minutos
+
+ELIMINAR:
+  - SVG genérico de 3 capas
+
+AGREGAR:
+  - Logo/texto "Pino" estilizado
+  - Spinner sutil debajo del logo (o dots animados)
+  - Progress bar indeterminada con color primary
+  - Mensaje contextual mejorado
+  - Reducir timeout de force-button a 5 segundos
+  - Animación de entrada del botón de fuerza más suave
+
+================================================================================
+VERIFICACIÓN FASE 2:
+================================================================================
+
+  [ ] Login web sin neumorfismo
+  [ ] Login web con gradiente y branding
+  [ ] Login web inputs limpios con focus ring
+  [ ] Login web animación de entrada de card
+  [ ] Login Flutter con gradiente cálido
+  [ ] Login Flutter con branding consistente
+  [ ] Login Flutter con botón azul primario
+  [ ] Preloader con nuevo logo/branding
+  [ ] Ambos logins se sienten consistentes visualmente
+================================================================================

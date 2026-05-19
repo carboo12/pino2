@@ -1,0 +1,190 @@
+================================================================================
+  FASE 3 — NAVEGACIÓN Y LAYOUT
+  Tiempo estimado: ~6 horas
+================================================================================
+
+OBJETIVO:
+  Transformar la navegación de "admin template genérico" a una experiencia
+  organizada, agrupada y con identidad propia.
+
+================================================================================
+TAREA 3.1 — Rediseñar Sidebar Web
+================================================================================
+
+ARCHIVO:  pagina/src/components/app-layout.tsx
+TIEMPO:   2 horas
+
+CAMBIOS PRINCIPALES:
+
+  a) LOGO Y BRANDING
+     - Reemplazar SVG genérico + "MultiTienda" por "Pino" con icono
+     - Color primary para el icono, texto bold
+     - Altura: 64px con padding horizontal 20px
+
+  b) AGRUPACIÓN DE NAV ITEMS
+     Crear secciones con headers para cada grupo:
+
+     MASTER ADMIN:
+       [Operación]
+         Panel, Tiendas, Cadenas
+       [Usuarios]
+         Usuarios, Licencias
+       [Monitoreo]
+         Monitor Sync, Monitor
+       [Configuración]
+         Zonas, Barrios, Configuración
+       [Soporte]
+         Ayuda
+
+     STORE ADMIN:
+       [Operación]
+         Comandas, Caja, Panel
+       [Inventario]
+         Productos, Movimientos, Ajustes, Proveedores
+       [Ventas]
+         Reportes, Vendedores, Clientes
+       [Gestión]
+         Zonas, Inventario, Rutas, Cobros
+       [Sistema]
+         Autorizaciones, Configuración, Ayuda
+
+  c) ESTILO DE NAV ITEMS
+     - Padding: 10px 16px
+     - Border radius: 10px
+     - Icons: 20x20 con color contextual
+     - Active state: bg-primary/10 text-primary font-semibold
+     - Hover: bg-muted
+     - Transición: 0.15s ease
+
+  d) HEADERS DE GRUPO
+     - text-xs font-medium text-muted-foreground uppercase
+     - tracking-wider
+     - margin-top: 20px (excepto primero)
+     - margin-bottom: 8px
+     - padding-left: 16px
+
+  e) FOOTER DE SIDEBAR (opcional)
+     - Mostrar versión del sistema: "v1.0.0"
+     - O "© 2026 Pino"
+
+================================================================================
+TAREA 3.2 — Rediseñar Header Web
+================================================================================
+
+ARCHIVO:  pagina/src/components/app-header.tsx
+TIEMPO:   1.5 horas
+
+SIMPLIFICACIÓN:
+  ANTES (7 elementos):
+    hamburger | exchange_rate | sync_badge | network | bell | theme | avatar
+
+  DESPUÉS (4-5 elementos):
+    hamburger | breadcrumb ··· spacer ··· notifications | avatar
+
+CAMBIOS:
+
+  a) AGREGAR BREADCRUMB
+     - Mostrar: "Panel > Productos" o "Configuración > Zonas"
+     - Usar pathname para generar
+     - Solo en desktop (hidden en mobile)
+
+  b) MOVER EXCHANGE RATE
+     - Mover al dashboard como card informativa
+     - O al tooltip del SyncStatusBadge
+
+  c) MOVER SYNC/NETWORK STATUS
+     - Mover a la sidebar (parte inferior)
+     - O mantener como iconos pequeños junto al breadcrumb
+
+  d) SIMPLIFICAR NOTIFICACIONES
+     - Mantener bell icon pero con badge número
+     - Dropdown más limpio
+
+  e) MANTENER THEME TOGGLE
+     - Pero hacerlo más discreto (dentro del user menu dropdown)
+
+  f) GLASSMORPHISM SUTIL
+     - bg-background/80 backdrop-blur-sm (ya existe, mantener)
+     - Mejorar la transición al hacer scroll
+
+================================================================================
+TAREA 3.3 — Rediseñar Mobile Sheet Menu
+================================================================================
+
+ARCHIVO:  pagina/src/components/app-header.tsx (sección Sheet)
+TIEMPO:   1 hora
+
+CAMBIOS:
+  - Agregar avatar + nombre + rol en la parte superior del Sheet
+  - Agrupar items igual que la sidebar desktop
+  - Agregar separadores visuales entre grupos
+  - Agregar "Cerrar sesión" al final del Sheet
+  - Animación de entrada más suave
+
+LAYOUT:
+  ┌──────────────────────────┐
+  │  👤 Juan Pérez           │
+  │  Admin de Tienda         │
+  │  ─────────────────────── │
+  │  OPERACIÓN               │
+  │  📊 Panel                │
+  │  💰 Caja                 │
+  │  ─────────────────────── │
+  │  INVENTARIO              │
+  │  📦 Productos            │
+  │  🔄 Movimientos          │
+  │  ─────────────────────── │
+  │  ...                     │
+  │  🚪 Cerrar sesión        │
+  └──────────────────────────┘
+
+================================================================================
+TAREA 3.4 — Rediseñar Home Flutter AppBar
+================================================================================
+
+ARCHIVO:  sistema_final/flutter/lib/features/home/presentation/screens/home_screen.dart
+TIEMPO:   1 hora
+
+CAMBIOS:
+  - Reemplazar AppBar plano por un header custom más rico
+  - Integrar avatar del usuario en el AppBar
+  - Mostrar nombre de tienda actual de forma prominente
+  - Store selector más visible (si hay múltiples tiendas)
+  - Estilizar botón de logout
+
+LAYOUT PROPUESTO:
+  ┌──────────────────────────────────┐
+  │  🌲 Pino     [tienda ▼]  [👤]  │
+  └──────────────────────────────────┘
+
+================================================================================
+TAREA 3.5 — Rediseñar User Nav
+================================================================================
+
+ARCHIVO:  pagina/src/components/user-nav.tsx
+TIEMPO:   30 minutos
+
+CAMBIOS:
+  - Avatar con color de fondo basado en iniciales (generado por hash)
+  - Dropdown más rico:
+    * Avatar grande + nombre + email
+    * Badge con rol del usuario
+    * Nombre de tienda actual
+    * Separador
+    * Toggle tema (mover aquí desde header)
+    * Separador
+    * Cerrar sesión
+
+================================================================================
+VERIFICACIÓN FASE 3:
+================================================================================
+
+  [ ] Sidebar web con items agrupados por sección
+  [ ] Sidebar web con headers de grupo
+  [ ] Sidebar web active state prominente
+  [ ] Header web simplificado con breadcrumb
+  [ ] Mobile sheet con avatar y agrupación
+  [ ] Flutter AppBar con branding y tienda
+  [ ] User Nav con dropdown rico
+  [ ] Todo responsive (mobile + desktop)
+================================================================================

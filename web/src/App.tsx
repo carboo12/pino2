@@ -186,7 +186,7 @@ function App() {
                   />
 
                   {/* RUTAS DE TIENDA */}
-                  <Route path="/store/:storeId/dashboard" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><DashboardPage /></ProtectedRoute>} />
+                  <Route path="/store/:storeId/dashboard" element={<Navigate to="../work/cash" replace />} />
                   <Route path="/store/:storeId/billing" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><BillingPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/facturacion" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><BillingPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/products" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><ProductsPage /></ProtectedRoute>} />

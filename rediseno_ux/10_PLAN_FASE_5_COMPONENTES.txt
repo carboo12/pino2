@@ -1,0 +1,106 @@
+================================================================================
+  FASE 5 — COMPONENTES UI BASE
+  Tiempo estimado: ~2.5 horas
+================================================================================
+
+OBJETIVO:
+  Actualizar los componentes shadcn/ui base para que toda la app se
+  beneficie del nuevo diseño automáticamente.
+
+================================================================================
+TAREA 5.1 — Actualizar Card (ui/card.tsx)
+================================================================================
+
+TIEMPO: 20 minutos
+
+CAMBIOS:
+  - Border radius: rounded-2xl (16px) en vez de rounded-lg
+  - Sombra default: shadow-sm
+  - Sombra hover: hover:shadow-md (con transition)
+  - Border: mantener border pero con color actualizado
+  - Agregar transition: transition-shadow duration-200
+
+================================================================================
+TAREA 5.2 — Actualizar Button (ui/button.tsx)
+================================================================================
+
+TIEMPO: 30 minutos
+
+CAMBIOS:
+  - Border radius: rounded-xl (12px)
+  - Primary: bg-primary hover:bg-primary/90, sin gradiente
+  - Active: active:scale-[0.98]
+  - Focus: focus-visible:ring-2 ring-primary/30
+  - Agregar transition: transition-all duration-150
+  - Font weight: font-semibold (600)
+  - Padding ajustado: px-6 py-2.5
+
+================================================================================
+TAREA 5.3 — Actualizar Input (ui/input.tsx)
+================================================================================
+
+TIEMPO: 20 minutos
+
+CAMBIOS:
+  - Border radius: rounded-xl (12px)
+  - Border: border-border
+  - Focus: focus:ring-2 focus:ring-primary/20 focus:border-primary
+  - Eliminar TODA referencia a neumorfismo/sombras internas
+  - Background: bg-background (respeta theme)
+  - Placeholder: text-muted-foreground/60
+
+================================================================================
+TAREA 5.4 — Actualizar Dialog y Sheet (ui/dialog.tsx, ui/sheet.tsx)
+================================================================================
+
+TIEMPO: 30 minutos
+
+DIALOG:
+  - Border radius: rounded-2xl
+  - Overlay: bg-black/40 backdrop-blur-sm
+  - Animación: data-[state=open]:animate-in data-[state=open]:fade-in
+  - Sombra: shadow-xl
+
+SHEET:
+  - Border radius esquinas superiores: rounded-t-2xl (para bottom)
+  - Overlay: bg-black/40 backdrop-blur-sm
+  - Animación: slide-in más suave
+
+================================================================================
+TAREA 5.5 — Actualizar Table (ui/table.tsx)
+================================================================================
+
+TIEMPO: 30 minutos
+
+CAMBIOS:
+  - Wrapper: rounded-xl border overflow-hidden
+  - Header: bg-muted/50 font-semibold text-sm
+  - Rows hover: hover:bg-muted/30
+  - Zebra stripes: even:bg-muted/10 (sutil)
+  - Border entre rows: border-b border-border/50
+
+================================================================================
+TAREA 5.6 — Actualizar Skeleton (ui/skeleton.tsx)
+================================================================================
+
+TIEMPO: 15 minutos
+
+CAMBIOS:
+  - Agregar shimmer animation (gradient slide)
+  - Border radius: rounded-xl
+  - Color base: bg-muted/60
+  - Shimmer: gradiente from muted/60 via muted/30 to muted/60
+
+================================================================================
+VERIFICACIÓN FASE 5:
+================================================================================
+
+  [ ] Cards con nuevo border-radius y sombra
+  [ ] Botones con nueva estética y active:scale
+  [ ] Inputs sin neumorfismo con focus ring
+  [ ] Dialogs y sheets con backdrop blur
+  [ ] Tables con zebra stripes y header
+  [ ] Skeletons con shimmer animation
+  [ ] Toda la app se ve consistente con los cambios
+  [ ] Dark mode funciona correctamente en todos los componentes
+================================================================================

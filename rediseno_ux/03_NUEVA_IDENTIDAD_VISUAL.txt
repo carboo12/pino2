@@ -1,0 +1,258 @@
+================================================================================
+  NUEVA IDENTIDAD VISUAL — SISTEMA PINO
+================================================================================
+
+PRINCIPIOS DE DISEÑO:
+
+  1. FAMILIAR, NO CORPORATIVO
+     Que se sienta como una app que usas todos los días (WhatsApp, Uber),
+     no como un ERP o sistema enterprise.
+
+  2. CÁLIDO Y ACOGEDOR
+     Colores que transmiten confianza y cercanía, no frialdad.
+
+  3. MINIMALISTA CON PROPÓSITO
+     Cada elemento tiene una razón de existir. Nada sobra.
+
+  4. CONSISTENTE CROSS-PLATFORM
+     Misma identidad visual en Web y Flutter.
+
+  5. RÁPIDO Y FLUIDO
+     Transiciones suaves, feedback inmediato al usuario.
+
+================================================================================
+PALETA DE COLORES
+================================================================================
+
+MODO CLARO (Light Mode):
+────────────────────────────────────────────────
+  Primary:          #2563EB    Azul vivo moderno (confianza, profesionalismo)
+  Primary Hover:    #1D4ED8    Azul un poco más oscuro
+  Primary Light:    #DBEAFE    Azul muy claro (backgrounds activos)
+
+  Secondary:        #7C3AED    Violeta suave (acento, distinción)
+  Secondary Light:  #EDE9FE    Violeta muy claro
+
+  Accent:           #F59E0B    Ámbar cálido (warnings, destacados, CTAs)
+  Accent Light:     #FEF3C7    Ámbar muy claro
+
+  Success:          #10B981    Verde esmeralda (confirmaciones, estado OK)
+  Success Light:    #D1FAE5    Verde muy claro
+
+  Destructive:      #EF4444    Rojo coral (errores, eliminar)
+  Destructive Light:#FEE2E2   Rojo muy claro
+
+  Background:       #FAFBFC    Casi blanco cálido (fondo general)
+  Surface:          #FFFFFF    Blanco puro (cards, modals)
+
+  Text Primary:     #1E293B    Slate oscuro (texto principal)
+  Text Secondary:   #64748B    Slate medio (texto secundario)
+  Text Muted:       #94A3B8    Slate claro (placeholders, hints)
+
+  Border:           #E2E8F0    Slate ligero (bordes)
+  Border Hover:     #CBD5E1    Slate medio (bordes al hover)
+
+  Sidebar BG:       #F8FAFC    Gris muy suave
+
+────────────────────────────────────────────────
+
+MODO OSCURO (Dark Mode):
+────────────────────────────────────────────────
+  Primary:          #3B82F6    Azul ligeramente más claro que light
+  Primary Light:    #1E3A5F    Azul oscuro para backgrounds
+
+  Background:       #0F172A    Slate 900 (fondo general)
+  Surface:          #1E293B    Slate 800 (cards)
+  Surface Elevated: #334155    Slate 700 (modals, dropdowns)
+
+  Text Primary:     #F1F5F9    Slate 100
+  Text Secondary:   #94A3B8    Slate 400
+  Text Muted:       #64748B    Slate 500
+
+  Border:           #334155    Slate 700
+  Border Hover:     #475569    Slate 600
+
+  Sidebar BG:       #1E293B    Slate 800
+
+────────────────────────────────────────────────
+
+VALORES HSL PARA CSS VARIABLES (globals.css):
+────────────────────────────────────────────────
+  Light:
+    --background:           210 20% 98%
+    --foreground:           222 47% 11%
+    --card:                 0 0% 100%
+    --card-foreground:      222 47% 11%
+    --popover:              0 0% 100%
+    --popover-foreground:   222 47% 11%
+    --primary:              217 91% 60%
+    --primary-foreground:   210 40% 98%
+    --secondary:            263 70% 58%
+    --secondary-foreground: 210 40% 98%
+    --muted:                210 40% 96%
+    --muted-foreground:     215 16% 47%
+    --accent:               38 92% 50%
+    --accent-foreground:    222 47% 11%
+    --destructive:          0 84% 60%
+    --destructive-foreground: 210 40% 98%
+    --border:               214 32% 91%
+    --input:                214 32% 91%
+    --ring:                 217 91% 60%
+    --radius:               0.75rem
+
+  Dark:
+    --background:           222 47% 11%
+    --foreground:           210 40% 98%
+    --card:                 222 47% 17%
+    --card-foreground:      210 40% 98%
+    --popover:              222 47% 11%
+    --popover-foreground:   210 40% 98%
+    --primary:              217 91% 60%
+    --primary-foreground:   210 40% 98%
+    --secondary:            263 70% 58%
+    --secondary-foreground: 210 40% 98%
+    --muted:                217 33% 17%
+    --muted-foreground:     215 20% 65%
+    --accent:               38 92% 50%
+    --accent-foreground:    210 40% 98%
+    --destructive:          0 63% 31%
+    --destructive-foreground: 210 40% 98%
+    --border:               217 19% 27%
+    --input:                217 19% 27%
+    --ring:                 217 91% 60%
+
+────────────────────────────────────────────────
+
+COLORES FLUTTER (app_colors.dart):
+────────────────────────────────────────────────
+  static const primary     = Color(0xFF2563EB);
+  static const primaryDark = Color(0xFF1D4ED8);
+  static const primaryLight= Color(0xFFDBEAFE);
+
+  static const secondary     = Color(0xFF7C3AED);
+  static const secondaryLight= Color(0xFFEDE9FE);
+
+  static const accent      = Color(0xFFF59E0B);
+  static const accentLight = Color(0xFFFEF3C7);
+
+  static const success     = Color(0xFF10B981);
+  static const successLight= Color(0xFFD1FAE5);
+
+  static const error       = Color(0xFFEF4444);
+  static const errorLight  = Color(0xFFFEE2E2);
+
+  static const background  = Color(0xFFFAFBFC);
+  static const surface     = Color(0xFFFFFFFF);
+
+  static const textPrimary   = Color(0xFF1E293B);
+  static const textSecondary = Color(0xFF64748B);
+  static const textMuted     = Color(0xFF94A3B8);
+
+  static const border      = Color(0xFFE2E8F0);
+
+  // Gradientes
+  static const heroGradient = [Color(0xFF2563EB), Color(0xFF7C3AED)];
+  static const loginGradient = [Color(0xFFF8FAFC), Color(0xFFDBEAFE)];
+
+────────────────────────────────────────────────
+
+================================================================================
+TIPOGRAFÍA
+================================================================================
+
+FUENTE ELEGIDA: Inter (Google Fonts)
+  - URL: https://fonts.google.com/specimen/Inter
+  - Licencia: SIL Open Font License (libre)
+
+¿POR QUÉ INTER?
+  1. Diseñada específicamente para pantallas y UI
+  2. Excelente legibilidad en tamaños pequeños
+  3. 18 pesos disponibles (100-900) — máxima flexibilidad
+  4. Soporte tabular de números (ideal para dashboards con cifras)
+  5. La usan: GitHub, Figma, Vercel, Linear, Notion
+  6. Disponible en google_fonts para Flutter
+  7. Variable font = carga rápida
+
+PESOS A USAR:
+  - 400 Regular:  Body text, descripciones
+  - 500 Medium:   Labels, subtítulos
+  - 600 SemiBold: Botones, links activos
+  - 700 Bold:     Títulos de sección
+  - 800 ExtraBold:Números grandes, headings hero
+
+ESCALAS DE TEXTO:
+  - xs:   0.75rem / 12px  (badges, timestamps)
+  - sm:   0.875rem / 14px (body secundario, captions)
+  - base: 1rem / 16px     (body principal)
+  - lg:   1.125rem / 18px (subtítulos)
+  - xl:   1.25rem / 20px  (títulos de card)
+  - 2xl:  1.5rem / 24px   (títulos de sección)
+  - 3xl:  1.875rem / 30px (headings de página)
+  - 4xl:  2.25rem / 36px  (hero, números grandes)
+
+================================================================================
+COMPONENTES — ESTILO VISUAL
+================================================================================
+
+CARDS:
+  - Border radius: 16px (1rem)
+  - Sombra: 0 1px 3px rgba(0,0,0,0.08)
+  - Sombra hover: 0 4px 12px rgba(0,0,0,0.10)
+  - Border: 1px solid var(--border)
+  - Transición: shadow 0.2s ease, transform 0.2s ease
+  - Hover: translateY(-1px)
+
+BOTONES:
+  - Border radius: 12px
+  - Primary: bg gradient(primary → primaryDark), text white
+  - Secondary: bg transparent, border primary, text primary
+  - Ghost: bg transparent, text muted, hover bg muted
+  - Padding: 12px 24px
+  - Font weight: 600
+  - Transición: all 0.15s ease
+  - Active: scale(0.98)
+
+INPUTS:
+  - Border radius: 12px
+  - Border: 1px solid var(--border)
+  - Focus: ring 2px primary con opacity 0.3
+  - Padding: 12px 16px
+  - Label flotante (opcional)
+  - Background: white (light) / surface (dark)
+
+SIDEBAR:
+  - Width: 260px (desktop)
+  - Background: surface
+  - Border right: 1px solid var(--border)
+  - Logo area: 64px height
+  - Nav items:
+    - Padding: 10px 16px
+    - Border radius: 10px
+    - Active: bg primary-light, text primary, font-weight 600
+    - Hover: bg muted
+    - Icons: 20x20, color contextual
+  - Secciones agrupadas con header text-muted uppercase 11px
+
+TABLES:
+  - Border radius exterior: 12px
+  - Header: bg muted, font-weight 600, text-sm
+  - Rows: hover bg-muted/50
+  - Zebra: even rows bg-muted/20
+  - Border: 1px solid var(--border)
+
+================================================================================
+ANIMACIONES / MICRO-INTERACCIONES
+================================================================================
+
+  1. Page enter:     fadeIn 0.3s + slideUp 8px
+  2. Card hover:     translateY(-1px) + shadow expand
+  3. Button press:   scale(0.98)
+  4. Modal open:     fadeIn 0.2s + scale from 0.95
+  5. Sheet slide:    slideIn from bottom 0.3s
+  6. Skeleton:       shimmer animation (gradient slide)
+  7. Toast:          slideIn from right + fadeIn
+  8. Nav active:     bg color transition 0.2s
+  9. Loading:        spinner rotate + pulse
+  10. Data refresh:  subtle flash on updated values
+
+================================================================================
