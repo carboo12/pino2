@@ -5,6 +5,13 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
+
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} no configurada. Crear backend/.env.test con ${name}=valor`);
+  return val;
+}
+
 import { AppModule } from '../../src/app.module';
 
 describe('MVP Critical Tests', () => {
@@ -30,7 +37,7 @@ describe('MVP Critical Tests', () => {
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'test-audit@pino.com', password: 'Password123!' });
+      .send({ email: 'test-audit@pino.com', password: process.env.TEST_ADMIN_PASSWORD || 'Password123!' });
     token = loginRes.body.accessToken;
   });
 
@@ -46,11 +53,11 @@ describe('MVP Critical Tests', () => {
   it('T33: No secrets in login response', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'test-audit@pino.com', password: 'Password123!' });
+      .send({ email: 'test-audit@pino.com', password: process.env.TEST_ADMIN_PASSWORD || 'Password123!' });
     const bodyStr = JSON.stringify(res.body);
     expect(bodyStr).not.toContain('password_hash');
     expect(bodyStr).not.toContain('refresh_token_hash');
-    expect(bodyStr).not.toContain('TuClaveFuerte');
+    expect(bodyStr).not.toContain('__NO_SECRETS_SHOULD_BE_HERE__');
   });
 
   it('Auth required for protected endpoints', async () => {

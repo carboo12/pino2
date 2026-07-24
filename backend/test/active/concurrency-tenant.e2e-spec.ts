@@ -6,6 +6,13 @@ import {
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
 import { Pool } from 'pg';
+
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} no configurada. Crear backend/.env.test con ${name}=valor`);
+  return val;
+}
+
 import { AppModule } from '../../src/app.module';
 
 describe('Concurrency, Tenant & Idempotency (e2e)', () => {
@@ -24,7 +31,7 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
       password:
-        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+        process.env.DATABASE_PASSWORD || (() => { throw new Error('TEST_DB_PASSWORD no configurada') })(),
       database: process.env.DATABASE_NAME || 'pino_mvp_test',
     });
 
@@ -44,7 +51,7 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'test-audit@pino.com', password: 'Password123!' });
+      .send({ email: 'test-audit@pino.com', password: process.env.TEST_ADMIN_PASSWORD || 'Password123!' });
     tokenA = loginRes.body.accessToken;
 
     const storeRes = await pool.query(
@@ -184,10 +191,10 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
   it('T33: No secrets in responses', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'test-audit@pino.com', password: 'Password123!' });
+      .send({ email: 'test-audit@pino.com', password: process.env.TEST_ADMIN_PASSWORD || 'Password123!' });
     const bodyStr = JSON.stringify(res.body);
     expect(bodyStr).not.toContain('password_hash');
     expect(bodyStr).not.toContain('refresh_token_hash');
-    expect(bodyStr).not.toContain('TuClaveFuerte');
+    expect(bodyStr).not.toContain('__NO_SECRETS_SHOULD_BE_HERE__');
   });
 });

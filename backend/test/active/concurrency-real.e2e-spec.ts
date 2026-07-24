@@ -6,6 +6,13 @@ import {
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
 import { Pool } from 'pg';
+
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} no configurada. Crear backend/.env.test con ${name}=valor`);
+  return val;
+}
+
 import { AppModule } from '../../src/app.module';
 
 describe('Concurrency real (e2e)', () => {
@@ -21,7 +28,7 @@ describe('Concurrency real (e2e)', () => {
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
       password:
-        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+        process.env.DATABASE_PASSWORD || (() => { throw new Error('TEST_DB_PASSWORD no configurada') })(),
       database: process.env.DATABASE_NAME || 'pino_mvp_test',
     });
 
@@ -41,7 +48,7 @@ describe('Concurrency real (e2e)', () => {
 
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'test-audit@pino.com', password: 'Password123!' });
+      .send({ email: 'test-audit@pino.com', password: process.env.TEST_ADMIN_PASSWORD || 'Password123!' });
     token = loginRes.body.accessToken;
   });
 

@@ -5,6 +5,13 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
+
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} no configurada. Crear backend/.env.test con ${name}=valor`);
+  return val;
+}
+
 import { AppModule } from '../../src/app.module';
 
 describe('App Routing Smoke (e2e)', () => {

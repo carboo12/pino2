@@ -5,6 +5,13 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
+
+function requireEnv(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`${name} no configurada. Crear backend/.env.test con ${name}=valor`);
+  return val;
+}
+
 import { AppModule } from '../../src/app.module';
 
 describe('Tenant isolation Tienda A vs Tienda B (e2e)', () => {
@@ -34,7 +41,7 @@ describe('Tenant isolation Tienda A vs Tienda B (e2e)', () => {
 
     const loginA = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: 'test-audit@pino.com', password: 'Password123!' });
+      .send({ email: 'test-audit@pino.com', password: process.env.TEST_ADMIN_PASSWORD || 'Password123!' });
     tokenA = loginA.body.accessToken;
 
     const loginB = await request(app.getHttpServer())
