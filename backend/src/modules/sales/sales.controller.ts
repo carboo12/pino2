@@ -18,7 +18,7 @@ import { ProcessSaleDto } from './sales.dto';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('sales')
 export class SalesController {
   constructor(private readonly service: SalesService) {}
