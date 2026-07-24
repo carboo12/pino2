@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { CreateOrderDto, UpdateOrderStatusBodyDto } from './orders.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth()
@@ -23,31 +24,7 @@ export class OrdersController {
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo pedido' })
-  create(
-    @Body()
-    dto: {
-      storeId: string;
-      clientId?: string;
-      clientName?: string;
-      vendorId?: string;
-      salesManagerName?: string;
-      paymentType?: string;
-      priceLevel?: number;
-      items: {
-        productId: string;
-        quantity: number;
-        unitPrice: number;
-        presentation?: string;
-        priceLevel?: number;
-      }[];
-      notes?: string;
-      externalId?: string;
-      tipoPedido?:
-        | 'VENTA_ESTANDAR'
-        | 'ABASTECIMIENTO_INTERNO'
-        | 'ENTREGA_POR_CUENTA';
-    },
-  ) {
+  create(@Body() dto: CreateOrderDto) {
     return this.service.create(dto);
   }
 
@@ -96,7 +73,7 @@ export class OrdersController {
   @ApiOperation({ summary: 'Actualizar status de un pedido' })
   updateStatus(
     @Param('id') id: string,
-    @Body() dto: { status: string; updatedBy?: string; vendorId?: string },
+    @Body() dto: UpdateOrderStatusBodyDto,
   ) {
     return this.service.updateStatus(
       id,
