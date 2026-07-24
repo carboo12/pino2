@@ -1,0 +1,4 @@
+StoreAccessGuard: ahora exige storeId (BadRequest si falta)
+RequestContext: type definido en guard
+X-Store-Id header soportado
+Pendiente: @Roles en todos los endpoints
