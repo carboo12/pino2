@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DailyClosingsService } from './daily-closings.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { CreateDailyClosingDto } from './daily-closings.dto';
 
 @ApiTags('Daily Closings')
 @ApiBearerAuth()
@@ -23,17 +24,7 @@ export class DailyClosingsController {
   @Post()
   @ApiOperation({ summary: 'Registrar cierre de caja del rutero' })
   create(
-    @Body()
-    dto: {
-      storeId: string;
-      ruteroId?: string;
-      totalSales: number;
-      totalCollections: number;
-      totalReturns: number;
-      cashTotal: number;
-      closingDate: string;
-      notes?: string;
-    },
+    @Body() dto: CreateDailyClosingDto,
     @Req() req: any,
   ) {
     return this.service.create({

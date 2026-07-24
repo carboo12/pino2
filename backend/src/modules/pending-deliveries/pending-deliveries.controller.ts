@@ -13,6 +13,11 @@ import { PendingDeliveriesService } from './pending-deliveries.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
+import {
+  CreatePendingDeliveryDto,
+  UpdatePendingDeliveryDto,
+  AssignRouteDto,
+} from './pending-deliveries.dto';
 
 @ApiTags('Pending Deliveries')
 @ApiBearerAuth()
@@ -45,14 +50,7 @@ export class PendingDeliveriesController {
   @Post()
   @ApiOperation({ summary: 'Crear entrega pendiente' })
   create(
-    @Body()
-    dto: {
-      storeId: string;
-      orderId: string;
-      clientId?: string;
-      address?: string;
-      notes?: string;
-    },
+    @Body() dto: CreatePendingDeliveryDto,
   ) {
     return this.service.create(dto);
   }
@@ -61,7 +59,7 @@ export class PendingDeliveriesController {
   @ApiOperation({ summary: 'Actualizar estado de entrega' })
   update(
     @Param('id') id: string,
-    @Body() dto: { status?: string; ruteroId?: string },
+    @Body() dto: UpdatePendingDeliveryDto,
   ) {
     return this.service.update(id, dto);
   }
@@ -69,7 +67,7 @@ export class PendingDeliveriesController {
   @Post('assign-route')
   @ApiOperation({ summary: 'Asignar ruta a entregas pendientes' })
   assignRoute(
-    @Body() dto: { deliveryIds: string[]; ruteroId: string; date?: string },
+    @Body() dto: AssignRouteDto,
   ) {
     return this.service.assignRoute(dto);
   }

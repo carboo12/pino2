@@ -12,6 +12,7 @@ import { CollectionsService } from './collections.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
+import { CreateCollectionDto } from './collections.dto';
 
 @ApiTags('Collections')
 @ApiBearerAuth()
@@ -23,16 +24,7 @@ export class CollectionsController {
   @Post()
   @ApiOperation({ summary: 'Registrar cobro del rutero' })
   create(
-    @Body()
-    dto: {
-      storeId: string;
-      accountId?: string;
-      ruteroId?: string;
-      clientId?: string;
-      amount: number;
-      paymentMethod?: string;
-      notes?: string;
-    },
+    @Body() dto: CreateCollectionDto,
     @Req() req: any,
   ) {
     return this.service.create({

@@ -13,6 +13,7 @@ import { ReturnsService } from './returns.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
+import { CreateReturnDto } from './returns.dto';
 
 @ApiTags('Returns')
 @ApiBearerAuth()
@@ -26,34 +27,14 @@ export class ReturnsController {
     summary: 'Registrar devolución de rutero o devolución POS basada en venta',
   })
   create(
-    @Body()
-    dto: {
-      storeId: string;
-      orderId?: string;
-      saleId?: string;
-      ruteroId?: string;
-      cashierId?: string;
-      notes?: string;
-      items: Array<
-        | {
-            productId: string;
-            quantityBulks: number;
-            quantityUnits: number;
-            unitPrice: number;
-          }
-        | {
-            productId: string;
-            quantity: number;
-          }
-      >;
-    },
+    @Body() dto: CreateReturnDto,
     @Req() req: any,
   ) {
     return this.service.create({
       ...dto,
       ruteroId: dto.ruteroId || req.user?.sub || undefined,
       cashierId: dto.cashierId || req.user?.sub || undefined,
-    });
+    } as any);
   }
 
   @Get()

@@ -11,6 +11,10 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AccountsPayableService } from './accounts-payable.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import {
+  CreateAccountPayableDto,
+  AddPayablePaymentDto,
+} from './accounts-payable.dto';
 
 @ApiTags('Accounts Payable')
 @ApiBearerAuth()
@@ -22,15 +26,7 @@ export class AccountsPayableController {
   @Post()
   @ApiOperation({ summary: 'Crear cuenta por pagar' })
   create(
-    @Body()
-    dto: {
-      storeId: string;
-      supplierId: string;
-      invoiceId?: string;
-      totalAmount: number;
-      description?: string;
-      dueDate?: string;
-    },
+    @Body() dto: CreateAccountPayableDto,
   ) {
     return this.service.create(dto);
   }
@@ -55,13 +51,7 @@ export class AccountsPayableController {
   @ApiOperation({ summary: 'Registrar pago de CxP' })
   addPayment(
     @Param('id') id: string,
-    @Body()
-    dto: {
-      amount: number;
-      paymentMethod?: string;
-      notes?: string;
-      paidBy?: string;
-    },
+    @Body() dto: AddPayablePaymentDto,
   ) {
     return this.service.addPayment(id, dto);
   }

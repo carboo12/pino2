@@ -12,6 +12,13 @@ import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
+import {
+  AdjustStockDto,
+  TransferBetweenStoresDto,
+  QuickEntryDto,
+  MermaDto,
+  AjusteDto,
+} from './inventory.dto';
 
 @ApiTags('Inventory')
 @ApiBearerAuth()
@@ -23,21 +30,13 @@ export class InventoryController {
   @Post('adjust')
   @ApiOperation({ summary: 'Ajustar stock de un producto' })
   adjustStock(
-    @Body()
-    dto: {
-      storeId: string;
-      productId: string;
-      userId?: string;
-      type: 'IN' | 'OUT';
-      quantity: number;
-      reference: string;
-    },
+    @Body() dto: AdjustStockDto,
     @Req() req: any,
   ) {
     return this.service.adjustStock({
       ...dto,
       userId: req.user?.sub,
-    });
+    } as any);
   }
 
   @Get('movements')
@@ -65,14 +64,7 @@ export class InventoryController {
   @Post('transfer')
   @ApiOperation({ summary: 'Trasladar producto entre tiendas/bodegas' })
   transferBetweenStores(
-    @Body()
-    dto: {
-      fromStoreId: string;
-      toStoreId: string;
-      productId: string;
-      quantity: number;
-      reference?: string;
-    },
+    @Body() dto: TransferBetweenStoresDto,
     @Req() req: any,
   ) {
     return this.service.transferBetweenStores({
@@ -86,13 +78,7 @@ export class InventoryController {
     summary: 'Entrada rápida de producto sin factura ni proveedor',
   })
   quickEntry(
-    @Body()
-    dto: {
-      storeId: string;
-      productId: string;
-      quantity: number;
-      reference?: string;
-    },
+    @Body() dto: QuickEntryDto,
     @Req() req: any,
   ) {
     return this.service.adjustStock({
@@ -110,13 +96,7 @@ export class InventoryController {
     summary: 'Registrar merma (producto dañado, vencido o perdido)',
   })
   registerMerma(
-    @Body()
-    dto: {
-      storeId: string;
-      productId: string;
-      quantity: number;
-      reason: string;
-    },
+    @Body() dto: MermaDto,
     @Req() req: any,
   ) {
     return this.service.adjustStock({
@@ -132,14 +112,7 @@ export class InventoryController {
   @Post('ajuste')
   @ApiOperation({ summary: 'Ajuste de inventario (positivo o negativo)' })
   registerAjuste(
-    @Body()
-    dto: {
-      storeId: string;
-      productId: string;
-      quantity: number;
-      direction: 'positive' | 'negative';
-      reference?: string;
-    },
+    @Body() dto: AjusteDto,
     @Req() req: any,
   ) {
     return this.service.adjustStock({
