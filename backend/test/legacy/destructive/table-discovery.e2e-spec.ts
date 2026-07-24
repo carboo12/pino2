@@ -3,8 +3,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { AppModule } from '../src/app.module';
-import { DatabaseService } from '../src/database/database.service';
+import { AppModule } from '../../../src/app.module';
+import { DatabaseService } from '../../../src/database/database.service';
 
 describe('DEEP TABLE SCAN', () => {
   let app: NestFastifyApplication;

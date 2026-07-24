@@ -5,8 +5,8 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 const request = require('supertest');
-import { AppModule } from '../src/app.module';
-import { DatabaseService } from '../src/database/database.service';
+import { AppModule } from '../../../src/app.module';
+import { DatabaseService } from '../../../src/database/database.service';
 
 describe('Migration Endpoints (e2e)', () => {
   let app: NestFastifyApplication;

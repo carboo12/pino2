@@ -5,8 +5,8 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import request from 'supertest';
-import { AppModule } from './../src/app.module';
-import { DatabaseService } from './../src/database/database.service';
+import { AppModule } from '../../../src/app.module';
+import { DatabaseService } from '../../../src/database/database.service';
 import * as fs from 'fs';
 
 describe('🚀 Reporte Completo de API E2E (e2e)', () => {

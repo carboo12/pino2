@@ -39,7 +39,12 @@ export class CashShiftsService {
     `;
   }
 
-  async openShift(storeId: string, userId: string, startingCash: number, openingDenominations?: Record<string, number>) {
+  async openShift(
+    storeId: string,
+    userId: string,
+    startingCash: number,
+    openingDenominations?: Record<string, number>,
+  ) {
     if (!storeId || !userId) {
       throw new BadRequestException('storeId y userId son obligatorios');
     }
@@ -59,12 +64,20 @@ export class CashShiftsService {
         'Ya tienes un turno de caja abierto en esta tienda',
       );
 
-    const denomJson = openingDenominations ? JSON.stringify(openingDenominations) : null;
+    const denomJson = openingDenominations
+      ? JSON.stringify(openingDenominations)
+      : null;
 
     const res = await this.db.query(
       `INSERT INTO cash_shifts (store_id, opened_by, starting_cash, actual_cash, status, opening_denominations) 
        VALUES ($1, $2, $3, $4, 'OPEN', $5) RETURNING *`,
-      [storeId, userId, normalizedStartingCash, normalizedStartingCash, denomJson],
+      [
+        storeId,
+        userId,
+        normalizedStartingCash,
+        normalizedStartingCash,
+        denomJson,
+      ],
     );
 
     return this.findOne(res.rows[0].id);
@@ -110,7 +123,9 @@ export class CashShiftsService {
       throw new BadRequestException('difference debe ser un monto valido');
     }
 
-    const denomJson = closingDenominations ? JSON.stringify(closingDenominations) : null;
+    const denomJson = closingDenominations
+      ? JSON.stringify(closingDenominations)
+      : null;
 
     const res = await this.db.query(
       `UPDATE cash_shifts 

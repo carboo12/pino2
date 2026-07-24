@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 
@@ -12,9 +15,13 @@ describe('Global Module Coverage (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
   });
@@ -55,11 +62,14 @@ describe('Global Module Coverage (e2e)', () => {
     '/api/health',
   ];
 
-  it.each(endpoints)('Endpoint %s should be reachable (even if 401)', async (path) => {
-    const response = await request(app.getHttpServer()).get(path);
-    // We expect 401 or 200/201, but NOT 404 or 500
-    expect([200, 201, 401]).toContain(response.status);
-  });
+  it.each(endpoints)(
+    'Endpoint %s should be reachable (even if 401)',
+    async (path) => {
+      const response = await request(app.getHttpServer()).get(path);
+      // We expect 401 or 200/201, but NOT 404 or 500
+      expect([200, 201, 401]).toContain(response.status);
+    },
+  );
 
   it('GET /api/health should return healthy status', async () => {
     const response = await request(app.getHttpServer()).get('/api/health');

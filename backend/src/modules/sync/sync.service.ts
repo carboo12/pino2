@@ -92,7 +92,11 @@ export class SyncService {
               break;
             default:
               this.logger.warn(`Tipo de operación no soportado: ${op.type}`);
-              results.push({ opId, status: 'SKIPPED', error: 'Unsupported type' });
+              results.push({
+                opId,
+                status: 'SKIPPED',
+                error: 'Unsupported type',
+              });
               await client.query(`RELEASE SAVEPOINT ${savepointName}`);
               continue;
           }
@@ -149,17 +153,32 @@ export class SyncService {
   async getDeltaData(storeId: string, lastSyncTimestamp?: string) {
     const params: any[] = [storeId];
     let timeCondition = '';
-    
+
     if (lastSyncTimestamp) {
       timeCondition = ' AND updated_at > $2';
       params.push(new Date(lastSyncTimestamp));
     }
 
-    const { rows: products } = await this.db.query(`SELECT * FROM products WHERE store_id = $1 AND is_active = true ${timeCondition}`, params);
-    const { rows: productBarcodes } = await this.db.query(`SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}`, params);
-    const { rows: clients } = await this.db.query(`SELECT * FROM clients WHERE store_id = $1 AND is_active = true ${timeCondition}`, params);
-    const { rows: orders } = await this.db.query(`SELECT * FROM orders WHERE store_id = $1 ${timeCondition}`, params);
-    const { rows: routes } = await this.db.query(`SELECT * FROM routes WHERE store_id = $1 ${timeCondition}`, params);
+    const { rows: products } = await this.db.query(
+      `SELECT * FROM products WHERE store_id = $1 AND is_active = true ${timeCondition}`,
+      params,
+    );
+    const { rows: productBarcodes } = await this.db.query(
+      `SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}`,
+      params,
+    );
+    const { rows: clients } = await this.db.query(
+      `SELECT * FROM clients WHERE store_id = $1 AND is_active = true ${timeCondition}`,
+      params,
+    );
+    const { rows: orders } = await this.db.query(
+      `SELECT * FROM orders WHERE store_id = $1 ${timeCondition}`,
+      params,
+    );
+    const { rows: routes } = await this.db.query(
+      `SELECT * FROM routes WHERE store_id = $1 ${timeCondition}`,
+      params,
+    );
 
     return {
       serverTimestamp: new Date().toISOString(),
@@ -170,5 +189,4 @@ export class SyncService {
       routes,
     };
   }
-  
 }

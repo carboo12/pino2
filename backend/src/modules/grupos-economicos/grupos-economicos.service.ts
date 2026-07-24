@@ -14,7 +14,12 @@ export class GruposEconomicosService {
     const res = await this.db.query(
       `INSERT INTO grupos_economicos (store_id, nombre, limite_credito_global, notas)
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [dto.storeId, dto.nombre, dto.limiteCreditoGlobal || 0, dto.notas || null],
+      [
+        dto.storeId,
+        dto.nombre,
+        dto.limiteCreditoGlobal || 0,
+        dto.notas || null,
+      ],
     );
     return this.mapRow(res.rows[0]);
   }
@@ -35,8 +40,12 @@ export class GruposEconomicosService {
       ...this.mapRow(r),
       totalClientes: parseInt(r.total_clientes, 10),
       saldoTotal: parseFloat(r.saldo_total || 0),
-      disponible: parseFloat(r.limite_credito_global || 0) - parseFloat(r.saldo_total || 0),
-      enMora: parseFloat(r.saldo_total || 0) > parseFloat(r.limite_credito_global || 0),
+      disponible:
+        parseFloat(r.limite_credito_global || 0) -
+        parseFloat(r.saldo_total || 0),
+      enMora:
+        parseFloat(r.saldo_total || 0) >
+        parseFloat(r.limite_credito_global || 0),
     }));
   }
 
@@ -45,7 +54,8 @@ export class GruposEconomicosService {
       'SELECT * FROM grupos_economicos WHERE id = $1',
       [id],
     );
-    if ((res.rowCount ?? 0) === 0) throw new NotFoundException('Grupo económico no encontrado');
+    if ((res.rowCount ?? 0) === 0)
+      throw new NotFoundException('Grupo económico no encontrado');
 
     const grupo = this.mapRow(res.rows[0]);
 
@@ -77,14 +87,26 @@ export class GruposEconomicosService {
     };
   }
 
-  async update(id: string, dto: { nombre?: string; limiteCreditoGlobal?: number; notas?: string }) {
+  async update(
+    id: string,
+    dto: { nombre?: string; limiteCreditoGlobal?: number; notas?: string },
+  ) {
     const sets: string[] = [];
     const params: any[] = [];
     let idx = 1;
 
-    if (dto.nombre !== undefined) { sets.push(`nombre = $${idx++}`); params.push(dto.nombre); }
-    if (dto.limiteCreditoGlobal !== undefined) { sets.push(`limite_credito_global = $${idx++}`); params.push(dto.limiteCreditoGlobal); }
-    if (dto.notas !== undefined) { sets.push(`notas = $${idx++}`); params.push(dto.notas); }
+    if (dto.nombre !== undefined) {
+      sets.push(`nombre = $${idx++}`);
+      params.push(dto.nombre);
+    }
+    if (dto.limiteCreditoGlobal !== undefined) {
+      sets.push(`limite_credito_global = $${idx++}`);
+      params.push(dto.limiteCreditoGlobal);
+    }
+    if (dto.notas !== undefined) {
+      sets.push(`notas = $${idx++}`);
+      params.push(dto.notas);
+    }
 
     if (sets.length === 0) return this.findOne(id);
     sets.push('updated_at = NOW()');
@@ -109,12 +131,17 @@ export class GruposEconomicosService {
    * Verifica si un cliente (o su grupo económico) tiene mora cruzada.
    * Usado por orders.service al crear pedidos.
    */
-  async verificarMoraCruzada(clientId: string): Promise<{ enMora: boolean; detalle?: string }> {
+  async verificarMoraCruzada(
+    clientId: string,
+  ): Promise<{ enMora: boolean; detalle?: string }> {
     const clientRes = await this.db.query(
       'SELECT grupo_economico_id FROM clients WHERE id = $1',
       [clientId],
     );
-    if ((clientRes.rowCount ?? 0) === 0 || !clientRes.rows[0].grupo_economico_id) {
+    if (
+      (clientRes.rowCount ?? 0) === 0 ||
+      !clientRes.rows[0].grupo_economico_id
+    ) {
       return { enMora: false };
     }
 

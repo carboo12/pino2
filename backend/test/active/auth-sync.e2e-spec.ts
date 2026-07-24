@@ -36,13 +36,16 @@ describe('Auth & Sync Flow (e2e)', () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
     db = app.get<DatabaseService>(DatabaseService);
-    
+
     // Create admin user to authorize register endpoint
     const bcrypt = require('bcryptjs');
     adminEmail = `admin_${Date.now()}@example.com`;
     const hash = await bcrypt.hash('password123', 10);
-    await db.query(`INSERT INTO users (email, name, password_hash, role, is_active) VALUES ($1, $2, $3, $4, true)`, [adminEmail, 'Admin', hash, 'master-admin']);
-    
+    await db.query(
+      `INSERT INTO users (email, name, password_hash, role, is_active) VALUES ($1, $2, $3, $4, true)`,
+      [adminEmail, 'Admin', hash, 'master-admin'],
+    );
+
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: adminEmail, password: 'password123' });

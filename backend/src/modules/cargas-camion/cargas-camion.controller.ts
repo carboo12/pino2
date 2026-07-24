@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Put, Param, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CargasCamionService } from './cargas-camion.service';
 import { CreateCargaCamionDto } from './cargas-camion.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -14,10 +23,7 @@ export class CargasCamionController {
   }
 
   @Get()
-  findAll(
-    @Query('storeId') storeId: string,
-    @Query('fecha') fecha?: string,
-  ) {
+  findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string) {
     return this.service.findAll(storeId, fecha);
   }
 

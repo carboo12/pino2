@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsObject,
+} from 'class-validator';
 
 export class OpenShiftDto {
   @IsString()

@@ -25,7 +25,7 @@ export class LiquidacionesRutaService {
               COALESCE(SUM(CASE WHEN status = 'ENTREGADO' AND payment_type = 'CONTADO' THEN total ELSE 0 END), 0) as total_contado
        FROM orders 
        WHERE store_id = $1 AND rutero_id = $2 AND DATE(updated_at) = $3`,
-      params
+      params,
     );
     const pData = pRes.rows[0];
 
@@ -34,12 +34,13 @@ export class LiquidacionesRutaService {
       `SELECT COALESCE(SUM(amount), 0) as total_credito
        FROM payments 
        WHERE store_id = $1 AND collected_by = $2 AND DATE(payment_date) = $3`,
-      params
+      params,
     );
     const cData = cRes.rows[0];
 
     // Efectivo Esperado
-    const esperado = parseFloat(pData.total_contado) + parseFloat(cData.total_credito);
+    const esperado =
+      parseFloat(pData.total_contado) + parseFloat(cData.total_credito);
 
     // Arqueo Info (si existe)
     let entregado = 0;
@@ -48,24 +49,33 @@ export class LiquidacionesRutaService {
 
     let arqueo = null;
     if (dto.arqueoId) {
-      const aRes = await this.db.query('SELECT efectivo_contado FROM arqueos WHERE id = $1', [dto.arqueoId]);
+      const aRes = await this.db.query(
+        'SELECT efectivo_contado FROM arqueos WHERE id = $1',
+        [dto.arqueoId],
+      );
       if (aRes.rowCount > 0) {
         entregado = parseFloat(aRes.rows[0].efectivo_contado);
         diferencia = entregado - esperado;
-        status = diferencia >= 0 ? LiquidacionStatus.LIQUIDADO : LiquidacionStatus.CON_OBSERVACION;
+        status =
+          diferencia >= 0
+            ? LiquidacionStatus.LIQUIDADO
+            : LiquidacionStatus.CON_OBSERVACION;
         arqueo = dto.arqueoId;
       }
     } else {
       // Intentamos buscar arqueo del mismo día si no lo enviaron
       const aRes = await this.db.query(
         'SELECT id, efectivo_contado FROM arqueos WHERE store_id = $1 AND rutero_id = $2 AND fecha = $3 ORDER BY created_at DESC LIMIT 1',
-        params
+        params,
       );
       if (aRes.rowCount > 0) {
         arqueo = aRes.rows[0].id;
         entregado = parseFloat(aRes.rows[0].efectivo_contado);
         diferencia = entregado - esperado;
-        status = diferencia >= 0 ? LiquidacionStatus.LIQUIDADO : LiquidacionStatus.CON_OBSERVACION;
+        status =
+          diferencia >= 0
+            ? LiquidacionStatus.LIQUIDADO
+            : LiquidacionStatus.CON_OBSERVACION;
       }
     }
 
@@ -76,19 +86,33 @@ export class LiquidacionesRutaService {
          arqueo_id, status, liquidado_por, notas
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
       [
-        dto.storeId, dto.ruteroId, dto.fechaRuta, 
-        parseInt(pData.total_pedidos), parseInt(pData.entregados), parseInt(pData.rechazados),
-        parseFloat(pData.total_contado), parseFloat(cData.total_credito), esperado, entregado, diferencia,
-        arqueo, status, dto.liquidadoPor, dto.notas || null
-      ]
+        dto.storeId,
+        dto.ruteroId,
+        dto.fechaRuta,
+        parseInt(pData.total_pedidos),
+        parseInt(pData.entregados),
+        parseInt(pData.rechazados),
+        parseFloat(pData.total_contado),
+        parseFloat(cData.total_credito),
+        esperado,
+        entregado,
+        diferencia,
+        arqueo,
+        status,
+        dto.liquidadoPor,
+        dto.notas || null,
+      ],
     );
 
     // Marcar pedidos como LIQUIDADOs
-    if (status === LiquidacionStatus.LIQUIDADO || status === LiquidacionStatus.CON_OBSERVACION) {
+    if (
+      status === LiquidacionStatus.LIQUIDADO ||
+      status === LiquidacionStatus.CON_OBSERVACION
+    ) {
       await this.db.query(
         `UPDATE orders SET status = '${OrderStatus.LIQUIDADO}', updated_at = NOW() 
          WHERE store_id = $1 AND rutero_id = $2 AND status = 'ENTREGADO' AND DATE(updated_at) = $3`,
-        params
+        params,
       );
     }
 
@@ -102,14 +126,14 @@ export class LiquidacionesRutaService {
                LEFT JOIN users u2 ON l.liquidado_por = u2.id
                WHERE l.store_id = $1`;
     const params: any[] = [storeId];
-    
+
     if (fecha) {
       sql += ' AND l.fecha_ruta = $2';
       params.push(fecha);
     }
-    
+
     sql += ' ORDER BY l.created_at DESC';
-    
+
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }
@@ -120,10 +144,11 @@ export class LiquidacionesRutaService {
        FROM liquidaciones_ruta l 
        LEFT JOIN users u1 ON l.rutero_id = u1.id
        LEFT JOIN users u2 ON l.liquidado_por = u2.id
-       WHERE l.id = $1`, 
-      [id]
+       WHERE l.id = $1`,
+      [id],
     );
-    if (res.rowCount === 0) throw new NotFoundException('Liquidación no encontrada');
+    if (res.rowCount === 0)
+      throw new NotFoundException('Liquidación no encontrada');
     return this.mapRow(res.rows[0]);
   }
 

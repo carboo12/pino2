@@ -129,7 +129,7 @@ export default function WarehouseWorkspacePage() {
           if (selectedOrder) handleStatusChange(selectedOrder, 'EN_PREPARACION');
           break;
         case 'F5': fetchOrders(); break;
-        case '1': case '2': case '3': case '4':
+        case '1': case '2': case '3': case '4': {
           const idx = parseInt(e.key) - 1;
           const col = STATUS_ORDER[idx];
           if (col) {
@@ -137,6 +137,7 @@ export default function WarehouseWorkspacePage() {
             if (first) handleLoadDetail(first);
           }
           break;
+        }
       }
     };
     window.addEventListener('keydown', handleKey);

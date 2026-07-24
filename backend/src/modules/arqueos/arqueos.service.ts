@@ -19,29 +19,36 @@ export class ArqueosService {
   }) {
     // Calculamos el efectivoDeclarado buscando entregas de contado y pagos de crédito de ese día
     let efectivoDeclarado = dto.efectivoDeclarado || 0;
-    
+
     if (!dto.efectivoDeclarado) {
       // Pedidos contado del dia
       const pRes = await this.db.query(
         `SELECT COALESCE(SUM(total), 0) as_contado FROM orders 
          WHERE store_id = $1 AND rutero_id = $2 AND status = 'ENTREGADO' 
            AND payment_type = 'CONTADO' ${dto.fecha ? 'AND DATE(updated_at) = $3' : 'AND DATE(updated_at) = CURRENT_DATE'}`,
-        dto.fecha ? [dto.storeId, dto.ruteroId, dto.fecha] : [dto.storeId, dto.ruteroId]
+        dto.fecha
+          ? [dto.storeId, dto.ruteroId, dto.fecha]
+          : [dto.storeId, dto.ruteroId],
       );
-      
+
       // Cobros credito del dia (usando payments/collections)
       const cRes = await this.db.query(
         `SELECT COALESCE(SUM(amount), 0) as_credito FROM payments 
          WHERE store_id = $1 AND collected_by = $2 AND method = 'EFECTIVO'
            ${dto.fecha ? 'AND DATE(payment_date) = $3' : 'AND DATE(payment_date) = CURRENT_DATE'}`,
-        dto.fecha ? [dto.storeId, dto.ruteroId, dto.fecha] : [dto.storeId, dto.ruteroId]
+        dto.fecha
+          ? [dto.storeId, dto.ruteroId, dto.fecha]
+          : [dto.storeId, dto.ruteroId],
       );
 
-      efectivoDeclarado = parseFloat(pRes.rows[0].as_contado) + parseFloat(cRes.rows[0].as_credito);
+      efectivoDeclarado =
+        parseFloat(pRes.rows[0].as_contado) +
+        parseFloat(cRes.rows[0].as_credito);
     }
 
     const dif = dto.efectivoContado - efectivoDeclarado;
-    const status = dif === 0 ? ArqueoStatus.CUADRADO : ArqueoStatus.CON_DIFERENCIA;
+    const status =
+      dif === 0 ? ArqueoStatus.CUADRADO : ArqueoStatus.CON_DIFERENCIA;
 
     const res = await this.db.query(
       `INSERT INTO arqueos (store_id, rutero_id, realizado_por, fecha, efectivo_declarado, efectivo_contado, cheques, depositos, notas, status)
@@ -57,7 +64,7 @@ export class ArqueosService {
         dto.depositos || 0,
         dto.notas || null,
         status,
-      ]
+      ],
     );
 
     return this.mapRow(res.rows[0]);
@@ -70,14 +77,14 @@ export class ArqueosService {
                LEFT JOIN users u2 ON a.realizado_por = u2.id
                WHERE a.store_id = $1`;
     const params: any[] = [storeId];
-    
+
     if (fecha) {
       sql += ' AND a.fecha = $2';
       params.push(fecha);
     }
-    
+
     sql += ' ORDER BY a.created_at DESC';
-    
+
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }
@@ -88,8 +95,8 @@ export class ArqueosService {
        FROM arqueos a 
        LEFT JOIN users u1 ON a.rutero_id = u1.id
        LEFT JOIN users u2 ON a.realizado_por = u2.id
-       WHERE a.id = $1`, 
-      [id]
+       WHERE a.id = $1`,
+      [id],
     );
     if (res.rowCount === 0) throw new NotFoundException('Arqueo no encontrado');
     return this.mapRow(res.rows[0]);

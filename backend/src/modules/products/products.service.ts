@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
 import { CreateProductDto, UpdateProductDto, Product } from './products.dto';
@@ -127,7 +131,7 @@ export class ProductsService {
         `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary) 
          VALUES ($1, $2, $3, $4, true)
          ON CONFLICT (barcode, store_id) DO NOTHING`,
-        [productId, dto.storeId, dto.barcode, 'Código Principal']
+        [productId, dto.storeId, dto.barcode, 'Código Principal'],
       );
     }
 
@@ -138,7 +142,7 @@ export class ProductsService {
           `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary) 
            VALUES ($1, $2, $3, $4, false)
            ON CONFLICT (barcode, store_id) DO NOTHING`,
-          [productId, dto.storeId, alt, 'Código Alternativo']
+          [productId, dto.storeId, alt, 'Código Alternativo'],
         );
       }
     }
@@ -332,23 +336,23 @@ export class ProductsService {
         [id],
       );
       if (pCheck.rowCount && pCheck.rowCount > 0 && dto.barcode) {
-         const storeId = pCheck.rows[0].store_id;
-         // unset current primary
-         await this.db.query(
-           'UPDATE product_barcodes SET is_primary = false WHERE product_id = $1',
-           [id],
-         );
-         // insert or update new primary
-         await this.db.query(
-           `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary) 
+        const storeId = pCheck.rows[0].store_id;
+        // unset current primary
+        await this.db.query(
+          'UPDATE product_barcodes SET is_primary = false WHERE product_id = $1',
+          [id],
+        );
+        // insert or update new primary
+        await this.db.query(
+          `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary) 
             VALUES ($1, $2, $3, $4, true)
             ON CONFLICT (barcode, store_id) DO UPDATE SET
               product_id = EXCLUDED.product_id,
               label = EXCLUDED.label,
               is_primary = true,
               updated_at = NOW()`,
-           [id, storeId, dto.barcode, 'Código Principal']
-         );
+          [id, storeId, dto.barcode, 'Código Principal'],
+        );
       } else if (dto.barcode === null || dto.barcode === '') {
         await this.db.query(
           'UPDATE product_barcodes SET is_primary = false, updated_at = NOW() WHERE product_id = $1',
@@ -450,7 +454,7 @@ export class ProductsService {
             `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary) 
              VALUES ($1, $2, $3, $4, true)
              ON CONFLICT (barcode, store_id) DO NOTHING`,
-            [productId, dto.storeId, product.barcode, 'Código Principal']
+            [productId, dto.storeId, product.barcode, 'Código Principal'],
           );
         }
 
@@ -461,7 +465,7 @@ export class ProductsService {
               `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary) 
                VALUES ($1, $2, $3, $4, false)
                ON CONFLICT (barcode, store_id) DO NOTHING`,
-              [productId, dto.storeId, alt, 'Código Alternativo']
+              [productId, dto.storeId, alt, 'Código Alternativo'],
             );
           }
         }

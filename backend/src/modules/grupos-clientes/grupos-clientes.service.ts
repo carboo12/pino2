@@ -14,7 +14,12 @@ export class GruposClientesService {
     const res = await this.db.query(
       `INSERT INTO grupos_clientes (store_id, nombre, descripcion, color)
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [dto.storeId, dto.nombre, dto.descripcion || null, dto.color || '#3B82F6'],
+      [
+        dto.storeId,
+        dto.nombre,
+        dto.descripcion || null,
+        dto.color || '#3B82F6',
+      ],
     );
     return this.mapRow(res.rows[0]);
   }
@@ -40,7 +45,8 @@ export class GruposClientesService {
       'SELECT * FROM grupos_clientes WHERE id = $1',
       [id],
     );
-    if ((res.rowCount ?? 0) === 0) throw new NotFoundException('Grupo de clientes no encontrado');
+    if ((res.rowCount ?? 0) === 0)
+      throw new NotFoundException('Grupo de clientes no encontrado');
 
     const grupo = this.mapRow(res.rows[0]);
 
@@ -66,14 +72,26 @@ export class GruposClientesService {
     return grupo;
   }
 
-  async update(id: string, dto: { nombre?: string; descripcion?: string; color?: string }) {
+  async update(
+    id: string,
+    dto: { nombre?: string; descripcion?: string; color?: string },
+  ) {
     const sets: string[] = [];
     const params: any[] = [];
     let idx = 1;
 
-    if (dto.nombre !== undefined) { sets.push(`nombre = $${idx++}`); params.push(dto.nombre); }
-    if (dto.descripcion !== undefined) { sets.push(`descripcion = $${idx++}`); params.push(dto.descripcion); }
-    if (dto.color !== undefined) { sets.push(`color = $${idx++}`); params.push(dto.color); }
+    if (dto.nombre !== undefined) {
+      sets.push(`nombre = $${idx++}`);
+      params.push(dto.nombre);
+    }
+    if (dto.descripcion !== undefined) {
+      sets.push(`descripcion = $${idx++}`);
+      params.push(dto.descripcion);
+    }
+    if (dto.color !== undefined) {
+      sets.push(`color = $${idx++}`);
+      params.push(dto.color);
+    }
 
     if (sets.length === 0) return this.findOne(id);
     sets.push('updated_at = NOW()');

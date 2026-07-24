@@ -41,7 +41,10 @@ export class OrdersController {
       }[];
       notes?: string;
       externalId?: string;
-      tipoPedido?: 'VENTA_ESTANDAR' | 'ABASTECIMIENTO_INTERNO' | 'ENTREGA_POR_CUENTA';
+      tipoPedido?:
+        | 'VENTA_ESTANDAR'
+        | 'ABASTECIMIENTO_INTERNO'
+        | 'ENTREGA_POR_CUENTA';
     },
   ) {
     return this.service.create(dto);
@@ -78,9 +81,14 @@ export class OrdersController {
   autorizar(
     @Param('id') id: string,
     @Body() dto: { decision: 'aprobar' | 'rechazar'; motivo?: string },
-    @Req() req: any
+    @Req() req: any,
   ) {
-    return this.service.autorizarPrice(id, dto.decision, req.user.sub, dto.motivo);
+    return this.service.autorizarPrice(
+      id,
+      dto.decision,
+      req.user.sub,
+      dto.motivo,
+    );
   }
 
   @Patch(':id/status')
