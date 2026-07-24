@@ -71,13 +71,11 @@ export class AuthController {
     return this.authService.login(dto.email, dto.password);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('refresh')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Renovar token de acceso' })
-  refresh(@Request() req: any) {
-    const token = this.extractBearerToken(req);
-    return this.authService.refreshToken(req.user.sub, token);
+  refresh(@Body() dto: { refreshToken: string }) {
+    return this.authService.rotateRefreshToken(dto.refreshToken);
   }
 
   @Public()

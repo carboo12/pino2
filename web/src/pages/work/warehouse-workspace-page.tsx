@@ -148,7 +148,7 @@ export default function WarehouseWorkspacePage() {
     if (!storeId) return;
     setActionLoading(true);
     try {
-      await apiClient.patch(`/orders/${order.id}`, { status: newStatus });
+      await apiClient.patch(`/orders/${order.id}/status`, { status: newStatus });
       toast.success('Actualizado', `${order.id?.slice(0, 8)} → ${STATUS_LABELS[newStatus]}`);
       setSelectedOrder(null);
       fetchOrders();

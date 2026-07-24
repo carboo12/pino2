@@ -104,8 +104,8 @@ export default function CashWorkspacePage() {
     if (!storeId) return;
     setLoadingRecent(true);
     try {
-      const res = await apiClient.get('/tickets', {
-        params: { storeId, limit: 20, sort: 'createdAt:desc' },
+      const res = await apiClient.get('/sales', {
+        params: { storeId, limit: 20 },
       });
       setRecentSales(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch {
@@ -154,7 +154,7 @@ export default function CashWorkspacePage() {
         change: data.change,
         clientId: client?.id || null,
       };
-      await apiClient.post('/tickets', payload);
+      await apiClient.post('/sales/process', payload);
       toast.success('Venta completada', `Total: ${formatCurrency(total)}`);
       clearCart();
       setClient(null);

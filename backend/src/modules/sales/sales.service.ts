@@ -219,6 +219,13 @@ export class SalesService {
         );
       }
 
+      await client.query(
+        `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
+         VALUES ($1, $2, $3, $4, $5)`,
+        ['sale', sale.id, dto.storeId, 'SALE_COMPLETED',
+         JSON.stringify({ saleId: sale.id, ticketNumber: sale.ticket_number || ticketNumber, total, paymentMethod: dto.paymentMethod })],
+      );
+
       this.eventsGateway.emitSyncUpdate({
         type: 'SALE_COMPLETED',
         storeId: dto.storeId,

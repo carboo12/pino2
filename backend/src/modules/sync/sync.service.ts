@@ -159,38 +159,64 @@ export class SyncService {
     let timeCondition = '';
 
     if (lastSyncTimestamp) {
-      timeCondition = ' AND updated_at > $2';
+      timeCondition = ' AND (updated_at > $2 OR created_at > $2)';
       params.push(new Date(lastSyncTimestamp));
     }
 
-    const { rows: products } = await this.db.query(
-      `SELECT * FROM products WHERE store_id = $1 AND is_active = true ${timeCondition}`,
-      params,
-    );
-    const { rows: productBarcodes } = await this.db.query(
-      `SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}`,
-      params,
-    );
-    const { rows: clients } = await this.db.query(
-      `SELECT * FROM clients WHERE store_id = $1 AND is_active = true ${timeCondition}`,
-      params,
-    );
-    const { rows: orders } = await this.db.query(
-      `SELECT * FROM orders WHERE store_id = $1 ${timeCondition}`,
-      params,
-    );
-    const { rows: routes } = await this.db.query(
-      `SELECT * FROM routes WHERE store_id = $1 ${timeCondition}`,
-      params,
-    );
+    const [products, productBarcodes, clients, orders, sales, pendingDeliveries, vendorInventories, collections, outbox] = await Promise.all([
+      this.db.query(
+        `SELECT * FROM products WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM clients WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM orders WHERE store_id = $1 ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT s.*, array_agg(jsonb_build_object('id', si.id, 'product_id', si.product_id, 'quantity', si.quantity, 'unit_price', si.unit_price, 'subtotal', si.subtotal, 'returned_quantity', si.returned_quantity)) as items
+           FROM sales s
+           LEFT JOIN sale_items si ON si.sale_id = s.id
+           WHERE s.store_id = $1 ${timeCondition.replace('updated_at', 's.updated_at').replace('created_at', 's.created_at')}
+           GROUP BY s.id`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM pending_deliveries WHERE store_id = $1 ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM vendor_inventories WHERE store_id = $1 ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM collections WHERE store_id = $1 ${timeCondition}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM outbox_events WHERE store_id = $1 AND published_at IS NULL ORDER BY created_at ASC LIMIT 500`,
+        [storeId],
+      ),
+    ]);
 
     return {
       serverTimestamp: new Date().toISOString(),
-      products,
-      productBarcodes,
-      clients,
-      orders,
-      routes,
+      products: products.rows,
+      productBarcodes: productBarcodes.rows,
+      clients: clients.rows,
+      orders: orders.rows,
+      sales: sales.rows,
+      pendingDeliveries: pendingDeliveries.rows,
+      vendorInventories: vendorInventories.rows,
+      collections: collections.rows,
+      outboxPending: outbox.rows,
     };
   }
 }

@@ -81,7 +81,7 @@ export default function FinanceWorkspacePage() {
 
     try {
       const [receivablesRes] = await Promise.allSettled([
-        apiClient.get('/receivables', { params: { storeId, status: 'overdue', limit: 10 } }),
+        apiClient.get('/accounts-receivable', { params: { storeId, status: 'overdue', limit: 10 } }),
       ]);
 
       if (receivablesRes.status === 'fulfilled') {
