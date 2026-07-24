@@ -9,13 +9,21 @@ import {
 } from 'class-validator';
 
 export class AdjustStockDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
-  @IsEnum(['IN', 'OUT', 'MERMA', 'AJUSTE_POSITIVO', 'AJUSTE_NEGATIVO', 'TRASLADO_IN', 'TRASLADO_OUT'])
+  @IsEnum([
+    'IN',
+    'OUT',
+    'MERMA',
+    'AJUSTE_POSITIVO',
+    'AJUSTE_NEGATIVO',
+    'TRASLADO_IN',
+    'TRASLADO_OUT',
+  ])
   type!: string;
 
   @IsInt()
@@ -28,13 +36,13 @@ export class AdjustStockDto {
 }
 
 export class TransferBetweenStoresDto {
-  @IsUUID("all")
+  @IsUUID('all')
   fromStoreId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   toStoreId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
   @IsInt()
@@ -47,10 +55,10 @@ export class TransferBetweenStoresDto {
 }
 
 export class QuickEntryDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
   @IsInt()
@@ -63,10 +71,10 @@ export class QuickEntryDto {
 }
 
 export class MermaDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
   @IsInt()
@@ -79,10 +87,10 @@ export class MermaDto {
 }
 
 export class AjusteDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
   @IsInt()

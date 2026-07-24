@@ -23,7 +23,8 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
       host: process.env.DATABASE_HOST || '127.0.0.1',
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
-      password: process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+      password:
+        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
       database: process.env.DATABASE_NAME || 'multitienda_db',
     });
 
@@ -35,7 +36,9 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
       new FastifyAdapter({ logger: false }),
     );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -45,7 +48,7 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
     tokenA = loginRes.body.accessToken;
 
     const storeRes = await pool.query(
-      "SELECT id FROM stores WHERE is_active = true ORDER BY name LIMIT 1"
+      'SELECT id FROM stores WHERE is_active = true ORDER BY name LIMIT 1',
     );
     storeIdA = storeRes.rows[0]?.id;
 
@@ -79,15 +82,11 @@ describe('Concurrency, Tenant & Idempotency (e2e)', () => {
   });
 
   it('T02: 401 sin token en endpoint protegido', async () => {
-    await request(app.getHttpServer())
-      .get('/api/products')
-      .expect(401);
+    await request(app.getHttpServer()).get('/api/products').expect(401);
   });
 
   it('T03: health endpoint publico sin token', async () => {
-    await request(app.getHttpServer())
-      .get('/api/health')
-      .expect(200);
+    await request(app.getHttpServer()).get('/api/health').expect(200);
   });
 
   // T08-T10: Stock

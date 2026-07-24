@@ -8,13 +8,13 @@ import {
 } from 'class-validator';
 
 export class CreateAccountPayableDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   supplierId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   invoiceId?: string;
 

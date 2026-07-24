@@ -25,9 +25,7 @@ export class AccountsPayableController {
 
   @Post()
   @ApiOperation({ summary: 'Crear cuenta por pagar' })
-  create(
-    @Body() dto: CreateAccountPayableDto,
-  ) {
+  create(@Body() dto: CreateAccountPayableDto) {
     return this.service.create(dto);
   }
 
@@ -49,10 +47,7 @@ export class AccountsPayableController {
 
   @Post(':id/payment')
   @ApiOperation({ summary: 'Registrar pago de CxP' })
-  addPayment(
-    @Param('id') id: string,
-    @Body() dto: AddPayablePaymentDto,
-  ) {
+  addPayment(@Param('id') id: string, @Body() dto: AddPayablePaymentDto) {
     return this.service.addPayment(id, dto);
   }
 }

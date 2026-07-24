@@ -11,7 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { VendorInventoriesService } from './vendor-inventories.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { ProcessTransactionDto } from './vendor-inventories.dto';
 
 @ApiTags('Vendor Inventories')
@@ -43,10 +43,7 @@ export class VendorInventoriesController {
     summary:
       'Procesar transacción de inventario de vendedor (asignar/devolver/vender)',
   })
-  processTransaction(
-    @Body() dto: ProcessTransactionDto,
-    @Req() req: any,
-  ) {
+  processTransaction(@Body() dto: ProcessTransactionDto, @Req() req: any) {
     return this.service.processTransaction({
       ...dto,
       userId: req.user?.sub || null,

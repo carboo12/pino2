@@ -46,10 +46,10 @@ export class InvoicesService {
         0,
       );
 
-      await client.query(
-        'UPDATE invoices SET total = $1 WHERE id = $2',
-        [calculatedTotal, invoice.id],
-      );
+      await client.query('UPDATE invoices SET total = $1 WHERE id = $2', [
+        calculatedTotal,
+        invoice.id,
+      ]);
 
       // 3. Process each item: create invoice_item, update stock atomically, log movement
       for (const item of dto.items) {
@@ -87,7 +87,14 @@ export class InvoicesService {
         await client.query(
           `INSERT INTO invoice_items (invoice_id, product_id, description, quantity, unit_price, subtotal)
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [invoice.id, productId, item.description, item.quantity, item.unitPrice, lineSubtotal],
+          [
+            invoice.id,
+            productId,
+            item.description,
+            item.quantity,
+            item.unitPrice,
+            lineSubtotal,
+          ],
         );
 
         // Update product stock atomically
@@ -100,7 +107,13 @@ export class InvoicesService {
         await client.query(
           `INSERT INTO movements (store_id, product_id, user_id, type, quantity, reference)
            VALUES ($1, $2, $3, 'IN', $4, $5)`,
-          [dto.storeId, productId, dto.userId || null, item.quantity, `Factura Proveedor #${dto.invoiceNumber}`],
+          [
+            dto.storeId,
+            productId,
+            dto.userId || null,
+            item.quantity,
+            `Factura Proveedor #${dto.invoiceNumber}`,
+          ],
         );
       }
 

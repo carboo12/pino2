@@ -11,7 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 import {
   AdjustStockDto,
   TransferBetweenStoresDto,
@@ -29,10 +29,7 @@ export class InventoryController {
 
   @Post('adjust')
   @ApiOperation({ summary: 'Ajustar stock de un producto' })
-  adjustStock(
-    @Body() dto: AdjustStockDto,
-    @Req() req: any,
-  ) {
+  adjustStock(@Body() dto: AdjustStockDto, @Req() req: any) {
     return this.service.adjustStock({
       ...dto,
       userId: req.user?.sub,
@@ -77,10 +74,7 @@ export class InventoryController {
   @ApiOperation({
     summary: 'Entrada rápida de producto sin factura ni proveedor',
   })
-  quickEntry(
-    @Body() dto: QuickEntryDto,
-    @Req() req: any,
-  ) {
+  quickEntry(@Body() dto: QuickEntryDto, @Req() req: any) {
     return this.service.adjustStock({
       storeId: dto.storeId,
       productId: dto.productId,
@@ -95,10 +89,7 @@ export class InventoryController {
   @ApiOperation({
     summary: 'Registrar merma (producto dañado, vencido o perdido)',
   })
-  registerMerma(
-    @Body() dto: MermaDto,
-    @Req() req: any,
-  ) {
+  registerMerma(@Body() dto: MermaDto, @Req() req: any) {
     return this.service.adjustStock({
       storeId: dto.storeId,
       productId: dto.productId,
@@ -111,10 +102,7 @@ export class InventoryController {
 
   @Post('ajuste')
   @ApiOperation({ summary: 'Ajuste de inventario (positivo o negativo)' })
-  registerAjuste(
-    @Body() dto: AjusteDto,
-    @Req() req: any,
-  ) {
+  registerAjuste(@Body() dto: AjusteDto, @Req() req: any) {
     return this.service.adjustStock({
       storeId: dto.storeId,
       productId: dto.productId,

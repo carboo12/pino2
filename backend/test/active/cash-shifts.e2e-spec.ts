@@ -25,7 +25,8 @@ describe('Cash Shifts Flow (e2e)', () => {
       host: process.env.DATABASE_HOST || '127.0.0.1',
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
-      password: process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+      password:
+        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
       database: process.env.DATABASE_NAME || 'multitienda_db',
     });
     await client.connect();

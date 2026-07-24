@@ -13,7 +13,9 @@ describe('AuthService', () => {
     mockDb = {
       query: jest.fn(),
       withTransaction: jest.fn((cb: Function) => cb({ query: jest.fn() })),
-      getClient: jest.fn().mockResolvedValue({ query: jest.fn(), release: jest.fn() }),
+      getClient: jest
+        .fn()
+        .mockResolvedValue({ query: jest.fn(), release: jest.fn() }),
     };
 
     const mockJwt = { sign: jest.fn().mockReturnValue('mock-token') };
@@ -45,24 +47,26 @@ describe('AuthService', () => {
   it('debe rechazar login con credenciales invalidas', async () => {
     mockDb.query.mockResolvedValue({ rows: [], rowCount: 0 });
 
-    await expect(
-      service.login('noexiste@test.com', 'wrong'),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(service.login('noexiste@test.com', 'wrong')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('debe rechazar refresh token vacio', async () => {
-    await expect(
-      service.rotateRefreshToken(''),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(service.rotateRefreshToken('')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('debe rechazar refresh token invalido', async () => {
-    const mockJwtService = { verifyAsync: jest.fn().mockRejectedValue(new Error('invalid')) };
+    const mockJwtService = {
+      verifyAsync: jest.fn().mockRejectedValue(new Error('invalid')),
+    };
     (service as any).refreshJwt = mockJwtService;
 
-    await expect(
-      service.rotateRefreshToken('invalid-token'),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(service.rotateRefreshToken('invalid-token')).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('logout debe limpiar refresh_token_hash', async () => {

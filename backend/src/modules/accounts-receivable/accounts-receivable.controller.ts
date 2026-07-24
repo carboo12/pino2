@@ -12,7 +12,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AccountsReceivableService } from './accounts-receivable.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 import {
   CreateAccountReceivableDto,
   AddPaymentDto,
@@ -42,9 +42,7 @@ export class AccountsReceivableController {
 
   @Post()
   @ApiOperation({ summary: 'Crear cuenta por cobrar' })
-  create(
-    @Body() dto: CreateAccountReceivableDto,
-  ) {
+  create(@Body() dto: CreateAccountReceivableDto) {
     return this.service.create(dto);
   }
 

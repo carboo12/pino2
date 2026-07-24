@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 
 export class OrderItemDto {
-  @IsUUID("all")
+  @IsUUID('all')
   productId: string;
 
   @IsInt()
@@ -29,10 +29,10 @@ export class OrderItemDto {
 }
 
 export class CreateOrderDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   clientId?: string;
 
@@ -40,7 +40,7 @@ export class CreateOrderDto {
   @IsOptional()
   clientName?: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   vendorId?: string;
 
@@ -95,5 +95,3 @@ export class UpdateOrderStatusBodyDto {
   @IsOptional()
   expectedVersion?: number;
 }
-
-

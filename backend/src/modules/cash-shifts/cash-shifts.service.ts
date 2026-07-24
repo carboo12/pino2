@@ -147,7 +147,15 @@ export class CashShiftsService {
         `UPDATE cash_shifts 
          SET closed_by = $1, closed_at = NOW(), expected_cash = $2, actual_cash = $3, difference = $4, status = 'CLOSED', closing_denominations = $5
          WHERE id = $6 AND store_id = $7 AND status = 'OPEN' RETURNING *`,
-        [userId, expectedCash, actualCash, difference, denomJson, shiftId, storeId],
+        [
+          userId,
+          expectedCash,
+          actualCash,
+          difference,
+          denomJson,
+          shiftId,
+          storeId,
+        ],
       );
 
       if (res.rowCount === 0)

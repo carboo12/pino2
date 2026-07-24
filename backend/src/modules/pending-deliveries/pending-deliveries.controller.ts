@@ -12,7 +12,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PendingDeliveriesService } from './pending-deliveries.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 import {
   CreatePendingDeliveryDto,
   UpdatePendingDeliveryDto,
@@ -49,26 +49,19 @@ export class PendingDeliveriesController {
 
   @Post()
   @ApiOperation({ summary: 'Crear entrega pendiente' })
-  create(
-    @Body() dto: CreatePendingDeliveryDto,
-  ) {
+  create(@Body() dto: CreatePendingDeliveryDto) {
     return this.service.create(dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar estado de entrega' })
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdatePendingDeliveryDto,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdatePendingDeliveryDto) {
     return this.service.update(id, dto);
   }
 
   @Post('assign-route')
   @ApiOperation({ summary: 'Asignar ruta a entregas pendientes' })
-  assignRoute(
-    @Body() dto: AssignRouteDto,
-  ) {
+  assignRoute(@Body() dto: AssignRouteDto) {
     return this.service.assignRoute(dto);
   }
 }

@@ -13,7 +13,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateOrderDto, UpdateOrderStatusBodyDto } from './orders.dto';
 
 @ApiTags('Orders')
@@ -72,10 +72,7 @@ export class OrdersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Actualizar status de un pedido' })
-  updateStatus(
-    @Param('id') id: string,
-    @Body() dto: UpdateOrderStatusBodyDto,
-  ) {
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusBodyDto) {
     return this.service.updateStatus(
       id,
       dto.status,

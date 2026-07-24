@@ -11,7 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SyncService } from './sync.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 
 import { BatchSyncDto } from './sync.dto';
 
@@ -58,6 +58,11 @@ export class SyncController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    return this.service.getDeltaData(storeId, lastSyncTimestamp, limit ? parseInt(limit) : 500, offset ? parseInt(offset) : 0);
+    return this.service.getDeltaData(
+      storeId,
+      lastSyncTimestamp,
+      limit ? parseInt(limit) : 500,
+      offset ? parseInt(offset) : 0,
+    );
   }
 }

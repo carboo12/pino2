@@ -60,9 +60,17 @@ describe('OrdersService', () => {
 
   it('debe crear orden con estado RECIBIDO para contado', async () => {
     mockClient.query.mockImplementation(async (sql: string) => {
-      if (sql.includes('SELECT * FROM orders WHERE external_id')) return { rows: [], rowCount: 0 };
-      if (sql.includes('SELECT id,')) return { rows: [{ id: 'p1', price: '100', uses_inventory: false, current_stock: 0 }], rowCount: 1 };
-      if (sql.includes('INSERT INTO orders')) return { rows: [{ ...mockOrder, total: '200' }], rowCount: 1 };
+      if (sql.includes('SELECT * FROM orders WHERE external_id'))
+        return { rows: [], rowCount: 0 };
+      if (sql.includes('SELECT id,'))
+        return {
+          rows: [
+            { id: 'p1', price: '100', uses_inventory: false, current_stock: 0 },
+          ],
+          rowCount: 1,
+        };
+      if (sql.includes('INSERT INTO orders'))
+        return { rows: [{ ...mockOrder, total: '200' }], rowCount: 1 };
       return { rowCount: 0 };
     });
 
@@ -78,16 +86,27 @@ describe('OrdersService', () => {
 
   it('debe rechazar transicion invalida RECIBIDO -> ENTREGADO', async () => {
     mockClient.query.mockImplementation(async (sql: string) => {
-      if (sql.includes('SELECT store_id, status')) return { rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }], rowCount: 1 };
+      if (sql.includes('SELECT store_id, status'))
+        return {
+          rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }],
+          rowCount: 1,
+        };
       return { rowCount: 0 };
     });
-    await expect(service.updateStatus('o1', 'ENTREGADO')).rejects.toThrow(BadRequestException);
+    await expect(service.updateStatus('o1', 'ENTREGADO')).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('debe permitir RECIBIDO -> CANCELADO', async () => {
     mockClient.query.mockImplementation(async (sql: string) => {
-      if (sql.includes('SELECT store_id, status')) return { rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }], rowCount: 1 };
-      if (sql.includes('UPDATE orders SET status')) return { rows: [{ ...mockOrder, status: 'CANCELADO' }], rowCount: 1 };
+      if (sql.includes('SELECT store_id, status'))
+        return {
+          rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }],
+          rowCount: 1,
+        };
+      if (sql.includes('UPDATE orders SET status'))
+        return { rows: [{ ...mockOrder, status: 'CANCELADO' }], rowCount: 1 };
       if (sql.includes('INSERT INTO')) return { rowCount: 1 };
       return { rowCount: 0 };
     });
@@ -97,8 +116,16 @@ describe('OrdersService', () => {
 
   it('debe permitir RECIBIDO -> EN_PREPARACION', async () => {
     mockClient.query.mockImplementation(async (sql: string) => {
-      if (sql.includes('SELECT store_id, status')) return { rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }], rowCount: 1 };
-      if (sql.includes('UPDATE orders SET status')) return { rows: [{ ...mockOrder, status: 'EN_PREPARACION' }], rowCount: 1 };
+      if (sql.includes('SELECT store_id, status'))
+        return {
+          rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }],
+          rowCount: 1,
+        };
+      if (sql.includes('UPDATE orders SET status'))
+        return {
+          rows: [{ ...mockOrder, status: 'EN_PREPARACION' }],
+          rowCount: 1,
+        };
       if (sql.includes('INSERT INTO')) return { rowCount: 1 };
       return { rowCount: 0 };
     });
@@ -108,9 +135,17 @@ describe('OrdersService', () => {
 
   it('debe calcular precio desde DB ignorando unitPrice del body', async () => {
     mockClient.query.mockImplementation(async (sql: string) => {
-      if (sql.includes('SELECT * FROM orders WHERE external_id')) return { rows: [], rowCount: 0 };
-      if (sql.includes('SELECT id,')) return { rows: [{ id: 'p1', price: '150', uses_inventory: false, current_stock: 0 }], rowCount: 1 };
-      if (sql.includes('INSERT INTO orders')) return { rows: [{ ...mockOrder, total: '450' }], rowCount: 1 };
+      if (sql.includes('SELECT * FROM orders WHERE external_id'))
+        return { rows: [], rowCount: 0 };
+      if (sql.includes('SELECT id,'))
+        return {
+          rows: [
+            { id: 'p1', price: '150', uses_inventory: false, current_stock: 0 },
+          ],
+          rowCount: 1,
+        };
+      if (sql.includes('INSERT INTO orders'))
+        return { rows: [{ ...mockOrder, total: '450' }], rowCount: 1 };
       return { rowCount: 0 };
     });
     const result = await service.create({

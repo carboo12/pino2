@@ -1,19 +1,13 @@
-import {
-  IsEnum,
-  IsInt,
-  IsOptional,
-  IsUUID,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsUUID, Min } from 'class-validator';
 
 export class ProcessTransactionDto {
-  @IsUUID("all")
+  @IsUUID('all')
   vendorId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
   @IsEnum(['ASSIGN', 'RETURN', 'SALE', 'assign', 'return', 'sale'])
@@ -23,7 +17,7 @@ export class ProcessTransactionDto {
   @Min(1)
   quantity!: number;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   userId?: string;
 }

@@ -7,10 +7,10 @@ import {
 } from 'class-validator';
 
 export class CreateDailyClosingDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   ruteroId?: string;
 

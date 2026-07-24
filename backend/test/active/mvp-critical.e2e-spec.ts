@@ -22,7 +22,9 @@ describe('MVP Critical Tests', () => {
       new FastifyAdapter({ logger: false }),
     );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -52,9 +54,7 @@ describe('MVP Critical Tests', () => {
   });
 
   it('Auth required for protected endpoints', async () => {
-    await request(app.getHttpServer())
-      .get('/api/users')
-      .expect(401);
+    await request(app.getHttpServer()).get('/api/users').expect(401);
   });
 
   it('Profile endpoint works with valid token', async () => {

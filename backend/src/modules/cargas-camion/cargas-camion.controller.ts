@@ -12,7 +12,7 @@ import { CargasCamionService } from './cargas-camion.service';
 import { CreateCargaCamionDto } from './cargas-camion.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 
 @Controller('cargas-camion')
 @UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)

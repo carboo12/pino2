@@ -23,7 +23,8 @@ describe('Load basico (e2e)', () => {
       host: process.env.DATABASE_HOST || '127.0.0.1',
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
-      password: process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+      password:
+        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
       database: process.env.DATABASE_NAME || 'multitienda_db',
     });
 
@@ -35,7 +36,9 @@ describe('Load basico (e2e)', () => {
       new FastifyAdapter({ logger: false }),
     );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -45,7 +48,7 @@ describe('Load basico (e2e)', () => {
     token = loginRes.body.accessToken;
 
     const storeRes = await pool.query(
-      "SELECT id FROM stores WHERE is_active = true LIMIT 1"
+      'SELECT id FROM stores WHERE is_active = true LIMIT 1',
     );
     storeId = storeRes.rows[0]?.id;
 
@@ -78,7 +81,8 @@ describe('Load basico (e2e)', () => {
     if (!productId || !cashShiftId) return;
 
     const initialRes = await pool.query(
-      'SELECT current_stock FROM products WHERE id = $1', [productId]
+      'SELECT current_stock FROM products WHERE id = $1',
+      [productId],
     );
     const initialStock = Number(initialRes.rows[0].current_stock);
     const qty = 1;
@@ -99,17 +103,20 @@ describe('Load basico (e2e)', () => {
       results.push(res.status);
     }
 
-    const success = results.filter(s => s === 200 || s === 201).length;
-    const failures = results.filter(s => s !== 200 && s !== 201);
+    const success = results.filter((s) => s === 200 || s === 201).length;
+    const failures = results.filter((s) => s !== 200 && s !== 201);
 
     const finalRes = await pool.query(
-      'SELECT current_stock FROM products WHERE id = $1', [productId]
+      'SELECT current_stock FROM products WHERE id = $1',
+      [productId],
     );
     const finalStock = Number(finalRes.rows[0].current_stock);
 
-    console.log(`Load: ${success} OK, ${failures.length} FAIL, stock ${initialStock} -> ${finalStock}`);
+    console.log(
+      `Load: ${success} OK, ${failures.length} FAIL, stock ${initialStock} -> ${finalStock}`,
+    );
 
-    expect(finalStock).toBe(initialStock - (success * qty));
+    expect(finalStock).toBe(initialStock - success * qty);
     expect(finalStock).toBeGreaterThanOrEqual(0);
     if (failures.length > 0) {
       console.log('Failures:', failures.join(','));

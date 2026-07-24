@@ -24,7 +24,8 @@ describe('Sales Integrity Flow (e2e)', () => {
       host: process.env.DATABASE_HOST || '127.0.0.1',
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
-      password: process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+      password:
+        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
       database: process.env.DATABASE_NAME || 'multitienda_db',
     });
     await client.connect();
@@ -68,7 +69,13 @@ describe('Sales Integrity Flow (e2e)', () => {
     await client.query('DELETE FROM cash_shifts WHERE id = $1', [cashShiftId]);
     await client.query(
       'INSERT INTO cash_shifts (id, store_id, opened_by, starting_cash, status) VALUES ($1, $2, $3, $4, $5)',
-      [cashShiftId, storeId, '00000000-0000-0000-0000-000000000000', 1000, 'OPEN'],
+      [
+        cashShiftId,
+        storeId,
+        '00000000-0000-0000-0000-000000000000',
+        1000,
+        'OPEN',
+      ],
     );
 
     const ticketNumber = 'TEST-' + Date.now();
@@ -105,7 +112,10 @@ describe('Sales Integrity Flow (e2e)', () => {
     expect(saleRecordRes.rowCount).toBe(1);
     const expectedSubtotal = 2 * 42.75;
     const expectedTotal = expectedSubtotal * 1.15;
-    expect(Number(saleRecordRes.rows[0].subtotal)).toBeCloseTo(expectedSubtotal, 1);
+    expect(Number(saleRecordRes.rows[0].subtotal)).toBeCloseTo(
+      expectedSubtotal,
+      1,
+    );
     expect(Number(saleRecordRes.rows[0].total)).toBeCloseTo(expectedTotal, 1);
   });
 

@@ -20,7 +20,8 @@ describe('Concurrency real (e2e)', () => {
       host: process.env.DATABASE_HOST || '127.0.0.1',
       port: Number(process.env.DATABASE_PORT) || 5432,
       user: process.env.DATABASE_USER || 'alacaja',
-      password: process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+      password:
+        process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
       database: process.env.DATABASE_NAME || 'multitienda_db',
     });
 
@@ -32,7 +33,9 @@ describe('Concurrency real (e2e)', () => {
       new FastifyAdapter({ logger: false }),
     );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -52,9 +55,12 @@ describe('Concurrency real (e2e)', () => {
       `SELECT p.id, p.current_stock, p.store_id 
        FROM products p 
        WHERE p.uses_inventory = true AND p.current_stock >= 30 AND p.price1 > 0
-       LIMIT 1`
+       LIMIT 1`,
     );
-    if (prodRes.rows.length === 0) { console.log('SKIP: no product with stock >= 30'); return; }
+    if (prodRes.rows.length === 0) {
+      console.log('SKIP: no product with stock >= 30');
+      return;
+    }
 
     const product = prodRes.rows[0];
     const storeId = product.store_id;
@@ -63,10 +69,13 @@ describe('Concurrency real (e2e)', () => {
 
     const activeShift = await pool.query(
       "SELECT id FROM cash_shifts WHERE store_id = $1 AND status = 'OPEN' AND id != '00000000-0000-4000-8000-000000000001' LIMIT 1",
-      [storeId]
+      [storeId],
     );
-    let cashShiftId = activeShift.rows[0]?.id;
-    if (!cashShiftId) { console.log('SKIP: no open cash shift'); return; }
+    const cashShiftId = activeShift.rows[0]?.id;
+    if (!cashShiftId) {
+      console.log('SKIP: no open cash shift');
+      return;
+    }
 
     const concurrency = 3;
     const qtyPerSale = 5;
@@ -84,12 +93,14 @@ describe('Concurrency real (e2e)', () => {
             ticketNumber: `CONC-${Date.now()}-${i}`,
             items: [{ productId, quantity: qtyPerSale }],
             paymentMethod: 'CASH',
-          })
+          }),
       );
     }
 
     const results = await Promise.all(promises);
-    const success = results.filter(r => r.status === 201 || r.status === 200).length;
+    const success = results.filter(
+      (r) => r.status === 201 || r.status === 200,
+    ).length;
 
     const stockAfter = await pool.query(
       'SELECT current_stock FROM products WHERE id = $1',
@@ -97,10 +108,12 @@ describe('Concurrency real (e2e)', () => {
     );
     const finalStock = Number(stockAfter.rows[0].current_stock);
 
-    const deducted = (initialStock - finalStock);
+    const deducted = initialStock - finalStock;
     const dedBySuccess = success * qtyPerSale;
 
-    console.log(`Initial: ${initialStock}, Final: ${finalStock}, Deducted: ${deducted}, Success: ${success}/${concurrency}`);
+    console.log(
+      `Initial: ${initialStock}, Final: ${finalStock}, Deducted: ${deducted}, Success: ${success}/${concurrency}`,
+    );
 
     // El stock NUNCA debe ser negativo
     expect(finalStock).toBeGreaterThanOrEqual(0);

@@ -85,7 +85,14 @@ export class CargasCamionService {
             await client.query(
               `INSERT INTO vendor_inventories (vendor_id, product_id, store_id, assigned_quantity, current_quantity, assigned_bulks, assigned_units, current_bulks, current_units)
                VALUES ($1, $2, $3, $4, $4, $5, $6, $5, $6)`,
-              [dto.ruteroId, item.product_id, dto.storeId, totalUnits, qtyBulks, qtyUnits],
+              [
+                dto.ruteroId,
+                item.product_id,
+                dto.storeId,
+                totalUnits,
+                qtyBulks,
+                qtyUnits,
+              ],
             );
           } else {
             await client.query(
@@ -247,7 +254,8 @@ export class CargasCamionService {
         `UPDATE cargas_camion SET status = 'EN_RUTA', fecha_salida = NOW() WHERE id = $1 RETURNING *`,
         [id],
       );
-      if (res.rowCount === 0) throw new NotFoundException('Carga no encontrada');
+      if (res.rowCount === 0)
+        throw new NotFoundException('Carga no encontrada');
 
       await client.query(
         `UPDATE orders SET status = 'EN_ENTREGA', updated_at = NOW() WHERE grupo_carga_id = $1`,

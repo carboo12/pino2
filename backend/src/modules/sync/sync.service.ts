@@ -154,7 +154,12 @@ export class SyncService {
     };
   }
 
-  async getDeltaData(storeId: string, lastSyncTimestamp?: string, limit: number = 500, offset: number = 0) {
+  async getDeltaData(
+    storeId: string,
+    lastSyncTimestamp?: string,
+    limit: number = 500,
+    offset: number = 0,
+  ) {
     const params: any[] = [storeId];
     let timeCondition = '';
 
@@ -165,7 +170,17 @@ export class SyncService {
 
     const pagination = ` ORDER BY updated_at DESC NULLS LAST LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
 
-    const [products, productBarcodes, clients, orders, sales, pendingDeliveries, vendorInventories, collections, outbox] = await Promise.all([
+    const [
+      products,
+      productBarcodes,
+      clients,
+      orders,
+      sales,
+      pendingDeliveries,
+      vendorInventories,
+      collections,
+      outbox,
+    ] = await Promise.all([
       this.db.query(
         `SELECT * FROM products WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}${pagination}`,
         [...params, limit, offset],

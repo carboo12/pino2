@@ -78,11 +78,15 @@ export class OrdersService {
           [item.productId, dto.storeId],
         );
         if (prodRes.rowCount !== 1) {
-          throw new NotFoundException(`Producto ${item.productId} no encontrado en la tienda`);
+          throw new NotFoundException(
+            `Producto ${item.productId} no encontrado en la tienda`,
+          );
         }
         const p = Number(prodRes.rows[0].price);
         if (!Number.isFinite(p) || p < 0) {
-          throw new BadRequestException(`Precio no configurado para producto ${item.productId}`);
+          throw new BadRequestException(
+            `Precio no configurado para producto ${item.productId}`,
+          );
         }
         itemPrices.set(item.productId, p);
       }
@@ -200,7 +204,9 @@ export class OrdersService {
             [item.quantity, dto.vendorId, item.productId],
           );
           if (viUpd.rowCount !== 1) {
-            throw new ConflictException(`Stock insuficiente en camión para producto ${item.productId}`);
+            throw new ConflictException(
+              `Stock insuficiente en camión para producto ${item.productId}`,
+            );
           }
         }
       }
@@ -228,8 +234,18 @@ export class OrdersService {
       await client.query(
         `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
          VALUES ($1, $2, $3, $4, $5)`,
-        ['order', order.id, finalOrder.storeId, 'ORDER_CREATED',
-         JSON.stringify({ orderId: order.id, storeId: finalOrder.storeId, total: finalOrder.total, paymentType: finalOrder.paymentType })],
+        [
+          'order',
+          order.id,
+          finalOrder.storeId,
+          'ORDER_CREATED',
+          JSON.stringify({
+            orderId: order.id,
+            storeId: finalOrder.storeId,
+            total: finalOrder.total,
+            paymentType: finalOrder.paymentType,
+          }),
+        ],
       );
 
       this.eventsGateway.emitSyncUpdate({
@@ -369,7 +385,10 @@ export class OrdersService {
       if ((res.rowCount ?? 0) === 0)
         throw new NotFoundException('Pedido no encontrado');
 
-      if (expectedVersion !== undefined && res.rows[0].version !== expectedVersion) {
+      if (
+        expectedVersion !== undefined &&
+        res.rows[0].version !== expectedVersion
+      ) {
         throw new ConflictException(
           `Conflicto de versión: esperaba ${expectedVersion}, actual es ${res.rows[0].version}`,
         );
@@ -432,7 +451,9 @@ export class OrdersService {
             [totalUnits, item.product_id],
           );
           if (updated.rowCount !== 1) {
-            throw new ConflictException(`Stock insuficiente para producto ${item.product_id}`);
+            throw new ConflictException(
+              `Stock insuficiente para producto ${item.product_id}`,
+            );
           }
 
           // Sumar a vendor_inventories
@@ -519,7 +540,9 @@ export class OrdersService {
             [totalUnits, effectiveVendorId, item.product_id, upb],
           );
           if (viUpdated.rowCount !== 1) {
-            throw new ConflictException(`Stock insuficiente en camión para producto ${item.product_id}`);
+            throw new ConflictException(
+              `Stock insuficiente en camión para producto ${item.product_id}`,
+            );
           }
         }
       }
@@ -594,8 +617,17 @@ export class OrdersService {
       await client.query(
         `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
          VALUES ($1, $2, $3, $4, $5)`,
-        ['order', id, storeId, 'ORDER_STATUS_CHANGE',
-         JSON.stringify({ orderId: id, status: targetStatus, previousStatus: currentStatus })],
+        [
+          'order',
+          id,
+          storeId,
+          'ORDER_STATUS_CHANGE',
+          JSON.stringify({
+            orderId: id,
+            status: targetStatus,
+            previousStatus: currentStatus,
+          }),
+        ],
       );
 
       if (

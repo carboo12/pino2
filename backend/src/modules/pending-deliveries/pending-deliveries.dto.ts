@@ -7,13 +7,13 @@ import {
 } from 'class-validator';
 
 export class CreatePendingDeliveryDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   orderId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   clientId?: string;
 
@@ -31,7 +31,7 @@ export class UpdatePendingDeliveryDto {
   @IsOptional()
   status?: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   ruteroId?: string;
 }
@@ -41,7 +41,7 @@ export class AssignRouteDto {
   @IsUUID('4', { each: true })
   deliveryIds!: string[];
 
-  @IsUUID("all")
+  @IsUUID('all')
   ruteroId!: string;
 
   @IsDateString()

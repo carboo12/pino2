@@ -487,8 +487,18 @@ export class ReturnsService {
       await client.query(
         `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
          VALUES ($1, $2, $3, $4, $5)`,
-        ['return', returnRecord.id, storeId, 'RETURN_CREATED',
-         JSON.stringify({ returnId: returnRecord.id, saleId: dto.saleId, totalRefund, items: preparedItems.length })],
+        [
+          'return',
+          returnRecord.id,
+          storeId,
+          'RETURN_CREATED',
+          JSON.stringify({
+            returnId: returnRecord.id,
+            saleId: dto.saleId,
+            totalRefund,
+            items: preparedItems.length,
+          }),
+        ],
       );
 
       const result = {

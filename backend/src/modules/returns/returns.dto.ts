@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 
 export class ReturnItemDto {
-  @IsUUID("all")
+  @IsUUID('all')
   productId!: string;
 
   @IsInt()
@@ -36,22 +36,22 @@ export class ReturnItemDto {
 }
 
 export class CreateReturnDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId!: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   orderId?: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   saleId?: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   ruteroId?: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   @IsOptional()
   cashierId?: string;
 

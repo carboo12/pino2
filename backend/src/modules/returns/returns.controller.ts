@@ -12,7 +12,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ReturnsService } from './returns.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { RolesGuard } from "../../common/guards/roles.guard";
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateReturnDto } from './returns.dto';
 
 @ApiTags('Returns')
@@ -26,10 +26,7 @@ export class ReturnsController {
   @ApiOperation({
     summary: 'Registrar devolución de rutero o devolución POS basada en venta',
   })
-  create(
-    @Body() dto: CreateReturnDto,
-    @Req() req: any,
-  ) {
+  create(@Body() dto: CreateReturnDto, @Req() req: any) {
     return this.service.create({
       ...dto,
       ruteroId: dto.ruteroId || req.user?.sub || undefined,

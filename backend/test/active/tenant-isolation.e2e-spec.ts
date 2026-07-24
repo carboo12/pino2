@@ -26,7 +26,9 @@ describe('Tenant isolation Tienda A vs Tienda B (e2e)', () => {
       new FastifyAdapter({ logger: false }),
     );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -66,7 +68,9 @@ describe('Tenant isolation Tienda A vs Tienda B (e2e)', () => {
       .send({
         storeId: storeIdB,
         clientName: 'Cliente Test',
-        items: [{ productId: '00000000-0000-4000-8000-000000000000', quantity: 1 }],
+        items: [
+          { productId: '00000000-0000-4000-8000-000000000000', quantity: 1 },
+        ],
         paymentType: 'CONTADO',
       });
     expect([403, 404, 400]).toContain(res.status);

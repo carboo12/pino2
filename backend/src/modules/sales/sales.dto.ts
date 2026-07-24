@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 
 export class SaleItemDto {
-  @IsUUID("all")
+  @IsUUID('all')
   productId: string;
 
   @IsInt()
@@ -20,10 +20,10 @@ export class SaleItemDto {
 }
 
 export class ProcessSaleDto {
-  @IsUUID("all")
+  @IsUUID('all')
   storeId: string;
 
-  @IsUUID("all")
+  @IsUUID('all')
   cashShiftId: string;
 
   @IsString()

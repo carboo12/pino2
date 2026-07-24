@@ -23,10 +23,7 @@ export class DailyClosingsController {
 
   @Post()
   @ApiOperation({ summary: 'Registrar cierre de caja del rutero' })
-  create(
-    @Body() dto: CreateDailyClosingDto,
-    @Req() req: any,
-  ) {
+  create(@Body() dto: CreateDailyClosingDto, @Req() req: any) {
     return this.service.create({
       ...dto,
       ruteroId: dto.ruteroId || req.user?.sub,
