@@ -13,6 +13,10 @@ import { AccountsReceivableService } from './accounts-receivable.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
+import {
+  CreateAccountReceivableDto,
+  AddPaymentDto,
+} from './accounts-receivable.dto';
 
 @ApiTags('Accounts Receivable')
 @ApiBearerAuth()
@@ -39,14 +43,7 @@ export class AccountsReceivableController {
   @Post()
   @ApiOperation({ summary: 'Crear cuenta por cobrar' })
   create(
-    @Body()
-    dto: {
-      storeId: string;
-      clientId: string;
-      orderId?: string;
-      totalAmount: number;
-      description?: string;
-    },
+    @Body() dto: CreateAccountReceivableDto,
   ) {
     return this.service.create(dto);
   }
@@ -55,15 +52,7 @@ export class AccountsReceivableController {
   @ApiOperation({ summary: 'Registrar pago a cuenta' })
   addPayment(
     @Param('id') id: string,
-    @Body()
-    dto: {
-      amount: number;
-      paymentMethod?: string;
-      notes?: string;
-      collectedBy?: string;
-      vendorId?: string;
-      vendorName?: string;
-    },
+    @Body() dto: AddPaymentDto,
     @Req() req: any,
   ) {
     return this.service.addPayment(id, {

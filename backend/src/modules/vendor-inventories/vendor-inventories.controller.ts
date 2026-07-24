@@ -12,6 +12,7 @@ import { VendorInventoriesService } from './vendor-inventories.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
+import { ProcessTransactionDto } from './vendor-inventories.dto';
 
 @ApiTags('Vendor Inventories')
 @ApiBearerAuth()
@@ -43,20 +44,12 @@ export class VendorInventoriesController {
       'Procesar transacción de inventario de vendedor (asignar/devolver/vender)',
   })
   processTransaction(
-    @Body()
-    dto: {
-      vendorId: string;
-      productId: string;
-      storeId: string;
-      type: 'ASSIGN' | 'RETURN' | 'SALE' | 'assign' | 'return' | 'sale';
-      quantity: number;
-      userId?: string;
-    },
+    @Body() dto: ProcessTransactionDto,
     @Req() req: any,
   ) {
     return this.service.processTransaction({
       ...dto,
       userId: req.user?.sub || null,
-    });
+    } as any);
   }
 }
