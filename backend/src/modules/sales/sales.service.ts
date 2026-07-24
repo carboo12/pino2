@@ -58,7 +58,26 @@ export class SalesService {
         throw new BadRequestException('La caja está inactiva o cerrada');
       }
 
-      // 2. Procesar ítems con precios del servidor y deducción atómica de stock
+      // 2. Idempotencia: verificar ANTES de procesar items/stock
+      if (dto.externalId) {
+        const existingSale = await client.query(
+          'SELECT * FROM sales WHERE external_id = $1',
+          [dto.externalId],
+        );
+        if (existingSale.rowCount > 0) {
+          await client.query(
+            'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
+            [dto.storeId, dto.externalId, 'SALE'],
+          );
+          return {
+            ...this.mapSaleRow(existingSale.rows[0]),
+            message: 'Operación ya procesada anteriormente (Idempotencia)',
+            isDuplicate: true,
+          };
+        }
+      }
+
+      // 3. Procesar ítems con precios del servidor y deducción atómica de stock
       let subtotal = 0;
       const processedItems: Array<{
         productId: string;
@@ -134,25 +153,6 @@ export class SalesService {
       }
       const tax = subtotal * 0.15;
       const total = subtotal + tax;
-
-      // 3. Comprobar idempotencia si viene externalId
-      if (dto.externalId) {
-        const existingSale = await client.query(
-          'SELECT * FROM sales WHERE external_id = $1',
-          [dto.externalId],
-        );
-        if (existingSale.rowCount > 0) {
-          await client.query(
-            'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
-            [dto.storeId, dto.externalId, 'SALE'],
-          );
-          return {
-            ...this.mapSaleRow(existingSale.rows[0]),
-            message: 'Operación ya procesada anteriormente (Idempotencia)',
-            isDuplicate: true,
-          };
-        }
-      }
 
       const sql = `INSERT INTO sales (store_id, cash_shift_id, cashier_id, ticket_number, subtotal, tax, total, payment_method, external_id)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;

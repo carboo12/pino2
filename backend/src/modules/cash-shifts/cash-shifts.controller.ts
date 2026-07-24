@@ -41,10 +41,7 @@ export class CashShiftsController {
     return this.service.closeShift(
       dto.shiftId,
       dto.storeId,
-      dto.expectedCash,
-      dto.actualCash,
-      dto.difference,
-      dto.userId || req.user?.sub,
+      req.user?.sub || dto.userId,
       dto.closingDenominations,
     );
   }
@@ -97,10 +94,7 @@ export class CashShiftsController {
     return this.service.closeShift(
       id,
       dto.storeId,
-      dto.expectedCash,
-      dto.actualCash,
-      dto.difference,
-      dto.userId || req.user?.sub,
+      req.user?.sub || dto.userId,
       dto.closingDenominations,
     );
   }

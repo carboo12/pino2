@@ -566,6 +566,31 @@ export class OrdersService {
         }
       }
 
+      // Sincronizar pending_deliveries con el estado de la orden
+      if (targetStatus === OrderStatus.ENTREGADO) {
+        await client.query(
+          `UPDATE pending_deliveries SET status = 'ENTREGADO', updated_at = NOW() WHERE order_id = $1 AND status != 'ENTREGADO'`,
+          [id],
+        );
+      } else if (targetStatus === OrderStatus.CANCELADO) {
+        await client.query(
+          `UPDATE pending_deliveries SET status = 'CANCELADO', updated_at = NOW() WHERE order_id = $1`,
+          [id],
+        );
+      } else if (targetStatus === OrderStatus.CARGADO_CAMION) {
+        await client.query(
+          `UPDATE pending_deliveries SET status = 'EN_RUTA', updated_at = NOW() WHERE order_id = $1`,
+          [id],
+        );
+      }
+
+      await client.query(
+        `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
+         VALUES ($1, $2, $3, $4, $5)`,
+        ['order', id, storeId, 'ORDER_STATUS_CHANGE',
+         JSON.stringify({ orderId: id, status: targetStatus, previousStatus: currentStatus })],
+      );
+
       if (
         targetStatus === 'CARGADO_CAMION' &&
         currentStatus !== 'CARGADO_CAMION'
