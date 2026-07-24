@@ -340,6 +340,7 @@ export class OrdersService {
     newStatus: string,
     updatedBy?: string,
     vendorId?: string,
+    expectedVersion?: number,
   ) {
     const validTransitions: Record<string, string[]> = {
       [OrderStatus.PENDIENTE_AUTORIZACION]: [
@@ -360,13 +361,19 @@ export class OrdersService {
     };
 
     return this.db.withTransaction(async (client) => {
-      // 1. Check current status
+      // 1. Check current status + version
       const res = await client.query(
-        'SELECT store_id, status, vendor_id FROM orders WHERE id = $1 FOR UPDATE',
+        'SELECT store_id, status, vendor_id, version FROM orders WHERE id = $1 FOR UPDATE',
         [id],
       );
       if ((res.rowCount ?? 0) === 0)
         throw new NotFoundException('Pedido no encontrado');
+
+      if (expectedVersion !== undefined && res.rows[0].version !== expectedVersion) {
+        throw new ConflictException(
+          `Conflicto de versión: esperaba ${expectedVersion}, actual es ${res.rows[0].version}`,
+        );
+      }
 
       const currentStatus = res.rows[0].status.toUpperCase();
       const targetStatus = newStatus.toUpperCase();
@@ -518,7 +525,7 @@ export class OrdersService {
       }
 
       const updateRes = await client.query(
-        `UPDATE orders SET status = $1, updated_by = $2, updated_at = NOW() WHERE id = $3 RETURNING *`,
+        `UPDATE orders SET status = $1, updated_by = $2, version = version + 1, updated_at = NOW() WHERE id = $3 RETURNING *`,
         [targetStatus, updatedBy || null, id],
       );
 
@@ -637,7 +644,7 @@ export class OrdersService {
         decision === 'aprobar' ? OrderStatus.RECIBIDO : OrderStatus.CANCELADO;
 
       const updateRes = await client.query(
-        `UPDATE orders SET status = $1, autorizado_por = $2, fecha_autorizacion = NOW(), updated_by = $2, updated_at = NOW() WHERE id = $3 RETURNING *`,
+        `UPDATE orders SET status = $1, autorizado_por = $2, fecha_autorizacion = NOW(), updated_by = $2, version = version + 1, updated_at = NOW() WHERE id = $3 RETURNING *`,
         [newStatus, userId, id],
       );
 
