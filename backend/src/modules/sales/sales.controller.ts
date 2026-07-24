@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { ProcessSaleDto } from './sales.dto';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
@@ -22,17 +23,7 @@ export class SalesController {
 
   @Post('process')
   @ApiOperation({ summary: 'Procesar una venta (Transaccional puro)' })
-  processSale(
-    @Body()
-    dto: {
-      storeId: string;
-      cashShiftId: string;
-      ticketNumber: string;
-      items: Array<{ productId: string; quantity: number }>;
-      paymentMethod: string;
-    },
-    @Req() req: any,
-  ) {
+  processSale(@Body() dto: ProcessSaleDto, @Req() req: any) {
     return this.service.processSale(dto, req.user.sub);
   }
 
