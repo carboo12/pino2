@@ -86,9 +86,6 @@ export class CashShiftsService {
   async closeShift(
     shiftId: string,
     storeId: string,
-    expectedCash: number,
-    actualCash: number,
-    difference: number,
     userId: string,
     closingDenominations?: Record<string, number>,
   ) {
@@ -98,31 +95,51 @@ export class CashShiftsService {
       );
     }
 
-    // Validar que el cajero que cierra es el mismo que abrió
-    const shiftCheck = await this.db.query(
-      "SELECT opened_by FROM cash_shifts WHERE id = $1 AND store_id = $2 AND status = 'OPEN'",
+    const shiftRes = await this.db.query(
+      `SELECT id, opened_by, starting_cash, actual_cash FROM cash_shifts WHERE id = $1 AND store_id = $2 AND status = 'OPEN' FOR UPDATE`,
       [shiftId, storeId],
     );
-    if (shiftCheck.rowCount === 0) {
+    if (shiftRes.rowCount === 0) {
       throw new BadRequestException('Turno de caja no válido o ya cerrado');
     }
-    if (shiftCheck.rows[0].opened_by !== userId) {
+    const shift = shiftRes.rows[0];
+    if (shift.opened_by !== userId) {
       throw new BadRequestException(
         'Solo el cajero que abrió este turno puede cerrarlo',
       );
     }
 
-    const normalizedExpectedCash = this.validateMoney(
-      expectedCash,
-      'expectedCash',
+    // Calcular expected_cash desde transacciones en DB
+    const txRes = await this.db.query(
+      `SELECT
+         COALESCE(SUM(CASE WHEN payment_method IN ('CASH', 'EFECTIVO') THEN total ELSE 0 END), 0) as ventas_efectivo
+       FROM sales
+       WHERE cash_shift_id = $1 AND store_id = $2 AND deleted_at IS NULL`,
+      [shiftId, storeId],
     );
-    const normalizedActualCash = this.validateMoney(actualCash, 'actualCash');
-    const normalizedDifference = this.parseMoney(difference, Number.NaN);
+    const ventasEfectivo = Number(txRes.rows[0]?.ventas_efectivo || 0);
 
-    if (!Number.isFinite(normalizedDifference)) {
-      throw new BadRequestException('difference debe ser un monto valido');
+    const collRes = await this.db.query(
+      `SELECT COALESCE(SUM(amount), 0) as cobros_efectivo
+       FROM collections
+       WHERE cash_shift_id = $1 AND store_id = $2`,
+      [shiftId, storeId],
+    );
+    const cobrosEfectivo = Number(collRes.rows[0]?.cobros_efectivo || 0);
+
+    const startingCash = Number(shift.starting_cash || 0);
+    const expectedCash = startingCash + ventasEfectivo + cobrosEfectivo;
+
+    // Calcular actual_cash desde denominaciones (si se enviaron)
+    let actualCash = expectedCash;
+    if (closingDenominations) {
+      actualCash = Object.entries(closingDenominations).reduce(
+        (sum, [denom, count]) => sum + Number(denom) * Number(count),
+        0,
+      );
     }
 
+    const difference = actualCash - expectedCash;
     const denomJson = closingDenominations
       ? JSON.stringify(closingDenominations)
       : null;
@@ -133,9 +150,9 @@ export class CashShiftsService {
        WHERE id = $6 AND store_id = $7 AND status = 'OPEN' RETURNING *`,
       [
         userId,
-        normalizedExpectedCash,
-        normalizedActualCash,
-        normalizedDifference,
+        expectedCash,
+        actualCash,
+        difference,
         denomJson,
         shiftId,
         storeId,

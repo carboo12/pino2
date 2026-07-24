@@ -379,7 +379,7 @@ export class ReturnsService {
 
       for (const item of normalizedItems) {
         const saleItemRes = await client.query(
-          'SELECT product_id, unit_price FROM sale_items WHERE sale_id = $1 AND (product_id = $2 OR id = $2)',
+          'SELECT id, product_id, unit_price, quantity, returned_quantity FROM sale_items WHERE sale_id = $1 AND (product_id = $2 OR id = $2) FOR UPDATE',
           [dto.saleId, item.productId],
         );
         if (saleItemRes.rowCount === 0) {
@@ -388,8 +388,22 @@ export class ReturnsService {
           );
         }
 
-        const resolvedProductId = saleItemRes.rows[0].product_id;
-        const unitPrice = this.toAmount(saleItemRes.rows[0].unit_price);
+        const si = saleItemRes.rows[0];
+        const alreadyReturned = this.toInt(si.returned_quantity);
+        const maxReturnable = this.toInt(si.quantity) - alreadyReturned;
+        if (item.quantity > maxReturnable) {
+          throw new BadRequestException(
+            `Solo se pueden devolver ${maxReturnable} unidades de este producto (ya devueltas: ${alreadyReturned})`,
+          );
+        }
+
+        await client.query(
+          'UPDATE sale_items SET returned_quantity = returned_quantity + $1 WHERE id = $2',
+          [item.quantity, si.id],
+        );
+
+        const resolvedProductId = si.product_id;
+        const unitPrice = this.toAmount(si.unit_price);
         totalRefund += unitPrice * item.quantity;
         preparedItems.push({
           productId: resolvedProductId,
@@ -469,6 +483,13 @@ export class ReturnsService {
           ],
         );
       }
+
+      await client.query(
+        `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
+         VALUES ($1, $2, $3, $4, $5)`,
+        ['return', returnRecord.id, storeId, 'RETURN_CREATED',
+         JSON.stringify({ returnId: returnRecord.id, saleId: dto.saleId, totalRefund, items: preparedItems.length })],
+      );
 
       const result = {
         ...this.mapRow(returnRecord),

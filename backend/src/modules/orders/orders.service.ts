@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -31,7 +32,6 @@ export class OrdersService {
       items: {
         productId: string;
         quantity: number;
-        unitPrice: number;
         presentation?: string;
         priceLevel?: number;
       }[];
@@ -65,16 +65,36 @@ export class OrdersService {
         }
       }
 
+      // Lookup prices from DB, never trust client unitPrice
+      const priceLevel = dto.priceLevel || 1;
+      const priceColumn = `price${Math.min(Math.max(priceLevel, 1), 5)}`;
+      const itemPrices: Map<string, number> = new Map();
+      for (const item of dto.items) {
+        const prodRes = await client.query(
+          `SELECT id, ${priceColumn} as price, uses_inventory, current_stock
+             FROM products
+            WHERE id = $1 AND store_id = $2 AND is_active = true
+            FOR UPDATE`,
+          [item.productId, dto.storeId],
+        );
+        if (prodRes.rowCount !== 1) {
+          throw new NotFoundException(`Producto ${item.productId} no encontrado en la tienda`);
+        }
+        const p = Number(prodRes.rows[0].price);
+        if (!Number.isFinite(p) || p < 0) {
+          throw new BadRequestException(`Precio no configurado para producto ${item.productId}`);
+        }
+        itemPrices.set(item.productId, p);
+      }
+
       const total = dto.items.reduce(
-        (sum, i) => sum + i.quantity * i.unitPrice,
+        (sum, i) => sum + i.quantity * (itemPrices.get(i.productId) || 0),
         0,
       );
 
       const orderType = dto.type || 'pedido';
       const isDirectSale = orderType === 'venta_directa';
       const tipoPedido = dto.tipoPedido || 'VENTA_ESTANDAR';
-      const priceLevel = dto.priceLevel || 1;
-
       const requiereAsignacionDirecta = isDirectSale;
       const requiereAutorizacion = priceLevel >= 4;
       const requiereCobro = tipoPedido !== 'ENTREGA_POR_CUENTA';
@@ -151,6 +171,7 @@ export class OrdersService {
       }
 
       for (const item of dto.items) {
+        const serverPrice = itemPrices.get(item.productId) || 0;
         await client.query(
           `INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal, presentation, price_level)
            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -158,10 +179,10 @@ export class OrdersService {
             order.id,
             item.productId,
             item.quantity,
-            item.unitPrice,
-            item.quantity * item.unitPrice,
+            serverPrice,
+            item.quantity * serverPrice,
             item.presentation || 'UNIT',
-            item.priceLevel || 1,
+            item.priceLevel || priceLevel,
           ],
         );
       }
@@ -169,17 +190,18 @@ export class OrdersService {
       // Si es venta directa, descontar del inventario del Vendedor inmediatamente
       if (orderType === 'venta_directa' && dto.vendorId) {
         for (const item of dto.items) {
-          // Descontar del stock del vendedor
-          await client.query(
-            `
-            UPDATE vendor_inventories 
-            SET current_quantity = GREATEST(current_quantity - $1, 0),
-                sold_quantity = sold_quantity + $1,
-                updated_at = NOW()
-            WHERE vendor_id = $2 AND product_id = $3
-          `,
+          const viUpd = await client.query(
+            `UPDATE vendor_inventories 
+                SET current_quantity = current_quantity - $1,
+                    sold_quantity = sold_quantity + $1,
+                    updated_at = NOW()
+              WHERE vendor_id = $2 AND product_id = $3 AND current_quantity >= $1
+              RETURNING current_quantity`,
             [item.quantity, dto.vendorId, item.productId],
           );
+          if (viUpd.rowCount !== 1) {
+            throw new ConflictException(`Stock insuficiente en camión para producto ${item.productId}`);
+          }
         }
       }
 
@@ -203,7 +225,13 @@ export class OrdersService {
 
       const finalOrder = this.mapRow(order);
 
-      // Notify Web Dashboards in Real-Time
+      await client.query(
+        `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
+         VALUES ($1, $2, $3, $4, $5)`,
+        ['order', order.id, finalOrder.storeId, 'ORDER_CREATED',
+         JSON.stringify({ orderId: order.id, storeId: finalOrder.storeId, total: finalOrder.total, paymentType: finalOrder.paymentType })],
+      );
+
       this.eventsGateway.emitSyncUpdate({
         type: 'NEW_ORDER',
         storeId: finalOrder.storeId,
@@ -385,17 +413,20 @@ export class OrdersService {
           const qtyUnits = totalUnits % upb;
 
           // Restar de products
-          await client.query(
-            `
-            UPDATE products 
-            SET current_stock = GREATEST(current_stock - $1, 0),
-                stock_bulks = GREATEST(current_stock - $1, 0) / units_per_bulk,
-                stock_units = GREATEST(current_stock - $1, 0) % units_per_bulk,
-                updated_at = NOW()
-            WHERE id = $2
-          `,
+          const updated = await client.query(
+            `UPDATE products 
+                SET current_stock = current_stock - $1,
+                    stock_bulks = (current_stock - $1) / units_per_bulk,
+                    stock_units = (current_stock - $1) % units_per_bulk,
+                    updated_at = NOW()
+              WHERE id = $2
+                AND current_stock >= $1
+              RETURNING current_stock`,
             [totalUnits, item.product_id],
           );
+          if (updated.rowCount !== 1) {
+            throw new ConflictException(`Stock insuficiente para producto ${item.product_id}`);
+          }
 
           // Sumar a vendor_inventories
           const viRes = await client.query(
@@ -469,18 +500,20 @@ export class OrdersService {
           const rawQty = parseInt(item.quantity, 10) || 0;
           const totalUnits = isBulk ? rawQty * upb : rawQty;
 
-          await client.query(
-            `
-            UPDATE vendor_inventories 
-            SET current_quantity = GREATEST(current_quantity - $1, 0),
-                sold_quantity = sold_quantity + $1,
-                current_bulks = GREATEST(current_quantity - $1, 0) / $4,
-                current_units = GREATEST(current_quantity - $1, 0) % $4,
-                updated_at = NOW()
-            WHERE vendor_id = $2 AND product_id = $3
-          `,
+          const viUpdated = await client.query(
+            `UPDATE vendor_inventories 
+                SET current_quantity = current_quantity - $1,
+                    sold_quantity = sold_quantity + $1,
+                    current_bulks = (current_quantity - $1) / $4,
+                    current_units = (current_quantity - $1) % $4,
+                    updated_at = NOW()
+              WHERE vendor_id = $2 AND product_id = $3 AND current_quantity >= $1
+              RETURNING current_quantity`,
             [totalUnits, effectiveVendorId, item.product_id, upb],
           );
+          if (viUpdated.rowCount !== 1) {
+            throw new ConflictException(`Stock insuficiente en camión para producto ${item.product_id}`);
+          }
         }
       }
 
@@ -532,6 +565,31 @@ export class OrdersService {
           );
         }
       }
+
+      // Sincronizar pending_deliveries con el estado de la orden
+      if (targetStatus === OrderStatus.ENTREGADO) {
+        await client.query(
+          `UPDATE pending_deliveries SET status = 'ENTREGADO', updated_at = NOW() WHERE order_id = $1 AND status != 'ENTREGADO'`,
+          [id],
+        );
+      } else if (targetStatus === OrderStatus.CANCELADO) {
+        await client.query(
+          `UPDATE pending_deliveries SET status = 'CANCELADO', updated_at = NOW() WHERE order_id = $1`,
+          [id],
+        );
+      } else if (targetStatus === OrderStatus.CARGADO_CAMION) {
+        await client.query(
+          `UPDATE pending_deliveries SET status = 'EN_RUTA', updated_at = NOW() WHERE order_id = $1`,
+          [id],
+        );
+      }
+
+      await client.query(
+        `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
+         VALUES ($1, $2, $3, $4, $5)`,
+        ['order', id, storeId, 'ORDER_STATUS_CHANGE',
+         JSON.stringify({ orderId: id, status: targetStatus, previousStatus: currentStatus })],
+      );
 
       if (
         targetStatus === 'CARGADO_CAMION' &&

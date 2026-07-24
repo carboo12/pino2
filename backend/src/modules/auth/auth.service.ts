@@ -108,14 +108,21 @@ export class AuthService {
     }
   }
 
-  async refreshToken(userId: string, refreshToken?: string) {
-    if (!refreshToken) {
+  async rotateRefreshToken(token: string) {
+    if (!token) {
       throw new UnauthorizedException('Refresh token requerido');
+    }
+
+    let payload: { sub: string };
+    try {
+      payload = await this.refreshJwt.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException('Refresh token expirado o inválido');
     }
 
     const resUser = await this.db.query(
       'SELECT * FROM users WHERE id = $1 AND is_active = true',
-      [userId],
+      [payload.sub],
     );
     if (resUser.rowCount === 0)
       throw new UnauthorizedException('Usuario no encontrado');
@@ -125,7 +132,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token no emitido');
     }
 
-    const valid = await argon2.verify(user.refresh_token_hash, refreshToken);
+    const valid = await argon2.verify(user.refresh_token_hash, token);
     if (!valid) {
       throw new UnauthorizedException('Refresh token inválido o reutilizado');
     }
@@ -157,7 +164,7 @@ export class AuthService {
       [user.id],
     );
 
-    const { password_hash, refresh_token, ...profile } = user;
+    const { password_hash, refresh_token_hash, ...profile } = user;
     return {
       ...profile,
       storeIds: resStores.rows.map((r) => r.store_id) || [],

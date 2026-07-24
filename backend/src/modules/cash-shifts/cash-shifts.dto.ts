@@ -26,24 +26,12 @@ export class OpenShiftDto {
 
 export class CloseShiftDto {
   @IsString()
-  @IsOptional() // Make it optional for the /:id/close endpoint, where it might be in the URL
+  @IsOptional()
   shiftId?: string;
 
   @IsString()
   @IsNotEmpty()
   storeId!: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  expectedCash!: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  actualCash!: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  difference!: number;
 
   @IsString()
   @IsOptional()
