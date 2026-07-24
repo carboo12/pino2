@@ -19,7 +19,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Users')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly service: UsersService) {}
@@ -32,6 +32,7 @@ export class UsersController {
   }
 
   @Get()
+  @Roles('master-admin', 'store-admin')
   @ApiOperation({ summary: 'Listar usuarios con filtros opcionales' })
   findAll(@Query('storeId') storeId?: string, @Query('role') role?: string) {
     return this.service.findAll(storeId, role);

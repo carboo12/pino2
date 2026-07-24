@@ -16,7 +16,7 @@
 | F7 Web simple | PENDIENTE | - | - |
 | F8 CI real | PARCIAL | 9cf6305 | CI workflow actualizado |
 | F9 Deploy/backup | PENDIENTE | - | - |
-| F10 Pruebas/piloto | PENDIENTE | - | - |
+| F10 Pruebas/piloto | COMPLETO | 97a1341 | docs/evidencias/f10/ |
 
 ## Riesgos
 
