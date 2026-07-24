@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 async function migrate() {
-  const c = new Client({ connectionString: 'postgresql://alacaja:TuClaveFuerte@190.56.16.85:5432/multitienda_db' });
+  const c = new Client({ connectionString: 'postgresql://alacaja:__DB_PASSWORD_PLACEHOLDER__@190.56.16.85:5432/multitienda_db' });
   await c.connect();
   console.log('Conectado a la base de datos.\n');
 

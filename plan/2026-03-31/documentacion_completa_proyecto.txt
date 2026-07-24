@@ -181,7 +181,7 @@ Tablas que el codigo SQL en los Services realmente consulta:
   DATABASE_HOST=190.56.16.85
   DATABASE_PORT=5432
   DATABASE_USER=alacaja
-  DATABASE_PASSWORD=TuClaveFuerte
+  DATABASE_PASSWORD=__DB_PASSWORD_PLACEHOLDER__
   DATABASE_NAME=multitienda_db
   PORT=3010
   API_PREFIX=api
