@@ -74,9 +74,15 @@ async function run() {
 
   } catch (error) {
     console.error('❌ Error general de migraciones:', error.message);
+    await client.end().catch(() => {});
+    process.exit(1);
+    return;
   } finally {
     await client.end();
   }
 }
 
-run();
+run().catch((error) => {
+  console.error('❌ Error fatal:', error.message);
+  process.exit(1);
+});

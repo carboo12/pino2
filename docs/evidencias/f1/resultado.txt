@@ -1,0 +1,4 @@
+Constraints: 0 NOT VALID
+Sync tables: 8 creadas
+Migration runner: exit code 1 en error
+Huérfanos FK: 0
