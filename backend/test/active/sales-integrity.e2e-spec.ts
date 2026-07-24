@@ -13,19 +13,19 @@ describe('Sales Integrity Flow (e2e)', () => {
   let token: string;
   let client: Client;
 
-  // Test Data
   const storeId = '9321856d-19ba-42b8-ba47-cf35c0d133dd';
-  const productId = 'a3571a84-d977-47c2-a775-5e5a30d73ad2';
-  const cashierId = '00000000-0000-0000-0000-000000000000';
+  const productId = '53b1b21e-05fb-4e58-baa6-de4d3ee28f05';
   let initialStock = 0;
 
   jest.setTimeout(30000);
 
   beforeAll(async () => {
-    // DB Client for verification
     client = new Client({
-      connectionString:
-        'postgresql://alacaja:__DB_PASSWORD_PLACEHOLDER__@190.56.16.85:5432/multitienda_db',
+      host: process.env.DATABASE_HOST || '127.0.0.1',
+      port: Number(process.env.DATABASE_PORT) || 5432,
+      user: process.env.DATABASE_USER || 'alacaja',
+      password: process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+      database: process.env.DATABASE_NAME || 'multitienda_db',
     });
     await client.connect();
 
@@ -62,14 +62,13 @@ describe('Sales Integrity Flow (e2e)', () => {
     // 1. Create a cash shift if needed (or just use a dummy one if the service allows)
     // For this test, we assume a valid cash shift or we create a dummy record in DB
     const cashShiftId = '00000000-0000-0000-0000-000000000001';
-    // Cleanup dependent sales first
     await client.query('DELETE FROM sales WHERE cash_shift_id = $1', [
       cashShiftId,
     ]);
     await client.query('DELETE FROM cash_shifts WHERE id = $1', [cashShiftId]);
     await client.query(
       'INSERT INTO cash_shifts (id, store_id, opened_by, starting_cash, status) VALUES ($1, $2, $3, $4, $5)',
-      [cashShiftId, storeId, cashierId, 1000, 'OPEN'],
+      [cashShiftId, storeId, '00000000-0000-0000-0000-000000000000', 1000, 'OPEN'],
     );
 
     const ticketNumber = 'TEST-' + Date.now();
@@ -81,10 +80,9 @@ describe('Sales Integrity Flow (e2e)', () => {
       .send({
         storeId,
         cashShiftId,
-        cashierId,
         ticketNumber,
         paymentMethod: 'EFECTIVO',
-        items: [{ productId, quantity: 2, unitPrice: 100 }],
+        items: [{ productId, quantity: 2 }],
       });
 
     expect(saleRes.status).toBe(201);
@@ -105,7 +103,10 @@ describe('Sales Integrity Flow (e2e)', () => {
       [saleRes.body.id],
     );
     expect(saleRecordRes.rowCount).toBe(1);
-    expect(Number(saleRecordRes.rows[0].total)).toBeGreaterThanOrEqual(200);
+    const expectedSubtotal = 2 * 42.75;
+    const expectedTotal = expectedSubtotal * 1.15;
+    expect(Number(saleRecordRes.rows[0].subtotal)).toBeCloseTo(expectedSubtotal, 1);
+    expect(Number(saleRecordRes.rows[0].total)).toBeCloseTo(expectedTotal, 1);
   });
 
   afterAll(async () => {
