@@ -11,9 +11,10 @@ import {
 import { CargasCamionService } from './cargas-camion.service';
 import { CreateCargaCamionDto } from './cargas-camion.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @Controller('cargas-camion')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 export class CargasCamionController {
   constructor(private readonly service: CargasCamionService) {}
 

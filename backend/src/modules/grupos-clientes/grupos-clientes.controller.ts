@@ -15,9 +15,10 @@ import {
   UpdateGrupoClienteDto,
 } from './grupos-clientes.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @Controller('grupos-clientes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 export class GruposClientesController {
   constructor(private readonly service: GruposClientesService) {}
 

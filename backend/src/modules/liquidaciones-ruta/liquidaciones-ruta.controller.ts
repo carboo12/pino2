@@ -11,9 +11,10 @@ import {
 import { LiquidacionesRutaService } from './liquidaciones-ruta.service';
 import { CreateLiquidacionDto } from './liquidaciones-ruta.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @Controller('liquidaciones-ruta')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 export class LiquidacionesRutaController {
   constructor(private readonly service: LiquidacionesRutaService) {}
 

@@ -242,16 +242,20 @@ export class CargasCamionService {
   }
 
   async despachar(id: string) {
-    const res = await this.db.query(
-      `UPDATE cargas_camion SET status = 'EN_RUTA', fecha_salida = NOW() WHERE id = $1 RETURNING *`,
-      [id],
-    );
-    // Cambiar estado a EN_ENTREGA a todos los pedidos
-    await this.db.query(
-      `UPDATE orders SET status = 'EN_ENTREGA', updated_at = NOW() WHERE grupo_carga_id = $1`,
-      [id],
-    );
-    return this.mapRow(res.rows[0]);
+    return this.db.withTransaction(async (client) => {
+      const res = await client.query(
+        `UPDATE cargas_camion SET status = 'EN_RUTA', fecha_salida = NOW() WHERE id = $1 RETURNING *`,
+        [id],
+      );
+      if (res.rowCount === 0) throw new NotFoundException('Carga no encontrada');
+
+      await client.query(
+        `UPDATE orders SET status = 'EN_ENTREGA', updated_at = NOW() WHERE grupo_carga_id = $1`,
+        [id],
+      );
+
+      return this.mapRow(res.rows[0]);
+    });
   }
 
   private mapRow(row: any): any {

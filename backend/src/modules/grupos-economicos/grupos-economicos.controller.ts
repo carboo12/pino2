@@ -15,9 +15,10 @@ import {
   UpdateGrupoEconomicoDto,
 } from './grupos-economicos.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @Controller('grupos-economicos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 export class GruposEconomicosController {
   constructor(private readonly service: GruposEconomicosService) {}
 
