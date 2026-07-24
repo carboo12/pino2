@@ -11,10 +11,11 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { VendorInventoriesService } from './vendor-inventories.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from "../../common/guards/roles.guard";
 
 @ApiTags('Vendor Inventories')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('vendor-inventories')
 export class VendorInventoriesController {
   constructor(private readonly service: VendorInventoriesService) {}
@@ -55,7 +56,7 @@ export class VendorInventoriesController {
   ) {
     return this.service.processTransaction({
       ...dto,
-      userId: dto.userId || req.user?.sub || null,
+      userId: req.user?.sub || null,
     });
   }
 }

@@ -29,7 +29,7 @@ export class InvoicesController {
       'Crear factura de proveedor (transaccional con stock y movimientos)',
   })
   create(@Body() dto: CreateInvoiceDto, @Req() req: any) {
-    return this.service.create({ ...dto, userId: dto.userId || req.user?.sub });
+    return this.service.create({ ...dto, userId: req.user?.sub });
   }
 
   @Get()

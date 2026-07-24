@@ -15,10 +15,11 @@ import { ClientsService } from './clients.service';
 import { CreateClientDto, UpdateClientDto } from './clients.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from "../../common/guards/roles.guard";
 
 @ApiTags('Clients')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly service: ClientsService) {}

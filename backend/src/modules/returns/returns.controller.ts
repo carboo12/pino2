@@ -12,10 +12,11 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ReturnsService } from './returns.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from "../../common/guards/roles.guard";
 
 @ApiTags('Returns')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('returns')
 export class ReturnsController {
   constructor(private readonly service: ReturnsService) {}
