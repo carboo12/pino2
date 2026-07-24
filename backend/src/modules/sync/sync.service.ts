@@ -154,60 +154,64 @@ export class SyncService {
     };
   }
 
-  async getDeltaData(storeId: string, lastSyncTimestamp?: string) {
+  async getDeltaData(storeId: string, lastSyncTimestamp?: string, limit: number = 500, offset: number = 0) {
     const params: any[] = [storeId];
     let timeCondition = '';
 
     if (lastSyncTimestamp) {
-      timeCondition = ' AND (updated_at > $2 OR created_at > $2)';
+      timeCondition = ` AND (updated_at > $${params.length + 1} OR created_at > $${params.length + 1})`;
       params.push(new Date(lastSyncTimestamp));
     }
 
+    const pagination = ` ORDER BY updated_at DESC NULLS LAST LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
     const [products, productBarcodes, clients, orders, sales, pendingDeliveries, vendorInventories, collections, outbox] = await Promise.all([
       this.db.query(
-        `SELECT * FROM products WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}`,
-        params,
+        `SELECT * FROM products WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}`,
-        params,
+        `SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM clients WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}`,
-        params,
+        `SELECT * FROM clients WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM orders WHERE store_id = $1 ${timeCondition}`,
-        params,
+        `SELECT * FROM orders WHERE store_id = $1 ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
         `SELECT s.*, array_agg(jsonb_build_object('id', si.id, 'product_id', si.product_id, 'quantity', si.quantity, 'unit_price', si.unit_price, 'subtotal', si.subtotal, 'returned_quantity', si.returned_quantity)) as items
            FROM sales s
            LEFT JOIN sale_items si ON si.sale_id = s.id
-           WHERE s.store_id = $1 ${timeCondition.replace('updated_at', 's.updated_at').replace('created_at', 's.created_at')}
-           GROUP BY s.id`,
-        params,
+           WHERE s.store_id = $1 ${timeCondition ? timeCondition.replace('updated_at', 's.updated_at').replace('created_at', 's.created_at') : ''}
+           GROUP BY s.id${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM pending_deliveries WHERE store_id = $1 ${timeCondition}`,
-        params,
+        `SELECT * FROM pending_deliveries WHERE store_id = $1 ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM vendor_inventories WHERE store_id = $1 ${timeCondition}`,
-        params,
+        `SELECT * FROM vendor_inventories WHERE store_id = $1 ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM collections WHERE store_id = $1 ${timeCondition}`,
-        params,
+        `SELECT * FROM collections WHERE store_id = $1 ${timeCondition}${pagination}`,
+        [...params, limit, offset],
       ),
       this.db.query(
-        `SELECT * FROM outbox_events WHERE store_id = $1 AND published_at IS NULL ORDER BY created_at ASC LIMIT 500`,
+        `SELECT * FROM outbox_events WHERE store_id = $1 AND published_at IS NULL ORDER BY created_at ASC LIMIT ${limit}`,
         [storeId],
       ),
     ]);
 
     return {
       serverTimestamp: new Date().toISOString(),
+      limit,
+      offset,
       products: products.rows,
       productBarcodes: productBarcodes.rows,
       clients: clients.rows,

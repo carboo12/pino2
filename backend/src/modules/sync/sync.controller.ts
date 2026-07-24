@@ -54,7 +54,9 @@ export class SyncController {
   getDeltaData(
     @Query('storeId') storeId: string,
     @Query('lastSyncTimestamp') lastSyncTimestamp?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    return this.service.getDeltaData(storeId, lastSyncTimestamp);
+    return this.service.getDeltaData(storeId, lastSyncTimestamp, limit ? parseInt(limit) : 500, offset ? parseInt(offset) : 0);
   }
 }

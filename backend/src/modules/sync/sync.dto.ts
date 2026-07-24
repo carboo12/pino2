@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsArray,
   IsObject,
+  IsUUID,
   ValidateNested,
   IsOptional,
 } from 'class-validator';
@@ -21,9 +22,9 @@ export class SyncOperationDto {
   @IsOptional()
   localId?: string;
 
-  @IsString()
-  @IsOptional()
-  externalId?: string;
+  @IsUUID()
+  @IsNotEmpty()
+  externalId!: string;
 
   @IsObject()
   @IsOptional()
