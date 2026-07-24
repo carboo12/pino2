@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -88,6 +90,12 @@ import { HealthModule } from './modules/health/health.module';
     LiquidacionesRutaModule,
     ProductBarcodesModule,
     HealthModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}
