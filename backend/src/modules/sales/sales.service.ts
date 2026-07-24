@@ -1,6 +1,7 @@
 import {
   Injectable,
   BadRequestException,
+  ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { PoolClient } from 'pg';
@@ -27,8 +28,6 @@ export class SalesService {
       storeId: string;
       cashShiftId?: string;
       shiftId?: string;
-      cashierId: string;
-      cashierName?: string;
       ticketNumber?: string;
       clientId?: string;
       clientName?: string;
@@ -36,8 +35,6 @@ export class SalesService {
         id?: string;
         productId?: string;
         quantity: number;
-        unitPrice?: number;
-        salePrice?: number;
       }>;
       paymentMethod: string;
       paymentCurrency?: string;
@@ -45,6 +42,7 @@ export class SalesService {
       change?: number;
       externalId?: string;
     },
+    userId: string,
     transactionalClient?: PoolClient,
   ) {
     const cashShiftId = dto.cashShiftId || dto.shiftId;
@@ -60,13 +58,81 @@ export class SalesService {
         throw new BadRequestException('La caja está inactiva o cerrada');
       }
 
-      // 2. Calcular totales localmente para seguridad
+      // 2. Procesar ítems con precios del servidor y deducción atómica de stock
       let subtotal = 0;
+      const processedItems: Array<{
+        productId: string;
+        quantity: number;
+        unitPrice: number;
+        usesInventory: boolean;
+        unitsPerBulk: number;
+        currentStock: number;
+        stockBulks: number;
+        stockUnits: number;
+      }> = [];
+
       for (const item of dto.items) {
-        const price = item.unitPrice ?? item.salePrice ?? 0;
-        subtotal += item.quantity * price;
+        const productId = item.productId || item.id;
+
+        const prodRes = await client.query(
+          `SELECT id, store_id, current_stock, uses_inventory, units_per_bulk, is_active,
+                  price1, price2, price3, price4, price5
+             FROM products
+            WHERE id = $1 AND store_id = $2 AND is_active = true
+            FOR UPDATE`,
+          [productId, dto.storeId],
+        );
+        if (prodRes.rowCount !== 1) {
+          throw new NotFoundException('Producto no encontrado en la tienda');
+        }
+
+        const row = prodRes.rows[0];
+        const level = 1;
+        const unitPrice = Number(row[`price${level}`]);
+        if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+          throw new BadRequestException('Precio no configurado');
+        }
+
+        const lineTotal = item.quantity * unitPrice;
+        subtotal += lineTotal;
+
+        let currentStock = 0;
+        let stockBulks = 0;
+        let stockUnits = 0;
+
+        if (row.uses_inventory) {
+          const updated = await client.query(
+            `UPDATE products
+                SET current_stock = current_stock - $1,
+                    stock_bulks = (current_stock - $1) / units_per_bulk,
+                    stock_units = (current_stock - $1) % units_per_bulk,
+                    updated_at = now()
+              WHERE id = $2
+                AND store_id = $3
+                AND current_stock >= $1
+              RETURNING current_stock, stock_bulks, stock_units`,
+            [item.quantity, productId, dto.storeId],
+          );
+          if (updated.rowCount !== 1) {
+            throw new ConflictException('Stock insuficiente');
+          }
+          currentStock = Number(updated.rows[0].current_stock);
+          stockBulks = Number(updated.rows[0].stock_bulks);
+          stockUnits = Number(updated.rows[0].stock_units);
+        }
+
+        processedItems.push({
+          productId,
+          quantity: item.quantity,
+          unitPrice,
+          usesInventory: row.uses_inventory,
+          unitsPerBulk: row.units_per_bulk || 1,
+          currentStock,
+          stockBulks,
+          stockUnits,
+        });
       }
-      const tax = subtotal * 0.15; // IVA 15% quemado temporalmente para pruebas
+      const tax = subtotal * 0.15;
       const total = subtotal + tax;
 
       // 3. Comprobar idempotencia si viene externalId
@@ -93,7 +159,7 @@ export class SalesService {
       const vals = [
         dto.storeId,
         cashShiftId,
-        dto.cashierId,
+        userId,
         ticketNumber,
         subtotal,
         tax,
@@ -104,63 +170,37 @@ export class SalesService {
       const saleRes = await client.query(sql, vals);
       const sale = saleRes.rows[0];
 
-      // 4. Iterar ítems (Venta, Deducción e Inventario)
-      for (const item of dto.items) {
-        const productId = item.productId || item.id;
-        const price = item.unitPrice ?? item.salePrice ?? 0;
-        const lineTotal = item.quantity * price;
+      // 4. Insertar ítems y registrar movimientos
+      for (const item of processedItems) {
+        const lineTotal = item.quantity * item.unitPrice;
 
-        // A. Insertar linea de compra
         await client.query(
           `INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal) 
            VALUES ($1, $2, $3, $4, $5)`,
-          [sale.id, productId, item.quantity, price, lineTotal],
+          [sale.id, item.productId, item.quantity, item.unitPrice, lineTotal],
         );
 
-        // B. Extraer stock actual y restar (con bloqueo concurrente preventivo)
-        const prodRes = await client.query(
-          'SELECT current_stock, uses_inventory, units_per_bulk FROM products WHERE id = $1 FOR UPDATE',
-          [productId],
-        );
-        if (prodRes.rowCount === 0) continue; // producto puede no tener inventario
+        if (item.usesInventory) {
+          const qtyBulks = Math.floor(item.quantity / item.unitsPerBulk);
+          const qtyUnits = item.quantity % item.unitsPerBulk;
 
-        if (!prodRes.rows[0].uses_inventory) continue;
-
-        const oldStock = this.toInt(prodRes.rows[0].current_stock);
-        const newStock = oldStock - item.quantity;
-        if (newStock < 0) {
-          throw new BadRequestException(
-            'Stock insuficiente para completar la venta',
+          await client.query(
+            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference) 
+             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              dto.storeId,
+              item.productId,
+              userId,
+              item.quantity,
+              qtyBulks,
+              qtyUnits,
+              item.currentStock,
+              item.stockBulks,
+              item.stockUnits,
+              `Venta Ticket: ${ticketNumber}`,
+            ],
           );
         }
-        const unitsPerBulk = this.toUnitsPerBulk(
-          prodRes.rows[0].units_per_bulk,
-        );
-        const stockSplit = this.toSplit(newStock, unitsPerBulk);
-        const soldSplit = this.toSplit(item.quantity, unitsPerBulk);
-
-        await client.query(
-          'UPDATE products SET current_stock = $1, stock_bulks = $2, stock_units = $3, updated_at = NOW() WHERE id = $4',
-          [newStock, stockSplit.bulks, stockSplit.units, productId],
-        );
-
-        // C. Asentar en Kárdex
-        await client.query(
-          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference) 
-           VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10)`,
-          [
-            dto.storeId,
-            productId,
-            dto.cashierId,
-            item.quantity,
-            soldSplit.bulks,
-            soldSplit.units,
-            newStock,
-            stockSplit.bulks,
-            stockSplit.units,
-            `Venta Ticket: ${ticketNumber}`,
-          ],
-        );
       }
 
       // 5. Acumular a Caja (Si es Efectivo)
@@ -197,9 +237,12 @@ export class SalesService {
         subtotal,
         tax,
         paymentMethod: dto.paymentMethod,
-        items: dto.items,
-        clientName: dto.clientName,
-        cashierName: dto.cashierName,
+        items: processedItems.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+        })),
+        clientName: dto.clientName || null,
         createdAt: sale.created_at,
         message: 'Venta Procesada Satisfactoriamente',
       };

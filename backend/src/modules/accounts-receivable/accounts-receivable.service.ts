@@ -109,28 +109,28 @@ export class AccountsReceivableService {
           },
           client,
         );
+      } else {
+        await client.query(
+          'UPDATE accounts_receivable SET remaining_amount = $1, status = $2, updated_at = NOW() WHERE id = $3',
+          [
+            Math.max(0, newRemaining),
+            newRemaining <= 0 ? 'PAID' : 'PARTIAL',
+            accountId,
+          ],
+        );
+
+        await client.query(
+          `INSERT INTO account_payments (account_id, amount, payment_method, notes, collected_by) 
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            accountId,
+            dto.amount,
+            dto.paymentMethod || 'CASH',
+            dto.notes || null,
+            dto.collectedBy || null,
+          ],
+        );
       }
-
-      await client.query(
-        'UPDATE accounts_receivable SET remaining_amount = $1, status = $2, updated_at = NOW() WHERE id = $3',
-        [
-          Math.max(0, newRemaining),
-          newRemaining <= 0 ? 'PAID' : 'PARTIAL',
-          accountId,
-        ],
-      );
-
-      await client.query(
-        `INSERT INTO account_payments (account_id, amount, payment_method, notes, collected_by) 
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          accountId,
-          dto.amount,
-          dto.paymentMethod || 'CASH',
-          dto.notes || null,
-          dto.collectedBy || null,
-        ],
-      );
 
       return { success: true, remainingAmount: Math.max(0, newRemaining) };
     });
