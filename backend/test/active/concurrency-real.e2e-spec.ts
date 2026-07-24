@@ -22,7 +22,7 @@ describe('Concurrency real (e2e)', () => {
       user: process.env.DATABASE_USER || 'alacaja',
       password:
         process.env.DATABASE_PASSWORD || 'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
-      database: process.env.DATABASE_NAME || 'multitienda_db',
+      database: process.env.DATABASE_NAME || 'pino_mvp_test',
     });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({

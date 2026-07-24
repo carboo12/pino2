@@ -1,0 +1,1 @@
+Restore time: ~2 segundos (dump 140K, DB vacía)
