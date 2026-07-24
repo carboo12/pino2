@@ -10,10 +10,11 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { VisitLogsService } from './visit-logs.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @ApiTags('Visit Logs')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 @Controller('visit-logs')
 export class VisitLogsController {
   constructor(private readonly service: VisitLogsService) {}

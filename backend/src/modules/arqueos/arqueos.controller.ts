@@ -11,9 +11,10 @@ import {
 import { ArqueosService } from './arqueos.service';
 import { CreateArqueoDto } from './arqueos.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @Controller('arqueos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 export class ArqueosController {
   constructor(private readonly service: ArqueosService) {}
 

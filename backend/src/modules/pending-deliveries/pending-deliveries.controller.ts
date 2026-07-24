@@ -11,10 +11,11 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PendingDeliveriesService } from './pending-deliveries.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 
 @ApiTags('Pending Deliveries')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 @Controller('pending-deliveries')
 export class PendingDeliveriesController {
   constructor(private readonly service: PendingDeliveriesService) {}

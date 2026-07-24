@@ -12,11 +12,12 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CashShiftsService } from './cash-shifts.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { OpenShiftDto, CloseShiftDto } from './cash-shifts.dto';
 
 @ApiTags('CashShifts')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard)
 @Controller('cash-shifts')
 export class CashShiftsController {
   constructor(private readonly service: CashShiftsService) {}

@@ -55,6 +55,42 @@ export default function CashWorkspacePage() {
   const { storeId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [activeShift, setActiveShift] = useState<any>(null);
+  const [shiftLoading, setShiftLoading] = useState(true);
+  const [openingShift, setOpeningShift] = useState(false);
+
+  useEffect(() => {
+    if (!storeId || !user?.id) return;
+    const checkShift = async () => {
+      try {
+        const res = await apiClient.get(`/cash-shifts/active?storeId=${storeId}&userId=${user.id}`);
+        setActiveShift(res.data || null);
+      } catch {
+        setActiveShift(null);
+      } finally {
+        setShiftLoading(false);
+      }
+    };
+    checkShift();
+  }, [storeId, user?.id]);
+
+  const handleOpenShift = async () => {
+    if (!storeId || !user?.id) return;
+    setOpeningShift(true);
+    try {
+      const res = await apiClient.post('/cash-shifts', {
+        storeId,
+        userId: user.id,
+        startingCash: 0,
+      });
+      setActiveShift(res.data);
+      toast.success('Caja abierta', 'Turno iniciado correctamente');
+    } catch {
+      toast.error('Error', 'No se pudo abrir la caja');
+    } finally {
+      setOpeningShift(false);
+    }
+  };
   const {
     cart,
     addToCart,
@@ -178,6 +214,21 @@ export default function CashWorkspacePage() {
       }
     }
   }, [cart, removeFromCart, addToCart]);
+
+  if (!shiftLoading && !activeShift) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[300px]">
+        <div className="text-center space-y-4 p-8">
+          <WalletCards className="h-12 w-12 mx-auto text-muted-foreground" />
+          <h2 className="text-lg font-semibold">No hay turno de caja abierto</h2>
+          <p className="text-sm text-muted-foreground">Abre un turno para comenzar a vender</p>
+          <Button onClick={handleOpenShift} disabled={openingShift}>
+            {openingShift ? 'Abriendo...' : 'Abrir Turno'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <WorkspaceShell

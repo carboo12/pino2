@@ -10,6 +10,7 @@ import {
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -55,7 +56,7 @@ class LoginDto {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
   @Roles('master-admin', 'store-admin')
   @Post('register')
   @ApiBearerAuth()
@@ -88,7 +89,7 @@ export class AuthController {
     return this.authService.requestPasswordReset(dto.email);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, StoreAccessGuard)
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
@@ -96,7 +97,7 @@ export class AuthController {
     return this.authService.getProfile(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, StoreAccessGuard)
   @Post('logout')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cerrar sesión e invalidar refresh token' })
@@ -104,7 +105,7 @@ export class AuthController {
     return this.authService.logout(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, StoreAccessGuard)
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({

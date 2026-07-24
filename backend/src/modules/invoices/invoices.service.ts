@@ -40,29 +40,36 @@ export class InvoicesService {
       );
       const invoice = invoiceRes.rows[0];
 
-      // 2. Process each item: create invoice_item, update stock, log movement
+      // 2. Calculate total from items (never trust client total)
+      const calculatedTotal = dto.items.reduce(
+        (sum, item) => sum + item.quantity * item.unitPrice,
+        0,
+      );
+
+      await client.query(
+        'UPDATE invoices SET total = $1 WHERE id = $2',
+        [calculatedTotal, invoice.id],
+      );
+
+      // 3. Process each item: create invoice_item, update stock atomically, log movement
       for (const item of dto.items) {
         const lineSubtotal = item.quantity * item.unitPrice;
 
         // Find or create product
         let productId = item.productId || null;
-        let currentStock = 0;
 
         if (!productId) {
-          // Try to find by description
           const existingProduct = await client.query(
-            `SELECT id, current_stock FROM products WHERE store_id = $1 AND description = $2 LIMIT 1`,
+            `SELECT id FROM products WHERE store_id = $1 AND description = $2 LIMIT 1`,
             [dto.storeId, item.description],
           );
 
           if (existingProduct.rowCount > 0) {
             productId = existingProduct.rows[0].id;
-            currentStock = existingProduct.rows[0].current_stock || 0;
           } else {
-            // Create new product
             const newProduct = await client.query(
-              `INSERT INTO products (store_id, description, sale_price, cost_price, current_stock, uses_inventory, department_id)
-               VALUES ($1, $2, $3, $4, $5, true, NULL) RETURNING id`,
+              `INSERT INTO products (store_id, description, sale_price, cost_price, current_stock, uses_inventory)
+               VALUES ($1, $2, $3, $4, $5, true) RETURNING id`,
               [
                 dto.storeId,
                 item.description,
@@ -72,16 +79,7 @@ export class InvoicesService {
               ],
             );
             productId = newProduct.rows[0].id;
-            // For new products, movement will show had=0, has=quantity
-          }
-        } else {
-          // Get current stock
-          const prodRes = await client.query(
-            'SELECT current_stock FROM products WHERE id = $1 FOR UPDATE',
-            [productId],
-          );
-          if (prodRes.rowCount > 0) {
-            currentStock = prodRes.rows[0].current_stock || 0;
+            continue;
           }
         }
 
@@ -89,38 +87,20 @@ export class InvoicesService {
         await client.query(
           `INSERT INTO invoice_items (invoice_id, product_id, description, quantity, unit_price, subtotal)
            VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            invoice.id,
-            productId,
-            item.description,
-            item.quantity,
-            item.unitPrice,
-            lineSubtotal,
-          ],
+          [invoice.id, productId, item.description, item.quantity, item.unitPrice, lineSubtotal],
         );
 
-        // Update product stock (only for existing products, new ones already have the stock set)
-        if (currentStock > 0 || item.productId) {
-          const newStock = currentStock + item.quantity;
-          await client.query(
-            'UPDATE products SET current_stock = $1 WHERE id = $2',
-            [newStock, productId],
-          );
-        }
+        // Update product stock atomically
+        await client.query(
+          'UPDATE products SET current_stock = current_stock + $1, updated_at = NOW() WHERE id = $2',
+          [item.quantity, productId],
+        );
 
         // Log inventory movement (Kardex)
-        const finalStock = currentStock + item.quantity;
         await client.query(
-          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, balance, reference)
-           VALUES ($1, $2, $3, 'IN', $4, $5, $6)`,
-          [
-            dto.storeId,
-            productId,
-            dto.userId || null,
-            item.quantity,
-            finalStock,
-            `Factura Proveedor #${dto.invoiceNumber}`,
-          ],
+          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, reference)
+           VALUES ($1, $2, $3, 'IN', $4, $5)`,
+          [dto.storeId, productId, dto.userId || null, item.quantity, `Factura Proveedor #${dto.invoiceNumber}`],
         );
       }
 
