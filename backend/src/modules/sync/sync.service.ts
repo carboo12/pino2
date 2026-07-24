@@ -79,7 +79,11 @@ export class SyncService {
           let res: any;
           switch (op.type) {
             case 'SALE':
-              res = await this.salesService.processSale(opData as any, client);
+              res = await this.salesService.processSale(
+                opData as any,
+                (opData as any).cashierId || (opData as any).userId || 'system',
+                client,
+              );
               break;
             case 'ORDER':
               res = await this.ordersService.create(opData as any, client);

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 
 @Injectable()
@@ -13,7 +18,6 @@ export class CargasCamionService {
     fechaEntrega?: string;
   }) {
     return this.db.withTransaction(async (client) => {
-      // 1. Crear el grupo de carga
       const res = await client.query(
         `INSERT INTO cargas_camion (store_id, rutero_id, camion_placa)
          VALUES ($1, $2, $3) RETURNING *`,
@@ -21,14 +25,110 @@ export class CargasCamionService {
       );
       const carga = res.rows[0];
 
-      // 2. Asignar pedidos a la carga
       let totalBultos = 0;
       let totalUnidadesSueltas = 0;
 
       for (const orderId of dto.orderIds) {
-        // Actualizar el pedido
+        const orderRes = await client.query(
+          'SELECT * FROM orders WHERE id = $1 AND store_id = $2 FOR UPDATE',
+          [orderId, dto.storeId],
+        );
+        if (orderRes.rowCount === 0) {
+          throw new NotFoundException(`Pedido ${orderId} no encontrado`);
+        }
+        if (orderRes.rows[0].status !== 'ALISTADO') {
+          throw new BadRequestException(
+            `Pedido ${orderId} no está en estado ALISTADO (actual: ${orderRes.rows[0].status})`,
+          );
+        }
+
+        const itemsRes = await client.query(
+          `SELECT oi.*, p.units_per_bulk, p.current_stock, p.store_id
+           FROM order_items oi
+           JOIN products p ON p.id = oi.product_id
+           WHERE oi.order_id = $1
+           FOR UPDATE OF p`,
+          [orderId],
+        );
+
+        for (const item of itemsRes.rows) {
+          const upb = parseInt(item.units_per_bulk, 10) || 1;
+          const isBulk = item.presentation === 'BULTO';
+          const rawQty = parseInt(item.quantity, 10) || 0;
+          const totalUnits = isBulk ? rawQty * upb : rawQty;
+          const qtyBulks = Math.floor(totalUnits / upb);
+          const qtyUnits = totalUnits % upb;
+
+          const updated = await client.query(
+            `UPDATE products
+                SET current_stock = current_stock - $1,
+                    stock_bulks = (current_stock - $1) / units_per_bulk,
+                    stock_units = (current_stock - $1) % units_per_bulk,
+                    updated_at = NOW()
+              WHERE id = $2
+                AND store_id = $3
+                AND current_stock >= $1
+              RETURNING current_stock, stock_bulks, stock_units`,
+            [totalUnits, item.product_id, dto.storeId],
+          );
+          if (updated.rowCount !== 1) {
+            throw new ConflictException(
+              `Stock insuficiente para ${item.product_id} en pedido ${orderId}`,
+            );
+          }
+
+          const viRes = await client.query(
+            'SELECT id FROM vendor_inventories WHERE vendor_id = $1 AND product_id = $2 FOR UPDATE',
+            [dto.ruteroId, item.product_id],
+          );
+          if (viRes.rowCount === 0) {
+            await client.query(
+              `INSERT INTO vendor_inventories (vendor_id, product_id, store_id, assigned_quantity, current_quantity, assigned_bulks, assigned_units, current_bulks, current_units)
+               VALUES ($1, $2, $3, $4, $4, $5, $6, $5, $6)`,
+              [dto.ruteroId, item.product_id, dto.storeId, totalUnits, qtyBulks, qtyUnits],
+            );
+          } else {
+            await client.query(
+              `UPDATE vendor_inventories
+               SET assigned_quantity = assigned_quantity + $1,
+                   current_quantity = current_quantity + $1,
+                   assigned_bulks = assigned_bulks + $2,
+                   assigned_units = assigned_units + $3,
+                   current_bulks = current_bulks + $2,
+                   current_units = current_units + $3,
+                   updated_at = NOW()
+               WHERE id = $4`,
+              [totalUnits, qtyBulks, qtyUnits, viRes.rows[0].id],
+            );
+          }
+
+          await client.query(
+            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference)
+             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              dto.storeId,
+              item.product_id,
+              dto.ruteroId,
+              totalUnits,
+              qtyBulks,
+              qtyUnits,
+              Number(updated.rows[0].current_stock),
+              Number(updated.rows[0].stock_bulks),
+              Number(updated.rows[0].stock_units),
+              `Cargado a camión - Pedido ${orderId}`,
+            ],
+          );
+
+          if (isBulk) {
+            totalBultos += rawQty;
+          } else {
+            totalBultos += qtyBulks;
+            totalUnidadesSueltas += qtyUnits;
+          }
+        }
+
         await client.query(
-          `UPDATE orders SET rutero_id = $1, camion_id = $2, grupo_carga_id = $3, fecha_entrega_programada = $4, status = 'ALISTADO', updated_at = NOW()
+          `UPDATE orders SET rutero_id = $1, camion_id = $2, grupo_carga_id = $3, fecha_entrega_programada = $4, status = 'CARGADO_CAMION', updated_at = NOW()
            WHERE id = $5`,
           [
             dto.ruteroId,
@@ -39,29 +139,14 @@ export class CargasCamionService {
           ],
         );
 
-        // Calcular bultos y unidades (simple por ahora, real sería en detalle)
-        const items = await client.query(
-          `SELECT oi.quantity, oi.presentation, p.units_per_bulk 
-           FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = $1`,
-          [orderId],
+        await client.query(
+          `INSERT INTO order_status_history (order_id, status, user_id) VALUES ($1, $2, $3)`,
+          [orderId, 'CARGADO_CAMION', dto.ruteroId],
         );
-
-        for (const item of items.rows) {
-          const upb = parseInt(item.units_per_bulk) || 1;
-          const qty = parseInt(item.quantity) || 0;
-          if (item.presentation === 'BULTO') {
-            totalBultos += qty;
-          } else {
-            totalBultos += Math.floor(qty / upb);
-            totalUnidadesSueltas += qty % upb;
-          }
-        }
       }
 
-      // Consolidar de nuevo para evitar exceso de sueltas
-      totalBultos += Math.floor(totalUnidadesSueltas / 10); // Approximation without per-product grouping
+      totalBultos += Math.floor(totalUnidadesSueltas / 10);
 
-      // Actualizar carga
       await client.query(
         `UPDATE cargas_camion SET total_pedidos = $1, total_bultos = $2, total_unidades_sueltas = $3 WHERE id = $4`,
         [dto.orderIds.length, totalBultos, totalUnidadesSueltas, carga.id],

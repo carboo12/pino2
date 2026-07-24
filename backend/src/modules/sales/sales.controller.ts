@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
@@ -25,13 +26,13 @@ export class SalesController {
     dto: {
       storeId: string;
       cashShiftId: string;
-      cashierId: string;
       ticketNumber: string;
-      items: Array<{ productId: string; quantity: number; unitPrice: number }>;
+      items: Array<{ productId: string; quantity: number }>;
       paymentMethod: string;
     },
+    @Req() req: any,
   ) {
-    return this.service.processSale(dto);
+    return this.service.processSale(dto, req.user.sub);
   }
 
   @Get()
