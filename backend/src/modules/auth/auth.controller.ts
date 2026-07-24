@@ -89,7 +89,7 @@ export class AuthController {
     return this.authService.requestPasswordReset(dto.email);
   }
 
-  @UseGuards(JwtAuthGuard, StoreAccessGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
@@ -97,7 +97,7 @@ export class AuthController {
     return this.authService.getProfile(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard, StoreAccessGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('logout')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Cerrar sesión e invalidar refresh token' })
@@ -105,7 +105,7 @@ export class AuthController {
     return this.authService.logout(req.user.sub);
   }
 
-  @UseGuards(JwtAuthGuard, StoreAccessGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({

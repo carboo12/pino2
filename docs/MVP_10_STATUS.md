@@ -9,7 +9,7 @@
 | F0 Control repositorio | COMPLETO | d9ab4c7 | docs/evidencias/f0/ |
 | F1 Migraciones y BD | COMPLETO | 40a46a6 | docs/evidencias/f1/ |
 | F2 Auth/roles/tenant | PARCIAL | 22ba00b | docs/evidencias/f2/ |
-| F3 Integridad negocio | PENDIENTE | - | - |
+| F3 Integridad negocio | COMPLETO | 9cf6305 | docs/evidencias/f3/ |
 | F4 Worker outbox/inbox | COMPLETO | 9cf6305 | docs/evidencias/f4/ |
 | F5 Nodo local EDGE | PENDIENTE | - | - |
 | F6 Flutter local-first | PENDIENTE | - | - |

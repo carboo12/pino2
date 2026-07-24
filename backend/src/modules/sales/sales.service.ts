@@ -1,12 +1,15 @@
 import {
-  Injectable,
   BadRequestException,
-  ConflictException,
+  Injectable,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
+import * as crypto from 'crypto';
+
+const SOURCE_NODE_ID = '00000000-0000-4000-8000-000000000000'; // cloud node
 
 @Injectable()
 export class SalesService {
@@ -49,6 +52,27 @@ export class SalesService {
     const ticketNumber = dto.ticketNumber || `T-${Date.now()}`;
 
     const execute = async (client: PoolClient) => {
+      // 0. Claim idempotente ANTES de cualquier SELECT FOR UPDATE o efecto
+      const operationId = dto.externalId || crypto.randomUUID();
+      const payloadHash = crypto.createHash('sha256').update(JSON.stringify(dto)).digest('hex').substring(0, 64);
+      const claim = await client.query(
+        `INSERT INTO sync_inbox (store_id, operation_id, source_node_id, operation_type, aggregate_type, payload, payload_hash)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (store_id, operation_id) DO NOTHING
+         RETURNING id`,
+        [dto.storeId, operationId, SOURCE_NODE_ID, 'SALE', 'sale', JSON.stringify(dto), payloadHash],
+      );
+      if (claim.rowCount === 0) {
+        const existing = await client.query(
+          'SELECT result FROM sync_inbox WHERE store_id = $1 AND operation_id = $2',
+          [dto.storeId, operationId],
+        );
+        if (existing.rowCount > 0 && existing.rows[0].result) {
+          return { ...existing.rows[0].result, isDuplicate: true, message: 'Operación ya procesada (idempotencia)' };
+        }
+        return { isDuplicate: true, message: 'OperationId ya registrado' };
+      }
+
       // 1. Validar caja abierta
       const shiftRes = await client.query(
         'SELECT status, actual_cash, starting_cash FROM cash_shifts WHERE id = $1 AND store_id = $2 FOR UPDATE',
@@ -58,26 +82,7 @@ export class SalesService {
         throw new BadRequestException('La caja está inactiva o cerrada');
       }
 
-      // 2. Idempotencia: verificar ANTES de procesar items/stock
-      if (dto.externalId) {
-        const existingSale = await client.query(
-          'SELECT * FROM sales WHERE external_id = $1',
-          [dto.externalId],
-        );
-        if (existingSale.rowCount > 0) {
-          await client.query(
-            'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
-            [dto.storeId, dto.externalId, 'SALE'],
-          );
-          return {
-            ...this.mapSaleRow(existingSale.rows[0]),
-            message: 'Operación ya procesada anteriormente (Idempotencia)',
-            isDuplicate: true,
-          };
-        }
-      }
-
-      // 3. Procesar ítems con precios del servidor y deducción atómica de stock
+      // 2. Procesar ítems con precios del servidor y deducción atómica de stock
       let subtotal = 0;
       const processedItems: Array<{
         productId: string;
@@ -234,6 +239,13 @@ export class SalesService {
             paymentMethod: dto.paymentMethod,
           }),
         ],
+      );
+
+      // Marcar inbox como procesado
+      await client.query(
+        `UPDATE sync_inbox SET status = 'PROCESSED', result = $3, processed_at = NOW()
+         WHERE store_id = $1 AND operation_id = $2`,
+        [dto.storeId, operationId, JSON.stringify({ saleId: sale.id, total, success: true })],
       );
 
       this.eventsGateway.emitSyncUpdate({

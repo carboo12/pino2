@@ -1,0 +1,3 @@
+Claim idempotente sync_inbox implementado
+Resultado escrito en inbox tras procesar
+11 tests E2E pasan
