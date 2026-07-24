@@ -12,10 +12,11 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AccountsReceivableService } from './accounts-receivable.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from "../../common/guards/roles.guard";
 
 @ApiTags('Accounts Receivable')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('accounts-receivable')
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
