@@ -5,7 +5,7 @@ const pool = new Pool({
   user: 'alacaja',
   host: '190.56.16.85',
   database: 'multitienda_db',
-  password: 'TuClaveFuerte',
+  password: '__DB_PASSWORD_PLACEHOLDER__',
   port: 5432,
 });
 

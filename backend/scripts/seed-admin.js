@@ -7,7 +7,7 @@ async function seedAdmin() {
     host: '190.56.16.85',
     port: 5432,
     user: 'alacaja',
-    password: 'TuClaveFuerte',
+    password: '__DB_PASSWORD_PLACEHOLDER__',
     database: 'multitienda_db',
   });
 

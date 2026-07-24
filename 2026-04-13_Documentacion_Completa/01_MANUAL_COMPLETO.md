@@ -281,7 +281,7 @@ Si hay producto rechazado, el rutero lo registra como devolución. El producto r
 DATABASE_HOST=190.56.16.85
 DATABASE_PORT=5432
 DATABASE_USER=alacaja
-DATABASE_PASSWORD=TuClaveFuerte
+DATABASE_PASSWORD=__DB_PASSWORD_PLACEHOLDER__
 DATABASE_NAME=multitienda_db
 
 # Servidor

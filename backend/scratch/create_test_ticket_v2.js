@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 const client = new Client({
-  connectionString: "postgresql://alacaja:TuClaveFuerte@190.56.16.85:5432/multitienda_db",
+  connectionString: "postgresql://alacaja:__DB_PASSWORD_PLACEHOLDER__@190.56.16.85:5432/multitienda_db",
 });
 
 async function createTestTicket() {

@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 const client = new Client({
-  host: '190.56.16.85', port: 5432, user: 'alacaja', password: 'TuClaveFuerte', database: 'multitienda_db'
+  host: '190.56.16.85', port: 5432, user: 'alacaja', password: '__DB_PASSWORD_PLACEHOLDER__', database: 'multitienda_db'
 });
 
 async function run() {

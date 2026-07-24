@@ -1,5 +1,5 @@
 const { Client } = require('pg');
-const c = new Client('postgresql://alacaja:TuClaveFuerte@190.56.16.85:5432/multitienda_db');
+const c = new Client('postgresql://alacaja:__DB_PASSWORD_PLACEHOLDER__@190.56.16.85:5432/multitienda_db');
 
 c.connect()
   .then(() => c.query(`
