@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { ArqueosService } from './arqueos.service';
 import { CreateArqueoDto } from './arqueos.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -14,10 +23,7 @@ export class ArqueosController {
   }
 
   @Get()
-  findAll(
-    @Query('storeId') storeId: string,
-    @Query('fecha') fecha?: string,
-  ) {
+  findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string) {
     return this.service.findAll(storeId, fecha);
   }
 

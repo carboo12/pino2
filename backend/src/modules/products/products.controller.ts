@@ -18,7 +18,11 @@ import {
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
-import { CreateProductDto, UpdateProductDto, ImportBulkProductsDto } from './products.dto';
+import {
+  CreateProductDto,
+  UpdateProductDto,
+  ImportBulkProductsDto,
+} from './products.dto';
 
 @ApiTags('Products')
 @ApiBearerAuth()

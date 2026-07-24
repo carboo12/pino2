@@ -37,7 +37,14 @@ export class ClientsService {
     return this.mapRow(res.rows[0]);
   }
 
-  async findAll(storeId: string, filters?: { preventaId?: string; grupoClienteId?: string; sinAsignar?: boolean }) {
+  async findAll(
+    storeId: string,
+    filters?: {
+      preventaId?: string;
+      grupoClienteId?: string;
+      sinAsignar?: boolean;
+    },
+  ) {
     let sql = 'SELECT * FROM clients WHERE store_id = $1 AND is_active = true';
     const params: any[] = [storeId];
     let pIdx = 2;
@@ -46,18 +53,18 @@ export class ClientsService {
       sql += ` AND preventa_id = $${pIdx++}`;
       params.push(filters.preventaId);
     }
-    
+
     if (filters?.grupoClienteId) {
       sql += ` AND grupo_cliente_id = $${pIdx++}`;
       params.push(filters.grupoClienteId);
     }
-    
+
     if (filters?.sinAsignar) {
       sql += ` AND preventa_id IS NULL`;
     }
 
     sql += ' ORDER BY name ASC';
-    
+
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }
@@ -113,21 +120,31 @@ export class ClientsService {
   }
 
   async remove(id: string) {
-    await this.db.query('UPDATE clients SET is_active = false WHERE id = $1', [id]);
+    await this.db.query('UPDATE clients SET is_active = false WHERE id = $1', [
+      id,
+    ]);
     return { success: true };
   }
 
-  async reasignar(clientId: string, nuevoPreventaId: string, motivo: string, realizadoPor: string) {
+  async reasignar(
+    clientId: string,
+    nuevoPreventaId: string,
+    motivo: string,
+    realizadoPor: string,
+  ) {
     const client = await this.findOne(clientId);
     const preventaAnterior = client.preventaId;
 
     await this.db.withTransaction(async (dbClient) => {
-      await dbClient.query('UPDATE clients SET preventa_id = $1 WHERE id = $2', [nuevoPreventaId, clientId]);
+      await dbClient.query(
+        'UPDATE clients SET preventa_id = $1 WHERE id = $2',
+        [nuevoPreventaId, clientId],
+      );
       if (motivo) {
         await dbClient.query(
           `INSERT INTO historial_asignacion_clientes (client_id, preventa_anterior_id, preventa_nuevo_id, motivo, realizado_por)
            VALUES ($1, $2, $3, $4, $5)`,
-          [clientId, preventaAnterior, nuevoPreventaId, motivo, realizadoPor]
+          [clientId, preventaAnterior, nuevoPreventaId, motivo, realizadoPor],
         );
       }
     });
@@ -137,17 +154,23 @@ export class ClientsService {
 
   async estadoCuenta(clientId: string) {
     const client = await this.findOne(clientId);
-    
+
     let saldoGrupo = 0;
     let limiteGrupo = 0;
     let disponibleGrupo = 0;
 
     if (client.grupoEconomicoId) {
-      const gRes = await this.db.query('SELECT limite_credito_global FROM grupos_economicos WHERE id = $1', [client.grupoEconomicoId]);
+      const gRes = await this.db.query(
+        'SELECT limite_credito_global FROM grupos_economicos WHERE id = $1',
+        [client.grupoEconomicoId],
+      );
       if (gRes.rowCount && gRes.rowCount > 0) {
         limiteGrupo = parseFloat(gRes.rows[0].limite_credito_global || 0);
-        
-        const sRes = await this.db.query('SELECT SUM(saldo_pendiente) as total FROM clients WHERE grupo_economico_id = $1', [client.grupoEconomicoId]);
+
+        const sRes = await this.db.query(
+          'SELECT SUM(saldo_pendiente) as total FROM clients WHERE grupo_economico_id = $1',
+          [client.grupoEconomicoId],
+        );
         saldoGrupo = parseFloat(sRes.rows[0].total || 0);
         disponibleGrupo = limiteGrupo - saldoGrupo;
       }
@@ -155,7 +178,7 @@ export class ClientsService {
 
     const { rows: facturas } = await this.db.query(
       `SELECT * FROM accounts_receivable WHERE client_id = $1 AND status != 'PAID_IN_FULL' ORDER BY created_at ASC`,
-      [clientId]
+      [clientId],
     );
 
     return {

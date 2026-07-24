@@ -1,6 +1,19 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { GruposEconomicosService } from './grupos-economicos.service';
-import { CreateGrupoEconomicoDto, UpdateGrupoEconomicoDto } from './grupos-economicos.dto';
+import {
+  CreateGrupoEconomicoDto,
+  UpdateGrupoEconomicoDto,
+} from './grupos-economicos.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('grupos-economicos')

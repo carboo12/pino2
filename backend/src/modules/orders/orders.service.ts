@@ -38,7 +38,10 @@ export class OrdersService {
       notes?: string;
       externalId?: string;
       type?: 'pedido' | 'venta_directa'; // Legacy option
-      tipoPedido?: 'VENTA_ESTANDAR' | 'ABASTECIMIENTO_INTERNO' | 'ENTREGA_POR_CUENTA';
+      tipoPedido?:
+        | 'VENTA_ESTANDAR'
+        | 'ABASTECIMIENTO_INTERNO'
+        | 'ENTREGA_POR_CUENTA';
     },
     transactionalClient?: PoolClient,
   ) {
@@ -71,16 +74,25 @@ export class OrdersService {
       const isDirectSale = orderType === 'venta_directa';
       const tipoPedido = dto.tipoPedido || 'VENTA_ESTANDAR';
       const priceLevel = dto.priceLevel || 1;
-      
+
       const requiereAsignacionDirecta = isDirectSale;
       const requiereAutorizacion = priceLevel >= 4;
       const requiereCobro = tipoPedido !== 'ENTREGA_POR_CUENTA';
 
       // 1. Cross-mora check (only for VENTA_ESTANDAR credit)
-      if (tipoPedido === 'VENTA_ESTANDAR' && (dto.paymentType || 'CONTADO').toUpperCase() === 'CREDITO' && dto.clientId) {
-        const moraCheck = await this.gruposEconomicos.verificarMoraCruzada(dto.clientId);
+      if (
+        tipoPedido === 'VENTA_ESTANDAR' &&
+        (dto.paymentType || 'CONTADO').toUpperCase() === 'CREDITO' &&
+        dto.clientId
+      ) {
+        const moraCheck = await this.gruposEconomicos.verificarMoraCruzada(
+          dto.clientId,
+        );
         if (moraCheck.enMora) {
-          throw new BadRequestException(moraCheck.detalle || 'El cliente o su grupo económico tiene facturas en mora');
+          throw new BadRequestException(
+            moraCheck.detalle ||
+              'El cliente o su grupo económico tiene facturas en mora',
+          );
         }
       }
 
@@ -129,7 +141,7 @@ export class OrdersService {
           `INSERT INTO accounts_receivable (store_id, client_id, order_id, total_amount, remaining_amount, description, status)
            VALUES ($1, $2, $3, $4, $4, $5, 'PENDING')`,
           [
-             dto.storeId,
+            dto.storeId,
             dto.clientId || null,
             order.id,
             total,
@@ -302,12 +314,20 @@ export class OrdersService {
     vendorId?: string,
   ) {
     const validTransitions: Record<string, string[]> = {
-      [OrderStatus.PENDIENTE_AUTORIZACION]: [OrderStatus.RECIBIDO, OrderStatus.CANCELADO],
+      [OrderStatus.PENDIENTE_AUTORIZACION]: [
+        OrderStatus.RECIBIDO,
+        OrderStatus.CANCELADO,
+      ],
       [OrderStatus.RECIBIDO]: ['EN_PREPARACION', OrderStatus.CANCELADO],
       EN_PREPARACION: [OrderStatus.ALISTADO, OrderStatus.CANCELADO],
       [OrderStatus.ALISTADO]: [OrderStatus.CARGADO_CAMION],
       [OrderStatus.CARGADO_CAMION]: [OrderStatus.EN_ENTREGA],
-      [OrderStatus.EN_ENTREGA]: [OrderStatus.ENTREGADO, 'DEVUELTO', 'RECHAZADO', 'RECHAZO_TOTAL'],
+      [OrderStatus.EN_ENTREGA]: [
+        OrderStatus.ENTREGADO,
+        'DEVUELTO',
+        'RECHAZADO',
+        'RECHAZO_TOTAL',
+      ],
       PENDING: [OrderStatus.RECIBIDO, OrderStatus.CANCELADO],
     };
 
@@ -534,21 +554,33 @@ export class OrdersService {
     });
   }
 
-  async autorizarPrice(id: string, decision: 'aprobar' | 'rechazar', userId: string, motivo?: string) {
+  async autorizarPrice(
+    id: string,
+    decision: 'aprobar' | 'rechazar',
+    userId: string,
+    motivo?: string,
+  ) {
     return this.db.withTransaction(async (client) => {
-      const res = await client.query('SELECT store_id, status FROM orders WHERE id = $1 FOR UPDATE', [id]);
-      if (res.rowCount === 0) throw new NotFoundException('Pedido no encontrado');
-      
+      const res = await client.query(
+        'SELECT store_id, status FROM orders WHERE id = $1 FOR UPDATE',
+        [id],
+      );
+      if (res.rowCount === 0)
+        throw new NotFoundException('Pedido no encontrado');
+
       const currentStatus = res.rows[0].status;
       if (currentStatus !== OrderStatus.PENDIENTE_AUTORIZACION) {
-        throw new BadRequestException('El pedido no está pendiente de autorización');
+        throw new BadRequestException(
+          'El pedido no está pendiente de autorización',
+        );
       }
 
-      const newStatus = decision === 'aprobar' ? OrderStatus.RECIBIDO : OrderStatus.CANCELADO;
-      
+      const newStatus =
+        decision === 'aprobar' ? OrderStatus.RECIBIDO : OrderStatus.CANCELADO;
+
       const updateRes = await client.query(
         `UPDATE orders SET status = $1, autorizado_por = $2, fecha_autorizacion = NOW(), updated_by = $2, updated_at = NOW() WHERE id = $3 RETURNING *`,
-        [newStatus, userId, id]
+        [newStatus, userId, id],
       );
 
       await client.query(

@@ -1,0 +1,69 @@
+name: CI MVP
+
+on:
+  push:
+    branches: [main, stabilization/mvp]
+  pull_request:
+    branches: [main, stabilization/mvp]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: pino_mvp_test
+          POSTGRES_USER: pino_app
+          POSTGRES_PASSWORD: pino_app_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run build
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for secrets
+        run: |
+          ! grep -r "TuClaveFuerte\|cambiame\|secreto_super_seguro" --include='*.ts' --include='*.js' --include='*.tsx' --include='*.md' --include='*.txt' --include='*.yml' --include='*.json' . | grep -v node_modules | grep -v '.git/' | grep .
+      - name: Check for .env files committed
+        run: |
+          if git ls-files | grep -q '\.env$'; then
+            echo "ERROR: .env files are tracked!"; exit 1;
+          fi

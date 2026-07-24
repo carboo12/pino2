@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ValidationPipe } from '@nestjs/common';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { Client } from 'pg';
@@ -9,7 +12,7 @@ describe('Cash Shifts Flow (e2e)', () => {
   let app: NestFastifyApplication;
   let token: string;
   let client: Client;
-  
+
   // Test Data
   const storeId = '9321856d-19ba-42b8-ba47-cf35c0d133dd';
   const cashierId = '00000000-0000-0000-0000-000000000000';
@@ -19,23 +22,28 @@ describe('Cash Shifts Flow (e2e)', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: "postgresql://alacaja:TuClaveFuerte@190.56.16.85:5432/multitienda_db",
+      connectionString:
+        'postgresql://alacaja:__DB_PASSWORD_PLACEHOLDER__@190.56.16.85:5432/multitienda_db',
     });
     await client.connect();
-    
+
     // Ensure no active shifts exist for this store and cashier to have a clean slate
     await client.query(
       "UPDATE cash_shifts SET status = 'CLOSED', closed_at = NOW() WHERE store_id = $1 AND opened_by = $2 AND status = 'OPEN'",
-      [storeId, cashierId]
+      [storeId, cashierId],
     );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
 
@@ -43,7 +51,7 @@ describe('Cash Shifts Flow (e2e)', () => {
     const loginRes = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: 'test-audit@pino.com', password: 'Password123!' });
-    
+
     token = loginRes.body.accessToken;
   });
 
@@ -55,7 +63,7 @@ describe('Cash Shifts Flow (e2e)', () => {
         storeId,
         startingCash: 500,
         userId: cashierId,
-        openingDenominations: { '100': 5 }
+        openingDenominations: { '100': 5 },
       });
 
     expect(res.status).toBe(201);
@@ -72,7 +80,7 @@ describe('Cash Shifts Flow (e2e)', () => {
       .send({
         storeId,
         startingCash: 1000,
-        userId: cashierId
+        userId: cashierId,
       });
 
     expect(res.status).toBe(400); // Bad Request / Conflict
@@ -99,7 +107,7 @@ describe('Cash Shifts Flow (e2e)', () => {
         actualCash: 450, // Oops, missing 50
         difference: -50,
         userId: cashierId,
-        closingDenominations: { '100': 4, '50': 1 }
+        closingDenominations: { '100': 4, '50': 1 },
       });
 
     expect(res.status).toBe(201);
@@ -118,7 +126,9 @@ describe('Cash Shifts Flow (e2e)', () => {
   afterAll(async () => {
     // Cleanup the test data
     if (activeShiftId) {
-      await client.query('DELETE FROM cash_shifts WHERE id = $1', [activeShiftId]);
+      await client.query('DELETE FROM cash_shifts WHERE id = $1', [
+        activeShiftId,
+      ]);
     }
     await client.end();
     await app.close();

@@ -127,7 +127,9 @@ export class DatabaseService implements OnModuleInit {
   }
 
   private async ensureOperationalTables() {
-    this.logger.log('DDL silencioso deshabilitado. La estructura de la base de datos ahora se gestiona exclusivamente mediante migraciones en /migrations.');
+    this.logger.log(
+      'DDL silencioso deshabilitado. La estructura de la base de datos ahora se gestiona exclusivamente mediante migraciones en /migrations.',
+    );
     // Los CREATE TABLE y ALTER TABLE que antes estaban aquí fueron movidos a:
     // /migrations/2026-05-04_ensure_operational.sql
   }

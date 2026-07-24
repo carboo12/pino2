@@ -36,7 +36,11 @@ export class ClientsController {
     @Query('grupoClienteId') grupoClienteId?: string,
     @Query('sinAsignar') sinAsignar?: boolean,
   ) {
-    return this.service.findAll(storeId, { preventaId, grupoClienteId, sinAsignar });
+    return this.service.findAll(storeId, {
+      preventaId,
+      grupoClienteId,
+      sinAsignar,
+    });
   }
 
   @Get(':id')
@@ -68,8 +72,13 @@ export class ClientsController {
   reasignar(
     @Param('id') id: string,
     @Body() body: { preventaId: string; motivo: string },
-    @Req() req: any
+    @Req() req: any,
   ) {
-    return this.service.reasignar(id, body.preventaId, body.motivo, req.user.sub);
+    return this.service.reasignar(
+      id,
+      body.preventaId,
+      body.motivo,
+      req.user.sub,
+    );
   }
 }

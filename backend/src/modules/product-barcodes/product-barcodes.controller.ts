@@ -8,11 +8,7 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductBarcodesService } from './product-barcodes.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
@@ -23,9 +19,7 @@ import { CreateProductBarcodeDto } from './product-barcodes.dto';
 @UseGuards(JwtAuthGuard, StoreAccessGuard)
 @Controller('products')
 export class ProductBarcodesController {
-  constructor(
-    private readonly barcodesService: ProductBarcodesService,
-  ) {}
+  constructor(private readonly barcodesService: ProductBarcodesService) {}
 
   @Post(':id/barcodes')
   @ApiOperation({ summary: 'Agregar código alternativo a un producto' })

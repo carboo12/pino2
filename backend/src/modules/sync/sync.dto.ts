@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsArray, IsObject, ValidateNested, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  IsObject,
+  ValidateNested,
+  IsOptional,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SyncOperationDto {

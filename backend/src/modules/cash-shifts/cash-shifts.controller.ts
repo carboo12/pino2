@@ -23,10 +23,7 @@ export class CashShiftsController {
 
   @Post()
   @ApiOperation({ summary: 'Abrir un nuevo turno de caja' })
-  openShift(
-    @Body() dto: OpenShiftDto,
-    @Req() req: any,
-  ) {
+  openShift(@Body() dto: OpenShiftDto, @Req() req: any) {
     return this.service.openShift(
       dto.storeId,
       dto.userId || req.user?.sub,
@@ -37,10 +34,7 @@ export class CashShiftsController {
 
   @Post('close')
   @ApiOperation({ summary: 'Cerrar un turno de caja' })
-  closeShift(
-    @Body() dto: CloseShiftDto,
-    @Req() req: any,
-  ) {
+  closeShift(@Body() dto: CloseShiftDto, @Req() req: any) {
     if (!dto.shiftId) {
       throw new Error('shiftId is required for this endpoint');
     }
@@ -56,8 +50,14 @@ export class CashShiftsController {
   }
 
   @Get('active')
-  @ApiOperation({ summary: 'Obtener el turno de caja activo para una tienda (filtra por cajero si se pasa userId)' })
-  async getActiveShift(@Query('storeId') storeId: string, @Query('userId') userId?: string) {
+  @ApiOperation({
+    summary:
+      'Obtener el turno de caja activo para una tienda (filtra por cajero si se pasa userId)',
+  })
+  async getActiveShift(
+    @Query('storeId') storeId: string,
+    @Query('userId') userId?: string,
+  ) {
     const shift = await this.service.getActiveShift(storeId, userId);
     if (!shift) {
       throw new NotFoundException('No hay un turno de caja activo');

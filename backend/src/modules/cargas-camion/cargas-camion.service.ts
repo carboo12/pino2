@@ -17,7 +17,7 @@ export class CargasCamionService {
       const res = await client.query(
         `INSERT INTO cargas_camion (store_id, rutero_id, camion_placa)
          VALUES ($1, $2, $3) RETURNING *`,
-        [dto.storeId, dto.ruteroId, dto.camionPlaca || null]
+        [dto.storeId, dto.ruteroId, dto.camionPlaca || null],
       );
       const carga = res.rows[0];
 
@@ -30,14 +30,20 @@ export class CargasCamionService {
         await client.query(
           `UPDATE orders SET rutero_id = $1, camion_id = $2, grupo_carga_id = $3, fecha_entrega_programada = $4, status = 'ALISTADO', updated_at = NOW()
            WHERE id = $5`,
-          [dto.ruteroId, dto.camionPlaca || null, carga.id, dto.fechaEntrega || null, orderId]
+          [
+            dto.ruteroId,
+            dto.camionPlaca || null,
+            carga.id,
+            dto.fechaEntrega || null,
+            orderId,
+          ],
         );
 
         // Calcular bultos y unidades (simple por ahora, real sería en detalle)
         const items = await client.query(
           `SELECT oi.quantity, oi.presentation, p.units_per_bulk 
            FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = $1`,
-          [orderId]
+          [orderId],
         );
 
         for (const item of items.rows) {
@@ -54,11 +60,11 @@ export class CargasCamionService {
 
       // Consolidar de nuevo para evitar exceso de sueltas
       totalBultos += Math.floor(totalUnidadesSueltas / 10); // Approximation without per-product grouping
-      
+
       // Actualizar carga
       await client.query(
         `UPDATE cargas_camion SET total_pedidos = $1, total_bultos = $2, total_unidades_sueltas = $3 WHERE id = $4`,
-        [dto.orderIds.length, totalBultos, totalUnidadesSueltas, carga.id]
+        [dto.orderIds.length, totalBultos, totalUnidadesSueltas, carga.id],
       );
 
       return this.findOne(carga.id);
@@ -73,13 +79,16 @@ export class CargasCamionService {
       params.push(new Date(fecha));
     }
     sql += ' ORDER BY created_at DESC';
-    
+
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }
 
   async findOne(id: string) {
-    const res = await this.db.query('SELECT * FROM cargas_camion WHERE id = $1', [id]);
+    const res = await this.db.query(
+      'SELECT * FROM cargas_camion WHERE id = $1',
+      [id],
+    );
     if (res.rowCount === 0) throw new NotFoundException('Carga no encontrada');
     const carga = this.mapRow(res.rows[0]);
 
@@ -87,7 +96,7 @@ export class CargasCamionService {
       `SELECT o.id, o.client_name, o.total, o.status, c.address 
        FROM orders o LEFT JOIN clients c ON o.client_id = c.id 
        WHERE o.grupo_carga_id = $1`,
-      [id]
+      [id],
     );
 
     // Consolidación real por producto
@@ -100,7 +109,7 @@ export class CargasCamionService {
        JOIN products p ON p.id = oi.product_id
        WHERE o.grupo_carga_id = $1
        GROUP BY p.id, p.description, p.units_per_bulk`,
-      [id]
+      [id],
     );
 
     const listaBultos = [];
@@ -109,7 +118,7 @@ export class CargasCamionService {
     for (const item of consolidadoRes.rows) {
       const totalU = parseInt(item.total_unidades);
       const upb = parseInt(item.units_per_bulk);
-      
+
       const bultos = Math.floor(totalU / upb);
       const sueltas = totalU % upb;
 
@@ -133,7 +142,7 @@ export class CargasCamionService {
 
     return {
       ...carga,
-      pedidos: ordersRes.rows.map(r => ({
+      pedidos: ordersRes.rows.map((r) => ({
         id: r.id,
         clientName: r.client_name,
         total: parseFloat(r.total),
@@ -143,19 +152,19 @@ export class CargasCamionService {
       consolidado: {
         listaBultos,
         listaUnidades,
-      }
+      },
     };
   }
 
   async despachar(id: string) {
     const res = await this.db.query(
       `UPDATE cargas_camion SET status = 'EN_RUTA', fecha_salida = NOW() WHERE id = $1 RETURNING *`,
-      [id]
+      [id],
     );
     // Cambiar estado a EN_ENTREGA a todos los pedidos
     await this.db.query(
       `UPDATE orders SET status = 'EN_ENTREGA', updated_at = NOW() WHERE grupo_carga_id = $1`,
-      [id]
+      [id],
     );
     return this.mapRow(res.rows[0]);
   }

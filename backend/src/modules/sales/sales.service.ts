@@ -418,7 +418,10 @@ export class SalesService {
       yesterday.getFullYear(),
       yesterday.getMonth(),
       yesterday.getDate(),
-      23, 59, 59, 999,
+      23,
+      59,
+      59,
+      999,
     ).toISOString();
 
     const startOfMonth = new Date(
@@ -435,7 +438,10 @@ export class SalesService {
       today.getFullYear(),
       today.getMonth(),
       0,
-      23, 59, 59, 999,
+      23,
+      59,
+      59,
+      999,
     ).toISOString();
     const startOfYear = new Date(today.getFullYear(), 0, 1).toISOString();
 
@@ -451,7 +457,16 @@ export class SalesService {
         COALESCE(SUM(CASE WHEN created_at >= $8 THEN total ELSE 0 END), 0) as yearly
        FROM sales 
        WHERE store_id = $1`,
-      [storeId, startOfToday, startOfYesterday, endOfYesterday, startOfMonth, startOfLastMonth, endOfLastMonth, startOfYear],
+      [
+        storeId,
+        startOfToday,
+        startOfYesterday,
+        endOfYesterday,
+        startOfMonth,
+        startOfLastMonth,
+        endOfLastMonth,
+        startOfYear,
+      ],
     );
 
     // Monthly chart data for the year (single query)
@@ -466,8 +481,23 @@ export class SalesService {
       [storeId, startOfYear],
     );
 
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const chartMap = new Map(chartRes.rows.map(r => [r.month_num, parseFloat(r.total)]));
+    const monthNames = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic',
+    ];
+    const chartMap = new Map(
+      chartRes.rows.map((r) => [r.month_num, parseFloat(r.total)]),
+    );
     const annualChartData = monthNames.map((name, i) => ({
       month: name,
       sales: chartMap.get(i + 1) || 0,
@@ -491,7 +521,8 @@ export class SalesService {
       monthlySales,
       lastMonthSales,
       avgInvoice: monthlyCount > 0 ? monthlySales / monthlyCount : 0,
-      lastMonthAvgInvoice: lastMonthCount > 0 ? lastMonthSales / lastMonthCount : 0,
+      lastMonthAvgInvoice:
+        lastMonthCount > 0 ? lastMonthSales / lastMonthCount : 0,
       annualSales: parseFloat(s.yearly),
       annualChartData,
       topProducts: report.topProducts,
