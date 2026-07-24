@@ -45,6 +45,7 @@ import { CargasCamionModule } from './modules/cargas-camion/cargas-camion.module
 import { LiquidacionesRutaModule } from './modules/liquidaciones-ruta/liquidaciones-ruta.module';
 import { ProductBarcodesModule } from './modules/product-barcodes/product-barcodes.module';
 import { HealthModule } from './modules/health/health.module';
+import { SyncEngineModule } from './modules/sync-engine/sync-engine.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { HealthModule } from './modules/health/health.module';
     LiquidacionesRutaModule,
     ProductBarcodesModule,
     HealthModule,
+    SyncEngineModule,
   ],
   providers: [
     {

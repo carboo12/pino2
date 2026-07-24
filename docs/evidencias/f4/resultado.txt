@@ -1,0 +1,4 @@
+SyncEngineModule creado
+InboxService: claim idempotente via INSERT ON CONFLICT
+OutboxWorker: cron cada 5s, FOR UPDATE SKIP LOCKED
+Endpoints: /edge/sync/push, /edge/sync/pull, /edge/sync/ack, /edge/sync/status
