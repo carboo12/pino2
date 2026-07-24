@@ -99,6 +99,14 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cerrar sesión e invalidar refresh token' })
+  logout(@Request() req: any) {
+    return this.authService.logout(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({

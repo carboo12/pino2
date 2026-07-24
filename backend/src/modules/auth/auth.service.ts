@@ -7,18 +7,27 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as argon2 from 'argon2';
 import { DatabaseService } from '../../database/database.service';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly refreshJwt: JwtService;
 
   constructor(
     private readonly db: DatabaseService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.refreshJwt = new JwtService({
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      signOptions: {
+        expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '7d',
+      },
+    });
+  }
 
   async register(dto: {
     email: string;
@@ -112,8 +121,13 @@ export class AuthService {
       throw new UnauthorizedException('Usuario no encontrado');
 
     const user = resUser.rows[0];
-    if (!user.refresh_token || user.refresh_token !== refreshToken) {
-      throw new UnauthorizedException('Refresh token inválido');
+    if (!user.refresh_token_hash) {
+      throw new UnauthorizedException('Refresh token no emitido');
+    }
+
+    const valid = await argon2.verify(user.refresh_token_hash, refreshToken);
+    if (!valid) {
+      throw new UnauthorizedException('Refresh token inválido o reutilizado');
     }
 
     const resStores = await this.db.query(
@@ -159,16 +173,17 @@ export class AuthService {
       storeIds,
     };
 
-    const accessToken = this.jwtService.sign(payload);
-    const refreshTokenValue = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '7d',
+    const accessToken = this.jwtService.sign(payload, {
+      expiresIn: this.configService.get('JWT_EXPIRES_IN') || '15m',
     });
+    const refreshTokenValue = this.refreshJwt.sign(payload);
 
-    // Store refresh token en la BD
-    await client.query('UPDATE users SET refresh_token = $1 WHERE id = $2', [
-      refreshTokenValue,
-      user.id,
-    ]);
+    const refreshHash = await argon2.hash(refreshTokenValue);
+
+    await client.query(
+      'UPDATE users SET refresh_token_hash = $1, updated_at = now() WHERE id = $2',
+      [refreshHash, user.id],
+    );
 
     return {
       accessToken,
@@ -183,6 +198,14 @@ export class AuthService {
         storeIds,
       },
     };
+  }
+
+  async logout(userId: string) {
+    await this.db.query(
+      'UPDATE users SET refresh_token_hash = NULL, updated_at = now() WHERE id = $1',
+      [userId],
+    );
+    return { message: 'Sesión cerrada correctamente' };
   }
 
   async requestPasswordReset(email: string) {

@@ -7,6 +7,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Injectable, Logger } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 const allowedOrigins = (
   process.env.CORS_ORIGIN ||
@@ -31,21 +34,30 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger('EventsGateway');
 
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
   handleConnection(client: Socket) {
-    this.logger.log(`Client connected: ${client.id}`);
+    try {
+      const token = client.handshake.auth?.token;
+      if (!token) {
+        client.disconnect();
+        return;
+      }
+      const payload = this.jwtService.verify(token);
+      client.data.user = payload;
+    } catch {
+      client.disconnect();
+    }
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  // Broadcast a global sync event (From Mobile to Web)
   emitSyncUpdate(data: { type: string; payload: any; storeId?: string }) {
-    this.logger.log(`Broadcasting sync event: ${data.type}`);
-    // Emit to all connected Dashboards
-    this.server.emit('sync_update', data);
-
-    // If store-specific, emit to that room
     if (data.storeId) {
       this.server.to(`store_${data.storeId}`).emit('store_update', data);
     }
@@ -53,8 +65,15 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('join_store')
   handleJoinStore(client: Socket, storeId: string) {
-    this.logger.log(`Client ${client.id} joining room: store_${storeId}`);
+    const user = client.data.user;
+    if (!user) throw new WsException('No autenticado');
+
+    const allowed =
+      user.role === 'master-admin' || (user.storeIds || []).includes(storeId);
+    if (!allowed) throw new WsException('forbidden');
+
     client.join(`store_${storeId}`);
+    this.logger.log(`User ${user.sub} joined store_${storeId}`);
     return { status: 'joined', room: `store_${storeId}` };
   }
 }
