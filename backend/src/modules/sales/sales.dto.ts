@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 
 export class SaleItemDto {
-  @IsUUID()
+  @IsUUID("all")
   productId: string;
 
   @IsInt()
@@ -20,10 +20,10 @@ export class SaleItemDto {
 }
 
 export class ProcessSaleDto {
-  @IsUUID()
+  @IsUUID("all")
   storeId: string;
 
-  @IsUUID()
+  @IsUUID("all")
   cashShiftId: string;
 
   @IsString()
@@ -37,4 +37,8 @@ export class ProcessSaleDto {
 
   @IsEnum(['CASH', 'CARD', 'TRANSFER', 'EFECTIVO', 'CREDITO'])
   paymentMethod: string;
+
+  @IsString()
+  @IsOptional()
+  externalId?: string;
 }

@@ -7,18 +7,18 @@ import {
 } from 'class-validator';
 
 export class CreateCollectionDto {
-  @IsUUID()
+  @IsUUID("all")
   storeId!: string;
 
-  @IsUUID()
+  @IsUUID("all")
   @IsOptional()
   accountId?: string;
 
-  @IsUUID()
+  @IsUUID("all")
   @IsOptional()
   ruteroId?: string;
 
-  @IsUUID()
+  @IsUUID("all")
   @IsOptional()
   clientId?: string;
 

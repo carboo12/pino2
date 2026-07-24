@@ -7,13 +7,13 @@ import {
 } from 'class-validator';
 
 export class ProcessTransactionDto {
-  @IsUUID()
+  @IsUUID("all")
   vendorId!: string;
 
-  @IsUUID()
+  @IsUUID("all")
   productId!: string;
 
-  @IsUUID()
+  @IsUUID("all")
   storeId!: string;
 
   @IsEnum(['ASSIGN', 'RETURN', 'SALE', 'assign', 'return', 'sale'])
@@ -23,7 +23,7 @@ export class ProcessTransactionDto {
   @Min(1)
   quantity!: number;
 
-  @IsUUID()
+  @IsUUID("all")
   @IsOptional()
   userId?: string;
 }

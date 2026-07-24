@@ -22,7 +22,7 @@ export class SyncOperationDto {
   @IsOptional()
   localId?: string;
 
-  @IsUUID()
+  @IsUUID("all")
   @IsNotEmpty()
   externalId!: string;
 

@@ -7,13 +7,13 @@ import {
 } from 'class-validator';
 
 export class CreateAccountReceivableDto {
-  @IsUUID()
+  @IsUUID("all")
   storeId!: string;
 
-  @IsUUID()
+  @IsUUID("all")
   clientId!: string;
 
-  @IsUUID()
+  @IsUUID("all")
   @IsOptional()
   orderId?: string;
 

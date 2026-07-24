@@ -61,7 +61,7 @@ describe('Sales Integrity Flow (e2e)', () => {
   it('completes a full sale flow and updates inventory correctly', async () => {
     // 1. Create a cash shift if needed (or just use a dummy one if the service allows)
     // For this test, we assume a valid cash shift or we create a dummy record in DB
-    const cashShiftId = '00000000-0000-0000-0000-000000000001';
+    const cashShiftId = 'c0000000-0000-4000-8000-000000000001';
     await client.query('DELETE FROM sales WHERE cash_shift_id = $1', [
       cashShiftId,
     ]);
