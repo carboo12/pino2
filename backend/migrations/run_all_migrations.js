@@ -14,11 +14,12 @@ if (fs.existsSync(envPath)) {
   }
 }
 
+// Use pino_migrator for DDL if available, otherwise fallback to regular user
 const client = new Client({
   host: process.env.DATABASE_HOST,
   port: Number(process.env.DATABASE_PORT || 5432),
-  user: process.env.DATABASE_USER,
-  password: process.env.DATABASE_PASSWORD,
+  user: process.env.DATABASE_MIGRATOR_USER || process.env.DATABASE_USER,
+  password: process.env.DATABASE_MIGRATOR_PASSWORD || process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
 });
 
@@ -39,7 +40,7 @@ async function run() {
 
     const files = fs.readdirSync(__dirname)
       .filter(f => f.endsWith('.sql'))
-      .sort(); // ensures they run in alphabetical order
+      .sort();
 
     let appliedCount = 0;
 
@@ -76,7 +77,6 @@ async function run() {
     console.error('❌ Error general de migraciones:', error.message);
     await client.end().catch(() => {});
     process.exit(1);
-    return;
   } finally {
     await client.end();
   }

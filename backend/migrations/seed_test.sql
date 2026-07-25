@@ -1,9 +1,6 @@
 -- Seed determinista para pruebas E2E
 -- Sin credenciales fijas (usar variables de entorno)
 
-INSERT INTO schema_migrations (filename) VALUES ('seed_test.sql')
-ON CONFLICT (filename) DO NOTHING;
-
 -- No sembrar datos de negocio reales
 -- Este seed se ejecuta en pino_mvp_test, no en produccion
 
