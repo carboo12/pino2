@@ -107,8 +107,10 @@ export class ProductsService {
     subDepartmentId?: string,
     limit: number = 1000,
     offset: number = 0,
+    usesInventory?: boolean,
+    stockCritical?: boolean,
   ): Promise<Product[]> {
-    return this.productsRepo.findMany(storeId, search, departmentId, subDepartmentId, limit, offset);
+    return this.productsRepo.findMany(storeId, search, departmentId, subDepartmentId, limit, offset, usesInventory, stockCritical);
   }
 
   async findPaginated(
@@ -118,13 +120,15 @@ export class ProductsService {
     subDepartmentId?: string,
     page: number = 1,
     limit: number = 50,
+    usesInventory?: boolean,
+    stockCritical?: boolean,
   ) {
     const safePage = Math.max(1, page);
     const safeLimit = Math.max(1, Math.min(1000, limit));
     const offset = (safePage - 1) * safeLimit;
 
-    const total = await this.productsRepo.countMany(storeId, search, departmentId, subDepartmentId);
-    const data = await this.productsRepo.findMany(storeId, search, departmentId, subDepartmentId, safeLimit, offset);
+    const total = await this.productsRepo.countMany(storeId, search, departmentId, subDepartmentId, usesInventory, stockCritical);
+    const data = await this.productsRepo.findMany(storeId, search, departmentId, subDepartmentId, safeLimit, offset, usesInventory, stockCritical);
 
     return {
       data,

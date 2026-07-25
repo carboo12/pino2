@@ -45,8 +45,9 @@ export class InventoryController {
     @Query('storeId') storeId: string,
     @Query('date') date?: string,
     @Query('type') type?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.service.getMovements(storeId, date, type);
+    return this.service.getMovements(storeId, date, type, limit ? parseInt(limit, 10) : undefined);
   }
 
   @Roles('master-admin', 'store-admin')

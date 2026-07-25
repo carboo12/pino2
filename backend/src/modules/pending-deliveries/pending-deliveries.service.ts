@@ -109,6 +109,27 @@ export class PendingDeliveriesService {
     return { success: true };
   }
 
+  async getStats(storeId: string) {
+    const sql = `
+      SELECT
+        (SELECT COUNT(*) FROM pending_deliveries WHERE store_id = $1 AND status = 'Entregado' AND created_at >= CURRENT_DATE) as daily_deliveries,
+        (SELECT COUNT(*) FROM pending_deliveries WHERE store_id = $1 AND status = 'Pendiente') as pending_deliveries,
+        (SELECT COUNT(*) FROM orders WHERE store_id = $1 AND created_at >= CURRENT_DATE) as orders_today,
+        (SELECT COALESCE(
+          (SELECT sales_manager_name FROM orders WHERE store_id = $1 AND created_at >= date_trunc('month', CURRENT_DATE) AND sales_manager_name IS NOT NULL
+           GROUP BY sales_manager_name ORDER BY COUNT(*) DESC LIMIT 1), ''
+        )) as best_sales_manager
+    `;
+    const res = await this.db.query(sql, [storeId]);
+    const row = res.rows[0];
+    return {
+      dailyDeliveries: parseInt(row.daily_deliveries || '0', 10),
+      pendingDeliveries: parseInt(row.pending_deliveries || '0', 10),
+      ordersToday: parseInt(row.orders_today || '0', 10),
+      bestSalesManager: row.best_sales_manager || '',
+    };
+  }
+
   async assignRoute(dto: {
     deliveryIds: string[];
     ruteroId: string;

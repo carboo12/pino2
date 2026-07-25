@@ -28,8 +28,8 @@ export class LiquidacionesRutaController {
 
   @Roles('master-admin', 'store-admin')
   @Get()
-  findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string) {
-    return this.service.findAll(storeId, fecha);
+  findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string, @Query('ruteroId') ruteroId?: string) {
+    return this.service.findAll(storeId, fecha, ruteroId);
   }
 
   @Roles('master-admin', 'store-admin')

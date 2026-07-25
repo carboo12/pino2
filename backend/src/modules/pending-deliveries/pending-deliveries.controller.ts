@@ -28,6 +28,13 @@ export class PendingDeliveriesController {
   constructor(private readonly service: PendingDeliveriesService) {}
 
   @Roles('master-admin', 'store-admin')
+  @Get('stats')
+  @ApiOperation({ summary: 'Obtener estadísticas de entregas pendientes' })
+  async getStats(@Query('storeId') storeId?: string) {
+    return this.service.getStats(storeId || '');
+  }
+
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar entregas pendientes con filtros' })
   async findAll(

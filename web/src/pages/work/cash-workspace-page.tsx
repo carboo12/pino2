@@ -159,17 +159,16 @@ export default function CashWorkspacePage() {
   const handleScan = useCallback(async (code: string) => {
     if (!storeId) return;
     try {
-      const res = await apiClient.get('/products', {
-        params: { storeId, barcode: code, limit: 1 },
+      const res = await apiClient.get(`/products/barcode/${encodeURIComponent(code)}`, {
+        params: { storeId },
       });
-      const products = Array.isArray(res.data) ? res.data : res.data?.data || [];
-      if (products.length > 0) {
-        addToCart(products[0]);
+      if (res.data) {
+        addToCart(res.data);
       } else {
         toast.error('No encontrado', `Código: ${code}`);
       }
     } catch {
-      toast.error('Error', 'No se pudo buscar el producto');
+      toast.error('No encontrado', `Código: ${code}`);
     }
   }, [storeId, addToCart]);
 
@@ -190,8 +189,9 @@ export default function CashWorkspacePage() {
       cashShiftId: activeShift.id,
       items: cart.map(item => ({
         productId: item.id,
-        quantity: item.quantity,
-        price: item.salePrice,
+        ...(item.handlesBulk
+          ? { bulkCount: item.bulkCount, looseUnitCount: item.looseUnitCount }
+          : { quantity: item.quantity }),
       })),
       total,
       paymentMethod: data.method,

@@ -137,12 +137,14 @@ export class ProductsRepository {
     subDepartmentId?: string,
     limit: number = 1000,
     offset: number = 0,
+    usesInventory?: boolean,
+    stockCritical?: boolean,
   ): Promise<Product[]> {
     let query = `SELECT p.*, d.name as department_name
                  FROM products p
                  LEFT JOIN departments d ON p.department_id = d.id
                  WHERE p.store_id = $1 AND p.is_active = true`;
-    const params: (string | number)[] = [storeId];
+    const params: (string | number | boolean)[] = [storeId];
     let pIdx = 2;
 
     if (search) {
@@ -162,6 +164,15 @@ export class ProductsRepository {
       params.push(subDepartmentId);
     }
 
+    if (usesInventory !== undefined) {
+      query += ` AND p.uses_inventory = $${pIdx++}`;
+      params.push(usesInventory);
+    }
+
+    if (stockCritical !== undefined && stockCritical) {
+      query += ` AND p.current_stock <= p.min_stock`;
+    }
+
     query += ` ORDER BY p.description ASC LIMIT $${pIdx} OFFSET $${pIdx + 1}`;
     params.push(limit, offset);
 
@@ -174,6 +185,8 @@ export class ProductsRepository {
     search?: string,
     departmentId?: string,
     subDepartmentId?: string,
+    usesInventory?: boolean,
+    stockCritical?: boolean,
   ): Promise<number> {
     let query = `SELECT COUNT(*)::int as total FROM products p WHERE p.store_id = $1 AND p.is_active = true`;
     const params: any[] = [storeId];
@@ -189,6 +202,15 @@ export class ProductsRepository {
     if (subDepartmentId) {
       query += ` AND p.sub_department = $${params.length + 1}`;
       params.push(subDepartmentId);
+    }
+
+    if (usesInventory !== undefined) {
+      query += ` AND p.uses_inventory = $${params.length + 1}`;
+      params.push(usesInventory);
+    }
+
+    if (stockCritical !== undefined && stockCritical) {
+      query += ` AND p.current_stock <= p.min_stock`;
     }
 
     const countRes = await this.db.query<{ total: number }>(query, params);

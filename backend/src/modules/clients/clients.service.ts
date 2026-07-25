@@ -40,6 +40,8 @@ export class ClientsService {
   async findAll(
     storeId: string,
     filters?: {
+      search?: string;
+      limit?: number;
       preventaId?: string;
       grupoClienteId?: string;
       sinAsignar?: boolean;
@@ -48,6 +50,12 @@ export class ClientsService {
     let sql = 'SELECT * FROM clients WHERE store_id = $1 AND is_active = true';
     const params: any[] = [storeId];
     let pIdx = 2;
+
+    if (filters?.search) {
+      sql += ` AND (name ILIKE $${pIdx} OR code ILIKE $${pIdx} OR phone ILIKE $${pIdx})`;
+      params.push(`%${filters.search}%`);
+      pIdx++;
+    }
 
     if (filters?.preventaId) {
       sql += ` AND preventa_id = $${pIdx++}`;
@@ -64,6 +72,11 @@ export class ClientsService {
     }
 
     sql += ' ORDER BY name ASC';
+
+    if (filters?.limit) {
+      sql += ` LIMIT $${pIdx++}`;
+      params.push(filters.limit);
+    }
 
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);

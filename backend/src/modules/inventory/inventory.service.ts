@@ -137,8 +137,8 @@ export class InventoryService {
     return this.repo.getKardex(storeId, productId);
   }
 
-  async getMovements(storeId: string, date?: string, type?: string) {
-    return this.repo.getMovements(storeId, date, type);
+  async getMovements(storeId: string, date?: string, type?: string, limit?: number) {
+    return this.repo.getMovements(storeId, date, type, limit);
   }
 
   async getWarehouseInventory(storeId: string) {

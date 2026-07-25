@@ -75,6 +75,36 @@ export class DailyClosingsService {
     }));
   }
 
+  async getSummary(params: { storeId: string; userId?: string; date?: string }) {
+    let sql = `
+      SELECT
+        COALESCE(SUM(s.total), 0) as total_sales,
+        COALESCE(SUM(CASE WHEN s.payment_method IN ('CASH', 'EFECTIVO') THEN s.total ELSE 0 END), 0) as total_cash
+      FROM sales s
+      WHERE s.store_id = $1
+    `;
+    const queryParams: any[] = [params.storeId];
+    let idx = 2;
+
+    if (params.userId) {
+      sql += ` AND s.cashier_id = $${idx++}`;
+      queryParams.push(params.userId);
+    }
+    if (params.date) {
+      sql += ` AND s.created_at::date = $${idx++}`;
+      queryParams.push(params.date);
+    }
+
+    const res = await this.db.query(sql, queryParams);
+    const row = res.rows[0];
+    const totalSales = parseFloat(row.total_sales || 0);
+    return {
+      expectedAmount: totalSales,
+      totalCash: parseFloat(row.total_cash || 0),
+      totalSales,
+    };
+  }
+
   async findOne(id: string) {
     const res = await this.db.query(
       `SELECT dc.*, u.name as rutero_name

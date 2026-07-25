@@ -13,7 +13,7 @@ export class AccountsReceivableService {
     private readonly collectionsService: CollectionsService,
   ) {}
 
-  async findAll(storeId: string, pending?: boolean) {
+  async findAll(storeId: string, pending?: boolean, status?: string, limit?: number) {
     let sql = `SELECT ar.*, c.name as client_name 
                FROM accounts_receivable ar 
                LEFT JOIN clients c ON ar.client_id = c.id 
@@ -22,7 +22,13 @@ export class AccountsReceivableService {
     if (pending) {
       sql += ' AND ar.remaining_amount > 0';
     }
+    if (status) {
+      sql += ' AND ar.status = $' + (params.push(status));
+    }
     sql += ' ORDER BY ar.created_at DESC';
+    if (limit) {
+      sql += ' LIMIT $' + params.push(limit);
+    }
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }

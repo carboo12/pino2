@@ -119,17 +119,23 @@ export class LiquidacionesRutaService {
     return this.mapRow(insertRes.rows[0]);
   }
 
-  async findAll(storeId: string, fecha?: string) {
+  async findAll(storeId: string, fecha?: string, ruteroId?: string) {
     let sql = `SELECT l.*, u1.name as rutero_name, u2.name as liquidador_name 
                FROM liquidaciones_ruta l 
                LEFT JOIN users u1 ON l.rutero_id = u1.id
                LEFT JOIN users u2 ON l.liquidado_por = u2.id
                WHERE l.store_id = $1`;
     const params: any[] = [storeId];
+    let pIdx = 2;
 
     if (fecha) {
-      sql += ' AND l.fecha_ruta = $2';
+      sql += ` AND l.fecha_ruta = $${pIdx++}`;
       params.push(fecha);
+    }
+
+    if (ruteroId) {
+      sql += ` AND l.rutero_id = $${pIdx++}`;
+      params.push(ruteroId);
     }
 
     sql += ' ORDER BY l.created_at DESC';

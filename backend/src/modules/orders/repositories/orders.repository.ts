@@ -138,6 +138,8 @@ export class OrdersRepository {
       clientId?: string;
       fromDate?: string;
       toDate?: string;
+      limit?: number;
+      createdAt?: string;
     },
   ) {
     let sql = 'SELECT * FROM orders WHERE store_id = $1';
@@ -164,8 +166,29 @@ export class OrdersRepository {
       sql += ` AND created_at <= $${idx++}`;
       params.push(new Date(filters.toDate));
     }
+    if (filters.createdAt) {
+      if (filters.createdAt.startsWith('>')) {
+        const match = filters.createdAt.match(/^>(\d+)([smhd])$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          const unit = match[2];
+          const secondsMap: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
+          const cutoff = new Date(Date.now() - num * secondsMap[unit] * 1000).toISOString();
+          sql += ` AND created_at < $${idx++}`;
+          params.push(cutoff);
+        }
+      } else {
+        sql += ` AND created_at = $${idx++}`;
+        params.push(filters.createdAt);
+      }
+    }
 
     sql += ' ORDER BY created_at DESC';
+
+    if (filters.limit) {
+      sql += ` LIMIT $${idx++}`;
+      params.push(filters.limit);
+    }
 
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => this.mapper.toOrder(r));

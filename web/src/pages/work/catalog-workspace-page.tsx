@@ -110,11 +110,10 @@ export default function CatalogWorkspacePage() {
     setSearchTerm(code);
     setLoading(true);
     try {
-      const res = await apiClient.get('/products', {
-        params: { storeId, barcode: code, limit: 1 },
+      const res = await apiClient.get(`/products/barcode/${encodeURIComponent(code)}`, {
+        params: { storeId },
       });
-      const data = Array.isArray(res.data) ? res.data : res.data?.data || [];
-      setProducts(data);
+      setProducts(res.data ? [res.data] : []);
     } catch {
       setError('Producto no encontrado');
     } finally {

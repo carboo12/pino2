@@ -169,11 +169,14 @@ export default function WarehouseWorkspacePage() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [selectedOrder, filteredOrders]);
 
-  const handleStatusChange = async (order: Order, newStatus: string) => {
+  const handleStatusChange = async (order: Order, newStatus: string, vendorId?: string) => {
     if (!storeId) return;
     setActionLoading(true);
     try {
-      await apiClient.patch(`/orders/${order.id}/status`, { status: newStatus });
+      await apiClient.patch(`/orders/${order.id}/status`, {
+        status: newStatus,
+        ...(vendorId ? { vendorId } : {}),
+      });
       toast.success('Actualizado', `${order.id?.slice(0, 8)} → ${STATUS_LABELS[newStatus]}`);
       setSelectedOrder(null);
       fetchOrders();
@@ -445,7 +448,7 @@ export default function WarehouseWorkspacePage() {
             </Button>
             <Button size="sm" disabled={!selectedVendorId || !selectedOrder} onClick={() => {
               if (selectedOrder) {
-                handleStatusChange(selectedOrder, 'CARGADO_CAMION');
+                handleStatusChange(selectedOrder, 'CARGADO_CAMION', selectedVendorId);
               }
               setShowVendorSelect(false);
               setSelectedVendorId('');

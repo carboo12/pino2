@@ -56,6 +56,8 @@ export class ProductsController {
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'departmentId', required: false })
   @ApiQuery({ name: 'subDepartmentId', required: false })
+  @ApiQuery({ name: 'usesInventory', required: false })
+  @ApiQuery({ name: 'stockCritical', required: false })
   @ApiOperation({
     summary: 'Listar productos con filtro de búsqueda y categorías',
   })
@@ -67,7 +69,11 @@ export class ProductsController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('page') page?: string,
+    @Query('usesInventory') usesInventory?: string,
+    @Query('stockCritical') stockCritical?: string,
   ) {
+    const usesInventoryFilter = usesInventory !== undefined ? usesInventory === 'true' : undefined;
+    const stockCriticalFilter = stockCritical !== undefined ? stockCritical === 'true' : undefined;
     if (page) {
       return this.productsService.findPaginated(
         storeId,
@@ -76,6 +82,8 @@ export class ProductsController {
         subDepartmentId,
         parseInt(page, 10) || 1,
         limit ? parseInt(limit, 10) : 50,
+        usesInventoryFilter,
+        stockCriticalFilter,
       );
     }
     return this.productsService.findAll(
@@ -85,6 +93,8 @@ export class ProductsController {
       subDepartmentId,
       limit ? parseInt(limit, 10) : undefined,
       offset ? parseInt(offset, 10) : undefined,
+      usesInventoryFilter,
+      stockCriticalFilter,
     );
   }
 

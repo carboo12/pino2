@@ -78,8 +78,8 @@ export default function VendorReturnsPage() {
     if (!storeId || !user?.id) return;
     try {
       setLoading(true);
-      const res = await apiClient.get('/vendor-inventories', {
-        params: { vendorId: user.id, storeId },
+      const res = await apiClient.get(`/vendor-inventories/${user.id}`, {
+        params: { storeId },
       });
       const items = (Array.isArray(res.data) ? res.data : []).filter(
         (item: any) => (Number(item.currentQuantity) || Number(item.current_quantity) || 0) > 0,

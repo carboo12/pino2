@@ -296,6 +296,14 @@ export default function BillingPage() {
 
     setIsPaymentProcessing(true);
     try {
+      const methodMap: Record<string, string> = {
+        'Efectivo': 'CASH',
+        'Tarjeta': 'CARD',
+        'Transferencia': 'TRANSFER',
+        'Crédito': 'CREDIT',
+      };
+      const normalizedPaymentMethod = methodMap[paymentMethod] || 'CASH';
+
       const salePayload = {
         storeId,
         shiftId: activeShift.id,
@@ -306,7 +314,7 @@ export default function BillingPage() {
         items: cart.map(({ id, description, quantity, salePrice, costPrice, usesInventory, currentStock }) => ({ 
            id, description, quantity, salePrice, costPrice: costPrice || 0, usesInventory, currentStock 
         })),
-        paymentMethod,
+        paymentMethod: normalizedPaymentMethod,
         paymentCurrency: finalPaymentCurrency,
         amountReceived: finalAmountReceived,
         change: finalChange,

@@ -32,8 +32,10 @@ export class AccountsReceivableController {
   findAll(
     @Query('storeId') storeId: string,
     @Query('pending') pending?: string,
+    @Query('status') status?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.service.findAll(storeId, pending === 'true');
+    return this.service.findAll(storeId, pending === 'true', status, limit ? parseInt(limit, 10) : undefined);
   }
 
   @Roles('master-admin', 'store-admin')

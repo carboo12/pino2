@@ -134,7 +134,7 @@ export class InventoryRepository {
     return res.rows.map((r) => this.mapper.toMovement(r));
   }
 
-  async getMovements(storeId: string, date?: string, type?: string) {
+  async getMovements(storeId: string, date?: string, type?: string, limit?: number) {
     let sql = `
       SELECT m.*, p.description as product_description, u.name as user_name
       FROM movements m
@@ -152,7 +152,12 @@ export class InventoryRepository {
       sql += ' AND m.type = $' + (params.push(type.toUpperCase()));
     }
 
-    sql += ' ORDER BY m.created_at DESC LIMIT 200';
+    sql += ' ORDER BY m.created_at DESC';
+    if (limit) {
+      sql += ' LIMIT $' + params.push(limit);
+    } else {
+      sql += ' LIMIT 200';
+    }
 
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => this.mapper.toMovement(r));

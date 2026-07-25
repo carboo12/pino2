@@ -42,6 +42,8 @@ export class OrdersController {
     @Query('clientId') clientId?: string,
     @Query('fromDate') fromDate?: string,
     @Query('toDate') toDate?: string,
+    @Query('limit') limit?: string,
+    @Query('createdAt') createdAt?: string,
   ) {
     return this.service.findAll({
       storeId,
@@ -50,6 +52,8 @@ export class OrdersController {
       clientId,
       fromDate,
       toDate,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      createdAt,
     });
   }
 

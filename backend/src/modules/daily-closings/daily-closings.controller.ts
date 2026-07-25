@@ -45,6 +45,17 @@ export class DailyClosingsController {
   }
 
   @Roles('master-admin', 'store-admin')
+  @Get('summary')
+  @ApiOperation({ summary: 'Resumen de cierre del día para un rutero' })
+  getSummary(
+    @Query('storeId') storeId: string,
+    @Query('userId') userId?: string,
+    @Query('date') date?: string,
+  ) {
+    return this.service.getSummary({ storeId, userId, date });
+  }
+
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de cierre' })
   findOne(@Param('id') id: string) {

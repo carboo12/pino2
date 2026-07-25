@@ -94,6 +94,8 @@ export class SalesService {
     startDate?: string,
     endDate?: string,
     storeIds?: string,
+    limit?: number,
+    vendorId?: string,
   ) {
     return this.salesRepo.findAllSales(
       storeId,
@@ -101,6 +103,8 @@ export class SalesService {
       startDate,
       endDate,
       storeIds,
+      limit,
+      vendorId,
     );
   }
 
@@ -181,10 +185,10 @@ export class SalesService {
     });
   }
 
-  async getSalesReport(storeId: string, startDate: string, endDate: string) {
+  async getSalesReport(storeId: string, startDate: string, endDate: string, shiftId?: string) {
     const [topProducts, byMethod] = await Promise.all([
-      this.salesRepo.getSalesReportTopProducts(storeId, startDate, endDate),
-      this.salesRepo.getSalesReportByMethod(storeId, startDate, endDate),
+      this.salesRepo.getSalesReportTopProducts(storeId, startDate, endDate, shiftId),
+      this.salesRepo.getSalesReportByMethod(storeId, startDate, endDate, shiftId),
     ]);
     return { topProducts, byMethod };
   }

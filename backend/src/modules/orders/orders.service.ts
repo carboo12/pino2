@@ -95,6 +95,8 @@ export class OrdersService {
     clientId?: string;
     fromDate?: string;
     toDate?: string;
+    limit?: number;
+    createdAt?: string;
   }) {
     if (filters.storeId) {
       return this.repo.findByStore(filters.storeId, {
@@ -103,6 +105,8 @@ export class OrdersService {
         clientId: filters.clientId,
         fromDate: filters.fromDate,
         toDate: filters.toDate,
+        limit: filters.limit,
+        createdAt: filters.createdAt,
       });
     }
     return [];

@@ -80,8 +80,8 @@ export function CommandSearch() {
     const timer = setTimeout(async () => {
       try {
         const [productsRes, clientsRes] = await Promise.allSettled([
-          apiClient.get(`/products`, { params: { q: query, storeId, limit: 5 } }),
-          apiClient.get(`/clients`, { params: { q: query, storeId, limit: 5 } }),
+          apiClient.get(`/products`, { params: { search: query, storeId, limit: 5 } }),
+          apiClient.get(`/clients`, { params: { search: query, storeId, limit: 5 } }),
         ]);
 
         setResults({

@@ -366,6 +366,8 @@ export class SalesRepository {
     startDate?: string,
     endDate?: string,
     storeIds?: string,
+    limit?: number,
+    vendorId?: string,
   ) {
     let sql = 'SELECT * FROM sales WHERE 1=1';
     const params: any[] = [];
@@ -390,6 +392,10 @@ export class SalesRepository {
       params.push(shiftId);
       sql += ' AND cash_shift_id = $' + params.length;
     }
+    if (vendorId) {
+      params.push(vendorId);
+      sql += ' AND cashier_id = $' + params.length;
+    }
     if (startDate) {
       params.push(startDate);
       sql += ' AND created_at >= $' + params.length;
@@ -399,21 +405,27 @@ export class SalesRepository {
       sql += ' AND created_at <= $' + params.length;
     }
     sql += ' ORDER BY created_at DESC';
+    if (limit) {
+      params.push(limit);
+      sql += ' LIMIT $' + params.length;
+    }
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => this.mapper.toSale(r));
   }
 
-  async getSalesReportTopProducts(storeId: string, startDate: string, endDate: string) {
-    const res = await this.db.query(
-      `SELECT p.description as name, SUM(si.quantity) as count, SUM(si.subtotal) as total
+  async getSalesReportTopProducts(storeId: string, startDate: string, endDate: string, shiftId?: string) {
+    let sql = `SELECT p.description as name, SUM(si.quantity) as count, SUM(si.subtotal) as total
        FROM sale_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN products p ON si.product_id = p.id
-       WHERE s.store_id = $1 AND s.created_at BETWEEN $2 AND $3
-       GROUP BY p.description
-       ORDER BY total DESC LIMIT 10`,
-      [storeId, startDate, endDate],
-    );
+       WHERE s.store_id = $1 AND s.created_at BETWEEN $2 AND $3`;
+    const params: any[] = [storeId, startDate, endDate];
+    if (shiftId) {
+      params.push(shiftId);
+      sql += ' AND s.cash_shift_id = $' + params.length;
+    }
+    sql += ' GROUP BY p.description ORDER BY total DESC LIMIT 10';
+    const res = await this.db.query(sql, params);
     return res.rows.map((r) => ({
       name: r.name,
       value: parseFloat(r.total),
@@ -421,14 +433,17 @@ export class SalesRepository {
     }));
   }
 
-  async getSalesReportByMethod(storeId: string, startDate: string, endDate: string) {
-    const res = await this.db.query(
-      `SELECT payment_method, SUM(total) as total, COUNT(*) as count
+  async getSalesReportByMethod(storeId: string, startDate: string, endDate: string, shiftId?: string) {
+    let sql = `SELECT payment_method, SUM(total) as total, COUNT(*) as count
        FROM sales
-       WHERE store_id = $1 AND created_at BETWEEN $2 AND $3
-       GROUP BY payment_method`,
-      [storeId, startDate, endDate],
-    );
+       WHERE store_id = $1 AND created_at BETWEEN $2 AND $3`;
+    const params: any[] = [storeId, startDate, endDate];
+    if (shiftId) {
+      params.push(shiftId);
+      sql += ' AND cash_shift_id = $' + params.length;
+    }
+    sql += ' GROUP BY payment_method';
+    const res = await this.db.query(sql, params);
     return res.rows.map((r) => ({
       method: r.payment_method,
       total: parseFloat(r.total),

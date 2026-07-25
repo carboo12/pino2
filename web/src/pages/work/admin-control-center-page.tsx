@@ -57,7 +57,7 @@ export default function AdminControlCenterPage() {
     try {
       const [authRes, cashRes, stockRes, ordersRes] = await Promise.allSettled([
         apiClient.get('/authorizations', { params: { storeId, status: 'pending', limit: 5 } }),
-        apiClient.get('/cash-registers', { params: { storeId, status: 'open', limit: 5 } }),
+        apiClient.get('/cash-shifts', { params: { storeId, status: 'open', limit: 5 } }),
         apiClient.get('/products', { params: { storeId, stockCritical: true, limit: 5 } }),
         apiClient.get('/orders', { params: { storeId, status: 'RECIBIDO', createdAt: '>30m', limit: 5 } }),
       ]);
@@ -84,7 +84,7 @@ export default function AdminControlCenterPage() {
             id: `cash-${c.id}`,
             type: 'open_cash',
             title: 'Caja abierta',
-            description: `Caja abierta por ${c.openedBy || 'usuario'} — ${new Date(c.openingTimestamp).toLocaleString()}`,
+            description: `Caja abierta por ${c.openedByName || c.opened_by_name || c.cashierName || 'usuario'} — ${new Date(c.openingTimestamp).toLocaleString()}`,
             severity: 'medium',
             actionLabel: 'Ver caja',
             actionHref: `/store/${storeId}/cash-register`,

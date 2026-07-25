@@ -37,11 +37,15 @@ export class ClientsController {
   @ApiOperation({ summary: 'Listar clientes de una tienda' })
   findAll(
     @Query('storeId') storeId: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
     @Query('preventaId') preventaId?: string,
     @Query('grupoClienteId') grupoClienteId?: string,
     @Query('sinAsignar') sinAsignar?: boolean,
   ) {
     return this.service.findAll(storeId, {
+      search,
+      limit: limit ? parseInt(limit, 10) : undefined,
       preventaId,
       grupoClienteId,
       sinAsignar,

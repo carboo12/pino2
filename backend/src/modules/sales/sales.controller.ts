@@ -34,7 +34,7 @@ export class SalesController {
   @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({
-    summary: 'Listar ventas (Filtrable por tienda, turno y fecha)',
+    summary: 'Listar ventas (Filtrable por tienda, turno, vendedor y fecha)',
   })
   findAll(
     @Query('storeId') storeId?: string,
@@ -42,8 +42,10 @@ export class SalesController {
     @Query('shiftId') shiftId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('limit') limit?: string,
+    @Query('vendorId') vendorId?: string,
   ) {
-    return this.service.findAll(storeId, shiftId, startDate, endDate, storeIds);
+    return this.service.findAll(storeId, shiftId, startDate, endDate, storeIds, limit ? parseInt(limit, 10) : undefined, vendorId);
   }
 
   @Roles('master-admin', 'store-admin')
@@ -63,8 +65,9 @@ export class SalesController {
     @Query('storeId') storeId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @Query('shiftId') shiftId?: string,
   ) {
-    return this.service.getSalesReport(storeId, startDate, endDate);
+    return this.service.getSalesReport(storeId, startDate, endDate, shiftId);
   }
 
   @Roles('master-admin', 'store-admin')

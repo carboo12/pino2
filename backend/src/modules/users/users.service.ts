@@ -11,7 +11,7 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   constructor(private readonly db: DatabaseService) {}
 
-  async findAll(storeId?: string, role?: string) {
+  async findAll(storeId?: string, role?: string, limit?: number) {
     let sql = `
       SELECT
         u.id,
@@ -38,13 +38,16 @@ export class UsersService {
       )`);
     }
     if (role) {
-      conditions.push(`u.role ILIKE $${params.push(role)}`);
+      conditions.push(`u.role = ANY(string_to_array($${params.push(role)}, ','))`);
     }
     if (conditions.length > 0) {
       sql += ' WHERE ' + conditions.join(' AND ');
     }
     sql +=
       ' GROUP BY u.id, u.email, u.name, u.role, u.is_active, u.created_at ORDER BY u.name ASC';
+    if (limit) {
+      sql += ' LIMIT $' + params.push(limit);
+    }
 
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
