@@ -12,6 +12,7 @@ import { Users, Edit, Eye, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { withAppBase } from '@/lib/runtime-config';
 
 interface User {
   uid: string;
@@ -154,7 +155,7 @@ export default function MasterUsersPage() {
                         localStorage.setItem('access_token', res.data.accessToken);
                         localStorage.setItem('impersonated', 'true');
                         toast.success(`Sesión como ${user.name}`, 'Redirigiendo...');
-                        setTimeout(() => window.location.href = '/', 1000);
+                        setTimeout(() => window.location.href = withAppBase('/'), 1000);
                       } catch {
                         toast.error('Error', 'No se pudo iniciar sesión como este usuario');
                       }
