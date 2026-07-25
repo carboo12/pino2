@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CashShiftsService } from './cash-shifts.service';
@@ -89,7 +90,7 @@ export class CashShiftsController {
   @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un turno de caja específico por ID' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
@@ -97,7 +98,7 @@ export class CashShiftsController {
   @Post(':id/close')
   @ApiOperation({ summary: 'Cerrar un turno de caja por ID en URL' })
   closeShiftById(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CloseShiftDto,
     @Req() req: any,
   ) {

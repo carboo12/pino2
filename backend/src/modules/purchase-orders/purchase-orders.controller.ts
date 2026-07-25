@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PurchaseOrdersService } from './purchase-orders.service';
 import { CreatePurchaseOrderDto, UpdatePurchaseOrderStatusDto } from './purchase-orders.dto';
@@ -31,14 +31,14 @@ export class PurchaseOrdersController {
   @Roles('master-admin', 'store-admin', 'bodeguero')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de orden de compra' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
   @Roles('master-admin', 'store-admin')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Actualizar estado de orden de compra' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdatePurchaseOrderStatusDto, @Request() req: any) {
+  updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePurchaseOrderStatusDto, @Request() req: any) {
     return this.service.updateStatus(id, dto, req.user?.id);
   }
 }

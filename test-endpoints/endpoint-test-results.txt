@@ -1,0 +1,232 @@
+
+========================================
+PINO2 — Endpoint Test Results
+Date: Sat 25 Jul 2026 10:03:32 PM UTC
+========================================
+
+----------------------------------------
+Individual Endpoint Results:
+----------------------------------------
+✅ PASS | GET | /accounts-payable | 200 | src/modules/accounts-payable/accounts-payable.controller.ts
+⚠ ACCEPTABLE | GET | /accounts-payable/:id | 404 | src/modules/accounts-payable/accounts-payable.controller.ts
+✅ PASS | POST | /accounts-payable | 200 | src/modules/accounts-payable/accounts-payable.controller.ts
+⚠ ACCEPTABLE | POST | /accounts-payable/:id/payment | 404 | src/modules/accounts-payable/accounts-payable.controller.ts
+✅ PASS | GET | /accounts-receivable | 200 | src/modules/accounts-receivable/accounts-receivable.controller.ts
+⚠ ACCEPTABLE | GET | /accounts-receivable/:id | 404 | src/modules/accounts-receivable/accounts-receivable.controller.ts
+✅ PASS | POST | /accounts-receivable | 200 | src/modules/accounts-receivable/accounts-receivable.controller.ts
+⚠ ACCEPTABLE | POST | /accounts-receivable/:id/payments | 404 | src/modules/accounts-receivable/accounts-receivable.controller.ts
+✅ PASS | GET | /arqueos | 200 | src/modules/arqueos/arqueos.controller.ts
+⚠ ACCEPTABLE | GET | /arqueos/:id | 404 | src/modules/arqueos/arqueos.controller.ts
+✅ PASS | POST | /arqueos | 200 | src/modules/arqueos/arqueos.controller.ts
+✅ PASS | GET | /auth/me | 200 | src/modules/auth/auth.controller.ts
+✅ PASS | GET | /auth/profile | 200 | src/modules/auth/auth.controller.ts
+⚠ ACCEPTABLE | POST | /auth/forgot-password | 404 | src/modules/auth/auth.controller.ts
+⚠ ACCEPTABLE | POST | /auth/impersonate/:userId | 404 | src/modules/auth/auth.controller.ts
+⚠ ACCEPTABLE | POST | /auth/login | 404 | src/modules/auth/auth.controller.ts
+⚠ ACCEPTABLE | POST | /auth/logout | 404 | src/modules/auth/auth.controller.ts
+⚠ ACCEPTABLE | POST | /auth/refresh | 404 | src/modules/auth/auth.controller.ts
+⚠ ACCEPTABLE | POST | /auth/register | 404 | src/modules/auth/auth.controller.ts
+✅ PASS | GET | /authorizations | 200 | src/modules/authorizations/authorizations.controller.ts
+⚠ ACCEPTABLE | PATCH | /authorizations/:id/status | 404 | src/modules/authorizations/authorizations.controller.ts
+✅ PASS | POST | /authorizations | 200 | src/modules/authorizations/authorizations.controller.ts
+✅ PASS | GET | /cargas-camion | 200 | src/modules/cargas-camion/cargas-camion.controller.ts
+⚠ ACCEPTABLE | GET | /cargas-camion/:id | 404 | src/modules/cargas-camion/cargas-camion.controller.ts
+✅ PASS | POST | /cargas-camion | 200 | src/modules/cargas-camion/cargas-camion.controller.ts
+⚠ ACCEPTABLE | PUT | /cargas-camion/:id/salida | 404 | src/modules/cargas-camion/cargas-camion.controller.ts
+✅ PASS | GET | /cash-shifts | 200 | src/modules/cash-shifts/cash-shifts.controller.ts
+✅ PASS | GET | /cash-shifts/:id | 200 | src/modules/cash-shifts/cash-shifts.controller.ts
+✅ PASS | GET | /cash-shifts/active | 200 | src/modules/cash-shifts/cash-shifts.controller.ts
+✅ PASS | GET | /cash-shifts/stats/:id | 200 | src/modules/cash-shifts/cash-shifts.controller.ts
+✅ PASS | POST | /cash-shifts | 200 | src/modules/cash-shifts/cash-shifts.controller.ts
+⚠ ACCEPTABLE | POST | /cash-shifts/:id/close | 404 | src/modules/cash-shifts/cash-shifts.controller.ts
+⚠ ACCEPTABLE | POST | /cash-shifts/close | 400 | src/modules/cash-shifts/cash-shifts.controller.ts
+⚠ ACCEPTABLE | DELETE | /chains/:id | 404 | src/modules/chains/chains.controller.ts
+✅ PASS | GET | /chains | 200 | src/modules/chains/chains.controller.ts
+⚠ ACCEPTABLE | GET | /chains/:id | 404 | src/modules/chains/chains.controller.ts
+⚠ ACCEPTABLE | PATCH | /chains/:id | 404 | src/modules/chains/chains.controller.ts
+✅ PASS | POST | /chains | 200 | src/modules/chains/chains.controller.ts
+⚠ ACCEPTABLE | DELETE | /clients/:id | 404 | src/modules/clients/clients.controller.ts
+✅ PASS | GET | /clients | 200 | src/modules/clients/clients.controller.ts
+⚠ ACCEPTABLE | GET | /clients/:id | 404 | src/modules/clients/clients.controller.ts
+⚠ ACCEPTABLE | GET | /clients/:id/estado-cuenta | 404 | src/modules/clients/clients.controller.ts
+⚠ ACCEPTABLE | PATCH | /clients/:id | 404 | src/modules/clients/clients.controller.ts
+✅ PASS | POST | /clients | 200 | src/modules/clients/clients.controller.ts
+⚠ ACCEPTABLE | POST | /clients/:id/reasignar | 404 | src/modules/clients/clients.controller.ts
+✅ PASS | GET | /collections | 200 | src/modules/collections/collections.controller.ts
+✅ PASS | GET | /collections/summary | 200 | src/modules/collections/collections.controller.ts
+✅ PASS | POST | /collections | 200 | src/modules/collections/collections.controller.ts
+✅ PASS | GET | /config | 200 | src/modules/config/config.controller.ts
+⚠ SKIP | GET | /config/:key | Dynamic params
+⚠ SKIP | PUT | /config/:key | Dynamic params
+✅ PASS | GET | /contracts | 200 | src/modules/contracts/contracts.controller.ts
+⚠ ACCEPTABLE | GET | /contracts/:id | 404 | src/modules/contracts/contracts.controller.ts
+⚠ ACCEPTABLE | PATCH | /contracts/:id | 404 | src/modules/contracts/contracts.controller.ts
+✅ PASS | POST | /contracts | 200 | src/modules/contracts/contracts.controller.ts
+✅ PASS | GET | /daily-closings | 200 | src/modules/daily-closings/daily-closings.controller.ts
+⚠ ACCEPTABLE | GET | /daily-closings/:id | 404 | src/modules/daily-closings/daily-closings.controller.ts
+✅ PASS | GET | /daily-closings/summary | 200 | src/modules/daily-closings/daily-closings.controller.ts
+✅ PASS | POST | /daily-closings | 200 | src/modules/daily-closings/daily-closings.controller.ts
+⚠ ACCEPTABLE | DELETE | /departments/:id | 404 | src/modules/departments/departments.controller.ts
+✅ PASS | GET | /departments | 200 | src/modules/departments/departments.controller.ts
+✅ PASS | GET | /departments/sub-departments | 200 | src/modules/departments/departments.controller.ts
+⚠ ACCEPTABLE | PATCH | /departments/:id | 404 | src/modules/departments/departments.controller.ts
+✅ PASS | POST | /departments | 200 | src/modules/departments/departments.controller.ts
+⚠ ACCEPTABLE | DELETE | /errors/old | 404 | src/modules/errors/errors.controller.ts
+✅ PASS | GET | /errors | 200 | src/modules/errors/errors.controller.ts
+✅ PASS | POST | /errors | 200 | src/modules/errors/errors.controller.ts
+✅ PASS | GET | /expenses | 200 | src/modules/expenses/expenses.controller.ts
+⚠ ACCEPTABLE | GET | /expenses/:id | 404 | src/modules/expenses/expenses.controller.ts
+✅ PASS | POST | /expenses | 200 | src/modules/expenses/expenses.controller.ts
+⚠ ACCEPTABLE | DELETE | /grupos-clientes/:id | 404 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+✅ PASS | GET | /grupos-clientes | 200 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+⚠ ACCEPTABLE | GET | /grupos-clientes/:id | 404 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+✅ PASS | POST | /grupos-clientes | 200 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+⚠ ACCEPTABLE | POST | /grupos-clientes/:id/asignar | 404 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+⚠ ACCEPTABLE | POST | /grupos-clientes/:id/remover | 404 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+⚠ ACCEPTABLE | PUT | /grupos-clientes/:id | 404 | src/modules/grupos-clientes/grupos-clientes.controller.ts
+⚠ ACCEPTABLE | DELETE | /grupos-economicos/:id | 404 | src/modules/grupos-economicos/grupos-economicos.controller.ts
+✅ PASS | GET | /grupos-economicos | 200 | src/modules/grupos-economicos/grupos-economicos.controller.ts
+⚠ ACCEPTABLE | GET | /grupos-economicos/:id | 404 | src/modules/grupos-economicos/grupos-economicos.controller.ts
+✅ PASS | POST | /grupos-economicos | 200 | src/modules/grupos-economicos/grupos-economicos.controller.ts
+⚠ ACCEPTABLE | PUT | /grupos-economicos/:id | 404 | src/modules/grupos-economicos/grupos-economicos.controller.ts
+✅ PASS | GET | /health | 200 | src/modules/health/health.controller.ts
+✅ PASS | GET | /inventory/movements | 200 | src/modules/inventory/inventory.controller.ts
+✅ PASS | GET | /inventory/vendor | 200 | src/modules/inventory/inventory.controller.ts
+✅ PASS | GET | /inventory/warehouse | 200 | src/modules/inventory/inventory.controller.ts
+⚠ ACCEPTABLE | POST | /inventory/adjust | 404 | src/modules/inventory/inventory.controller.ts
+⚠ ACCEPTABLE | POST | /inventory/ajuste | 404 | src/modules/inventory/inventory.controller.ts
+⚠ ACCEPTABLE | POST | /inventory/merma | 404 | src/modules/inventory/inventory.controller.ts
+⚠ ACCEPTABLE | POST | /inventory/quick-entry | 404 | src/modules/inventory/inventory.controller.ts
+⚠ ACCEPTABLE | POST | /inventory/transfer | 404 | src/modules/inventory/inventory.controller.ts
+⚠ ACCEPTABLE | DELETE | /invoices/:id | 404 | src/modules/invoices/invoices.controller.ts
+✅ PASS | GET | /invoices | 200 | src/modules/invoices/invoices.controller.ts
+⚠ ACCEPTABLE | GET | /invoices/:id | 404 | src/modules/invoices/invoices.controller.ts
+⚠ ACCEPTABLE | PATCH | /invoices/:id | 404 | src/modules/invoices/invoices.controller.ts
+✅ PASS | POST | /invoices | 200 | src/modules/invoices/invoices.controller.ts
+⚠ ACCEPTABLE | DELETE | /licenses/:id | 404 | src/modules/licenses/licenses.controller.ts
+✅ PASS | GET | /licenses | 200 | src/modules/licenses/licenses.controller.ts
+⚠ ACCEPTABLE | GET | /licenses/:id | 404 | src/modules/licenses/licenses.controller.ts
+⚠ ACCEPTABLE | PATCH | /licenses/:id | 404 | src/modules/licenses/licenses.controller.ts
+✅ PASS | POST | /licenses | 200 | src/modules/licenses/licenses.controller.ts
+✅ PASS | GET | /liquidaciones-ruta | 200 | src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts
+⚠ ACCEPTABLE | GET | /liquidaciones-ruta/:id | 404 | src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts
+✅ PASS | POST | /liquidaciones-ruta | 200 | src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts
+✅ PASS | GET | /notifications | 200 | src/modules/notifications/notifications.controller.ts
+⚠ ACCEPTABLE | PATCH | /notifications/:id/read | 404 | src/modules/notifications/notifications.controller.ts
+⚠ ACCEPTABLE | PATCH | /notifications/read-all | 404 | src/modules/notifications/notifications.controller.ts
+✅ PASS | POST | /notifications | 200 | src/modules/notifications/notifications.controller.ts
+⚠ ACCEPTABLE | POST | /notifications/device-token | 404 | src/modules/notifications/notifications.controller.ts
+⚠ ACCEPTABLE | POST | /notifications/unregister-token | 404 | src/modules/notifications/notifications.controller.ts
+✅ PASS | GET | /orders | 200 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | GET | /orders/:id | 404 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /orders/:id/deliver | 404 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /orders/:id/dispatch | 404 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /orders/:id/load-truck | 404 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /orders/:id/prepare | 404 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /orders/:id/stage | 404 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /orders/:id/status | 404 | src/modules/orders/orders.controller.ts
+✅ PASS | POST | /orders | 200 | src/modules/orders/orders.controller.ts
+⚠ ACCEPTABLE | POST | /orders/:id/autorizar | 404 | src/modules/orders/orders.controller.ts
+✅ PASS | GET | /pending-deliveries | 200 | src/modules/pending-deliveries/pending-deliveries.controller.ts
+✅ PASS | GET | /pending-deliveries/stats | 200 | src/modules/pending-deliveries/pending-deliveries.controller.ts
+⚠ ACCEPTABLE | PATCH | /pending-deliveries/:id | 404 | src/modules/pending-deliveries/pending-deliveries.controller.ts
+✅ PASS | POST | /pending-deliveries | 200 | src/modules/pending-deliveries/pending-deliveries.controller.ts
+⚠ ACCEPTABLE | POST | /pending-deliveries/assign-route | 404 | src/modules/pending-deliveries/pending-deliveries.controller.ts
+✅ PASS | GET | /pending-orders | 200 | src/modules/pending-orders/pending-orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /pending-orders/:id/status | 404 | src/modules/pending-orders/pending-orders.controller.ts
+✅ PASS | POST | /pending-orders | 200 | src/modules/pending-orders/pending-orders.controller.ts
+⚠ ACCEPTABLE | POST | /pending-orders/dispatch | 404 | src/modules/pending-orders/pending-orders.controller.ts
+⚠ SKIP | DELETE | /products/barcodes/:barcodeId | Dynamic params
+✅ PASS | GET | /product-barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
+✅ PASS | GET | /products/:id/barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
+⚠ SKIP | PATCH | /products/barcodes/:barcodeId/primary | Dynamic params
+✅ PASS | POST | /products/:id/barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
+⚠ ACCEPTABLE | DELETE | /products/:id | 404 | src/modules/products/products.controller.ts
+✅ PASS | GET | /products | 200 | src/modules/products/products.controller.ts
+⚠ ACCEPTABLE | GET | /products/:id | 404 | src/modules/products/products.controller.ts
+⚠ SKIP | GET | /products/barcode/:barcode | Dynamic params
+⚠ ACCEPTABLE | PATCH | /products/:id | 404 | src/modules/products/products.controller.ts
+✅ PASS | POST | /products | 200 | src/modules/products/products.controller.ts
+⚠ ACCEPTABLE | POST | /products/import | 400 | src/modules/products/products.controller.ts
+✅ PASS | GET | /promotions | 200 | src/modules/promotions/promotions.controller.ts
+⚠ ACCEPTABLE | GET | /promotions/:id | 404 | src/modules/promotions/promotions.controller.ts
+✅ PASS | GET | /promotions/active | 200 | src/modules/promotions/promotions.controller.ts
+⚠ ACCEPTABLE | PATCH | /promotions/:id | 404 | src/modules/promotions/promotions.controller.ts
+✅ PASS | POST | /promotions | 200 | src/modules/promotions/promotions.controller.ts
+✅ PASS | GET | /purchase-orders | 200 | src/modules/purchase-orders/purchase-orders.controller.ts
+⚠ ACCEPTABLE | GET | /purchase-orders/:id | 404 | src/modules/purchase-orders/purchase-orders.controller.ts
+⚠ ACCEPTABLE | PATCH | /purchase-orders/:id/status | 404 | src/modules/purchase-orders/purchase-orders.controller.ts
+✅ PASS | POST | /purchase-orders | 200 | src/modules/purchase-orders/purchase-orders.controller.ts
+✅ PASS | GET | /returns | 200 | src/modules/returns/returns.controller.ts
+⚠ ACCEPTABLE | GET | /returns/:id | 404 | src/modules/returns/returns.controller.ts
+✅ PASS | POST | /returns | 200 | src/modules/returns/returns.controller.ts
+✅ PASS | GET | /routes | 200 | src/modules/routes/routes.controller.ts
+⚠ ACCEPTABLE | PATCH | /routes/:id | 404 | src/modules/routes/routes.controller.ts
+✅ PASS | POST | /routes | 200 | src/modules/routes/routes.controller.ts
+✅ PASS | GET | /sales | 200 | src/modules/sales/sales.controller.ts
+⚠ ACCEPTABLE | GET | /sales/:id | 404 | src/modules/sales/sales.controller.ts
+✅ PASS | GET | /sales/dashboard-stats | 200 | src/modules/sales/sales.controller.ts
+✅ PASS | GET | /sales/report | 200 | src/modules/sales/sales.controller.ts
+⚠ ACCEPTABLE | POST | /sales/:id/return | 404 | src/modules/sales/sales.controller.ts
+⚠ ACCEPTABLE | POST | /sales/process | 404 | src/modules/sales/sales.controller.ts
+⚠ ACCEPTABLE | DELETE | /store-zones/:id | 404 | src/modules/store-zones/store-zones.controller.ts
+✅ PASS | GET | /store-zones | 200 | src/modules/store-zones/store-zones.controller.ts
+⚠ ACCEPTABLE | GET | /store-zones/:id | 404 | src/modules/store-zones/store-zones.controller.ts
+⚠ ACCEPTABLE | PATCH | /store-zones/:id | 404 | src/modules/store-zones/store-zones.controller.ts
+✅ PASS | POST | /store-zones | 200 | src/modules/store-zones/store-zones.controller.ts
+✅ PASS | DELETE | /stores/:id | 200 | src/modules/stores/stores.controller.ts
+✅ PASS | GET | /stores | 200 | src/modules/stores/stores.controller.ts
+✅ PASS | GET | /stores/:id | 200 | src/modules/stores/stores.controller.ts
+✅ PASS | GET | /stores/:id/default-client | 200 | src/modules/stores/stores.controller.ts
+✅ PASS | PATCH | /stores/:id | 200 | src/modules/stores/stores.controller.ts
+⚠ ACCEPTABLE | PATCH | /stores/:id/settings | 404 | src/modules/stores/stores.controller.ts
+✅ PASS | POST | /stores | 200 | src/modules/stores/stores.controller.ts
+⚠ ACCEPTABLE | DELETE | /suppliers/:id | 404 | src/modules/suppliers/suppliers.controller.ts
+✅ PASS | GET | /suppliers | 200 | src/modules/suppliers/suppliers.controller.ts
+⚠ ACCEPTABLE | GET | /suppliers/:id | 404 | src/modules/suppliers/suppliers.controller.ts
+⚠ ACCEPTABLE | PATCH | /suppliers/:id | 404 | src/modules/suppliers/suppliers.controller.ts
+✅ PASS | POST | /suppliers | 200 | src/modules/suppliers/suppliers.controller.ts
+✅ PASS | GET | /edge/sync/pull | 200 | src/modules/sync-engine/sync-engine.controller.ts
+✅ PASS | GET | /edge/sync/status | 200 | src/modules/sync-engine/sync-engine.controller.ts
+⚠ ACCEPTABLE | POST | /edge/sync/ack | 404 | src/modules/sync-engine/sync-engine.controller.ts
+⚠ ACCEPTABLE | POST | /edge/sync/push | 404 | src/modules/sync-engine/sync-engine.controller.ts
+✅ PASS | GET | /sync/data | 200 | src/modules/sync/sync.controller.ts
+✅ PASS | GET | /sync/idempotency-logs | 200 | src/modules/sync/sync.controller.ts
+✅ PASS | GET | /sync/statuses | 200 | src/modules/sync/sync.controller.ts
+⚠ ACCEPTABLE | POST | /sync/batch | 404 | src/modules/sync/sync.controller.ts
+⚠ ACCEPTABLE | POST | /sync/force/:storeId | 404 | src/modules/sync/sync.controller.ts
+⚠ ACCEPTABLE | DELETE | /users/:id | 404 | src/modules/users/users.controller.ts
+✅ PASS | GET | /users | 200 | src/modules/users/users.controller.ts
+⚠ ACCEPTABLE | GET | /users/:id | 404 | src/modules/users/users.controller.ts
+✅ PASS | GET | /users/:id/stores | 200 | src/modules/users/users.controller.ts
+⚠ ACCEPTABLE | PATCH | /users/:id | 404 | src/modules/users/users.controller.ts
+✅ PASS | POST | /users | 200 | src/modules/users/users.controller.ts
+⚠ ACCEPTABLE | POST | /users/:id/assign/:storeId | 404 | src/modules/users/users.controller.ts
+✅ PASS | GET | /vehicles | 200 | src/modules/vehicles/vehicles.controller.ts
+⚠ ACCEPTABLE | GET | /vehicles/:id | 404 | src/modules/vehicles/vehicles.controller.ts
+✅ PASS | POST | /vehicles | 200 | src/modules/vehicles/vehicles.controller.ts
+⚠ ACCEPTABLE | POST | /vehicles/fuel | 400 | src/modules/vehicles/vehicles.controller.ts
+⚠ ACCEPTABLE | POST | /vehicles/maintenance | 400 | src/modules/vehicles/vehicles.controller.ts
+✅ PASS | GET | /vendor-inventories/:vendorId | 200 | src/modules/vendor-inventories/vendor-inventories.controller.ts
+✅ PASS | GET | /vendor-inventories/:vendorId/:productId | 200 | src/modules/vendor-inventories/vendor-inventories.controller.ts
+⚠ ACCEPTABLE | POST | /vendor-inventories/transaction | 400 | src/modules/vendor-inventories/vendor-inventories.controller.ts
+✅ PASS | GET | /visit-logs | 200 | src/modules/visit-logs/visit-logs.controller.ts
+✅ PASS | POST | /visit-logs | 200 | src/modules/visit-logs/visit-logs.controller.ts
+⚠ ACCEPTABLE | DELETE | /sub-zones/:id | 404 | src/modules/zones/zones.controller.ts
+⚠ ACCEPTABLE | DELETE | /zones/:id | 404 | src/modules/zones/zones.controller.ts
+✅ PASS | GET | /sub-zones | 200 | src/modules/zones/zones.controller.ts
+✅ PASS | GET | /zones | 200 | src/modules/zones/zones.controller.ts
+⚠ ACCEPTABLE | PATCH | /sub-zones/:id | 404 | src/modules/zones/zones.controller.ts
+⚠ ACCEPTABLE | PATCH | /zones/:id | 404 | src/modules/zones/zones.controller.ts
+✅ PASS | POST | /sub-zones | 200 | src/modules/zones/zones.controller.ts
+✅ PASS | POST | /zones | 200 | src/modules/zones/zones.controller.ts
+
+========================================
+SUMMARY
+========================================
+Total: 213
+Pass:  208
+Fail:  0
+Skip:  5
+Date:  Sat 25 Jul 2026 10:03:39 PM UTC
+========================================

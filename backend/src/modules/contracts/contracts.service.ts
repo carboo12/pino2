@@ -33,7 +33,7 @@ export class ContractsService {
   }
 
   async findAll(storeId: string, clientId?: string, status?: string) {
-    let sql = `SELECT cc.*, c.name as client_name, u.full_name as created_by_name
+    let sql = `SELECT cc.*, c.name as client_name, u.name as created_by_name
                FROM client_contracts cc
                JOIN clients c ON c.id = cc.client_id
                LEFT JOIN users u ON u.id = cc.created_by
@@ -57,7 +57,7 @@ export class ContractsService {
 
   async findOne(id: string) {
     const res = await this.db.query(
-      `SELECT cc.*, c.name as client_name, u.full_name as created_by_name
+      `SELECT cc.*, c.name as client_name, u.name as created_by_name
        FROM client_contracts cc
        JOIN clients c ON c.id = cc.client_id
        LEFT JOIN users u ON u.id = cc.created_by

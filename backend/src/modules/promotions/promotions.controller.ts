@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PromotionsService } from './promotions.service';
 import { CreatePromotionDto, UpdatePromotionDto } from './promotions.dto';
@@ -38,14 +38,14 @@ export class PromotionsController {
   @Roles('master-admin', 'store-admin', 'cajero', 'vendedor')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de promoción' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
   @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar promoción' })
-  update(@Param('id') id: string, @Body() dto: UpdatePromotionDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePromotionDto) {
     return this.service.update(id, dto);
   }
 }

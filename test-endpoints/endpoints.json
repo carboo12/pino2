@@ -1,0 +1,2281 @@
+[
+  {
+    "method": "GET",
+    "path": "/accounts-payable",
+    "queryParams": [
+      "storeId",
+      "supplierId",
+      "pending"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/accounts-payable/accounts-payable.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/accounts-payable/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/accounts-payable/accounts-payable.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/accounts-payable",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/accounts-payable/accounts-payable.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/accounts-payable/:id/payment",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/accounts-payable/accounts-payable.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/accounts-receivable",
+    "queryParams": [
+      "storeId",
+      "pending",
+      "status",
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/accounts-receivable/accounts-receivable.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/accounts-receivable/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/accounts-receivable/accounts-receivable.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/accounts-receivable",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/accounts-receivable/accounts-receivable.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/accounts-receivable/:id/payments",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/accounts-receivable/accounts-receivable.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/arqueos",
+    "queryParams": [
+      "storeId",
+      "fecha"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/arqueos/arqueos.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/arqueos/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/arqueos/arqueos.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/arqueos",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/arqueos/arqueos.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/me",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/auth/profile",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/forgot-password",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/impersonate/:userId",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "userId"
+    ],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/login",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/logout",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/refresh",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/auth/register",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/auth/auth.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/authorizations",
+    "queryParams": [
+      "storeId",
+      "status"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/authorizations/authorizations.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/authorizations/:id/status",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/authorizations/authorizations.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/authorizations",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/authorizations/authorizations.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/cargas-camion",
+    "queryParams": [
+      "storeId",
+      "fecha"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/cargas-camion/cargas-camion.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/cargas-camion/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/cargas-camion/cargas-camion.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/cargas-camion",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/cargas-camion/cargas-camion.controller.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/cargas-camion/:id/salida",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/cargas-camion/cargas-camion.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/cash-shifts",
+    "queryParams": [
+      "storeId",
+      "status",
+      "cashierId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/cash-shifts/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/cash-shifts/active",
+    "queryParams": [
+      "storeId",
+      "userId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/cash-shifts/stats/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/cash-shifts",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/cash-shifts/:id/close",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/cash-shifts/close",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/cash-shifts/cash-shifts.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/chains/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/chains/chains.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/chains",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/chains/chains.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/chains/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/chains/chains.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/chains/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/chains/chains.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/chains",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/chains/chains.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/clients/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/clients",
+    "queryParams": [
+      "storeId",
+      "search",
+      "limit",
+      "preventaId",
+      "grupoClienteId",
+      "sinAsignar"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/clients/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/clients/:id/estado-cuenta",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/clients/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/clients",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/clients/:id/reasignar",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/clients/clients.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/collections",
+    "queryParams": [
+      "storeId",
+      "ruteroId",
+      "clientId",
+      "date"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/collections/collections.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/collections/summary",
+    "queryParams": [
+      "storeId",
+      "ruteroId",
+      "date"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/collections/collections.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/collections",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/collections/collections.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/config",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/config/config.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/config/:key",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "key"
+    ],
+    "file": "src/modules/config/config.controller.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/config/:key",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "key"
+    ],
+    "file": "src/modules/config/config.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/contracts",
+    "queryParams": [
+      "storeId",
+      "clientId",
+      "status"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/contracts/contracts.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/contracts/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/contracts/contracts.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/contracts/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/contracts/contracts.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/contracts",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/contracts/contracts.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/daily-closings",
+    "queryParams": [
+      "storeId",
+      "ruteroId",
+      "date"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/daily-closings/daily-closings.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/daily-closings/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/daily-closings/daily-closings.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/daily-closings/summary",
+    "queryParams": [
+      "storeId",
+      "userId",
+      "date"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/daily-closings/daily-closings.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/daily-closings",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/daily-closings/daily-closings.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/departments/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/departments/departments.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/departments",
+    "queryParams": [
+      "storeId",
+      "type"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/departments/departments.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/departments/sub-departments",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/departments/departments.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/departments/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/departments/departments.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/departments",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/departments/departments.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/errors/old",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/errors/errors.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/errors",
+    "queryParams": [
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/errors/errors.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/errors",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/errors/errors.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/expenses",
+    "queryParams": [
+      "storeId",
+      "category",
+      "shiftId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/expenses/expenses.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/expenses/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/expenses/expenses.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/expenses",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/expenses/expenses.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/grupos-clientes/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/grupos-clientes",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/grupos-clientes/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/grupos-clientes",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/grupos-clientes/:id/asignar",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/grupos-clientes/:id/remover",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/grupos-clientes/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-clientes/grupos-clientes.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/grupos-economicos/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-economicos/grupos-economicos.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/grupos-economicos",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/grupos-economicos/grupos-economicos.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/grupos-economicos/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-economicos/grupos-economicos.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/grupos-economicos",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/grupos-economicos/grupos-economicos.controller.ts"
+  },
+  {
+    "method": "PUT",
+    "path": "/grupos-economicos/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/grupos-economicos/grupos-economicos.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/health",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/health/health.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/movements",
+    "queryParams": [
+      "storeId",
+      "date",
+      "type",
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/vendor",
+    "queryParams": [
+      "vendorId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/inventory/warehouse",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/adjust",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/ajuste",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/merma",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/quick-entry",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/inventory/transfer",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/inventory/inventory.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/invoices/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/invoices/invoices.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/invoices",
+    "queryParams": [
+      "storeId",
+      "supplierId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/invoices/invoices.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/invoices/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/invoices/invoices.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/invoices/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/invoices/invoices.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/invoices",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/invoices/invoices.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/licenses/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/licenses/licenses.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/licenses",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/licenses/licenses.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/licenses/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/licenses/licenses.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/licenses/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/licenses/licenses.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/licenses",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/licenses/licenses.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/liquidaciones-ruta",
+    "queryParams": [
+      "storeId",
+      "fecha",
+      "ruteroId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/liquidaciones-ruta/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/liquidaciones-ruta",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/notifications",
+    "queryParams": [
+      "storeId",
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/notifications/notifications.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/notifications/:id/read",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/notifications/notifications.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/notifications/read-all",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/notifications/notifications.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/notifications",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/notifications/notifications.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/notifications/device-token",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/notifications/notifications.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/notifications/unregister-token",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/notifications/notifications.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/orders",
+    "queryParams": [
+      "storeId",
+      "status",
+      "vendorId",
+      "clientId",
+      "fromDate",
+      "toDate",
+      "limit",
+      "createdAt"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/orders/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/orders/:id/deliver",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/orders/:id/dispatch",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/orders/:id/load-truck",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/orders/:id/prepare",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/orders/:id/stage",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/orders/:id/status",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/orders",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/orders/:id/autorizar",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/orders/orders.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/pending-deliveries",
+    "queryParams": [
+      "storeId",
+      "status",
+      "ruteroId",
+      "unassigned"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/pending-deliveries/pending-deliveries.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/pending-deliveries/stats",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/pending-deliveries/pending-deliveries.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/pending-deliveries/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/pending-deliveries/pending-deliveries.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/pending-deliveries",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/pending-deliveries/pending-deliveries.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/pending-deliveries/assign-route",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/pending-deliveries/pending-deliveries.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/pending-orders",
+    "queryParams": [
+      "storeId",
+      "status"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/pending-orders/pending-orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/pending-orders/:id/status",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/pending-orders/pending-orders.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/pending-orders",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/pending-orders/pending-orders.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/pending-orders/dispatch",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/pending-orders/pending-orders.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/products/barcodes/:barcodeId",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "barcodeId"
+    ],
+    "file": "src/modules/product-barcodes/product-barcodes.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/product-barcodes",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/product-barcodes/product-barcodes.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/products/:id/barcodes",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/product-barcodes/product-barcodes.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/products/barcodes/:barcodeId/primary",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "barcodeId"
+    ],
+    "file": "src/modules/product-barcodes/product-barcodes.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/products/:id/barcodes",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/product-barcodes/product-barcodes.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/products/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/products",
+    "queryParams": [
+      "storeId",
+      "search",
+      "departmentId",
+      "subDepartmentId",
+      "limit",
+      "offset",
+      "page",
+      "usesInventory",
+      "stockCritical"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/products/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/products/barcode/:barcode",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [
+      "barcode"
+    ],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/products/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/products",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/products/import",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/products/products.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/promotions",
+    "queryParams": [
+      "storeId",
+      "status"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/promotions/promotions.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/promotions/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/promotions/promotions.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/promotions/active",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/promotions/promotions.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/promotions/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/promotions/promotions.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/promotions",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/promotions/promotions.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/purchase-orders",
+    "queryParams": [
+      "storeId",
+      "status"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/purchase-orders/purchase-orders.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/purchase-orders/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/purchase-orders/purchase-orders.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/purchase-orders/:id/status",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/purchase-orders/purchase-orders.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/purchase-orders",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/purchase-orders/purchase-orders.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/returns",
+    "queryParams": [
+      "storeId",
+      "ruteroId",
+      "orderId",
+      "fromDate",
+      "toDate"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/returns/returns.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/returns/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/returns/returns.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/returns",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/returns/returns.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/routes",
+    "queryParams": [
+      "storeId",
+      "vendorId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/routes/routes.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/routes/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/routes/routes.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/routes",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/routes/routes.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sales",
+    "queryParams": [
+      "storeId",
+      "storeIds",
+      "shiftId",
+      "startDate",
+      "endDate",
+      "limit",
+      "vendorId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sales/sales.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sales/:id",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/sales/sales.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sales/dashboard-stats",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sales/sales.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sales/report",
+    "queryParams": [
+      "storeId",
+      "startDate",
+      "endDate",
+      "shiftId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sales/sales.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/sales/:id/return",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/sales/sales.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/sales/process",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/sales/sales.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/store-zones/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/store-zones/store-zones.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/store-zones",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/store-zones/store-zones.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/store-zones/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/store-zones/store-zones.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/store-zones/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/store-zones/store-zones.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/store-zones",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/store-zones/store-zones.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/stores/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/stores",
+    "queryParams": [
+      "chainId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/stores/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/stores/:id/default-client",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/stores/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/stores/:id/settings",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/stores",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/stores/stores.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/suppliers/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/suppliers/suppliers.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/suppliers",
+    "queryParams": [
+      "chainId",
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/suppliers/suppliers.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/suppliers/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/suppliers/suppliers.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/suppliers/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/suppliers/suppliers.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/suppliers",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/suppliers/suppliers.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/edge/sync/pull",
+    "queryParams": [
+      "storeId",
+      "cursor",
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sync-engine/sync-engine.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/edge/sync/status",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sync-engine/sync-engine.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/edge/sync/ack",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/sync-engine/sync-engine.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/edge/sync/push",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/sync-engine/sync-engine.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sync/data",
+    "queryParams": [
+      "storeId",
+      "lastSyncTimestamp",
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sync/sync.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sync/idempotency-logs",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sync/sync.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sync/statuses",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/sync/sync.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/sync/batch",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/sync/sync.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/sync/force/:storeId",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "storeId"
+    ],
+    "file": "src/modules/sync/sync.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/users/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/users",
+    "queryParams": [
+      "storeId",
+      "role",
+      "limit"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/users/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/users/:id/stores",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/users/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/users",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/users/:id/assign/:storeId",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id",
+      "storeId"
+    ],
+    "file": "src/modules/users/users.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/vehicles",
+    "queryParams": [
+      "storeId",
+      "status"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/vehicles/vehicles.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/vehicles/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/vehicles/vehicles.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/vehicles",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/vehicles/vehicles.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/vehicles/fuel",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/vehicles/vehicles.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/vehicles/maintenance",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/vehicles/vehicles.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/vendor-inventories/:vendorId",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "vendorId"
+    ],
+    "file": "src/modules/vendor-inventories/vendor-inventories.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/vendor-inventories/:vendorId/:productId",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "vendorId",
+      "productId"
+    ],
+    "file": "src/modules/vendor-inventories/vendor-inventories.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/vendor-inventories/transaction",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/vendor-inventories/vendor-inventories.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/visit-logs",
+    "queryParams": [
+      "storeId",
+      "days"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/visit-logs/visit-logs.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/visit-logs",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/visit-logs/visit-logs.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/sub-zones/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "DELETE",
+    "path": "/zones/:id",
+    "queryParams": [],
+    "bodyParams": [],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/sub-zones",
+    "queryParams": [
+      "zoneId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "GET",
+    "path": "/zones",
+    "queryParams": [
+      "storeId"
+    ],
+    "bodyParams": [],
+    "pathParams": [],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/sub-zones/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "PATCH",
+    "path": "/zones/:id",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [
+      "id"
+    ],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/sub-zones",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/zones/zones.controller.ts"
+  },
+  {
+    "method": "POST",
+    "path": "/zones",
+    "queryParams": [],
+    "bodyParams": [
+      ""
+    ],
+    "pathParams": [],
+    "file": "src/modules/zones/zones.controller.ts"
+  }
+]

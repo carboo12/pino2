@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ContractsService } from './contracts.service';
 import { CreateContractDto, UpdateContractDto } from './contracts.dto';
@@ -35,14 +35,14 @@ export class ContractsController {
   @Roles('master-admin', 'store-admin', 'vendedor')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de contrato' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
   @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar contrato' })
-  update(@Param('id') id: string, @Body() dto: UpdateContractDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateContractDto) {
     return this.service.update(id, dto);
   }
 }

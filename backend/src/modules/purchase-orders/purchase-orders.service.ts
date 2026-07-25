@@ -50,7 +50,7 @@ export class PurchaseOrdersService {
   }
 
   async findAll(storeId: string, status?: string) {
-    let sql = `SELECT po.*, s.name as supplier_name, u.full_name as created_by_name
+    let sql = `SELECT po.*, s.name as supplier_name, u.name as created_by_name
                FROM purchase_orders po
                LEFT JOIN suppliers s ON s.id = po.supplier_id
                LEFT JOIN users u ON u.id = po.created_by
@@ -70,7 +70,7 @@ export class PurchaseOrdersService {
   async findOne(id: string, client?: any) {
     const queryClient = client || this.db;
     const res = await queryClient.query(
-      `SELECT po.*, s.name as supplier_name, u.full_name as created_by_name
+      `SELECT po.*, s.name as supplier_name, u.name as created_by_name
        FROM purchase_orders po
        LEFT JOIN suppliers s ON s.id = po.supplier_id
        LEFT JOIN users u ON u.id = po.created_by

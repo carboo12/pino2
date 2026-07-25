@@ -6,6 +6,7 @@ import {
   Post,
   Req,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { VendorInventoriesService } from './vendor-inventories.service';
@@ -28,8 +29,8 @@ export class VendorInventoriesController {
     summary: 'Obtener inventario de un producto asignado a un vendedor',
   })
   getInventory(
-    @Param('vendorId') vendorId: string,
-    @Param('productId') productId: string,
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
   ) {
     return this.service.getInventory(vendorId, productId);
   }
@@ -37,7 +38,7 @@ export class VendorInventoriesController {
   @Roles('master-admin', 'store-admin')
   @Get(':vendorId')
   @ApiOperation({ summary: 'Listar productos asignados a un vendedor' })
-  getVendorProducts(@Param('vendorId') vendorId: string) {
+  getVendorProducts(@Param('vendorId', ParseUUIDPipe) vendorId: string) {
     return this.service.getVendorProducts(vendorId);
   }
 

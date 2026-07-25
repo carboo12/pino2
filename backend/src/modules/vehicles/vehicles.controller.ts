@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto, CreateVehicleMaintenanceDto, CreateFuelLogDto } from './vehicles.dto';
@@ -31,7 +31,7 @@ export class VehiclesController {
   @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de vehículo con historial' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 

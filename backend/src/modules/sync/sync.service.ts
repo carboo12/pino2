@@ -185,11 +185,19 @@ export class SyncService {
     const fetchPage = async (
       table: string,
       extraConditions: string = '',
+      sortColumn: string = 'updated_at',
+      timeCol: string = 'updated_at',
     ): Promise<{ items: any[]; hasMore: boolean }> => {
-      const queryParams = [...params, limit + 1];
-      const limitIdx = queryParams.length;
-      const query = `SELECT * FROM ${table} WHERE store_id = $1 ${extraConditions}${timeCondition} ORDER BY updated_at DESC NULLS LAST LIMIT $${limitIdx}`;
-      const result = await this.db.query(query, queryParams);
+      const effectiveTimeCondition = lastSyncTimestamp
+        ? ` AND (${timeCol} > $2 OR created_at > $2)`
+        : '';
+      const queryParams = lastSyncTimestamp
+        ? [storeId, new Date(lastSyncTimestamp)]
+        : [storeId];
+      const limitIdx = queryParams.length + 1;
+      const queryParamsWithLimit = [...queryParams, limit + 1];
+      const query = `SELECT * FROM ${table} WHERE store_id = $1 ${extraConditions}${effectiveTimeCondition} ORDER BY ${sortColumn} DESC NULLS LAST LIMIT $${limitIdx}`;
+      const result = await this.db.query(query, queryParamsWithLimit);
       return {
         items: result.rows.slice(0, limit),
         hasMore: result.rows.length > limit,
@@ -199,7 +207,7 @@ export class SyncService {
     const [products, productBarcodes, clients] = await Promise.all([
       fetchPage('products', 'AND (is_active = true OR deleted_at IS NOT NULL)'),
       fetchPage('product_barcodes'),
-      fetchPage('clients', 'AND (is_active = true OR deleted_at IS NOT NULL)'),
+      fetchPage('clients', 'AND (is_active = true OR deleted_at IS NOT NULL)', 'created_at', 'created_at'),
     ]);
 
     return {

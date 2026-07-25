@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -112,21 +113,21 @@ export class ProductsController {
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un producto' })
   @ApiOkResponse({ type: ProductResponseDto })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.findOne(id);
   }
 
   @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar producto' })
-  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
   @Roles('master-admin', 'store-admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar producto (Desactivación lógica)' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.productsService.remove(id);
   }
 }
