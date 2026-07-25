@@ -31,7 +31,9 @@ export class OrdersService {
       priceLevel?: number;
       items: {
         productId: string;
-        quantity: number;
+        quantity?: number;
+        bulkCount?: number;
+        looseUnitCount?: number;
         presentation?: string;
         priceLevel?: number;
       }[];
@@ -70,10 +72,15 @@ export class OrdersService {
       // Lookup prices from DB, never trust client unitPrice
       const priceLevel = dto.priceLevel || 1;
       const priceColumn = `price${Math.min(Math.max(priceLevel, 1), 5)}`;
-      const itemPrices: Map<string, number> = new Map();
+      const itemDetails: Map<
+        string,
+        { unitPrice: number; bulkPrice: number; unitsPerBulk: number; handlesBulk: boolean }
+      > = new Map();
       for (const item of dto.items) {
+        const bulkPriceColumn = `bulk_price_${Math.min(Math.max(priceLevel, 1), 5)}`;
         const prodRes = await client.query(
-          `SELECT id, ${priceColumn} as price, uses_inventory, current_stock
+          `SELECT id, ${priceColumn} as price, ${bulkPriceColumn} as bulk_price,
+                  uses_inventory, current_stock, units_per_bulk, handles_bulk
              FROM products
             WHERE id = $1 AND store_id = $2 AND is_active = true
             FOR UPDATE`,
@@ -84,19 +91,38 @@ export class OrdersService {
             `Producto ${item.productId} no encontrado en la tienda`,
           );
         }
-        const p = Number(prodRes.rows[0].price);
-        if (!Number.isFinite(p) || p < 0) {
+        const row = prodRes.rows[0];
+        const unitPrice = Number(row.price);
+        const bulkPrice = Number(row.bulk_price || 0);
+        if (!Number.isFinite(unitPrice) || unitPrice < 0) {
           throw new BadRequestException(
             `Precio no configurado para producto ${item.productId}`,
           );
         }
-        itemPrices.set(item.productId, p);
+        itemDetails.set(item.productId, {
+          unitPrice,
+          bulkPrice,
+          unitsPerBulk: parseInt(row.units_per_bulk || 1, 10),
+          handlesBulk: row.handles_bulk === true && parseInt(row.units_per_bulk || 1, 10) > 1,
+        });
       }
 
-      const total = dto.items.reduce(
-        (sum, i) => sum + i.quantity * (itemPrices.get(i.productId) || 0),
-        0,
-      );
+      let total = 0;
+      for (const item of dto.items) {
+        const details = itemDetails.get(item.productId)!;
+        const unitsPerBulk = details.unitsPerBulk;
+        const handlesBulk = details.handlesBulk;
+        const bulkCount = item.bulkCount ?? 0;
+        const looseUnitCount = item.looseUnitCount ?? 0;
+        const totalUnits =
+          handlesBulk && (bulkCount > 0 || looseUnitCount > 0)
+            ? bulkCount * unitsPerBulk + looseUnitCount
+            : item.quantity ?? bulkCount * unitsPerBulk + looseUnitCount;
+        const lineTotal = handlesBulk
+          ? bulkCount * details.bulkPrice + looseUnitCount * details.unitPrice
+          : totalUnits * details.unitPrice;
+        total += lineTotal;
+      }
 
       const orderType = dto.type || 'pedido';
       const isDirectSale = orderType === 'venta_directa';
@@ -177,18 +203,34 @@ export class OrdersService {
       }
 
       for (const item of dto.items) {
-        const serverPrice = itemPrices.get(item.productId) || 0;
+        const details = itemDetails.get(item.productId)!;
+        const unitsPerBulk = details.unitsPerBulk;
+        const handlesBulk = details.handlesBulk;
+        const bulkCount = item.bulkCount ?? 0;
+        const looseUnitCount = item.looseUnitCount ?? 0;
+        const totalUnits =
+          handlesBulk && (bulkCount > 0 || looseUnitCount > 0)
+            ? bulkCount * unitsPerBulk + looseUnitCount
+            : item.quantity ?? bulkCount * unitsPerBulk + looseUnitCount;
+        const lineTotal = handlesBulk
+          ? bulkCount * details.bulkPrice + looseUnitCount * details.unitPrice
+          : totalUnits * details.unitPrice;
         await client.query(
-          `INSERT INTO order_items (order_id, product_id, quantity, unit_price, subtotal, presentation, price_level)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          `INSERT INTO order_items (order_id, product_id, quantity, quantity_bulks, quantity_units, unit_price, bulk_price, subtotal, presentation, price_level, handles_bulk_snapshot, units_per_bulk_snapshot)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             order.id,
             item.productId,
-            item.quantity,
-            serverPrice,
-            item.quantity * serverPrice,
+            totalUnits,
+            bulkCount,
+            looseUnitCount,
+            details.unitPrice,
+            details.bulkPrice,
+            lineTotal,
             item.presentation || 'UNIT',
             item.priceLevel || priceLevel,
+            handlesBulk,
+            unitsPerBulk,
           ],
         );
       }
@@ -451,12 +493,10 @@ export class OrdersService {
           const updated = await client.query(
             `UPDATE products 
                 SET current_stock = current_stock - $1,
-                    stock_bulks = (current_stock - $1) / units_per_bulk,
-                    stock_units = (current_stock - $1) % units_per_bulk,
                     updated_at = NOW()
               WHERE id = $2
                 AND current_stock >= $1
-              RETURNING current_stock`,
+              RETURNING current_stock, units_per_bulk, handles_bulk`,
             [totalUnits, item.product_id],
           );
           if (updated.rowCount !== 1) {
@@ -464,6 +504,10 @@ export class OrdersService {
               `Stock insuficiente para producto ${item.product_id}`,
             );
           }
+
+          const prodAfter = updated.rows[0];
+          const upbAfter = parseInt(prodAfter.units_per_bulk || 1, 10);
+          const hbAfter = prodAfter.handles_bulk === true;
 
           // Sumar a vendor_inventories
           const viRes = await client.query(
@@ -503,12 +547,10 @@ export class OrdersService {
           }
 
           // Kardex
+          const curStock = Number(prodAfter.current_stock);
           await client.query(
-            `
-            INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference)
-            SELECT $1, $2, $3, 'OUT', $4, $5, $6, current_stock, stock_bulks, stock_units, $7
-            FROM products WHERE id = $2
-          `,
+            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot)
+             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
             [
               storeId,
               item.product_id,
@@ -516,7 +558,12 @@ export class OrdersService {
               totalUnits,
               qtyBulks,
               qtyUnits,
+              curStock,
+              Math.floor(curStock / upbAfter),
+              curStock % upbAfter,
               `Cargado a camión - Pedido ${id}`,
+              hbAfter,
+              upbAfter,
             ],
           );
         }

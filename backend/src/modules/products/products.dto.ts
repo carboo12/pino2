@@ -5,7 +5,21 @@ import {
   IsNumber,
   IsBoolean,
   IsArray,
+  IsInt,
+  Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class InitialStockDto {
+  @IsInt()
+  @Min(0)
+  bulkCount: number;
+
+  @IsInt()
+  @Min(0)
+  looseUnitCount: number;
+}
 
 export class CreateProductDto {
   @IsString()
@@ -71,19 +85,7 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsOptional()
-  currentStock?: number;
-
-  @IsNumber()
-  @IsOptional()
   unitsPerBulk?: number;
-
-  @IsNumber()
-  @IsOptional()
-  stockBulks?: number;
-
-  @IsNumber()
-  @IsOptional()
-  stockUnits?: number;
 
   @IsNumber()
   @IsOptional()
@@ -120,6 +122,15 @@ export class CreateProductDto {
   @IsNumber()
   @IsOptional()
   bulkPrice5?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  handlesBulk?: boolean;
+
+  @ValidateNested()
+  @Type(() => InitialStockDto)
+  @IsOptional()
+  initialStock?: InitialStockDto;
 }
 
 export class UpdateProductDto {
@@ -189,14 +200,6 @@ export class UpdateProductDto {
 
   @IsNumber()
   @IsOptional()
-  stockBulks?: number;
-
-  @IsNumber()
-  @IsOptional()
-  stockUnits?: number;
-
-  @IsNumber()
-  @IsOptional()
   minStock?: number;
 
   @IsBoolean()
@@ -234,6 +237,10 @@ export class UpdateProductDto {
   @IsNumber()
   @IsOptional()
   bulkPrice5?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  handlesBulk?: boolean;
 }
 
 export interface Product {
@@ -259,20 +266,22 @@ export interface Product {
   bulkPrice4: number;
   bulkPrice5: number;
   currentStock: number;
+  stockTotalUnits: number;
   unitsPerBulk: number;
-  stockBulks: number;
-  stockUnits: number;
+  stockDisplay: {
+    bulkCount: number;
+    looseUnitCount: number;
+    formatted: string;
+  };
   minStock: number;
   usesInventory: boolean;
+  handlesBulk: boolean;
   supplierId?: string;
   subDepartment: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
-
-import { Type } from 'class-transformer';
-import { ValidateNested } from 'class-validator';
 
 export class ImportBulkProductsDto {
   @IsString()

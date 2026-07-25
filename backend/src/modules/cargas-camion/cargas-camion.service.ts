@@ -62,13 +62,11 @@ export class CargasCamionService {
           const updated = await client.query(
             `UPDATE products
                 SET current_stock = current_stock - $1,
-                    stock_bulks = (current_stock - $1) / units_per_bulk,
-                    stock_units = (current_stock - $1) % units_per_bulk,
                     updated_at = NOW()
               WHERE id = $2
                 AND store_id = $3
                 AND current_stock >= $1
-              RETURNING current_stock, stock_bulks, stock_units`,
+              RETURNING current_stock, units_per_bulk, handles_bulk`,
             [totalUnits, item.product_id, dto.storeId],
           );
           if (updated.rowCount !== 1) {
@@ -109,9 +107,14 @@ export class CargasCamionService {
             );
           }
 
+          const prodAfter = updated.rows[0];
+          const curStock = Number(prodAfter.current_stock);
+          const upbAfter = parseInt(prodAfter.units_per_bulk || 1, 10);
+          const hbAfter = prodAfter.handles_bulk === true;
+
           await client.query(
-            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference)
-             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10)`,
+            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot)
+             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
             [
               dto.storeId,
               item.product_id,
@@ -119,10 +122,12 @@ export class CargasCamionService {
               totalUnits,
               qtyBulks,
               qtyUnits,
-              Number(updated.rows[0].current_stock),
-              Number(updated.rows[0].stock_bulks),
-              Number(updated.rows[0].stock_units),
+              curStock,
+              Math.floor(curStock / upbAfter),
+              curStock % upbAfter,
               `Cargado a camión - Pedido ${orderId}`,
+              hbAfter,
+              upbAfter,
             ],
           );
 

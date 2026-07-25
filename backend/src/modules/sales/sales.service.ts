@@ -37,7 +37,9 @@ export class SalesService {
       items: Array<{
         id?: string;
         productId?: string;
-        quantity: number;
+        quantity?: number;
+        bulkCount?: number;
+        looseUnitCount?: number;
       }>;
       paymentMethod: string;
       paymentCurrency?: string;
@@ -88,20 +90,23 @@ export class SalesService {
       const processedItems: Array<{
         productId: string;
         quantity: number;
+        bulkCount: number;
+        looseUnitCount: number;
         unitPrice: number;
+        bulkPrice: number;
         usesInventory: boolean;
         unitsPerBulk: number;
+        handlesBulk: boolean;
         currentStock: number;
-        stockBulks: number;
-        stockUnits: number;
       }> = [];
 
       for (const item of dto.items) {
         const productId = item.productId || item.id;
 
         const prodRes = await client.query(
-          `SELECT id, store_id, current_stock, uses_inventory, units_per_bulk, is_active,
-                  price1, price2, price3, price4, price5
+          `SELECT id, store_id, current_stock, uses_inventory, units_per_bulk, handles_bulk, is_active,
+                  price1, price2, price3, price4, price5,
+                  bulk_price_1, bulk_price_2, bulk_price_3, bulk_price_4, bulk_price_5
              FROM products
             WHERE id = $1 AND store_id = $2 AND is_active = true
             FOR UPDATE`,
@@ -114,47 +119,56 @@ export class SalesService {
         const row = prodRes.rows[0];
         const level = 1;
         const unitPrice = Number(row[`price${level}`]);
+        const bulkPrice = Number(row[`bulk_price_${level}`]);
         if (!Number.isFinite(unitPrice) || unitPrice < 0) {
           throw new BadRequestException('Precio no configurado');
         }
 
-        const lineTotal = item.quantity * unitPrice;
-        subtotal += lineTotal;
+        const unitsPerBulk = parseInt(row.units_per_bulk || 1, 10);
+        const handlesBulk = row.handles_bulk === true && unitsPerBulk > 1;
+
+        const bulkCount = item.bulkCount ?? 0;
+        const looseUnitCount = item.looseUnitCount ?? 0;
+        const totalUnits =
+          handlesBulk && (bulkCount > 0 || looseUnitCount > 0)
+            ? bulkCount * unitsPerBulk + looseUnitCount
+            : item.quantity ?? bulkCount * unitsPerBulk + looseUnitCount;
+
+        const lineSubtotal = handlesBulk
+          ? bulkCount * bulkPrice + looseUnitCount * unitPrice
+          : totalUnits * unitPrice;
+        subtotal += lineSubtotal;
 
         let currentStock = 0;
-        let stockBulks = 0;
-        let stockUnits = 0;
 
         if (row.uses_inventory) {
           const updated = await client.query(
             `UPDATE products
                 SET current_stock = current_stock - $1,
-                    stock_bulks = (current_stock - $1) / units_per_bulk,
-                    stock_units = (current_stock - $1) % units_per_bulk,
                     updated_at = now()
               WHERE id = $2
                 AND store_id = $3
                 AND current_stock >= $1
-              RETURNING current_stock, stock_bulks, stock_units`,
-            [item.quantity, productId, dto.storeId],
+              RETURNING current_stock`,
+            [totalUnits, productId, dto.storeId],
           );
           if (updated.rowCount !== 1) {
             throw new ConflictException('Stock insuficiente');
           }
           currentStock = Number(updated.rows[0].current_stock);
-          stockBulks = Number(updated.rows[0].stock_bulks);
-          stockUnits = Number(updated.rows[0].stock_units);
         }
 
         processedItems.push({
           productId,
-          quantity: item.quantity,
+          quantity: totalUnits,
+          bulkCount,
+          looseUnitCount,
           unitPrice,
+          bulkPrice,
           usesInventory: row.uses_inventory,
-          unitsPerBulk: row.units_per_bulk || 1,
+          unitsPerBulk,
+          handlesBulk,
           currentStock,
-          stockBulks,
-          stockUnits,
         });
       }
       const tax = subtotal * 0.15;
@@ -181,9 +195,20 @@ export class SalesService {
         const lineTotal = item.quantity * item.unitPrice;
 
         await client.query(
-          `INSERT INTO sale_items (sale_id, product_id, quantity, unit_price, subtotal) 
-           VALUES ($1, $2, $3, $4, $5)`,
-          [sale.id, item.productId, item.quantity, item.unitPrice, lineTotal],
+          `INSERT INTO sale_items (sale_id, product_id, quantity, quantity_bulks, quantity_units, unit_price, subtotal, handles_bulk_snapshot, units_per_bulk_snapshot, bulk_price) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [
+            sale.id,
+            item.productId,
+            item.quantity,
+            item.bulkCount,
+            item.looseUnitCount,
+            item.unitPrice,
+            lineTotal,
+            item.handlesBulk,
+            item.unitsPerBulk,
+            item.bulkPrice,
+          ],
         );
 
         if (item.usesInventory) {
@@ -191,8 +216,8 @@ export class SalesService {
           const qtyUnits = item.quantity % item.unitsPerBulk;
 
           await client.query(
-            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference) 
-             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10)`,
+            `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot) 
+             VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
             [
               dto.storeId,
               item.productId,
@@ -201,9 +226,11 @@ export class SalesService {
               qtyBulks,
               qtyUnits,
               item.currentStock,
-              item.stockBulks,
-              item.stockUnits,
+              Math.floor(item.currentStock / item.unitsPerBulk),
+              item.currentStock % item.unitsPerBulk,
               `Venta Ticket: ${ticketNumber}`,
+              item.handlesBulk,
+              item.unitsPerBulk,
             ],
           );
         }
@@ -263,7 +290,11 @@ export class SalesService {
         items: processedItems.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
+          bulkCount: i.bulkCount,
+          looseUnitCount: i.looseUnitCount,
           unitPrice: i.unitPrice,
+          bulkPrice: i.bulkPrice,
+          handlesBulk: i.handlesBulk,
         })),
         clientName: dto.clientName || null,
         createdAt: sale.created_at,
@@ -349,6 +380,8 @@ export class SalesService {
       description: r.description,
       barcode: r.barcode,
       quantity: parseInt(r.quantity),
+      bulkCount: parseInt(r.quantity_bulks || 0),
+      looseUnitCount: parseInt(r.quantity_units || 0),
       unitPrice: parseFloat(r.unit_price),
       salePrice: parseFloat(r.unit_price),
       subtotal: parseFloat(r.subtotal),
@@ -385,7 +418,7 @@ export class SalesService {
         totalRefund += unitPrice * item.quantity;
 
         const prodLockRes = await client.query(
-          'SELECT current_stock, units_per_bulk FROM products WHERE id = $1 FOR UPDATE',
+          'SELECT current_stock, units_per_bulk, handles_bulk FROM products WHERE id = $1 FOR UPDATE',
           [resolvedProductId],
         );
         if (prodLockRes.rowCount === 0) {
@@ -396,19 +429,20 @@ export class SalesService {
         const unitsPerBulk = this.toUnitsPerBulk(
           prodLockRes.rows[0].units_per_bulk,
         );
+        const handlesBulk = prodLockRes.rows[0].handles_bulk === true;
         const newBalance = currentStock + item.quantity;
         const stockSplit = this.toSplit(newBalance, unitsPerBulk);
         const returnedSplit = this.toSplit(item.quantity, unitsPerBulk);
 
         await client.query(
-          'UPDATE products SET current_stock = $1, stock_bulks = $2, stock_units = $3, updated_at = NOW() WHERE id = $4',
-          [newBalance, stockSplit.bulks, stockSplit.units, resolvedProductId],
+          'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
+          [newBalance, resolvedProductId],
         );
 
         // Log inventory movement
         await client.query(
-          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference)
-           VALUES ($1, $2, $3, 'IN', $4, $5, $6, $7, $8, $9, $10)`,
+          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot)
+           VALUES ($1, $2, $3, 'IN', $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             sale.store_id,
             resolvedProductId,
@@ -420,6 +454,8 @@ export class SalesService {
             stockSplit.bulks,
             stockSplit.units,
             `Devolución Venta: ${sale.ticket_number}. ${dto.reason || ''}`,
+            handlesBulk,
+            unitsPerBulk,
           ],
         );
       }

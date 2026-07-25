@@ -97,8 +97,8 @@ export class InventoryService {
       const qtyUnits = quantity % unitsPerBulk;
 
       await client.query(
-        'UPDATE products SET current_stock = $1, stock_bulks = $2, stock_units = $3, updated_at = NOW() WHERE id = $4',
-        [newStock, balanceBulks, balanceUnits, dto.productId],
+        'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
+        [newStock, dto.productId],
       );
 
       const movRes = await client.query(

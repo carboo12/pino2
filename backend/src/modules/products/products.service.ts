@@ -30,10 +30,9 @@ interface ProductRow {
   bulk_price_5: string | number;
   current_stock: string | number;
   units_per_bulk: string | number;
-  stock_bulks: string | number;
-  stock_units: string | number;
   min_stock: string | number;
   uses_inventory: boolean;
+  handles_bulk: boolean;
   supplier_id: string;
   sub_department: string;
   is_active: boolean;
@@ -53,44 +52,40 @@ export class ProductsService {
       1,
       parseInt(String(dto.unitsPerBulk ?? 1), 10) || 1,
     );
-    const hasSplitStock =
-      dto.stockBulks !== undefined || dto.stockUnits !== undefined;
 
-    const stockBulks = hasSplitStock
-      ? Math.max(0, parseInt(String(dto.stockBulks ?? 0), 10) || 0)
-      : Math.floor(
-          (parseInt(String(dto.currentStock ?? 0), 10) || 0) / unitsPerBulk,
-        );
+    let currentStock = Math.max(
+      0,
+      parseInt(String((dto as any).currentStock ?? 0), 10) || 0,
+    );
 
-    const stockUnits = hasSplitStock
-      ? Math.max(0, parseInt(String(dto.stockUnits ?? 0), 10) || 0)
-      : (parseInt(String(dto.currentStock ?? 0), 10) || 0) % unitsPerBulk;
+    if ('initialStock' in dto && dto.initialStock) {
+      currentStock =
+        dto.initialStock.bulkCount * unitsPerBulk +
+        dto.initialStock.looseUnitCount;
+    }
 
-    const currentStock = hasSplitStock
-      ? stockBulks * unitsPerBulk + stockUnits
-      : Math.max(0, parseInt(String(dto.currentStock ?? 0), 10) || 0);
-
-    return { unitsPerBulk, stockBulks, stockUnits, currentStock };
+    return { unitsPerBulk, currentStock };
   }
 
   async create(dto: CreateProductDto): Promise<Product> {
     const inventory = this.normalizeInventory(dto);
+    const handlesBulk = dto.handlesBulk ?? (dto.unitsPerBulk !== undefined && dto.unitsPerBulk > 1);
     const res = await this.db.query<ProductRow>(
       `INSERT INTO products (
          store_id, department_id, barcode, description, brand,
          sale_price, cost_price, wholesale_price,
          price1, price2, price3, price4, price5,
          bulk_price_1, bulk_price_2, bulk_price_3, bulk_price_4, bulk_price_5,
-         current_stock, units_per_bulk, stock_bulks, stock_units,
-         min_stock, uses_inventory, supplier_id, sub_department
+         current_stock, units_per_bulk,
+         min_stock, uses_inventory, supplier_id, sub_department, handles_bulk
        )
        VALUES (
          $1, $2, $3, $4, $5,
          $6, $7, $8,
          $9, $10, $11, $12, $13,
          $14, $15, $16, $17, $18,
-         $19, $20, $21, $22,
-         $23, $24, $25, $26
+         $19, $20,
+         $21, $22, $23, $24, $25
        ) RETURNING id`,
       [
         dto.storeId,
@@ -113,12 +108,11 @@ export class ProductsService {
         dto.bulkPrice5 ?? 0,
         inventory.currentStock,
         inventory.unitsPerBulk,
-        inventory.stockBulks,
-        inventory.stockUnits,
         dto.minStock || 0,
         dto.usesInventory !== undefined ? dto.usesInventory : true,
         dto.supplierId || null,
         dto.subDepartment || null,
+        handlesBulk,
       ],
     );
 
@@ -293,8 +287,7 @@ export class ProductsService {
       subDepartment: 'sub_department',
       isActive: 'is_active',
       unitsPerBulk: 'units_per_bulk',
-      stockBulks: 'stock_bulks',
-      stockUnits: 'stock_units',
+      handlesBulk: 'handles_bulk',
       price1: 'price1',
       price2: 'price2',
       price3: 'price3',
@@ -424,11 +417,17 @@ export class ProductsService {
         }
 
         // Insert product
+        const upb = Math.max(1, parseInt(String(product.unitsPerBulk ?? 1), 10) || 1);
+        const handlesBulk = product.handlesBulk ?? (product.unitsPerBulk !== undefined && product.unitsPerBulk > 1);
+        let stockQty = (product as any).currentStock || 0;
+        if (product.initialStock) {
+          stockQty = product.initialStock.bulkCount * upb + product.initialStock.looseUnitCount;
+        }
         const prodRes = await client.query<{ id: string }>(
           `INSERT INTO products (store_id, department_id, barcode, description, 
             sale_price, cost_price, price1, price2, price3, price4, price5,
-            current_stock, min_stock, sub_department)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id`,
+            current_stock, units_per_bulk, min_stock, sub_department, handles_bulk)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`,
           [
             dto.storeId,
             departmentId,
@@ -441,9 +440,11 @@ export class ProductsService {
             product.price3 || 0,
             product.price4 || 0,
             product.price5 || 0,
-            product.currentStock || 0,
+            stockQty,
+            upb,
             product.minStock || 0,
             product.subDepartment || null,
+            handlesBulk,
           ],
         );
         const productId = prodRes.rows[0].id;
@@ -471,16 +472,15 @@ export class ProductsService {
         }
 
         // Log initial inventory movement if applicable
-        const stock = product.currentStock || 0;
-        if (product.usesInventory && stock > 0) {
+        if (product.usesInventory && stockQty > 0) {
           await client.query(
             `INSERT INTO movements (store_id, product_id, type, quantity, balance, reference)
              VALUES ($1, $2, 'IN', $3, $4, $5)`,
             [
               dto.storeId,
               productId,
-              stock,
-              stock,
+              stockQty,
+              stockQty,
               'Inventario Inicial (Importación)',
             ],
           );
@@ -517,11 +517,33 @@ export class ProductsService {
       bulkPrice4: parseFloat(String(row.bulk_price_4 || 0)),
       bulkPrice5: parseFloat(String(row.bulk_price_5 || 0)),
       currentStock: parseInt(String(row.current_stock || 0), 10),
+      stockTotalUnits: parseInt(String(row.current_stock || 0), 10),
       unitsPerBulk: parseInt(String(row.units_per_bulk || 1), 10),
-      stockBulks: parseInt(String(row.stock_bulks || 0), 10),
-      stockUnits: parseInt(String(row.stock_units || 0), 10),
+      stockDisplay: (() => {
+        const cs = parseInt(String(row.current_stock || 0), 10);
+        const upb = parseInt(String(row.units_per_bulk || 1), 10);
+        const hb = row.handles_bulk;
+        if (hb) {
+          const bc = Math.floor(cs / upb);
+          const lu = cs % upb;
+          return {
+            bulkCount: bc,
+            looseUnitCount: lu,
+            formatted:
+              bc > 0
+                ? `${bc} bulto${bc !== 1 ? 's' : ''}${lu > 0 ? ` + ${lu} unidad${lu !== 1 ? 'es' : ''}` : ''}`
+                : `${lu} unidad${lu !== 1 ? 'es' : ''}`,
+          };
+        }
+        return {
+          bulkCount: 0,
+          looseUnitCount: cs,
+          formatted: `${cs} unidad${cs !== 1 ? 'es' : ''}`,
+        };
+      })(),
       minStock: parseInt(String(row.min_stock || 0), 10),
       usesInventory: row.uses_inventory !== false,
+      handlesBulk: row.handles_bulk,
       supplierId: row.supplier_id || null,
       subDepartment: row.sub_department || '',
       isActive: row.is_active,

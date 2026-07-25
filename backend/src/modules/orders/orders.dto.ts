@@ -17,7 +17,18 @@ export class OrderItemDto {
 
   @IsInt()
   @Min(1)
-  quantity: number;
+  @IsOptional()
+  quantity?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  bulkCount?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  looseUnitCount?: number;
 
   @IsString()
   @IsOptional()

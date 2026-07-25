@@ -170,11 +170,9 @@ export class ReturnsService {
         const newProductSplit = this.toSplit(newCurrentStock, unitsPerBulk);
 
         await client.query(
-          'UPDATE products SET current_stock = $1, stock_bulks = $2, stock_units = $3, updated_at = NOW() WHERE id = $4',
+          'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
           [
             newCurrentStock,
-            newProductSplit.bulks,
-            newProductSplit.units,
             item.productId,
           ],
         );
@@ -465,11 +463,9 @@ export class ReturnsService {
         );
 
         await client.query(
-          'UPDATE products SET current_stock = $1, stock_bulks = $2, stock_units = $3, updated_at = NOW() WHERE id = $4',
+          'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
           [
             newCurrentStock,
-            newProductSplit.bulks,
-            newProductSplit.units,
             item.productId,
           ],
         );

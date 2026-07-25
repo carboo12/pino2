@@ -158,11 +158,9 @@ export class VendorInventoriesService {
         await client.query(
           `UPDATE products
            SET current_stock = $1,
-               stock_bulks = $2,
-               stock_units = $3,
                updated_at = NOW()
-           WHERE id = $4`,
-          [newStoreStock, storeSplit.bulks, storeSplit.units, dto.productId],
+           WHERE id = $2`,
+          [newStoreStock, dto.productId],
         );
 
         await client.query(

@@ -15,8 +15,19 @@ export class SaleItemDto {
   productId: string;
 
   @IsInt()
+  @Min(0)
+  @IsOptional()
+  bulkCount?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  looseUnitCount?: number;
+
+  @IsInt()
   @Min(1)
-  quantity: number;
+  @IsOptional()
+  quantity?: number;
 }
 
 export class ProcessSaleDto {
