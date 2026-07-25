@@ -15,6 +15,10 @@ export class AdjustStockDto {
   @IsUUID('all')
   productId!: string;
 
+  @IsUUID('all')
+  @IsOptional()
+  userId?: string;
+
   @IsEnum([
     'IN',
     'OUT',
