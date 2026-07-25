@@ -1,6 +1,7 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Eye, EyeOff, Loader2, TreePine } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { useNavigate } from 'react-router-dom';
 import { toast } from '@/lib/swalert';
 import { Preloader } from '@/components/preloader';
 
@@ -30,6 +31,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const { login, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -48,7 +56,7 @@ export default function LoginPage() {
   };
 
   if (user) {
-    return <Preloader message="Iniciando sesión..." allowForceRedirect />;
+    return <Preloader message="Iniciando sesión..." />;
   }
 
   return (
