@@ -1,0 +1,8 @@
+No tests found, exiting with code 1
+Run with `--passWithNoTests` to exit with code 0
+In /opt/apps/pino2/backend/test
+  25 files checked.
+  testMatch:  - 0 matches
+  testPathIgnorePatterns: /node_modules/ - 25 matches
+  testRegex: active/.*\.e2e-spec\.ts$ - 13 matches
+Pattern: src/modules/ - 0 matches

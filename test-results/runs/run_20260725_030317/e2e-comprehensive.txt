@@ -1,0 +1,634 @@
+  console.log
+    Setup: storeA=9321856d storeB=1a13bda2 productA=6f07d07b shiftA=36f25ccc
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:93:13)
+
+[31m[Nest] 1896438  - [39m07/25/2026, 3:04:05 AM [31m  ERROR[39m [38;5;3m[AuthService] [39m[31mError during login for no@existe.com: Credenciales inválidas[39m
+UnauthorizedException: Credenciales inválidas
+    at AuthService.login (/opt/apps/pino2/backend/src/modules/auth/auth.service.ts:81:15)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at /opt/apps/pino2/backend/node_modules/@nestjs/core/router/router-execution-context.js:47:62
+    at Object.<anonymous> (/opt/apps/pino2/backend/node_modules/@nestjs/core/router/router-proxy.js:9:17)
+[31m[Nest] 1896438  - [39m07/25/2026, 3:04:07 AM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: new row for relation "products" violates check constraint "products_packaging_valid"
+    at [90m/opt/apps/pino2/backend/[39mnode_modules/[4mpg-pool[24m/index.js:45:11
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at DatabaseService.query [90m(/opt/apps/pino2/backend/[39msrc/database/database.service.ts:40:19[90m)[39m
+    at ProductsService.create [90m(/opt/apps/pino2/backend/[39msrc/modules/products/products.service.ts:74:17[90m)[39m
+    at [90m/opt/apps/pino2/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:47:62
+    at Object.<anonymous> [90m(/opt/apps/pino2/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17[90m)[39m {
+  length: [33m522[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'23514'[39m,
+  detail: [32m'Failing row contains (cdd22986-c23b-4596-862c-811cf4dba7de, 9321856d-19ba-42b8-ba47-cf35c0d133dd, null, null, Invalid Bulk 1784948647447, 100.00, 0.00, 0, t, 2026-07-25 03:04:07.452395, 2026-07-25 03:04:07.452395, t, 0, null, 0.00, 100.00, 100.00, 0.00, 0.00, 0.00, null, null, 1, 0.00, 0.00, 0.00, 0.00, 0.00, 1, null, t, 0, 0).'[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [32m'public'[39m,
+  table: [32m'products'[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [32m'products_packaging_valid'[39m,
+  file: [32m'execMain.c'[39m,
+  line: [32m'2109'[39m,
+  routine: [32m'ExecConstraints'[39m
+}
+[31m[Nest] 1896438  - [39m07/25/2026, 3:04:07 AM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: invalid input syntax for type uuid: "test-node"
+    at [90m/opt/apps/pino2/backend/[39mnode_modules/[4mpg-pool[24m/index.js:45:11
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at DatabaseService.query [90m(/opt/apps/pino2/backend/[39msrc/database/database.service.ts:40:19[90m)[39m
+    at InboxService.claim [90m(/opt/apps/pino2/backend/[39msrc/modules/sync-engine/inbox.service.ts:25:17[90m)[39m
+    at SyncEngineController.push [90m(/opt/apps/pino2/backend/[39msrc/modules/sync-engine/sync-engine.controller.ts:22:21[90m)[39m
+    at [90m/opt/apps/pino2/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:47:62
+    at Object.<anonymous> [90m(/opt/apps/pino2/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17[90m)[39m {
+  length: [33m141[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'22P02'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [32m"unnamed portal parameter $3 = '...'"[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'uuid.c'[39m,
+  line: [32m'133'[39m,
+  routine: [32m'string_to_uuid'[39m
+}
+  console.log
+    G10.3: 5 health checks en 9ms (555.6 req/s)
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:836:15)
+
+  console.log
+    
+    ========================================
+    TEST SUMMARY - ALL SCENARIOS
+    ========================================
+    G1: Auth & Security      - 9 tests
+    G2: Products             - 7 tests
+    G3: Orders              - 8 tests
+    G4: Sales               - 7 tests
+    G5: Inventory            - 4 tests
+    G6: Cash Shifts         - 4 tests
+    G7: Clients             - 3 tests
+    G8: Sync Engine         - 3 tests
+    G9: Tenant Isolation    - 7 tests
+    G10: Concurrency         - 3 tests
+    G11: Error Handling     - 5 tests
+    G12: Full Flow          - 2 tests
+    G13: SQL Integrity      - 9 tests
+    ========================================
+    TOTAL: 71 tests
+    ========================================
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:1016:15)
+
+FAIL test/active/comprehensive.e2e-spec.ts (7.631 s)
+  ● COMPREHENSIVE: Todos los escenarios reales › G1: Autenticacion y Seguridad › G1.4 Refresh reutilizado da 401
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 401
+    Received: 201
+
+      148 |         .post('/api/auth/refresh')
+      149 |         .send({ refreshToken: rt });
+    > 150 |       expect(reuse.status).toBe(401);
+          |                            ^
+      151 |     });
+      152 |
+      153 |     it('G1.5 Logout invalida refresh token', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:150:28)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G2: Productos › G2.1 Listar productos por tienda
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 403
+
+      202 |         .get(`/api/products?storeId=${ctx.storeIdA}`)
+      203 |         .set('Authorization', `Bearer ${ctx.tokens.inventory}`);
+    > 204 |       expect(res.status).toBe(200);
+          |                          ^
+      205 |       const items = Array.isArray(res.body) ? res.body : res.body.data || [];
+      206 |       expect(items.length).toBeGreaterThan(0);
+      207 |     });
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:204:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G2: Productos › G2.2 Producto incluye handlesBulk y stockDisplay
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 400
+
+      211 |         .get(`/api/products/${ctx.productIdA}`)
+      212 |         .set('Authorization', `Bearer ${ctx.tokens.inventory}`);
+    > 213 |       expect(res.status).toBe(200);
+          |                          ^
+      214 |       expect(res.body.handlesBulk).toBeDefined();
+      215 |       expect(res.body.stockTotalUnits).toBeDefined();
+      216 |       expect(res.body.stockDisplay).toBeDefined();
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:213:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G2: Productos › G2.5 Rechazar producto con handlesBulk=true y unitsPerBulk=1
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 500
+    Received array: [400, 409]
+
+      265 |           unitsPerBulk: 1,
+      266 |         });
+    > 267 |       expect([400, 409]).toContain(res.status);
+          |                          ^
+      268 |     });
+      269 |
+      270 |     it('G2.6 stockBulks/stockUnits son GENERATED (no editables)', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:267:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G2: Productos › G2.6 stockBulks/stockUnits son GENERATED (no editables)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 400
+
+      272 |         .get(`/api/products/${ctx.productIdA}`)
+      273 |         .set('Authorization', `Bearer ${ctx.tokens.inventory}`);
+    > 274 |       expect(res.status).toBe(200);
+          |                          ^
+      275 |       const currentStock = res.body.currentStock;
+      276 |       // Intentar escribir stockBulks no deberia afectar el valor real
+      277 |       const updated = await ctx.pool.query(
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:274:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G2: Productos › G2.7 Buscar producto por barcode
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 404]
+
+      286 |         .get(`/api/products?storeId=${ctx.storeIdA}&barcode=test`)
+      287 |         .set('Authorization', `Bearer ${ctx.tokens.inventory}`);
+    > 288 |       expect([200, 404]).toContain(res.status);
+          |                          ^
+      289 |     });
+      290 |   });
+      291 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:288:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G3: Pedidos › G3.1 Crear pedido contado
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [201, 200]
+
+      304 |           items: [{ productId: ctx.productIdA, bulkCount: 1, looseUnitCount: 0 }],
+      305 |         });
+    > 306 |       expect([201, 200]).toContain(res.status);
+          |                          ^
+      307 |       if (res.status === 201) ctx.orderId = res.body.id;
+      308 |     });
+      309 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:306:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G3: Pedidos › G3.2 Crear pedido credito
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [201, 200]
+
+      318 |           items: [{ productId: ctx.productIdA, bulkCount: 0, looseUnitCount: 2 }],
+      319 |         });
+    > 320 |       expect([201, 200]).toContain(res.status);
+          |                          ^
+      321 |     });
+      322 |
+      323 |     it('G3.3 Transicion RECIBIDO -> EN_PREPARACION -> ALISTADO', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:320:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G4: Ventas › G4.1 Procesar venta simple
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 201]
+
+      406 |           paymentMethod: 'CASH',
+      407 |         });
+    > 408 |       expect([200, 201]).toContain(res.status);
+          |                          ^
+      409 |       if (res.status === 200 || res.status === 201) {
+      410 |         saleId = res.body.saleId;
+      411 |         ctx.saleId = saleId;
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:408:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G4: Ventas › G4.2 Venta con bultos (bulkCount)
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 201]
+
+      425 |           paymentMethod: 'CASH',
+      426 |         });
+    > 427 |       expect([200, 201]).toContain(res.status);
+          |                          ^
+      428 |     });
+      429 |
+      430 |     it('G4.3 Idempotencia: mismo externalId no duplica venta', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:427:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G4: Ventas › G4.3 Idempotencia: mismo externalId no duplica venta
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 201]
+
+      442 |           externalId: extId,
+      443 |         });
+    > 444 |       expect([200, 201]).toContain(first.status);
+          |                          ^
+      445 |
+      446 |       const second = await request(ctx.app.getHttpServer())
+      447 |         .post('/api/sales/process')
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:444:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G4: Ventas › G4.4 Venta con stock insuficiente da 409
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [409, 400]
+
+      472 |           paymentMethod: 'CASH',
+      473 |         });
+    > 474 |       expect([409, 400]).toContain(res.status);
+          |                          ^
+      475 |     });
+      476 |
+      477 |     it('G4.5 Devolucion parcial', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:474:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G4: Ventas › G4.6 Devolucion sin saleId (devolucion directa)
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 201, 400]
+
+      496 |           notes: 'Devolucion directa test',
+      497 |         });
+    > 498 |       expect([200, 201, 400]).toContain(res.status);
+          |                               ^
+      499 |     });
+      500 |
+      501 |     it('G4.7 Venta con precio calculado del servidor', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:498:31)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G5: Inventario › G5.1 Ajuste de inventario positivo
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 404
+    Received array: [200, 201]
+
+      537 |           reason: 'CONTEO_FISICO',
+      538 |         });
+    > 539 |       expect([200, 201]).toContain(res.status);
+          |                          ^
+      540 |     });
+      541 |
+      542 |     it('G5.2 Ajuste negativo mayor a stock falla', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:539:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G5: Inventario › G5.2 Ajuste negativo mayor a stock falla
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 404
+    Received array: [409, 400, 200]
+
+      552 |           reason: 'TEST_EXCESO',
+      553 |         });
+    > 554 |       expect([409, 400, 200]).toContain(res.status);
+          |                               ^
+      555 |       if (res.status === 200 || res.status === 201) {
+      556 |         // Verificar que stock no quedo negativo
+      557 |         const check = await ctx.pool.query(
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:554:31)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G5: Inventario › G5.3 Movimientos registrados
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 403
+
+      567 |         .get(`/api/inventory/movements?storeId=${ctx.storeIdA}`)
+      568 |         .set('Authorization', `Bearer ${ctx.tokens.inventory}`);
+    > 569 |       expect(res.status).toBe(200);
+          |                          ^
+      570 |     });
+      571 |
+      572 |     it('G5.4 Transferencia entre bodegas rechazada sin storeId', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:569:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G5: Inventario › G5.4 Transferencia entre bodegas rechazada sin storeId
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 404
+    Received array: [400, 403]
+
+      575 |         .set('Authorization', `Bearer ${ctx.tokens.storeAdmin}`)
+      576 |         .send({ productId: ctx.productIdA, quantity: 1 });
+    > 577 |       expect([400, 403]).toContain(res.status);
+          |                          ^
+      578 |     });
+      579 |   });
+      580 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:577:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G6: Caja › G6.1 Abrir turno de caja
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [201, 400]
+
+      591 |           startingCash: 500,
+      592 |         });
+    > 593 |       expect([201, 400]).toContain(res.status);
+          |                          ^
+      594 |     });
+      595 |
+      596 |     it('G6.2 Obtener turno activo', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:593:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G6: Caja › G6.2 Obtener turno activo
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 404]
+
+      598 |         .get(`/api/cash-shifts/active?storeId=${ctx.storeIdA}`)
+      599 |         .set('Authorization', `Bearer ${ctx.tokens.cashier}`);
+    > 600 |       expect([200, 404]).toContain(res.status);
+          |                          ^
+      601 |     });
+      602 |
+      603 |     it('G6.3 Cerrar turno calcula expectedCash en servidor', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:600:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G6: Caja › G6.3 Cerrar turno calcula expectedCash en servidor
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 400]
+
+      616 |           closingDenominations: { '100': 10, '50': 5, '10': 20 },
+      617 |         });
+    > 618 |       expect([200, 400]).toContain(res.status);
+          |                          ^
+      619 |     });
+      620 |
+      621 |     it('G6.4 Cerrar turno ya cerrado da error', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:618:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G6: Caja › G6.4 Cerrar turno ya cerrado da error
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [400, 409]
+
+      628 |         .set('Authorization', `Bearer ${ctx.tokens.cashier}`)
+      629 |         .send({ shiftId: closed.rows[0].id, storeId: closed.rows[0].store_id });
+    > 630 |       expect([400, 409]).toContain(res.status);
+          |                          ^
+      631 |     });
+      632 |   });
+      633 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:630:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G7: Clientes › G7.1 Crear cliente
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [201, 200]
+
+      648 |           address: 'Direccion test',
+      649 |         });
+    > 650 |       expect([201, 200]).toContain(res.status);
+          |                          ^
+      651 |       if (res.status === 201 || res.status === 200) {
+      652 |         clientId = res.body.id;
+      653 |       }
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:650:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G7: Clientes › G7.2 Listar clientes por tienda
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 403
+
+      658 |         .get(`/api/clients?storeId=${ctx.storeIdA}`)
+      659 |         .set('Authorization', `Bearer ${ctx.tokens.vendor}`);
+    > 660 |       expect(res.status).toBe(200);
+          |                          ^
+      661 |     });
+      662 |
+      663 |     it('G7.3 Crear cliente sin tienda da 400', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:660:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G8: Sync Engine › G8.3 Sync push recibe operaciones
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 201
+    Received: 500
+
+      704 |           }],
+      705 |         });
+    > 706 |       expect(res.status).toBe(201);
+          |                          ^
+      707 |     });
+      708 |   });
+      709 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:706:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G9: Tenant Isolation › G9.4 Rol vendor puede crear pedidos
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [201, 200]
+
+      744 |           items: [{ productId: ctx.productIdA, bulkCount: 0, looseUnitCount: 1 }],
+      745 |         });
+    > 746 |       expect([201, 200]).toContain(res.status);
+          |                          ^
+      747 |     });
+      748 |
+      749 |     it('G9.5 Rol cashier puede procesar ventas', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:746:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G9: Tenant Isolation › G9.5 Rol cashier puede procesar ventas
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [200, 201]
+
+      759 |           paymentMethod: 'CASH',
+      760 |         });
+    > 761 |       expect([200, 201]).toContain(res.status);
+          |                          ^
+      762 |     });
+      763 |
+      764 |     it('G9.6 Rol rutero accede a cobros', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:761:26)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G10: Concurrencia › G10.1 5 ventas paralelas no sobregiran stock
+
+    read ECONNRESET
+
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G10: Concurrencia › G10.2 10 pedidos rapidos secuenciales
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected value: 403
+    Received array: [201, 200, 400]
+
+      824 |             items: [{ productId: ctx.productIdA, bulkCount: 0, looseUnitCount: 1 }],
+      825 |           });
+    > 826 |         expect([201, 200, 400]).toContain(res.status);
+          |                                 ^
+      827 |       }
+      828 |     });
+      829 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:826:33)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G11: Error Handling › G11.2 Producto no encontrado da 404
+
+    expected 404 "Not Found", got 403 "Forbidden"
+
+      853 |         .get('/api/products/00000000-0000-4000-8000-000000000000?storeId=9321856d-19ba-42b8-ba47-cf35c0d133dd')
+      854 |         .set('Authorization', `Bearer ${ctx.tokens.inventory}`)
+    > 855 |         .expect(404);
+          |          ^
+      856 |     });
+      857 |
+      858 |     it('G11.3 Campos requeridos faltantes dan 400', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:855:10)
+      ----
+      at Test._assertStatus (../node_modules/supertest/lib/test.js:309:14)
+      at ../node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (../node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (../node_modules/supertest/lib/test.js:195:23)
+      at localAssert (../node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (../node_modules/supertest/lib/test.js:152:11)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G13: SQL Integrity › G13.4 0 sale_items con mismatch
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 21
+
+      970 |          WHERE quantity_bulks * units_per_bulk_snapshot + quantity_units != quantity`,
+      971 |       );
+    > 972 |       expect(Number(res.rows[0].count)).toBe(0);
+          |                                         ^
+      973 |     });
+      974 |
+      975 |     it('G13.5 0 order_items con mismatch', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:972:41)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G13: SQL Integrity › G13.8 outbox_events viejos migrados (0 pending)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 0
+    Received: 27
+
+      1000 |         'SELECT count(*) FROM outbox_events WHERE published_at IS NULL',
+      1001 |       );
+    > 1002 |       expect(Number(res.rows[0].count)).toBe(0);
+           |                                         ^
+      1003 |     });
+      1004 |
+      1005 |     it('G13.9 users tienen refresh_token_hash no null (los que hicieron login)', async () => {
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:1002:41)
+
+  ● COMPREHENSIVE: Todos los escenarios reales › G13: SQL Integrity › G13.9 users tienen refresh_token_hash no null (los que hicieron login)
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 1
+    Received: 0
+
+      1008 |         "SELECT count(*) FROM users WHERE refresh_token_hash IS NOT NULL AND email = 'test-audit@pino.com'",
+      1009 |       );
+    > 1010 |       expect(Number(res.rows[0].count)).toBe(1);
+           |                                         ^
+      1011 |     });
+      1012 |   });
+      1013 |
+
+      at Object.<anonymous> (active/comprehensive.e2e-spec.ts:1010:41)
+
+Test Suites: 1 failed, 1 total
+Tests:       32 failed, 39 passed, 71 total
+Snapshots:   0 total
+Time:        7.976 s
+Ran all test suites matching test/active/comprehensive.e2e-spec.ts.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

@@ -663,3 +663,56 @@
 7. Las ventas no completadas deben re-procesarse
 **Resultado esperado:** Venta en progreso se completa o se descarta consistentemente
 **Variante:** UPS falla antes del respaldo de 15 minutos - pérdida de transacción no confirmada
+
+---
+
+## V-036: Venta detecta producto caducado
+**Rol:** Cajero
+**Duración:** 5 minutos
+**Descripción:** El sistema alerta que el producto "Leche Klim 400g" que se está vendiendo tiene lote vencido (fecha de caducidad 15-mayo-2026, hoy es 24-jul-2026). El cajero debe retirar el producto de la venta y notificar a bodega.
+**Precondiciones:** Producto con lote vencido en inventario, alerta de caducidad activa
+**Pasos:**
+1. Cajero escanea Leche Klim 400g
+2. Sistema muestra alerta roja: "PRODUCTO VENCIDO"
+3. Cajero retira el producto de la venta
+4. Notifica a bodeguero para que retire el lote de la góndola
+5. Se registra ajuste de inventario: motivo "VENCIDO"
+6. Se imprime reporte de producto retirado
+**Resultado esperado:** Venta excluye el producto vencido, se genera ajuste de inventario
+**Variante:** Cajero ignora la alerta y vende producto vencido; responsabilidad legal
+
+---
+
+## V-037: Cliente paga con billete falso
+**Rol:** Cajero
+**Duración:** 10 minutos
+**Descripción:** El cliente paga un total de C$800 con un billete de C$1,000. El cajero sospecha que el billete es falso (no tiene marca de agua, textura incorrecta). La tienda tiene detector de billetes falsos.
+**Precondiciones:** Billete sospechoso, detector de billetes disponible
+**Pasos:**
+1. Cajero recibe billete de C$1,000
+2. Detecta anomalías: textura, marca de agua
+3. Pasa billete por detector ultravioleta
+4. Detector confirma que es falso
+5. Cajero devuelve billete al cliente: "Lo siento, no podemos aceptar este billete"
+6. Cliente paga con otro billete válido
+7. Se registra incidente en el sistema
+**Resultado esperado:** Transacción se completa con billete válido, incidente registrado
+**Variante:** Cliente se pone agresivo; se llama a seguridad/policía
+
+---
+
+## V-038: Venta con factura fiscal electrónica (requisito DGI)
+**Rol:** Administrador
+**Duración:** 5 minutos
+**Descripción:** Un cliente (Comedor Santa Ana) solicita factura con número RUC para deducir impuestos. La DGI (Dirección General de Ingresos) exige factura electrónica para montos mayores a C$1,000.
+**Precondiciones:** Sistema tiene conexión a DGI, cliente registrado con RUC
+**Pasos:**
+1. Cajero registra venta por C$2,500
+2. Cliente solicita factura a nombre de "Comedor Santa Ana" con RUC J0310000123456
+3. Cajero selecciona opción "Factura Electrónica DGI"
+4. Sistema envía factura a DGI en tiempo real
+5. DGI responde con número de autorización
+6. Se imprime factura con código QR y número de autorización DGI
+7. Se envía copia por correo electrónico al cliente
+**Resultado esperado:** Factura electrónica emitida con autorización DGI
+**Variante:** Sin conexión a DGI → se emite factura contingente con número provisional

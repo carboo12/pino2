@@ -1,0 +1,89 @@
+  console.log
+    [SETUP] storeId=9321856d products=3 cashShift=36f25ccc
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:88:13)
+
+  console.log
+      ✗ V-001: Venta normal al contado: expect(received).toContain(expected) // indexOf
+    
+    Expected value: 403
+    Received array: [200, 201]
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+  console.log
+      ✗ V-002: Venta con mezcla de bultos y unidades: expect(received).toContain(expected) // indexOf
+    
+    Expected value: 403
+    Received array: [200, 201]
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+  console.log
+      ✗ V-003: Venta a crédito a cliente conocido: column "credit_limit" does not exist
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+  console.log
+      ✗ I-001: Recepción de mercancía de proveedor: expect(received).toContain(expected) // indexOf
+    
+    Expected value: 404
+    Received array: [200, 201]
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+  console.log
+      ✗ I-002: Ajuste por pérdida/robo de inventario: expect(received).toContain(expected) // indexOf
+    
+    Expected value: 404
+    Received array: [200, 201]
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+  console.log
+      ✗ I-003: Ajuste por producto dañado: expect(received).toContain(expected) // indexOf
+    
+    Expected value: 404
+    Received array: [200, 201]
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+  console.log
+      ✓ O-001: Pedido creado, id=c1accb4b
+
+      at active/scenarios-runner.e2e-spec.ts:314:15
+
+  console.log
+      ✓ O-001: Pedido avanzó a EN_PREPARACION (400)
+
+      at active/scenarios-runner.e2e-spec.ts:320:15
+
+  console.log
+      ✓ O-001: Pedido normal de bodega a tienda
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:100:17)
+
+  console.log
+      ✓ O-002: Pedido urgente creado, id=7ab1114b
+
+      at active/scenarios-runner.e2e-spec.ts:346:15
+
+  console.log
+      ✓ O-002: Pedido urgente (express)
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:100:17)
+
+  console.log
+      ✗ O-003: Pedido con productos agotados (backorder): expect(received).toContain(expected) // indexOf
+    
+    Expected value: 403
+    Received array: [201, 200, 400, 409]
+
+      at Object.<anonymous> (active/scenarios-runner.e2e-spec.ts:103:17)
+
+Test Suites: 1 passed, 1 total
+Tests:       9 passed, 9 total
+Snapshots:   0 total
+Time:        4.906 s
+Ran all test suites matching test/active/scenarios-runner.e2e-spec.ts.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

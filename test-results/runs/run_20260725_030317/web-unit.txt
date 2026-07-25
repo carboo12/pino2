@@ -1,0 +1,25 @@
+
+ RUN  v4.1.5 /opt/apps/pino2/web
+
+ ✓ src/components/workspace/stock-display.test.tsx > calculateStockDisplay > formats simple units when not bulk 2ms
+ ✓ src/components/workspace/stock-display.test.tsx > calculateStockDisplay > formats only bulks when exact 0ms
+ ✓ src/components/workspace/stock-display.test.tsx > calculateStockDisplay > formats mixed bulk and loose 0ms
+ ✓ src/components/workspace/stock-display.test.tsx > calculateStockDisplay > formats single bulk + single unit 1ms
+ ✓ src/components/workspace/stock-display.test.tsx > calculateStockDisplay > formats only loose when less than bulk 0ms
+ ✓ src/components/workspace/stock-display.test.tsx > calculateStockDisplay > handles zero stock 0ms
+ ✓ src/components/workspace/stock-display.test.tsx > bulkUnitsToTotal > converts bulks and loose units to total 0ms
+ ✓ src/components/workspace/stock-display.test.tsx > bulkUnitsToTotal > uses fallback total when not bulk 0ms
+ ✓ src/components/workspace/stock-display.test.tsx > splitIntoBulkUnits > splits total units into bulks and loose units 1ms
+ ✓ src/components/workspace/stock-display.test.tsx > splitIntoBulkUnits > returns zero bulks when unitsPerBulk <= 1 0ms
+ ✓ src/components/workspace/status-chip.test.tsx > StatusChip > renders label text 48ms
+ ✓ src/components/workspace/status-chip.test.tsx > StatusChip > renders with error variant 6ms
+ ✓ src/components/workspace/status-chip.test.tsx > StatusChip > renders with warning variant 5ms
+ ✓ src/components/workspace/status-chip.test.tsx > StatusChip > renders without crashing for all variants 15ms
+ ✓ src/pages/store-admin/cash-register/cash-register-page.test.tsx > CashRegisterPage > renders "Abrir Caja Ahora" when no active shift exists 63ms
+ ✓ src/pages/store-admin/cash-register/cash-register-page.test.tsx > CashRegisterPage > renders shift details when an active shift exists 38ms
+
+ Test Files  3 passed (3)
+      Tests  16 passed (16)
+   Start at  03:03:19
+   Duration  2.46s (transform 497ms, setup 544ms, import 1.50s, tests 193ms, environment 2.58s)
+

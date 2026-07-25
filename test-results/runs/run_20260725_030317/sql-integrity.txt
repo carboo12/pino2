@@ -1,0 +1,9 @@
+          c          | count 
+---------------------+-------
+ stock_negativo      |     0
+ sale_mismatch       |    21
+ order_mismatch      |     0
+ constraints_invalid |     0
+ outbox_pending      |     0
+(5 rows)
+

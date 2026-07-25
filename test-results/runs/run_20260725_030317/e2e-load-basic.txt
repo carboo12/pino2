@@ -1,0 +1,11 @@
+  console.log
+    Load: 20 OK, 0 FAIL, stock 412 -> 392
+
+      at Object.<anonymous> (active/load-basic.e2e-spec.ts:122:13)
+
+Test Suites: 1 passed, 1 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+Time:        4.342 s
+Ran all test suites matching test/active/load-basic.e2e-spec.ts.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
