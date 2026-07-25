@@ -1,3 +1,5 @@
+import '../../../../core/utils/stock_display.dart';
+
 class CatalogProduct {
   const CatalogProduct({
     required this.id,
@@ -8,6 +10,7 @@ class CatalogProduct {
     required this.unitsPerBulk,
     required this.stockBulks,
     required this.stockUnits,
+    this.handlesBulk = false,
     this.barcode,
     this.alternateBarcodes = const [],
     this.brand,
@@ -35,6 +38,7 @@ class CatalogProduct {
   final int unitsPerBulk;
   final int stockBulks;
   final int stockUnits;
+  final bool handlesBulk;
   final String? barcode;
   final List<String> alternateBarcodes;
   final String? brand;
@@ -55,12 +59,11 @@ class CatalogProduct {
 
   bool get isLowStock => currentStock <= minStock;
 
-  String get stockLabel {
-    if (unitsPerBulk <= 1) {
-      return '$currentStock unidades';
-    }
-    return '$stockBulks bultos • $stockUnits sueltas';
-  }
+  String get stockLabel => calculateStockDisplay(
+        totalUnits: currentStock,
+        handlesBulk: handlesBulk || unitsPerBulk > 1,
+        unitsPerBulk: unitsPerBulk,
+      ).formatted;
 
   /// Returns the price for a given level (1-5). Falls back to salePrice.
   double priceForLevel(int level) {
@@ -74,13 +77,15 @@ class CatalogProduct {
 
   factory CatalogProduct.fromJson(Map<String, dynamic> json) {
     final sp = double.tryParse('${json['salePrice'] ?? 0}') ?? 0;
+    final upb = int.tryParse('${json['unitsPerBulk'] ?? json['units_per_bulk'] ?? 1}') ?? 1;
     return CatalogProduct(
       id: json['id']?.toString() ?? '',
       storeId: json['storeId']?.toString() ?? '',
       description: json['description']?.toString() ?? 'Producto',
       salePrice: sp,
       currentStock: int.tryParse('${json['currentStock'] ?? 0}') ?? 0,
-      unitsPerBulk: int.tryParse('${json['unitsPerBulk'] ?? 1}') ?? 1,
+      unitsPerBulk: upb,
+      handlesBulk: json['handlesBulk'] == true || json['handles_bulk'] == true || upb > 1,
       stockBulks: int.tryParse('${json['stockBulks'] ?? 0}') ?? 0,
       stockUnits: int.tryParse('${json['stockUnits'] ?? 0}') ?? 0,
       barcode: json['barcode']?.toString(),

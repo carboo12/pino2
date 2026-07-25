@@ -264,4 +264,26 @@
 
 ---
 
+## 📦 Empaque y Presentación Canónica (Bultos / Unidades)
+
+### Regla Canónica de Negocio:
+1. **Almacenamiento**: El stock siempre se almacena en **Unidades Totales** en la base de datos (`current_stock`).
+2. **Campos en Producto**:
+   - `handlesBulk` (`handles_bulk` boolean): Indica si el producto se vende/almacena en empaques o bultos.
+   - `unitsPerBulk` (`units_per_bulk` integer >= 1): Cantidad de unidades contenidas en 1 bulto/caja/pack.
+   - `stockDisplay` (Objeto autogenerado):
+     ```json
+     "stockDisplay": {
+       "bulks": 5,
+       "units": 3,
+       "formatted": "5 bultos + 3 unidades"
+     }
+     ```
+3. **Conversión Estándar**:
+   - $\text{Bultos} = \lfloor \text{totalUnits} / \text{unitsPerBulk} \rfloor$
+   - $\text{Unidades Sueltas} = \text{totalUnits} \pmod{\text{unitsPerBulk}}$
+   - En pedidos/ventas: Enviar `quantity` (unidades totales) o desglosado en `quantityBulks` + `quantityUnits`.
+
+---
+
 **Total: ~140 endpoints | 33 controladores | 37 módulos**

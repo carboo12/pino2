@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
+import { splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class InventoryService {
@@ -90,11 +91,8 @@ export class InventoryService {
         );
       }
 
-      const balanceBulks = Math.floor(newStock / unitsPerBulk);
-      const balanceUnits = newStock % unitsPerBulk;
-
-      const qtyBulks = Math.floor(quantity / unitsPerBulk);
-      const qtyUnits = quantity % unitsPerBulk;
+      const { bulks: balanceBulks, units: balanceUnits } = splitIntoBulkUnits(newStock, unitsPerBulk);
+      const { bulks: qtyBulks, units: qtyUnits } = splitIntoBulkUnits(quantity, unitsPerBulk);
 
       await client.query(
         'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',

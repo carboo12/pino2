@@ -15,12 +15,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { PackagePlus, ArrowRightLeft, FileText, Search, Package, Check, Trash2, Wrench, ArrowUp, ArrowDown } from 'lucide-react';
 
+import { calculateStockDisplay, bulkUnitsToTotal } from '@/utils/stock-display';
+
 interface Product {
   id: string;
   barcode?: string;
   description: string;
   currentStock: number;
   usesInventory: boolean;
+  handlesBulk?: boolean;
+  unitsPerBulk?: number;
+  stockDisplay?: {
+    bulkCount: number;
+    looseUnitCount: number;
+    formatted: string;
+  };
 }
 
 interface Store {
@@ -262,11 +271,13 @@ export default function InventoryEntryPage() {
                         <p className="font-medium text-sm">{product.description}</p>
                         {product.barcode && <p className="text-xs text-muted-foreground font-mono">{product.barcode}</p>}
                       </div>
-                      <span className={`text-sm font-bold px-2 py-1 rounded ${
+                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                         product.currentStock <= 0 ? 'bg-red-100 text-red-700' :
                         product.currentStock <= 10 ? 'bg-yellow-100 text-yellow-700' :
                         'bg-green-100 text-green-700'
-                      }`}>{product.currentStock}</span>
+                      }`}>
+                        {product.stockDisplay?.formatted || calculateStockDisplay(product.currentStock, product.handlesBulk || false, product.unitsPerBulk || 1).formatted}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -284,7 +295,7 @@ export default function InventoryEntryPage() {
                   <Package className="h-6 w-6 text-primary" />
                   <div>
                     <CardTitle className="text-lg">{selectedProduct.description}</CardTitle>
-                    <CardDescription>Stock actual: <strong className="text-foreground">{selectedProduct.currentStock}</strong> unidades</CardDescription>
+                    <CardDescription>Stock actual: <strong className="text-foreground">{selectedProduct.stockDisplay?.formatted || calculateStockDisplay(selectedProduct.currentStock, selectedProduct.handlesBulk || false, selectedProduct.unitsPerBulk || 1).formatted}</strong> ({selectedProduct.currentStock} unidades base)</CardDescription>
                   </div>
                 </div>
               </CardHeader>

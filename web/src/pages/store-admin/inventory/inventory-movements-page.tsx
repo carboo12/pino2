@@ -38,6 +38,8 @@ import { useParams } from 'react-router-dom';
 import { PrintableTicket, generatePlainTextTicket } from '@/components/printable-ticket';
 import { toast } from '@/lib/swalert';
 
+import { calculateStockDisplay } from '@/utils/stock-display';
+
 interface Movement {
   id: string;
   timestamp: Date | string;
@@ -47,6 +49,14 @@ interface Movement {
   had: number;
   quantity: number;
   has: number;
+  handlesBulk: boolean;
+  unitsPerBulk: number;
+  quantityBulks: number;
+  quantityUnits: number;
+  balanceBulks: number;
+  balanceUnits: number;
+  formattedQuantity: string;
+  formattedHas: string;
 }
 
 export default function InventoryMovementsPage() {
@@ -65,16 +75,35 @@ export default function InventoryMovementsPage() {
       const response = await apiClient.get('/inventory/movements', {
         params: { storeId, date: dateStr, type: selectedType }
       });
-      return response.data.map((m: any, idx: number) => ({
-        id: m.id || `mov-${dateStr}-${idx}`,
-        timestamp: m.createdAt || m.created_at || new Date(),
-        productDescription: m.productDescription || m.product_description || 'Producto no especificado',
-        movement: m.reference || m.movement || 'Ajuste',
-        type: m.type,
-        quantity: m.quantity || 0,
-        had: Math.max(0, (m.balance || 0) - (m.quantity || 0)),
-        has: m.balance || 0
-      })) as Movement[];
+      return response.data.map((m: any, idx: number) => {
+        const qty = m.quantity || 0;
+        const bal = m.balance || 0;
+        const upb = m.units_per_bulk_snapshot || m.unitsPerBulk || 1;
+        const hb = Boolean(m.handles_bulk_snapshot || m.handlesBulk || upb > 1);
+        const qb = m.quantity_bulks ?? Math.floor(qty / Math.max(1, upb));
+        const qu = m.quantity_units ?? (qty % Math.max(1, upb));
+        const bb = m.balance_bulks ?? Math.floor(bal / Math.max(1, upb));
+        const bu = m.balance_units ?? (bal % Math.max(1, upb));
+
+        return {
+          id: m.id || `mov-${dateStr}-${idx}`,
+          timestamp: m.createdAt || m.created_at || new Date(),
+          productDescription: m.productDescription || m.product_description || 'Producto no especificado',
+          movement: m.reference || m.movement || 'Ajuste',
+          type: m.type,
+          quantity: qty,
+          had: Math.max(0, bal - qty),
+          has: bal,
+          handlesBulk: hb,
+          unitsPerBulk: upb,
+          quantityBulks: qb,
+          quantityUnits: qu,
+          balanceBulks: bb,
+          balanceUnits: bu,
+          formattedQuantity: calculateStockDisplay(qty, hb, upb).formatted,
+          formattedHas: calculateStockDisplay(bal, hb, upb).formatted,
+        };
+      }) as Movement[];
     },
     enabled: !!storeId && !!selectedDate,
   });
@@ -222,9 +251,9 @@ export default function InventoryMovementsPage() {
                     {getTypeLabel(item.type)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">{item.had.toFixed(3)}</TableCell>
-                <TableCell className="text-right">{item.quantity.toFixed(3)}</TableCell>
-                <TableCell className="text-right">{item.has.toFixed(3)}</TableCell>
+                <TableCell className="text-right text-xs text-muted-foreground">{item.had} u.</TableCell>
+                <TableCell className="text-right font-medium">{item.formattedQuantity}</TableCell>
+                <TableCell className="text-right font-semibold text-foreground">{item.formattedHas}</TableCell>
               </TableRow>
             ))}
           </TableBody>

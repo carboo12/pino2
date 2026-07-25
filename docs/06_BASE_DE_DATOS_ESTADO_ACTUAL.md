@@ -230,12 +230,24 @@ Despues:
 
 - servicios por dominio dentro de `backend/src/modules/`
 
-## 9. Recomendacion para futuras IA locales
+## 10. Estandarización Canónica de Empaque (25 Julio 2026)
 
-Si una IA necesita entender datos de negocio:
+Migraciones aplicadas en producción (`190.56.16.85:5432/multitienda_db`):
 
-1. leer este documento
-2. leer `schema.sql`
-3. revisar el servicio del modulo implicado
-4. confirmar si la tabla real existe en PostgreSQL y como se usa hoy
+1. **Tabla `products`**:
+   - `handles_bulk` (`boolean NOT NULL DEFAULT false`): Control de empaque por bulto.
+   - `units_per_bulk` (`integer NOT NULL DEFAULT 1`): Unidades por empaque.
+   - `stock_bulks` (`integer GENERATED ALWAYS AS (CASE WHEN units_per_bulk > 1 THEN current_stock / units_per_bulk ELSE 0 END) STORED`): Columna calculada.
+   - `stock_units` (`integer GENERATED ALWAYS AS (CASE WHEN units_per_bulk > 1 THEN current_stock % units_per_bulk ELSE current_stock END) STORED`): Columna calculada.
+   - Constraint `products_packaging_valid`: `CHECK ((handles_bulk = true AND units_per_bulk >= 2) OR (handles_bulk = false AND units_per_bulk = 1))`.
+
+2. **Snapshots de Auditoría y Kárdex**:
+   - `order_items`, `sale_items`, `movements`: Incluyen `handles_bulk_snapshot` y `units_per_bulk_snapshot`.
+
+3. **Índices de Rendimiento**:
+   - `idx_order_items_product_units`: Indexa `(product_id, units_per_bulk_snapshot)` en ítems de orden.
+   - `idx_sale_items_product_units`: Indexa `(product_id, units_per_bulk_snapshot)` en ítems de venta.
+   - `idx_inventory_movements_perf`: Indexa `(store_id, product_id, created_at DESC)`.
+   - `idx_outbox_pending_perf`: Indexa `(published_at) WHERE published_at IS NULL`.
+   - `idx_general_ledger_store_date`: Indexa `(store_id, entry_date DESC)`.
 

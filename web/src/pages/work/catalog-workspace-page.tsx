@@ -29,6 +29,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { calculateStockDisplay } from '@/utils/stock-display';
 
 interface Product {
   id: string;
@@ -36,6 +37,10 @@ interface Product {
   barcode?: string;
   salePrice?: number;
   stock?: number;
+  currentStock?: number;
+  unitsPerBulk?: number;
+  handlesBulk?: boolean;
+  stockDisplay?: { formatted: string };
   department?: string;
 }
 
@@ -210,7 +215,7 @@ export default function CatalogWorkspacePage() {
                           {formatCurrency(p.salePrice || 0)}
                         </td>
                         <td className="px-4 py-2.5 text-right text-sm text-[#17202A]">
-                          {p.stock ?? '-'}
+                          {p.stockDisplay?.formatted || calculateStockDisplay(p.stock ?? p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}
                         </td>
                         <td className="px-4 py-2.5 text-center">
                           {p.stock !== undefined && p.stock <= 5 ? (

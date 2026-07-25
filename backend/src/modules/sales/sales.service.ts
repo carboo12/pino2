@@ -7,6 +7,7 @@ import {
 import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
+import { bulkUnitsToTotal, splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 import * as crypto from 'crypto';
 
 const SOURCE_NODE_ID = '00000000-0000-4000-8000-000000000000'; // cloud node
@@ -129,10 +130,13 @@ export class SalesService {
 
         const bulkCount = item.bulkCount ?? 0;
         const looseUnitCount = item.looseUnitCount ?? 0;
-        const totalUnits =
-          handlesBulk && (bulkCount > 0 || looseUnitCount > 0)
-            ? bulkCount * unitsPerBulk + looseUnitCount
-            : item.quantity ?? bulkCount * unitsPerBulk + looseUnitCount;
+        const totalUnits = bulkUnitsToTotal(
+          bulkCount,
+          looseUnitCount,
+          unitsPerBulk,
+          handlesBulk,
+          item.quantity,
+        );
 
         const lineSubtotal = handlesBulk
           ? bulkCount * bulkPrice + looseUnitCount * unitPrice
@@ -212,8 +216,8 @@ export class SalesService {
         );
 
         if (item.usesInventory) {
-          const qtyBulks = Math.floor(item.quantity / item.unitsPerBulk);
-          const qtyUnits = item.quantity % item.unitsPerBulk;
+          const qtySplit = splitIntoBulkUnits(item.quantity, item.unitsPerBulk);
+          const balSplit = splitIntoBulkUnits(item.currentStock, item.unitsPerBulk);
 
           await client.query(
             `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot) 
@@ -223,11 +227,11 @@ export class SalesService {
               item.productId,
               userId,
               item.quantity,
-              qtyBulks,
-              qtyUnits,
+              qtySplit.bulks,
+              qtySplit.units,
               item.currentStock,
-              Math.floor(item.currentStock / item.unitsPerBulk),
-              item.currentStock % item.unitsPerBulk,
+              balSplit.bulks,
+              balSplit.units,
               `Venta Ticket: ${ticketNumber}`,
               item.handlesBulk,
               item.unitsPerBulk,
@@ -670,11 +674,6 @@ export class SalesService {
     totalUnits: number,
     unitsPerBulk: number,
   ): { bulks: number; units: number } {
-    const safeTotal = Math.max(0, this.toInt(totalUnits));
-    const safeUnitsPerBulk = this.toUnitsPerBulk(unitsPerBulk);
-    return {
-      bulks: Math.floor(safeTotal / safeUnitsPerBulk),
-      units: safeTotal % safeUnitsPerBulk,
-    };
+    return splitIntoBulkUnits(this.toInt(totalUnits), this.toUnitsPerBulk(unitsPerBulk));
   }
 }

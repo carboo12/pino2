@@ -6,6 +6,7 @@ import {
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
 import { CreateProductDto, UpdateProductDto, Product } from './products.dto';
+import { calculateStockDisplay } from '../../common/utils/stock-display.util';
 
 interface ProductRow {
   id: string;
@@ -519,28 +520,11 @@ export class ProductsService {
       currentStock: parseInt(String(row.current_stock || 0), 10),
       stockTotalUnits: parseInt(String(row.current_stock || 0), 10),
       unitsPerBulk: parseInt(String(row.units_per_bulk || 1), 10),
-      stockDisplay: (() => {
-        const cs = parseInt(String(row.current_stock || 0), 10);
-        const upb = parseInt(String(row.units_per_bulk || 1), 10);
-        const hb = row.handles_bulk;
-        if (hb) {
-          const bc = Math.floor(cs / upb);
-          const lu = cs % upb;
-          return {
-            bulkCount: bc,
-            looseUnitCount: lu,
-            formatted:
-              bc > 0
-                ? `${bc} bulto${bc !== 1 ? 's' : ''}${lu > 0 ? ` + ${lu} unidad${lu !== 1 ? 'es' : ''}` : ''}`
-                : `${lu} unidad${lu !== 1 ? 'es' : ''}`,
-          };
-        }
-        return {
-          bulkCount: 0,
-          looseUnitCount: cs,
-          formatted: `${cs} unidad${cs !== 1 ? 'es' : ''}`,
-        };
-      })(),
+      stockDisplay: calculateStockDisplay(
+        parseInt(String(row.current_stock || 0), 10),
+        row.handles_bulk === true,
+        parseInt(String(row.units_per_bulk || 1), 10),
+      ),
       minStock: parseInt(String(row.min_stock || 0), 10),
       usesInventory: row.uses_inventory !== false,
       handlesBulk: row.handles_bulk,

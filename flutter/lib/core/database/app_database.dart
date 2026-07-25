@@ -35,6 +35,7 @@ class CachedProducts extends Table {
   TextColumn get department => text().nullable()();
   TextColumn get subDepartment => text().nullable()();
   IntColumn get minStock => integer().withDefault(const Constant(0))();
+  BoolColumn get handlesBulk => boolean().withDefault(const Constant(false))();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override

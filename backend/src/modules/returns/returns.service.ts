@@ -6,6 +6,7 @@ import {
 import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
+import { bulkUnitsToTotal } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class ReturnsService {
@@ -103,7 +104,12 @@ export class ReturnsService {
         const unitsPerBulk = this.toUnitsPerBulk(
           prodRes.rows[0].units_per_bulk,
         );
-        const totalUnits = quantityBulks * unitsPerBulk + quantityUnits;
+        const totalUnits = bulkUnitsToTotal(
+          quantityBulks,
+          quantityUnits,
+          unitsPerBulk,
+          unitsPerBulk > 1,
+        );
         if (totalUnits <= 0) {
           throw new BadRequestException(
             'La devolución debe incluir al menos una unidad',

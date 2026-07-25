@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
+import { splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class CargasCamionService {
@@ -56,8 +57,7 @@ export class CargasCamionService {
           const isBulk = item.presentation === 'BULTO';
           const rawQty = parseInt(item.quantity, 10) || 0;
           const totalUnits = isBulk ? rawQty * upb : rawQty;
-          const qtyBulks = Math.floor(totalUnits / upb);
-          const qtyUnits = totalUnits % upb;
+          const { bulks: qtyBulks, units: qtyUnits } = splitIntoBulkUnits(totalUnits, upb);
 
           const updated = await client.query(
             `UPDATE products
@@ -111,6 +111,7 @@ export class CargasCamionService {
           const curStock = Number(prodAfter.current_stock);
           const upbAfter = parseInt(prodAfter.units_per_bulk || 1, 10);
           const hbAfter = prodAfter.handles_bulk === true;
+          const { bulks: balBulks, units: balUnits } = splitIntoBulkUnits(curStock, upbAfter);
 
           await client.query(
             `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot)
@@ -123,8 +124,8 @@ export class CargasCamionService {
               qtyBulks,
               qtyUnits,
               curStock,
-              Math.floor(curStock / upbAfter),
-              curStock % upbAfter,
+              balBulks,
+              balUnits,
               `Cargado a camión - Pedido ${orderId}`,
               hbAfter,
               upbAfter,
@@ -156,8 +157,6 @@ export class CargasCamionService {
           [orderId, 'CARGADO_CAMION', dto.ruteroId],
         );
       }
-
-      totalBultos += Math.floor(totalUnidadesSueltas / 10);
 
       await client.query(
         `UPDATE cargas_camion SET total_pedidos = $1, total_bultos = $2, total_unidades_sueltas = $3 WHERE id = $4`,
@@ -213,11 +212,10 @@ export class CargasCamionService {
     const listaUnidades = [];
 
     for (const item of consolidadoRes.rows) {
-      const totalU = parseInt(item.total_unidades);
-      const upb = parseInt(item.units_per_bulk);
+      const totalU = parseInt(item.total_unidades, 10);
+      const upb = parseInt(item.units_per_bulk, 10) || 1;
 
-      const bultos = Math.floor(totalU / upb);
-      const sueltas = totalU % upb;
+      const { bulks: bultos, units: sueltas } = splitIntoBulkUnits(totalU, upb);
 
       if (bultos > 0) {
         listaBultos.push({

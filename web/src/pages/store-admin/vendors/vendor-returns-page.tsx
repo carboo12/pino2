@@ -12,7 +12,10 @@ import {
   Undo2,
 } from 'lucide-react';
 
+import { formatCurrency } from '@/lib/utils';
+import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { calculateStockDisplay } from '@/utils/stock-display';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -249,7 +252,7 @@ export default function VendorReturnsPage() {
                         <h3 className="font-bold text-slate-900">{product.productName}</h3>
                         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                           <Badge variant="outline" className="rounded-full text-xs">
-                            {product.currentBulks} bultos + {product.currentUnits} uds
+                            {calculateStockDisplay(product.currentQuantity, (product as any).handlesBulk ?? ((product.unitsPerBulk || 1) > 1), product.unitsPerBulk || 1).formatted}
                           </Badge>
                           <span>({product.currentQuantity} uds total)</span>
                           {product.barcode && <span className="text-xs text-slate-400">| {product.barcode}</span>}

@@ -30,6 +30,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Wrench } from 'lucide-react';
 
+import { calculateStockDisplay } from '@/utils/stock-display';
+
 const adjustmentFormSchema = z.object({
   newStock: z.coerce.number().min(0, 'La cantidad no puede ser negativa.'),
 });
@@ -42,6 +44,13 @@ interface Product {
   description: string;
   currentStock: number;
   usesInventory: boolean;
+  handlesBulk?: boolean;
+  unitsPerBulk?: number;
+  stockDisplay?: {
+    bulkCount: number;
+    looseUnitCount: number;
+    formatted: string;
+  };
 }
 
 export default function InventoryAdjustmentsPage() {
@@ -159,7 +168,9 @@ export default function InventoryAdjustmentsPage() {
                     className={`p-3 rounded-md cursor-pointer border transition-colors ${selectedProduct?.id === product.id ? 'bg-muted ring-2 ring-primary' : 'hover:bg-muted/50'}`}
                   >
                     <p className="font-semibold">{product.description}</p>
-                    <p className="text-sm text-muted-foreground">Existencia: {product.currentStock}</p>
+                    <p className="text-sm text-muted-foreground font-medium">
+                      Existencia: {product.stockDisplay?.formatted || calculateStockDisplay(product.currentStock, product.handlesBulk || false, product.unitsPerBulk || 1).formatted}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -184,7 +195,10 @@ export default function InventoryAdjustmentsPage() {
                     <p className="text-sm text-muted-foreground mt-2">Descripción</p>
                     <p className="font-semibold">{selectedProduct.description}</p>
                     <p className="text-sm text-muted-foreground mt-2">Cantidad Actual</p>
-                    <p className="font-bold text-lg">{selectedProduct.currentStock}</p>
+                    <p className="font-bold text-lg text-primary">
+                      {selectedProduct.stockDisplay?.formatted || calculateStockDisplay(selectedProduct.currentStock, selectedProduct.handlesBulk || false, selectedProduct.unitsPerBulk || 1).formatted}
+                      <span className="text-xs text-muted-foreground ml-2 font-normal">({selectedProduct.currentStock} unidades base)</span>
+                    </p>
                   </div>
                   <FormField<AdjustmentFormValues>
                     control={form.control}

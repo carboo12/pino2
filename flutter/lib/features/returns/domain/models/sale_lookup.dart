@@ -5,6 +5,8 @@ class SaleLookupItem {
     required this.description,
     required this.quantity,
     required this.salePrice,
+    this.unitsPerBulk = 1,
+    this.handlesBulk = false,
   });
 
   final String id;
@@ -12,14 +14,19 @@ class SaleLookupItem {
   final String description;
   final int quantity;
   final double salePrice;
+  final int unitsPerBulk;
+  final bool handlesBulk;
 
   factory SaleLookupItem.fromJson(Map<String, dynamic> json) {
+    final upb = int.tryParse('${json['unitsPerBulk'] ?? json['units_per_bulk'] ?? 1}') ?? 1;
     return SaleLookupItem(
       id: json['saleItemId']?.toString() ?? json['id']?.toString() ?? '',
       productId: json['productId']?.toString() ?? json['id']?.toString() ?? '',
       description: json['description']?.toString() ?? 'Producto',
       quantity: int.tryParse('${json['quantity'] ?? 0}') ?? 0,
       salePrice: double.tryParse('${json['salePrice'] ?? json['unitPrice'] ?? 0}') ?? 0,
+      unitsPerBulk: upb,
+      handlesBulk: json['handlesBulk'] == true || json['handles_bulk'] == true || upb > 1,
     );
   }
 }

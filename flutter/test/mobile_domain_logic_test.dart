@@ -1,9 +1,36 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pino_mobile/core/realtime/realtime_event.dart';
 import 'package:pino_mobile/core/utils/role_utils.dart';
+import 'package:pino_mobile/core/utils/stock_display.dart';
 import 'package:pino_mobile/features/warehouse/domain/models/warehouse_models.dart';
 
 void main() {
+  group('stock_display utility', () {
+    test('calculateStockDisplay formats bulks and units correctly', () {
+      expect(
+        calculateStockDisplay(totalUnits: 53, handlesBulk: true, unitsPerBulk: 10).formatted,
+        '5 bultos + 3 unidades',
+      );
+      expect(
+        calculateStockDisplay(totalUnits: 50, handlesBulk: true, unitsPerBulk: 10).formatted,
+        '5 bultos',
+      );
+      expect(
+        calculateStockDisplay(totalUnits: 53, handlesBulk: false, unitsPerBulk: 10).formatted,
+        '53 unidades',
+      );
+    });
+
+    test('bulkUnitsToTotal converts bulks + units into total', () {
+      expect(bulkUnitsToTotal(bulks: 2, units: 3, unitsPerBulk: 10, handlesBulk: true), 23);
+    });
+
+    test('splitIntoBulkUnits splits total units correctly', () {
+      final res = splitIntoBulkUnits(totalUnits: 53, unitsPerBulk: 10);
+      expect(res.bulks, 5);
+      expect(res.units, 3);
+    });
+  });
   group('role normalization', () {
     test('maps Spanish operational roles correctly', () {
       expect(normalizeRole('Bodeguero'), AppRole.inventory);

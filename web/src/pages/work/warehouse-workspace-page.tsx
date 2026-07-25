@@ -40,12 +40,17 @@ import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
 import { format } from 'date-fns';
+import { calculateStockDisplay } from '@/utils/stock-display';
 
 interface OrderItem {
   id: string;
   productId: string;
   productName: string;
   quantity: number;
+  quantityBulks?: number;
+  quantityUnits?: number;
+  unitsPerBulkSnapshot?: number;
+  handlesBulkSnapshot?: boolean;
   presentation?: string;
 }
 
@@ -272,7 +277,9 @@ export default function WarehouseWorkspacePage() {
                       className="flex items-center justify-between rounded-md bg-[#F6F7F9] px-3 py-1.5 text-xs"
                     >
                       <span className="text-[#17202A]">{item.productName}</span>
-                      <span className="font-medium text-[#5B6673]">x{item.quantity}</span>
+                      <span className="font-medium text-[#5B6673]">
+                        {calculateStockDisplay(item.quantity, (item as any).handlesBulk || Boolean(item.unitsPerBulk && item.unitsPerBulk > 1), item.unitsPerBulk || 1).formatted}
+                      </span>
                     </div>
                   ))}
                 </div>

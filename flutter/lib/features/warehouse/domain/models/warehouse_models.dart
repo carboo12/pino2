@@ -1,3 +1,5 @@
+import '../../../../core/utils/stock_display.dart';
+
 class WarehouseOrderItem {
   const WarehouseOrderItem({
     required this.id,
@@ -6,6 +8,7 @@ class WarehouseOrderItem {
     required this.quantity,
     required this.unitsPerBulk,
     required this.presentation,
+    this.handlesBulk = false,
   });
 
   final String id;
@@ -14,20 +17,36 @@ class WarehouseOrderItem {
   final int quantity;
   final int unitsPerBulk;
   final String presentation;
+  final bool handlesBulk;
 
   int get totalUnits =>
       presentation.toUpperCase() == 'BULTO' ? quantity * unitsPerBulk : quantity;
 
-  int get pickingBulks => unitsPerBulk <= 1 ? 0 : totalUnits ~/ unitsPerBulk;
-  int get pickingUnits => unitsPerBulk <= 1 ? totalUnits : totalUnits % unitsPerBulk;
+  int get pickingBulks => splitIntoBulkUnits(
+        totalUnits: totalUnits,
+        unitsPerBulk: unitsPerBulk,
+      ).bulks;
+
+  int get pickingUnits => splitIntoBulkUnits(
+        totalUnits: totalUnits,
+        unitsPerBulk: unitsPerBulk,
+      ).units;
+
+  String get pickingLabel => calculateStockDisplay(
+        totalUnits: totalUnits,
+        handlesBulk: handlesBulk || unitsPerBulk > 1,
+        unitsPerBulk: unitsPerBulk,
+      ).formatted;
 
   factory WarehouseOrderItem.fromJson(Map<String, dynamic> json) {
+    final upb = int.tryParse('${json['unitsPerBulk'] ?? json['units_per_bulk'] ?? 1}') ?? 1;
     return WarehouseOrderItem(
       id: json['id']?.toString() ?? '',
       productId: json['productId']?.toString() ?? '',
       productName: json['productName']?.toString() ?? 'Producto',
       quantity: int.tryParse('${json['quantity'] ?? 0}') ?? 0,
-      unitsPerBulk: int.tryParse('${json['unitsPerBulk'] ?? 1}') ?? 1,
+      unitsPerBulk: upb,
+      handlesBulk: json['handlesBulk'] == true || json['handles_bulk'] == true || upb > 1,
       presentation: json['presentation']?.toString() ?? 'UNIT',
     );
   }

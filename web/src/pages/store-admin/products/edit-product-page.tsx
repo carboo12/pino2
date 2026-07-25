@@ -61,11 +61,17 @@ interface ProductResponse {
   supplierId?: string;
   subDepartment?: string;
   usesInventory: boolean;
+  handlesBulk?: boolean;
   currentStock: number;
   minStock: number;
   unitsPerBulk?: number;
   stockBulks?: number;
   stockUnits?: number;
+  stockDisplay?: {
+    bulkCount: number;
+    looseUnitCount: number;
+    formatted: string;
+  };
 }
 
 interface ProductFormState {
@@ -87,6 +93,7 @@ interface ProductFormState {
   supplierId: string;
   subDepartment: string;
   usesInventory: boolean;
+  handlesBulk: boolean;
   currentStock: string;
   minStock: string;
   unitsPerBulk: string;
@@ -113,6 +120,7 @@ const emptyForm: ProductFormState = {
   supplierId: "",
   subDepartment: "",
   usesInventory: true,
+  handlesBulk: false,
   currentStock: "0",
   minStock: "0",
   unitsPerBulk: "1",
@@ -140,6 +148,7 @@ function toFormData(product: ProductResponse): ProductFormState {
     supplierId: product.supplierId || "",
     subDepartment: product.subDepartment || "",
     usesInventory: product.usesInventory !== false,
+    handlesBulk: Boolean(product.handlesBulk),
     currentStock: String(product.currentStock ?? 0),
     minStock: String(product.minStock ?? 0),
     unitsPerBulk: String(product.unitsPerBulk ?? 1),
@@ -284,9 +293,10 @@ export default function EditProductPage() {
         supplierId: formData.supplierId || null,
         subDepartment: formData.subDepartment || null,
         usesInventory: formData.usesInventory,
+        handlesBulk: formData.handlesBulk,
         currentStock: Number(formData.currentStock || 0),
         minStock: Number(formData.minStock || 0),
-        unitsPerBulk: Math.max(1, Number(formData.unitsPerBulk || 1)),
+        unitsPerBulk: formData.handlesBulk ? Math.max(2, Number(formData.unitsPerBulk || 2)) : 1,
         stockBulks: Number(formData.stockBulks || 0),
         stockUnits: Number(formData.stockUnits || 0),
       });
@@ -625,19 +635,39 @@ export default function EditProductPage() {
                   }
                 />
               </div>
+              <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
+                <Checkbox
+                  id="handlesBulk"
+                  checked={formData.handlesBulk}
+                  onCheckedChange={(checked) => {
+                    const isChecked = Boolean(checked);
+                    setFormData((prev) => ({
+                      ...prev,
+                      handlesBulk: isChecked,
+                      unitsPerBulk: isChecked ? (Number(prev.unitsPerBulk) > 1 ? prev.unitsPerBulk : "10") : "1",
+                    }));
+                  }}
+                />
+                <Label htmlFor="handlesBulk" className="cursor-pointer font-medium">
+                  ¿Maneja control por bultos?
+                </Label>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="unitsPerBulk">Unidades por bulto</Label>
+                <Label htmlFor="unitsPerBulk">Unidades por bulto (X)</Label>
                 <Input
                   id="unitsPerBulk"
                   type="number"
-                  min="1"
+                  min="2"
                   step="1"
+                  disabled={!formData.handlesBulk}
                   value={formData.unitsPerBulk}
                   onChange={(event) =>
                     updateField("unitsPerBulk", event.target.value)
                   }
                 />
               </div>
+
               <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
                 <Checkbox
                   id="usesInventory"

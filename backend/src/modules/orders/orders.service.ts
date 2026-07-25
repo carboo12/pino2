@@ -10,6 +10,7 @@ import { EventsGateway } from '../../common/gateways/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { GruposEconomicosService } from '../grupos-economicos/grupos-economicos.service';
 import { OrderStatus } from '../../common/constants/enums';
+import { bulkUnitsToTotal, splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class OrdersService {
@@ -486,8 +487,7 @@ export class OrdersService {
           const isBulk = item.presentation === 'BULTO';
           const rawQty = parseInt(item.quantity, 10) || 0;
           const totalUnits = isBulk ? rawQty * upb : rawQty;
-          const qtyBulks = Math.floor(totalUnits / upb);
-          const qtyUnits = totalUnits % upb;
+          const { bulks: qtyBulks, units: qtyUnits } = splitIntoBulkUnits(totalUnits, upb);
 
           // Restar de products
           const updated = await client.query(
@@ -548,6 +548,7 @@ export class OrdersService {
 
           // Kardex
           const curStock = Number(prodAfter.current_stock);
+          const balSplit = splitIntoBulkUnits(curStock, upbAfter);
           await client.query(
             `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference, handles_bulk_snapshot, units_per_bulk_snapshot)
              VALUES ($1, $2, $3, 'OUT', $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
@@ -559,8 +560,8 @@ export class OrdersService {
               qtyBulks,
               qtyUnits,
               curStock,
-              Math.floor(curStock / upbAfter),
-              curStock % upbAfter,
+              balSplit.bulks,
+              balSplit.units,
               `Cargado a camión - Pedido ${id}`,
               hbAfter,
               upbAfter,

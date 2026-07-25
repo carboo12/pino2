@@ -1,9 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import { DatabaseService } from '../../database/database.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+
+jest.mock(
+  'argon2',
+  () => ({
+    hash: jest.fn().mockResolvedValue('hashed'),
+    verify: jest.fn().mockResolvedValue(true),
+  }),
+  { virtual: true },
+);
+
+import { AuthService } from './auth.service';
+
 
 describe('AuthService', () => {
   let service: AuthService;

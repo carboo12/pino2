@@ -1,0 +1,364 @@
+============================================================
+ EVALUACION HONESTA DEL SISTEMA "LOS PINOS" - 25 JULIO 2026
+ ARQUITECTO: Analisis sin codigo, solo diagnostico y plan
+============================================================
+
+CALIFICACION REAL POR CAPA (sin inflar)
+============================================================
+
+  BACKEND (NestJS)     => 7/10
+  WEB (React/Vite)     => 5/10
+  FLUTTER (Mobile)     => 4/10
+  BASE DE DATOS        => 8/10
+  CI/CD                => 5/10
+  SEGURIDAD            => 7/10
+  DOCUMENTACION        => 4/10
+  SYNC/OUTBOX          => 6/10
+  ---------------------------------
+  PROMEDIO REAL         => 5.75/10
+
+El 7.5 del MVP_10_STATUS.md es generoso. Explico por que.
+
+============================================================
+A. ESTADO REAL DEL REQUERIMIENTO BULTOS/UNIDADES
+============================================================
+
+REQUERIMIENTO ORIGINAL (lo que se pidio):
+  1. Campo handles_bulk + units_per_bulk en products
+  2. Regla: stock en unidades totales, conversion es presentacion
+  3. Funcion helper reutilizable calculateStockDisplay
+  4. Checkbox "Maneja Bultos?" en creacion/edicion producto
+  5. Formato "X bultos, Y unidades" en TODAS las pantallas de lectura
+  6. Campos dobles (Bultos + Unidades) en pantallas de entrada/salida
+  7. Misma logica en Flutter (Dart)
+
+QUE SE HIZO vs QUE FALTA:
+
+  [HECHO] 1. Migracion SQL (2026-07-25_bulk_unit_canonical.sql)
+     - handles_bulk boolean NOT NULL con default
+     - units_per_bulk integer NOT NULL con default 1
+     - Constraint products_packaging_valid correcta
+     - stock_bulks y stock_units como columnas GENERATED ALWAYS
+     - Snapshots en order_items, sale_items, movements
+     VEREDICTO: Bien implementado. 9/10
+
+  [HECHO] 2. Backend products.service.ts
+     - stockDisplay calculado inline (no funcion helper reutilizable)
+     - sales.service.ts usa handles_bulk + quantity_bulks/quantity_units
+     - orders.service.ts idem
+     - cargas-camion.service.ts idem
+     - returns.service.ts idem
+     - inventory.service.ts idem
+     VEREDICTO: Funcional pero sin funcion helper compartida. 7/10
+
+  [PARCIAL] 3. Web React
+     - products-page.tsx: muestra stockDisplay.formatted en catalogo  OK
+     - edit-product-page.tsx: muestra stockBulks/stockUnits readonly  OK
+     - add-product-page.tsx: tiene campo "bulto" pero no se verifico checkbox
+     FALTA EN WEB:
+     * inventory-entry-page.tsx: NO muestra bultos/unidades
+     * inventory-movements-page.tsx: NO muestra bultos/unidades
+     * inventory-adjustments-page.tsx: NO muestra bultos/unidades
+     * warehouse-dashboard-page.tsx: NO muestra bultos/unidades
+     * warehouse-workspace-page.tsx: NO muestra bultos/unidades
+     * catalog-workspace-page.tsx: NO muestra bultos/unidades
+     * dispatch-cargas-page.tsx: usa "bulto" pero no stockDisplay
+     * sales-workspace-page.tsx: NO tiene campos dobles entrada
+     * cash-workspace-page.tsx: NO tiene formato bultos
+     * vendor-returns-page.tsx: usa "bulto" parcialmente
+     VEREDICTO: Solo 2 de ~12 pantallas relevantes. 3/10
+
+  [PARCIAL] 4. Flutter
+     - catalog_product.dart: tiene unitsPerBulk, bulk prices, 
+       calcula formatted display. OK
+     - warehouse_models.dart: tiene pickingBulks/pickingUnits con
+       formula correcta. OK
+     - picking_checklist_screen.dart: muestra "X bultos + Y unidades". OK
+     - carga_camion_screen.dart: muestra totalBulks. OK
+     FALTA EN FLUTTER:
+     * NO tiene campo handlesBulk (solo usa unitsPerBulk > 1)
+     * NO tiene checkbox "Maneja Bultos?" en creacion/edicion
+     * Pantalla de preventa/pedido: no verificada con campos dobles
+     * Pantalla de venta/entrega: no verificada
+     * NO sincroniza el campo handles_bulk desde API
+     * NO tiene funcion calculateStockDisplay reutilizable
+     VEREDICTO: Estructura base OK, integracion incompleta. 5/10
+
+  [NO HECHO] 5. Funcion helper reutilizable
+     - NO existe calculateStockDisplay() como funcion exportada
+     - Backend calcula inline en products.service.ts (funcion anonima)
+     - Web test tiene formatStock() pero solo en test, NO exportada
+     - Flutter no tiene ninguna funcion helper compartida
+     VEREDICTO: 0/10 como componente reutilizable
+
+============================================================
+B. OTROS PROBLEMAS REALES DETECTADOS
+============================================================
+
+1. SQL EN STRINGS (SQL Injection potencial)
+   - sales.service.ts, orders.service.ts, etc. usan template literals
+     con valores interpolados. Usan parametros $1,$2 pero hay riesgo
+     en la construccion de queries dinamicas.
+
+2. SIN FUNCION HELPER COMPARTIDA
+   - La logica bultos/unidades esta duplicada en 6+ archivos del backend
+   - Cada servicio recalcula Math.floor(stock/upb) por su cuenta
+   - Un cambio en la regla = editar 6+ archivos
+
+3. TESTS INSUFICIENTES PARA BULTOS/UNIDADES
+   - stock-display.test.tsx: 6 tests de formateo (solo web)
+   - sales.service.spec.ts: 3 tests con units_per_bulk pero basicos
+   - No hay test de integracion que valide:
+     * Crear producto con handles_bulk=true
+     * Hacer venta con bultos+unidades
+     * Verificar movimiento con snapshot correcto
+     * Verificar que stock_bulks/stock_units GENERATED coinciden
+
+4. CI NO CORRE REALMENTE
+   - El workflow ci-mvp.yml referencia seed_test.sql que no existe
+   - Flutter job depende de flutter-action@v2 pero no se ha validado
+   - No hay step de coverage
+
+5. WEB: NO HAY VALIDACION DE handlesBulk EN FORMULARIOS
+   - edit-product-page.tsx: stockBulks/stockUnits son readonly (bien)
+     pero NO hay toggle/checkbox para cambiar handles_bulk
+   - No se puede crear un producto como "maneja bultos" desde la web
+
+6. FLUTTER SIN COMPILAR
+   - No se ha corrido flutter build apk
+   - No se sabe si compila con los cambios recientes
+   - handlesBulk no existe como campo en el modelo Flutter
+
+============================================================
+C. PLAN DETALLADO PARA LLEGAR A 10/10
+============================================================
+
+FASE 1: FUNCION HELPER CANONICA (prioridad critica)
+----------------------------------------------------
+Archivo: backend/src/common/utils/stock-display.ts [NUEVO]
+
+  Crear:
+    export interface StockDisplay {
+      bulks: number;
+      units: number;
+      formatted: string;
+    }
+    export function calculateStockDisplay(
+      totalUnits: number,
+      handlesBulk: boolean,
+      unitsPerBulk: number
+    ): StockDisplay { ... }
+
+    export function bulkUnitsToTotal(
+      bulks: number,
+      units: number,
+      unitsPerBulk: number
+    ): number { ... }
+
+  Impacto: Reemplazar los 6+ calculos inline en:
+    - products.service.ts (linea 522)
+    - sales.service.ts (lineas 127-135)
+    - orders.service.ts (lineas 105-106)
+    - cargas-camion.service.ts (lineas 55, 113)
+    - returns.service.ts (lineas 104, 167)
+    - inventory.service.ts (lineas 70, 231, 290)
+
+Archivo: web/src/utils/stock-display.ts [NUEVO]
+  Misma funcion para el frontend React.
+
+Archivo: flutter/lib/core/utils/stock_display.dart [NUEVO]
+  Equivalente en Dart.
+
+
+FASE 2: WEB - COMPLETAR TODAS LAS PANTALLAS
+----------------------------------------------------
+Pantallas que necesitan mostrar stockDisplay.formatted:
+
+  2.1 inventory-entry-page.tsx
+      - Tabla de productos: agregar columna "Stock (B/U)"
+      - Al seleccionar producto: mostrar stock actual formateado
+      - Campos de entrada: bultos + unidades separados
+
+  2.2 inventory-movements-page.tsx
+      - Columna kardex: mostrar "cantidad" como "X bultos, Y unidades"
+      - Columna balance: idem
+
+  2.3 inventory-adjustments-page.tsx
+      - Mostrar stock actual formateado
+      - Campos ajuste: bultos + unidades
+
+  2.4 warehouse-dashboard-page.tsx
+      - Tabla de stock: formato bultos/unidades
+
+  2.5 warehouse-workspace-page.tsx
+      - Lista de productos en workspace: formato B/U
+
+  2.6 catalog-workspace-page.tsx
+      - Productos en catalogo operativo: formato B/U
+
+  2.7 dispatch-cargas-page.tsx
+      - Items de carga: formato B/U (ya parcial, completar)
+
+  2.8 sales-workspace-page.tsx
+      - Al vender: campos dobles (bultos + unidades)
+      - Mostrar stock disponible formateado
+
+  2.9 cash-workspace-page.tsx
+      - Resumen de ventas: cantidades en B/U si aplica
+
+  2.10 vendor-returns-page.tsx
+      - Devoluciones: campos B/U (ya parcial, completar)
+
+  2.11 edit-product-page.tsx
+      - AGREGAR: checkbox/switch "Maneja Bultos?"
+      - Si true: habilitar campo "Unidades por Bulto"
+      - Validacion: si handles_bulk, units_per_bulk >= 2
+
+  2.12 add-product-page.tsx
+      - VERIFICAR: que checkbox handles_bulk funcione
+      - VERIFICAR: que campo units_per_bulk se envie al API
+
+
+FASE 3: FLUTTER - COMPLETAR MODELO Y PANTALLAS
+----------------------------------------------------
+  3.1 Agregar handlesBulk al modelo CatalogProduct
+      - Campo: final bool handlesBulk;
+      - fromJson: json['handlesBulk'] ?? false
+
+  3.2 Agregar handlesBulk a la tabla SQLite (app_database.dart)
+      - BoolColumn get handlesBulk => boolean()();
+
+  3.3 Crear stock_display.dart helper en core/utils/
+
+  3.4 Pantalla de preventa (crear pedido):
+      - Campos dobles: bultos + unidades
+      - Conversion automatica a quantity total
+
+  3.5 Pantalla de entrega (rutero):
+      - Mostrar items con formato B/U
+      - Campos de entrega parcial en B/U
+
+  3.6 Pantalla de devolucion:
+      - Campos B/U
+
+  3.7 Cierre diario / liquidacion:
+      - Resumen de productos en B/U
+
+  3.8 Sync: incluir handlesBulk en pull/push
+
+
+FASE 4: TESTS
+----------------------------------------------------
+  4.1 Backend unit tests [NUEVOS]:
+      - calculateStockDisplay: 8+ casos
+      - bulkUnitsToTotal: 5+ casos
+      - products.service: crear producto con handles_bulk=true
+      - sales.service: venta con bultos+unidades, verificar snapshot
+      - orders.service: pedido con B/U, verificar conversion
+
+  4.2 Backend E2E tests [NUEVOS]:
+      - Flujo completo: crear producto bulk -> hacer pedido B/U ->
+        aprobar -> cargar camion -> entregar -> verificar movimientos
+      - Verificar stock_bulks/stock_units GENERATED coinciden
+
+  4.3 Web tests [NUEVOS]:
+      - Cada pantalla modificada: renderizar con producto bulk
+      - Verificar que muestra formato correcto
+      - Verificar campos dobles en formularios
+
+  4.4 Flutter tests:
+      - stock_display.dart: 8+ casos
+      - CatalogProduct.fromJson con handlesBulk
+      - Sync: pull con handlesBulk
+
+  4.5 Minimo: 80% coverage en CI
+      - Agregar --coverage a npm test
+      - Agregar threshold check
+
+
+FASE 5: CI/CD REAL
+----------------------------------------------------
+  5.1 Crear migrations/seed_test.sql (no existe)
+  5.2 Verificar que ci-mvp.yml pasa en GitHub Actions
+  5.3 Agregar coverage threshold (80%)
+  5.4 Agregar step de npm audit --audit-level=high
+  5.5 Verificar que flutter job compila APK
+
+
+FASE 6: DOCUMENTACION LIMPIA
+----------------------------------------------------
+  6.1 Eliminar o archivar documentos obsoletos de raiz:
+      - analisis_avances_detallado_v3.txt (abril)
+      - analisis_detallado_avances.txt (abril)
+      - DICCIONARIO_TABLAS.txt (desactualizado)
+      - ESTRUCTURA_Y_FLUJO_SISTEMA.txt (desactualizado)
+      - RESUMEN_EJECUCION_BARCODES.txt (completado)
+      - PLAN_CORRECCION_100_PORCIENTO.md (historico)
+      - PLAN_REESTRUCTURA_BARCODES.txt (completado)
+      Moverlos a: docs/archivo_historico/
+
+  6.2 Actualizar docs/API_REFERENCE.md:
+      - Documentar stockDisplay en respuesta de productos
+      - Documentar campos handles_bulk, units_per_bulk
+      - Documentar quantity_bulks/quantity_units en items
+
+  6.3 Actualizar docs/06_BASE_DE_DATOS_ESTADO_ACTUAL.md:
+      - Agregar columnas GENERATED stock_bulks/stock_units
+      - Documentar constraint products_packaging_valid
+      - Documentar snapshots en order_items/sale_items/movements
+
+  6.4 Crear docs/BULK_UNIT_SPEC.md:
+      - Regla canonica: stock en unidades totales
+      - Formula de conversion
+      - Donde se usa en cada capa
+      - Ejemplos
+
+
+FASE 7: SEGURIDAD PENDIENTE
+----------------------------------------------------
+  7.1 npm audit fix --force en backend (40 vulns)
+  7.2 npm audit fix --force en web (13 vulns)
+  7.3 Verificar que no rompe nada despues del fix
+  7.4 Rate limiting en endpoints criticos (auth, sync)
+  7.5 Helmet headers en NestJS (si no estan)
+
+
+FASE 8: EDGE NODE + DEPLOY
+----------------------------------------------------
+  8.1 Validar docker-compose.yml en infra/edge/
+  8.2 Documentar flujo de instalacion paso a paso
+  8.3 Test de sync entre edge y cloud
+  8.4 Deploy script con rollback verificado
+  8.5 Health check endpoint
+
+
+============================================================
+D. ORDEN DE EJECUCION (PRIORIDAD)
+============================================================
+
+  SEMANA 1: Fase 1 (helper) + Fase 4.1-4.2 (tests backend)
+  SEMANA 2: Fase 2 (web completa) + Fase 4.3 (tests web)
+  SEMANA 3: Fase 3 (flutter) + Fase 4.4 (tests flutter)
+  SEMANA 4: Fase 5 (CI) + Fase 6 (docs) + Fase 7 (seguridad)
+  SEMANA 5: Fase 8 (edge/deploy) + QA final
+
+============================================================
+E. CRITERIOS PARA DECLARAR 10/10
+============================================================
+
+  [ ] Funcion helper unica en backend, web y flutter
+  [ ] TODAS las pantallas web muestran B/U donde aplica
+  [ ] TODAS las pantallas flutter muestran B/U donde aplica
+  [ ] Checkbox handles_bulk funciona en crear/editar producto (web+flutter)
+  [ ] Campos dobles (bultos+unidades) en ventas, pedidos, inventario
+  [ ] 80%+ coverage en CI
+  [ ] CI pasa verde en GitHub Actions (backend+web+flutter)
+  [ ] 0 vulnerabilidades criticas/altas en npm audit
+  [ ] Edge node funcional con sync bidireccional
+  [ ] APK compilado y funcional
+  [ ] Documentacion actualizada y sin basura historica
+  [ ] Piloto con al menos 1 tienda real
+
+============================================================
+FIN DEL DOCUMENTO
+============================================================

@@ -194,7 +194,8 @@ export default function AddProductPage() {
       const productData = {
         ...values,
         packagingType: values.packagingType,
-        unitsPerBulk: values.unitsPerBulk || 1,
+        handlesBulk: values.packagingType === 'BULTO',
+        unitsPerBulk: values.packagingType === 'BULTO' ? Math.max(2, values.unitsPerBulk || 2) : 1,
         salePrice: values.price1,
         departmentId: values.department,
         department: selectedDept?.name || '',

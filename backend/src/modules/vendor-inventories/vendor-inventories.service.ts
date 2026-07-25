@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
+import { splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class VendorInventoriesService {
@@ -257,11 +258,6 @@ export class VendorInventoriesService {
     totalUnits: number,
     unitsPerBulk: number,
   ): { bulks: number; units: number } {
-    const safeUnitsPerBulk = this.toUnitsPerBulk(unitsPerBulk);
-    const safeTotal = Math.max(0, this.toInt(totalUnits));
-    return {
-      bulks: Math.floor(safeTotal / safeUnitsPerBulk),
-      units: safeTotal % safeUnitsPerBulk,
-    };
+    return splitIntoBulkUnits(this.toInt(totalUnits), this.toUnitsPerBulk(unitsPerBulk));
   }
 }

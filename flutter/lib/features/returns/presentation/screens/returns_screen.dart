@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import '../../../../core/utils/stock_display.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/returns_repository.dart';
 import '../../domain/models/sale_lookup.dart';
@@ -95,9 +95,15 @@ class _ReturnsScreenState extends ConsumerState<ReturnsScreen> {
     final items = sale.items
         .where((item) => (_returnQuantities[item.productId] ?? 0) > 0)
         .map(
-          (item) => {
-            'productId': item.productId,
-            'quantity': _returnQuantities[item.productId],
+          (item) {
+            final totalQty = _returnQuantities[item.productId] ?? 0;
+            final split = splitIntoBulkUnits(totalUnits: totalQty, unitsPerBulk: item.unitsPerBulk);
+            return {
+              'productId': item.productId,
+              'quantity': totalQty,
+              'quantityBulks': split.bulks,
+              'quantityUnits': split.units,
+            };
           },
         )
         .toList();

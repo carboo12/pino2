@@ -28,7 +28,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
+import { toast } from "@/lib/swalert";
 import { logError } from "@/lib/error-logger";
+import { calculateStockDisplay } from "@/utils/stock-display";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ImportProductsDialog } from "@/components/products/import-products-dialog";
@@ -322,11 +324,9 @@ export default function ProductsPage() {
                           >
                             {product.currentStock}
                           </Badge>
-                          {product.stockDisplay && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {product.stockDisplay.formatted}
-                            </p>
-                          )}
+                          <p className="text-xs text-muted-foreground mt-1 font-medium">
+                            {(product.stockDisplay?.formatted || calculateStockDisplay(product.currentStock, product.handlesBulk, product.unitsPerBulk || 1).formatted)}
+                          </p>
                         </div>
                       ) : (
                         <Badge variant="secondary">N/A</Badge>
