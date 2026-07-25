@@ -1,0 +1,233 @@
+# Índice Completo de Escenarios
+
+## Categoría: Ventas (sales/SCENARIOS.md)
+- V-001: Venta normal al contado
+- V-002: Venta con mezcla de bultos y unidades
+- V-003: Venta a crédito a cliente conocido
+- V-004: Venta con precio especial nivel 4
+- V-005: Devolución parcial de productos dañados
+- V-006: Devolución total por cliente insatisfecho
+- V-007: Cliente que paga con dólares
+- V-008: Venta con descuento por volumen
+- V-009: Venta de productos sin inventario (exhibición)
+- V-010: Venta rápida en horas pico (7am-9am)
+- V-011: Venta a una cooperativa
+- V-012: Venta a una escuela / comedor infantil
+- V-013: Venta con factura fiscal
+- V-014: Cliente que regresa producto porque no le gustó
+- V-015: Producto caducado al momento de la venta
+- V-016: Venta nocturna después del cierre de caja
+- V-017: Dos clientes comprando el último producto
+- V-018: Venta con pago parcial (apartado)
+- V-019: Venta con tarjeta cuando el datáfono falla
+- V-020: Venta a un menor de edad
+- V-021: Cliente habitual que paga después (fía)
+- V-022: Venta de productos en promoción
+- V-023: Venta con error en el vuelto
+- V-024: Venta anulada después de impresa
+- V-025: Venta con múltiples métodos de pago
+- V-026: Venta a un empleado con precio especial
+- V-027: Venta con código de barras ilegible
+- V-028: Cliente que compra para reventa
+- V-029: Venta con entrega a domicilio
+- V-030: Venta en días festivos con recargo
+- V-031: Venta con cliente que paga con cheque
+- V-032: Venta cruzada (upsell/cross-sell)
+
+## Categoría: Inventario (inventory/SCENARIOS.md)
+- I-001: Recepción de mercancía de proveedor
+- I-002: Ajuste por pérdida/robo
+- I-003: Ajuste por producto dañado
+- I-004: Producto caducado en bodega
+- I-005: Conteo cíclico físico
+- I-006: Transferencia entre tiendas
+- I-007: Producto mal clasificado en bodega
+- I-008: Exceso de inventario (producto lento)
+- I-009: Quiebre de stock (producto agotado)
+- I-010: Recepción con diferencia contra factura
+- I-011: Producto sin código de barras
+- I-012: Producto con código de barras duplicado
+- I-013: Ajuste masivo post-huracán
+- I-014: Inventario de productos congelados
+- I-015: Merma por derrame/rotura
+- I-016: Producto vencido en góndola
+- I-017: Donación de producto próximo a vencer
+- I-018: Devolución a proveedor
+- I-019: Producto con empaque dañado
+- I-020: Fumigación / cuarentena de producto
+- I-021: Producto retenido por Minsa
+- I-022: Consolidación de inventario fin de mes
+- I-023: Lote vencido mezclado con bueno
+- I-024: Recepción de contenedor completo
+- I-025: Producto sin registro sanitario
+- I-026: Ajuste por robo en bodega
+- I-027: Bultos/unidades con diferencias
+- I-028: Producto mal ubicado en el sistema
+- I-029: Conteo con báscula
+- I-030: Producto con peso variable
+
+## Categoría: Pedidos (orders/SCENARIOS.md)
+- O-001: Pedido normal de bodega a tienda
+- O-002: Pedido urgente (express)
+- O-003: Pedido con productos agotados
+- O-004: Pedido con precio especial
+- O-005: Preparación de pedido incompleta
+- O-006: Carga de camión con productos frágiles
+- O-007: Entrega exitosa
+- O-008: Entrega rechazada por cliente
+- O-009: Entrega parcial aceptada
+- O-010: Devolución de producto en ruta
+- O-011: Pedido cancelado después de preparado
+- O-012: Pedido con fecha de entrega programada
+- O-013: Pedido de cliente nuevo sin historial
+- O-014: Pedido de cliente en mora
+- O-015: Pedido con nota de crédito
+- O-016: Pedido de productos promocionales
+- O-017: Pedido de temporada (navidad)
+- O-018: Pedido con descuento por pronto pago
+- O-019: Pedido de institución del gobierno
+- O-020: Pedido con pago contra entrega
+- O-021: Pedido de cliente que nunca paga
+- O-022: Pedido con entrega en múltiples direcciones
+- O-023: Pedido reprogramado por mal clima
+- O-024: Pedido con productos refrigerados
+- O-025: Pedido con empaque especial
+- O-026: Pedido con nota de envío
+- O-027: Pedido con diferencia de precio
+- O-028: Pedido de productos sustitutos
+- O-029: Pedido con factura electrónica
+- O-030: Pedido consolidado de varios clientes
+
+## Categoría: Caja (cash/SCENARIOS.md)
+- C-001: Apertura de caja normal
+- C-002: Cierre de caja con cuadre exacto
+- C-003: Cierre de caja con diferencia positiva
+- C-004: Cierre de caja con diferencia negativa
+- C-005: Cierre de caja con diferencia que requiere aprobación
+- C-006: Arqueo de caja sorpresa
+- C-007: Retiro de efectivo de caja (gasto menor)
+- C-008: Ingreso de efectivo a caja
+- C-009: Denominaciones incorrectas en caja
+- C-010: Billetes falsos en caja
+- C-011: Faltante por robo en caja
+- C-012: Sobrante por error en caja
+- C-013: Caja chica para gastos menores
+- C-014: Corte de caja a mitad del día
+- C-015: Corte de caja semanal
+- C-016: Conteo con múltiples monedas
+- C-017: Apertura de caja sin fondos iniciales
+- C-018: Cierre de caja sin internet
+- C-019: Cierre después de facturación electrónica
+- C-020: Voucher de tarjeta pendiente
+- C-021: Diferencia por tipo de cambio
+- C-022: Cierre con pagos electrónicos
+- C-023: Ingresos en dólares y córdobas
+- C-024: Corte con múltiples turnos
+- C-025: Caja de fin de mes
+
+## Categoría: Clientes (clients/SCENARIOS.md)
+- CL-001: Cliente nuevo con crédito
+- CL-002: Cliente con historial de pagos puntual
+- CL-003: Cliente moroso (30+ días)
+- CL-004: Cliente con límite de crédito excedido
+- CL-005: Cliente que paga antes de la fecha
+- CL-006: Cliente que paga después de la fecha
+- CL-007: Cliente que no paga (incobrable)
+- CL-008: Cliente con grupo económico
+- CL-009: Cliente que cambia de dirección
+- CL-010: Cliente que cierra su cuenta
+- CL-011: Cliente con múltiples tiendas
+- CL-012: Cliente referido por otro cliente
+- CL-013: Cliente con descuento especial
+- CL-014: Cliente con facturación electrónica
+- CL-015: Cliente que reclama por producto dañado
+- CL-016: Cliente que solicita nota de crédito
+- CL-017: Cliente con deuda en dólares
+- CL-018: Cliente con pagos en parcialidades
+- CL-019: Cliente con contrato de crédito
+- CL-020: Cliente que fallece
+
+## Categoría: Rutas (routes/SCENARIOS.md)
+- R-001: Asignación de ruta normal
+- R-002: Ruta con cliente nuevo
+- R-003: Ruta con cliente que no estaba
+- R-004: Ruta con cliente que rechaza entrega
+- R-005: Ruta con producto dañado en transporte
+- R-006: Ruta con accidente de tránsito
+- R-007: Ruta con desvío por carretera en mal estado
+- R-008: Ruta en época lluviosa (invierno)
+- R-009: Ruta en época seca (verano)
+- R-010: Ruta con múltiples entregas en área
+- R-011: Ruta con devolución de múltiples productos
+- R-012: Ruta con cobro en efectivo
+- R-013: Ruta con cobro con tarjeta
+- R-014: Ruta con problemas mecánicos del vehículo
+- R-015: Ruta con horario de entrega restringido
+- R-016: Cliente pide adelantar entrega
+- R-017: Cliente pide atrasar entrega
+- R-018: Orden de entrega incorrecta
+- R-019: Devolución por cliente equivocado
+- R-020: Ruta sin conexión (modo offline)
+
+## Categoría: Empleados (employees/SCENARIOS.md)
+- E-001: Bodeguero prepara pedido correctamente
+- E-002: Bodeguero prepara pedido con error
+- E-003: Cajero procesa venta correctamente
+- E-004: Cajero procesa venta con error
+- E-005: Rutero entrega en dirección equivocada
+- E-006: Rutero cobra de menos
+- E-007: Administrador crea usuario nuevo
+- E-008: Administrador desactiva usuario
+- E-009: Empleado olvida su contraseña
+- E-010: Empleado cambia su contraseña
+- E-011: Dueño revisa reportes generales
+- E-012: Dueño exporta datos para contador
+- E-013: Empleado intenta acceder a función no autorizada
+- E-014: Dos cajeros en la misma caja
+- E-015: Empleado trabaja después de su turno
+
+## Categoría: Tecnología (tech/SCENARIOS.md)
+- T-001: Corte de energía eléctrica
+- T-002: Pérdida de conexión a internet
+- T-003: Servidor caído
+- T-004: Base de datos lenta
+- T-005: Disco duro lleno
+- T-006: Error de sincronización móvil
+- T-007: Token expirado en medio de operación
+- T-008: Sesión simultánea en dos dispositivos
+- T-009: Navegador incompatible
+- T-010: App móvil se cierra inesperadamente
+- T-011: Error de red WiFi local
+- T-012: Cable de red desconectado
+- T-013: UPS activado (respaldo de energía)
+- T-014: Servidor en mantenimiento programado
+- T-015: Backup automático en hora pico
+
+## Categoría: Datos (data/SCENARIOS.md)
+- D-001: Producto duplicado en el sistema
+- D-002: Cliente duplicado en el sistema
+- D-003: Precio incorrecto en el sistema
+- D-004: Stock incorrecto en el sistema
+- D-005: Pedido duplicado
+- D-006: Venta duplicada
+- D-007: Usuario con permisos incorrectos
+- D-008: Fecha incorrecta en el sistema
+- D-009: Tipo de cambio incorrecto
+- D-010: Producto en categoría equivocada
+- D-011: Proveedor con datos incorrectos
+- D-012: Cliente con datos desactualizados
+- D-013: Historial de precios inconsistente
+- D-014: Unidad de medida incorrecta
+- D-015: Conversión bulto/unidad incorrecta
+
+## Categoría: Integrales (comprehensive/SCENARIOS.md)
+- X-001: Día completo de un bodeguero
+- X-002: Día completo de un cajero
+- X-003: Día completo de un rutero
+- X-004: Día completo de un administrador
+- X-005: Semana completa de operaciones
+- X-006: Corte de mes completo
+- X-007: Preparación para temporada navideña
+- X-008: Recuperación después de un desastre natural
+- X-009: Migración de sistema antiguo a nuevo
+- X-010: Auditoría completa de fin de año
