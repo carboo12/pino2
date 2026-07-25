@@ -1,0 +1,1 @@
+CI: Node 22, lint fail fast, Playwright separado

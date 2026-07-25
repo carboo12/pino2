@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   PG_VERSION: '16'
 
 jobs:
@@ -40,7 +40,6 @@ jobs:
       - run: npm ci
       - name: Lint
         run: npm run lint
-        continue-on-error: true
       - run: npm run typecheck
       - run: npm test
       - name: Migrations
@@ -80,7 +79,6 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run lint
-        continue-on-error: true
       - run: npx tsc --noEmit
       - run: npm test
       - run: npm run build
