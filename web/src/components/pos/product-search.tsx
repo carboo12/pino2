@@ -70,7 +70,7 @@ export function ProductSearch({ onProductSelect, className, searchTerm: external
   return (
     <Card className={cn("relative border-none shadow-none bg-transparent", className)}>
       <CardContent className="p-0">
-        <div className="w-full bg-white/9 worst-blur rounded-md shadow-xl overflow-hidden mt-0 max-h-full">
+          <div className="w-full bg-white/90 backdrop-blur-lg rounded-md shadow-xl overflow-hidden mt-0 max-h-full">
           {loading ? (
             <div className="p-4 space-y-4">
               <Skeleton className="h-12 w-full rounded-lg" />

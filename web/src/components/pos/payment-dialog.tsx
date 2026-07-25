@@ -10,10 +10,10 @@ import {
 } from '@/components/ui/dialog';
 import { Banknote, CreditCard, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toast, alert } from '@/lib/swalert';
+import { alert } from '@/lib/swalert';
 
 export interface PaymentData {
-    method: 'Efectivo' | 'Tarjeta';
+    method: 'CASH' | 'CARD';
     amountReceived: number;
     paymentCurrency: 'NIO' | 'USD';
     change: number;
@@ -23,20 +23,22 @@ interface PaymentDialogProps {
     total: number;
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onConfirm: (data: PaymentData) => void;
+    onConfirm: (data: PaymentData) => Promise<void>;
     exchangeRate?: number;
 }
 
 export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRate = 36.62 }: PaymentDialogProps) {
     const [amountStr, setAmountStr] = useState('');
     const [currency, setCurrency] = useState<'NIO' | 'USD'>('NIO');
-    const [method, setMethod] = useState<'Efectivo' | 'Tarjeta'>('Efectivo');
+    const [method, setMethod] = useState<'CASH' | 'CARD'>('CASH');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (open) {
             setAmountStr('');
             setCurrency('NIO');
-            setMethod('Efectivo');
+            setMethod('CASH');
+            setSubmitting(false);
         }
     }, [open]);
 
@@ -63,24 +65,30 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
     const handleConfirm = async () => {
         const result = await alert.confirm(
             "¿Confirmar Pago?",
-            `Método: ${method}\nTotal: C$ ${total.toFixed(2)}\nRecibido: ${currency} ${amountNum}\nCambio: C$ ${change.toFixed(2)}`
+            `Método: ${method === 'CASH' ? 'Efectivo' : 'Tarjeta'}\nTotal: C$ ${total.toFixed(2)}\nRecibido: ${currency} ${amountNum}\nCambio: C$ ${change.toFixed(2)}`
         );
 
-        if (result.isConfirmed) {
-            onConfirm({
+        if (!result.isConfirmed) return;
+
+        setSubmitting(true);
+        try {
+            await onConfirm({
                 method,
                 amountReceived: amountNum,
                 paymentCurrency: currency,
                 change: change
             });
             onOpenChange(false);
-            toast.success("Venta Finalizada", "El pago ha sido procesado con éxito.");
+        } catch {
+            // Error handled by caller
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const quickNIO = [50, 100, 200, 500, 1000];
     const quickUSD = [1, 5, 10, 20, 50, 100];
-    const isScaleValid = method === 'Tarjeta' || amountReceivedInNIO >= total - 0.5;
+    const isScaleValid = method === 'CARD' || amountReceivedInNIO >= total - 0.5;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,20 +112,20 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
 
                             <div className="grid grid-cols-2 gap-4">
                                 <Button
-                                    variant={method === 'Efectivo' ? 'default' : 'outline'}
+                                    variant={method === 'CASH' ? 'default' : 'outline'}
                                     className={cn("h-24 flex flex-col gap-2 rounded-2xl border-2 transition-all", 
-                                        method === 'Efectivo' ? "bg-blue-600 border-blue-600 shadow-lg scale-105" : "border-slate-200 text-slate-400")}
-                                    onClick={() => setMethod('Efectivo')}
+                                        method === 'CASH' ? "bg-blue-600 border-blue-600 shadow-lg scale-105" : "border-slate-200 text-slate-400")}
+                                    onClick={() => setMethod('CASH')}
                                 >
                                     <Banknote className="h-8 w-8" />
                                     <span className="font-black uppercase text-xs">Efectivo</span>
                                 </Button>
                                 <Button
-                                    variant={method === 'Tarjeta' ? 'default' : 'outline'}
+                                    variant={method === 'CARD' ? 'default' : 'outline'}
                                     className={cn("h-24 flex flex-col gap-2 rounded-2xl border-2 transition-all", 
-                                        method === 'Tarjeta' ? "bg-purple-600 border-purple-600 shadow-lg scale-105 hover:bg-purple-700" : "border-slate-200 text-slate-400")}
+                                        method === 'CARD' ? "bg-purple-600 border-purple-600 shadow-lg scale-105 hover:bg-purple-700" : "border-slate-200 text-slate-400")}
                                     onClick={() => {
-                                        setMethod('Tarjeta');
+                                        setMethod('CARD');
                                         setAmountStr(currency === 'NIO' ? total.toFixed(2) : (total / exchangeRate).toFixed(2));
                                     }}
                                 >
@@ -144,7 +152,7 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
                                     </div>
                                 </div>
 
-                                {method === 'Efectivo' && (
+                                {method === 'CASH' && (
                                     <div className="space-y-4 pt-4 border-t-2 border-slate-50 border-dashed">
                                         <div className="flex justify-between items-center">
                                             <span className="text-xs font-black text-slate-400 uppercase">Recibido:</span>
@@ -167,18 +175,24 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
                             <Button
                                 size="lg"
                                 className="w-full h-20 text-2xl font-black shadow-2xl rounded-2xl bg-emerald-500 hover:bg-emerald-600 uppercase tracking-tighter"
-                                disabled={!isScaleValid}
+                                disabled={!isScaleValid || submitting}
                                 onClick={handleConfirm}
                             >
-                                <CheckCircle2 className="mr-3 h-8 w-8" />
-                                FINALIZAR
+                                {submitting ? (
+                                    'PROCESANDO...'
+                                ) : (
+                                    <>
+                                        <CheckCircle2 className="mr-3 h-8 w-8" />
+                                        FINALIZAR
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
 
                     {/* RIGHT PANEL: KEYPAD */}
                     <div className="w-2/3 bg-white p-8 flex flex-col">
-                        {method === 'Efectivo' ? (
+                        {method === 'CASH' ? (
                             <div className="flex flex-col h-full gap-6">
                                 <div className="grid grid-cols-6 gap-3">
                                     {(currency === 'NIO' ? quickNIO : quickUSD).map(val => (

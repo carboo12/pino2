@@ -497,19 +497,18 @@ export function CashierBillingView({
                 open={isPaymentDialogOpen}
                 onOpenChange={setIsPaymentDialogOpen}
                 total={total}
-                onConfirm={(payment) => {
+                onConfirm={async (payment) => {
                     const paymentWithTicket = { ...payment, linkedTicketId: currentPendingTicketId || undefined };
                     onFinalize(paymentWithTicket as any);
                     
                     if (currentPendingTicketId && storeId) {
                         try {
-                            apiClient.patch(`/pending-orders/${currentPendingTicketId}/status`, { status: 'Cobrado' });
+                            await apiClient.patch(`/pending-orders/${currentPendingTicketId}/status`, { status: 'Cobrado' });
                         } catch(e) {}
                     }
                     setCurrentPendingTicketId(null);
 
                     setIsPaymentDialogOpen(false);
-                    // Disparar ticket automáticamente al finalizar si hay settings
                     if (payment) {
                         TicketService.generateAndPrint({
                             id: Date.now().toString().substring(5),

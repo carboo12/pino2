@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   WorkspaceShell,
@@ -94,6 +94,8 @@ export default function CashWorkspacePage() {
   const {
     cart,
     addToCart,
+    setQuantity,
+    setBulkQuantity,
     removeFromCart,
     clearCart,
     clearCartAfterSuccess,
@@ -111,6 +113,8 @@ export default function CashWorkspacePage() {
   const [contextOpen, setContextOpen] = useState(false);
   const [showOpening, setShowOpening] = useState(false);
   const [openingAmount, setOpeningAmount] = useState('');
+  const [productQuery, setProductQuery] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const total = cart.reduce((sum, item) => sum + (item.salePrice || 0) * item.quantity, 0);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -161,7 +165,6 @@ export default function CashWorkspacePage() {
       const products = Array.isArray(res.data) ? res.data : res.data?.data || [];
       if (products.length > 0) {
         addToCart(products[0]);
-        toast.success('Agregado', products[0].description || 'Producto escaneado');
       } else {
         toast.error('No encontrado', `Código: ${code}`);
       }
@@ -172,53 +175,48 @@ export default function CashWorkspacePage() {
 
   const handleProductSelect = useCallback((product: Product) => {
     addToCart(product);
-    toast.success('Agregado', product.description);
+    setProductQuery('');
+    searchRef.current?.focus();
   }, [addToCart]);
 
   const handlePaymentConfirm = useCallback(async (data: PaymentData) => {
     if (!storeId || cart.length === 0) return;
     if (!activeShift?.id) {
       toast.error('Error', 'No hay un turno de caja activo');
-      return;
+      throw new Error('No hay un turno de caja activo');
     }
-    try {
-      const payload = {
-        storeId,
-        cashShiftId: activeShift.id,
-        items: cart.map(item => ({
-          productId: item.id,
-          quantity: item.quantity,
-          price: item.salePrice,
-        })),
-        total,
-        paymentMethod: data.method,
-        amountReceived: data.amountReceived,
-        change: data.change,
-        clientId: client?.id || null,
-      };
-      await apiClient.post('/sales/process', payload);
-      toast.success('Venta completada', `Total: ${formatCurrency(total)}`);
-      clearCartAfterSuccess();
-      setShowPayment(false);
-    } catch {
-      toast.error('Error', 'No se pudo completar la venta');
-    }
-  }, [storeId, activeShift?.id, cart, total, client, clearCart, setClient]);
+    const payload = {
+      storeId,
+      cashShiftId: activeShift.id,
+      items: cart.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: item.salePrice,
+      })),
+      total,
+      paymentMethod: data.method,
+      amountReceived: data.amountReceived,
+      change: data.change,
+      clientId: client?.id || null,
+    };
+    await apiClient.post('/sales/process', payload);
+    toast.success('Venta completada', `Total: ${formatCurrency(total)}`);
+    clearCartAfterSuccess();
+  }, [storeId, activeShift?.id, cart, total, client, clearCartAfterSuccess]);
 
   const handleQuantityChange = useCallback((uniqueId: string, delta: number) => {
     const item = cart.find(c => c.uniqueId === uniqueId);
     if (!item) return;
-    const newQty = item.quantity + delta;
-    if (newQty <= 0) {
-      removeFromCart(uniqueId);
-    } else {
-      removeFromCart(uniqueId);
-      addToCart(item);
-      for (let i = 1; i < newQty; i++) {
-        addToCart(item);
-      }
-    }
-  }, [cart, removeFromCart, addToCart]);
+    setQuantity(uniqueId, item.quantity + delta);
+  }, [cart, setQuantity]);
+
+  const handleBulkChange = useCallback((uniqueId: string, delta: number, type: 'bulk' | 'loose') => {
+    const item = cart.find(c => c.uniqueId === uniqueId);
+    if (!item) return;
+    const newBulkCount = type === 'bulk' ? item.bulkCount + delta : item.bulkCount;
+    const newLooseCount = type === 'loose' ? item.looseUnitCount + delta : item.looseUnitCount;
+    setBulkQuantity(uniqueId, Math.max(0, newBulkCount), Math.max(0, newLooseCount));
+  }, [cart, setBulkQuantity]);
 
   if (!shiftLoading && !activeShift) {
     return (
@@ -351,15 +349,26 @@ export default function CashWorkspacePage() {
             <div className="flex flex-1 flex-col">
               <div className="flex items-center justify-between border-b border-[#DDE2E8] bg-[#F6F7F9] px-3 py-1.5">
                 <div className="flex items-center gap-2 text-xs">
-                  <WalletCards className="h-3.5 w-3.5 text-[#0F766E]" />
-                  <span className="font-medium text-[#5B6673]">Caja cerrada</span>
+                  <WalletCards className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="font-medium text-emerald-600">● Caja abierta</span>
+                  {activeShift && (
+                    <span className="text-[#5B6673]">
+                      Turno #{activeShift.id?.toString().slice(0, 8)} · {new Date(activeShift.openingTimestamp).toLocaleTimeString()}
+                    </span>
+                  )}
                 </div>
-                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowOpening(true)}>
-                  Abrir caja
+                <Button variant="outline" size="sm" className="h-7 text-xs">
+                  Ver turno
                 </Button>
               </div>
-              <div className="border-b border-[#DDE2E8] bg-white p-3">
-                <ProductSearch onProductSelect={handleProductSelect} />
+              <div className="border-b border-[#DDE2E8] bg-white p-3 space-y-2">
+                <Input
+                  ref={searchRef}
+                  placeholder="Buscar producto..."
+                  value={productQuery}
+                  onChange={(e) => setProductQuery(e.target.value)}
+                />
+                <ProductSearch searchTerm={productQuery} onProductSelect={handleProductSelect} />
               </div>
               <div className="flex flex-1 flex-col overflow-hidden">
                 <div className="grid grid-cols-12 gap-1 border-b border-[#DDE2E8] bg-[#F6F7F9] px-3 py-1.5 text-xs font-semibold text-[#5B6673]">
@@ -390,33 +399,82 @@ export default function CashWorkspacePage() {
                               <p className="text-[10px] text-[#5B6673]">{item.barcode}</p>
                             )}
                           </div>
-                          <div className="col-span-2 flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => handleQuantityChange(item.uniqueId, -1)}
-                              className="rounded p-0.5 text-[#5B6673] hover:text-[#DC2626]"
-                            >
-                              <Minus className="h-3 w-3" />
-                            </button>
-                            <span className="w-6 text-center text-xs font-medium">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => handleQuantityChange(item.uniqueId, 1)}
-                              className="rounded p-0.5 text-[#5B6673] hover:text-[#0F766E]"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </button>
-                          </div>
+                          {item.handlesBulk ? (
+                            <div className="col-span-2 flex flex-col items-center gap-0.5">
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleBulkChange(item.uniqueId, -1, 'bulk')}
+                                  className="rounded p-0.5 text-[#5B6673] hover:text-[#DC2626] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                  aria-label="Disminuir bultos"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <span className="text-xs font-medium">{item.bulkCount} bultos</span>
+                                <button
+                                  onClick={() => handleBulkChange(item.uniqueId, 1, 'bulk')}
+                                  className="rounded p-0.5 text-[#5B6673] hover:text-[#0F766E] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                  aria-label="Aumentar bultos"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleBulkChange(item.uniqueId, -1, 'loose')}
+                                  className="rounded p-0.5 text-[#5B6673] hover:text-[#DC2626] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                  aria-label="Disminuir unidades"
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </button>
+                                <span className="text-xs font-medium">{item.looseUnitCount} uds</span>
+                                <button
+                                  onClick={() => handleBulkChange(item.uniqueId, 1, 'loose')}
+                                  className="rounded p-0.5 text-[#5B6673] hover:text-[#0F766E] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                  aria-label="Aumentar unidades"
+                                >
+                                  <Plus className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <span className="text-[10px] text-[#5B6673]">1 bulto = {item.unitsPerBulk} uds</span>
+                            </div>
+                          ) : (
+                            <div className="col-span-2 flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleQuantityChange(item.uniqueId, -1)}
+                                className="rounded p-0.5 text-[#5B6673] hover:text-[#DC2626] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                aria-label="Disminuir cantidad"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+                              <span className="w-6 text-center text-xs font-medium">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => handleQuantityChange(item.uniqueId, 1)}
+                                className="rounded p-0.5 text-[#5B6673] hover:text-[#0F766E] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                aria-label="Aumentar cantidad"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
                           <div className="col-span-2 text-right text-[#5B6673]">
                             {formatCurrency(item.salePrice || 0)}
                           </div>
                           <div className="col-span-2 flex items-center justify-end gap-1">
                             <span className="font-medium text-[#17202A]">
-                              {formatCurrency((item.salePrice || 0) * item.quantity)}
+                              {item.handlesBulk
+                                ? formatCurrency(
+                                    item.bulkCount * (item.bulkPrice1 || (item.salePrice || 0) * (item.unitsPerBulk || 1)) +
+                                    item.looseUnitCount * (item.salePrice || 0)
+                                  )
+                                : formatCurrency((item.salePrice || 0) * item.quantity)
+                              }
                             </span>
                             <button
                               onClick={() => removeFromCart(item.uniqueId)}
-                              className="ml-1 rounded p-0.5 text-[#5B6673] hover:text-[#DC2626]"
+                              className="ml-1 rounded p-0.5 text-[#5B6673] hover:text-[#DC2626] min-w-[44px] min-h-[44px] flex items-center justify-center"
+                              aria-label="Eliminar producto"
                             >
                               <X className="h-3 w-3" />
                             </button>

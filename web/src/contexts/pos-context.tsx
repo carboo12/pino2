@@ -5,6 +5,8 @@ import { toast } from '@/lib/swalert';
 export interface CartItem extends Product {
     uniqueId: string;
     quantity: number;
+    bulkCount: number;
+    looseUnitCount: number;
 }
 
 interface PosState {
@@ -20,6 +22,7 @@ interface PosState {
 type PosAction =
     | { type: 'ADD_ITEM'; product: Product }
     | { type: 'SET_QUANTITY'; uniqueId: string; quantity: number }
+    | { type: 'SET_BULK_QUANTITY'; uniqueId: string; bulkCount: number; looseUnitCount: number }
     | { type: 'REMOVE_ITEM'; uniqueId: string }
     | { type: 'SET_CLIENT'; client: Client | null }
     | { type: 'SET_MODE'; mode: 'products' | 'payment' }
@@ -41,20 +44,37 @@ const initialState: PosState = {
 function posReducer(state: PosState, action: PosAction): PosState {
     switch (action.type) {
         case 'ADD_ITEM': {
-            const existing = state.cart.find((item) => item.id === action.product.id);
+            const product = action.product;
+            const existing = state.cart.find((item) => item.id === product.id);
             if (existing) {
+                if (product.handlesBulk) {
+                    return {
+                        ...state,
+                        cart: state.cart.map((item) =>
+                            item.id === product.id
+                                ? { ...item, bulkCount: item.bulkCount + 1 }
+                                : item
+                        ),
+                    };
+                }
                 return {
                     ...state,
                     cart: state.cart.map((item) =>
-                        item.id === action.product.id
+                        item.id === product.id
                             ? { ...item, quantity: item.quantity + 1 }
                             : item
                     ),
                 };
             }
+            if (product.handlesBulk) {
+                return {
+                    ...state,
+                    cart: [...state.cart, { ...product, quantity: 0, bulkCount: 1, looseUnitCount: 0, uniqueId: crypto.randomUUID() }],
+                };
+            }
             return {
                 ...state,
-                cart: [...state.cart, { ...action.product, quantity: 1, uniqueId: crypto.randomUUID() }],
+                cart: [...state.cart, { ...product, quantity: 1, bulkCount: 0, looseUnitCount: 0, uniqueId: crypto.randomUUID() }],
             };
         }
         case 'SET_QUANTITY':
@@ -65,6 +85,15 @@ function posReducer(state: PosState, action: PosAction): PosState {
                         ? { ...item, quantity: Math.max(0, action.quantity) }
                         : item
                 ).filter((item) => item.quantity > 0),
+            };
+        case 'SET_BULK_QUANTITY':
+            return {
+                ...state,
+                cart: state.cart.map((item) =>
+                    item.uniqueId === action.uniqueId
+                        ? { ...item, bulkCount: Math.max(0, action.bulkCount), looseUnitCount: Math.max(0, action.looseUnitCount) }
+                        : item
+                ).filter((item) => item.bulkCount > 0 || item.looseUnitCount > 0 || item.quantity > 0),
             };
         case 'REMOVE_ITEM':
             return {
@@ -92,6 +121,7 @@ interface PosContextType {
     cart: CartItem[];
     addToCart: (product: Product) => void;
     setQuantity: (uniqueId: string, quantity: number) => void;
+    setBulkQuantity: (uniqueId: string, bulkCount: number, looseUnitCount: number) => void;
     removeFromCart: (uniqueId: string) => void;
     clearCart: () => void;
     clearCartAfterSuccess: () => void;
@@ -121,6 +151,10 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
     const setQuantity = useCallback((uniqueId: string, quantity: number) => {
         dispatch({ type: 'SET_QUANTITY', uniqueId, quantity });
+    }, []);
+
+    const setBulkQuantity = useCallback((uniqueId: string, bulkCount: number, looseUnitCount: number) => {
+        dispatch({ type: 'SET_BULK_QUANTITY', uniqueId, bulkCount, looseUnitCount });
     }, []);
 
     const removeFromCart = useCallback((uniqueId: string) => {
@@ -180,6 +214,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         cart: state.cart,
         addToCart,
         setQuantity,
+        setBulkQuantity,
         removeFromCart,
         clearCart,
         clearCartAfterSuccess,
@@ -199,7 +234,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
     }), [
         state.cart, state.mode, state.isHeldBillsOpen,
         state.showQuickSwitch, state.client, state.isLoading,
-        addToCart, setQuantity, removeFromCart, clearCart, clearCartAfterSuccess,
+        addToCart, setQuantity, setBulkQuantity, removeFromCart, clearCart, clearCartAfterSuccess,
         setMode, handleHoldBill, handleCreditNoteClick,
         toggleHeldBills, toggleQuickSwitch, handleOpenDrawer,
         handlePayment, setClient,
