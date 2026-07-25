@@ -64,11 +64,13 @@ export class SalesService {
     },
     userId: string,
     transactionalClient?: PoolClient,
+    context?: { operationId?: string; skipInboxClaim?: boolean },
   ) {
     const result = await this.processSaleUseCase.execute(
       dto,
       userId,
       transactionalClient,
+      context,
     );
 
     if (result && !result.isDuplicate) {

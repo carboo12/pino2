@@ -52,7 +52,7 @@ class SyncService {
         }
     }
 
-    async enqueuePendingOperation(params: { storeId: string, type: OperationType, operation: any, priority?: OperationPriority }): Promise<string> {
+    async enqueuePendingOperation(params: { storeId: string, type: OperationType, data: any, priority?: OperationPriority }): Promise<string> {
         const operationId = crypto.randomUUID();
 
         const pendingOp: PendingOperation = {
@@ -61,7 +61,7 @@ class SyncService {
             storeId: params.storeId,
             type: params.type,
             priority: params.priority || 'medium',
-            operation: params.operation,
+            data: params.data,
             timestamp: Date.now(),
             retryCount: 0,
             status: 'pending',
@@ -103,18 +103,22 @@ class SyncService {
                         operations: storeOps.map(op => ({
                             operationId: op.operationId,
                             type: op.type,
-                            data: op.operation,
+                            data: op.data,
                         }))
                     });
 
-                    const results: Array<{ operationId: string; status: string }> = res.data?.results || [];
+                    const results: Array<{ operationId: string; status: string; error?: string; errorMessage?: string }> = res.data?.results || [];
                     for (const op of storeOps) {
                         const result = results.find(r => r.operationId === op.operationId);
-                        if (!result || result.status === 'APPLIED' || result.status === 'DUPLICATE') {
-                            await indexedDBService.removePendingOperation(op.id);
-                        } else {
-                            await indexedDBService.updateOperationStatus(op.id, 'failed', `Server rejected: ${result.status}`);
+                        if (!result) {
+                            await indexedDBService.updateOperationStatus(op.id, 'failed', 'El servidor no devolvió confirmación');
+                            continue;
                         }
+                        if (result.status === 'APPLIED' || result.status === 'DUPLICATE') {
+                            await indexedDBService.removePendingOperation(op.id);
+                            continue;
+                        }
+                        await indexedDBService.updateOperationStatus(op.id, 'failed', result.errorMessage ?? result.error ?? 'Rechazada');
                     }
                 } catch (error: any) {
                     for (const op of storeOps) {

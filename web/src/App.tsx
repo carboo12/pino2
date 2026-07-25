@@ -12,6 +12,7 @@ import AppLayout from '@/components/app-layout';
 import { APP_BASENAME } from '@/lib/runtime-config';
 import { getRedirectPath } from '@/lib/redirect-logic';
 import { isGlobalAdminRole, normalizeUserRole, type NormalizedUserRole } from '@/lib/user-role';
+import { MVP_FEATURES } from '@/lib/mvp-features';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,7 @@ const MasterZonesPage = lazy(() => import('@/pages/master-admin/master-zones-pag
 const MasterSubZonesPage = lazy(() => import('@/pages/master-admin/master-sub-zones-page'));
 const MasterSyncMonitorPage = lazy(() => import('@/pages/master-admin/master-sync-monitor-page'));
 const MasterHelpPage = lazy(() => import('@/pages/master-admin/master-help-page'));
+const NotFoundPage = lazy(() => import('@/pages/not-found-page'));
 const AdminDailyClosingsPage = lazy(() => import('@/pages/store-admin/reports/admin-daily-closings-page'));
 const OrdersPipelinePage = lazy(() => import('@/pages/store-admin/pending-orders/orders-pipeline-page'));
 const AgingReportPage = lazy(() => import('@/pages/store-admin/finance/aging-report-page'));
@@ -188,8 +190,8 @@ function App() {
                   {/* RUTAS DE TIENDA */}
                   <Route path="/store/:storeId/dashboard" element={<Navigate to="../work/cash" replace />} />
                   {/* MVP-HIDDEN: billing/facturacion (no MVP) */}
-                  {false && <Route path="/store/:storeId/billing" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><BillingPage /></ProtectedRoute>} />}
-                  {false && <Route path="/store/:storeId/facturacion" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><BillingPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.billingLegacy && <Route path="/store/:storeId/billing" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><BillingPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.billingLegacy && <Route path="/store/:storeId/facturacion" element={<ProtectedRoute requireStoreAccess allowedRoles={CASHIER_ROLES}><BillingPage /></ProtectedRoute>} />}
                   <Route path="/store/:storeId/products" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><ProductsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/products/add" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><AddProductPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/products/edit/:productId" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><EditProductPage /></ProtectedRoute>} />
@@ -199,7 +201,7 @@ function App() {
                   <Route path="/store/:storeId/users/add" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><AddUserPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/users/edit/:userId" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><EditUserPage /></ProtectedRoute>} />
                   {/* MVP-HIDDEN: settings */}
-                  {false && <Route path="/store/:storeId/settings" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><SettingsPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.settings && <Route path="/store/:storeId/settings" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><SettingsPage /></ProtectedRoute>} />}
                   <Route path="/store/:storeId/inventory/movements" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><InventoryMovementsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/inventory/adjustments" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><InventoryAdjustmentsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/inventory/entry" element={<ProtectedRoute requireStoreAccess allowedRoles={INVENTORY_ROLES}><InventoryEntryPage /></ProtectedRoute>} />
@@ -217,9 +219,9 @@ function App() {
                   <Route path="/store/:storeId/finance/receivables" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><ReceivablesPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/finance/aging" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><AgingReportPage /></ProtectedRoute>} />
                   {/* MVP-HIDDEN: payables (CxP) */}
-                  {false && <Route path="/store/:storeId/finance/payables" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><PayablesPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.payables && <Route path="/store/:storeId/finance/payables" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><PayablesPage /></ProtectedRoute>} />}
                   {/* MVP-HIDDEN: help */}
-                  {false && <Route path="/store/:storeId/help" element={<ProtectedRoute requireStoreAccess><HelpPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.help && <Route path="/store/:storeId/help" element={<ProtectedRoute requireStoreAccess><HelpPage /></ProtectedRoute>} />}
                   
                   {/* VENDORS MODULE */}
                   <Route path="/store/:storeId/vendors" element={<ProtectedRoute requireStoreAccess allowedRoles={SALES_ADMIN_ROLES}><VendorsPage /></ProtectedRoute>} />
@@ -269,11 +271,11 @@ function App() {
                   <Route path="/master-admin/stores" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><MasterStoresPage /></ProtectedRoute>} />
                   <Route path="/master-admin/users" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterUsersPage /></ProtectedRoute>} />
                   {/* MVP-HIDDEN: master admin avanzado */}
-                  {false && <Route path="/chain-admin/dashboard" element={<ProtectedRoute allowedRoles={['chain-admin', 'owner', 'master-admin']}><ChainDashboardPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.chainDashboard && <Route path="/chain-admin/dashboard" element={<ProtectedRoute allowedRoles={['chain-admin', 'owner', 'master-admin']}><ChainDashboardPage /></ProtectedRoute>} />}
                   <Route path="/master-admin/stores/add" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><AddStorePage /></ProtectedRoute>} />
                   <Route path="/master-admin/stores/edit/:storeId" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><EditStorePage /></ProtectedRoute>} />
-                  {false && <Route path="/master-admin/chains" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterChainsPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/chains/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddChainPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.chainDashboard && <Route path="/master-admin/chains" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterChainsPage /></ProtectedRoute>} />}
+                  {MVP_FEATURES.chainDashboard && <Route path="/master-admin/chains/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddChainPage /></ProtectedRoute>} />}
                   <Route path="/master-admin/users/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddUserPage /></ProtectedRoute>} />
                   <Route path="/master-admin/users/edit/:userId" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><EditUserPage /></ProtectedRoute>} />
                   <Route path="/master-admin/licenses" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterLicensesPage /></ProtectedRoute>} />
@@ -282,7 +284,7 @@ function App() {
                   <Route path="/master-admin/sync-monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterSyncMonitorPage /></ProtectedRoute>} />
                   <Route path="/master-admin/comparison" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MultiStoreComparisonPage /></ProtectedRoute>} />
 
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<NotFoundPage />} />
                 </Routes>
               </Suspense>
             </ErrorBoundary>

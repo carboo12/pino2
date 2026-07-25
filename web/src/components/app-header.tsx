@@ -27,6 +27,15 @@ interface AppHeaderProps {
   onStoreChange?: (storeId: string) => void;
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function shortenIfUuid(segment: string): string {
+  if (UUID_PATTERN.test(segment)) {
+    return segment.substring(0, 8) + '...';
+  }
+  return segment;
+}
+
 const breadcrumbLabels: Record<string, string> = {
   'work': 'Espacio',
   'cash': 'Caja',
@@ -54,7 +63,8 @@ function Breadcrumb() {
   const crumbs: { label: string; href: string }[] = [];
   for (let i = 0; i < segments.length; i++) {
     const href = '/' + segments.slice(0, i + 1).join('/');
-    const label = breadcrumbLabels[segments[i]] || decodeURIComponent(segments[i]);
+    const raw = decodeURIComponent(segments[i]);
+    const label = breadcrumbLabels[segments[i]] || shortenIfUuid(raw);
     crumbs.push({ label, href });
   }
 

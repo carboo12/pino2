@@ -26,6 +26,7 @@ import { formatCurrency } from '@/lib/utils';
 import apiClient from '@/services/api-client';
 import financeService from '@/services/finance-service';
 import type { AccountReceivable, AccountPayable } from '@/services/finance-service';
+import { MVP_FEATURES } from '@/lib/mvp-features';
 
 interface ExceptionFinance {
   id: string;
@@ -70,7 +71,7 @@ export default function FinanceWorkspacePage() {
 
   useEffect(() => {
     if (activeTab === 'cartera') loadAccounts();
-    if (activeTab === 'pagos') loadPayables();
+    if (activeTab === 'pagos' && MVP_FEATURES.payables) loadPayables();
   }, [activeTab, loadAccounts, loadPayables]);
 
   const loadData = useCallback(async () => {
@@ -149,13 +150,15 @@ export default function FinanceWorkspacePage() {
             <HandCoins className="mr-1.5 h-3.5 w-3.5" />
             Cartera
           </TabsTrigger>
-          <TabsTrigger
-            value="pagos"
-            className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]"
-          >
-            <DollarSign className="mr-1.5 h-3.5 w-3.5" />
-            Pagos
-          </TabsTrigger>
+          {MVP_FEATURES.payables && (
+            <TabsTrigger
+              value="pagos"
+              className="rounded-none border-b-2 border-transparent px-4 py-2 text-xs data-[state=active]:border-[#0F766E] data-[state=active]:text-[#0F766E]"
+            >
+              <DollarSign className="mr-1.5 h-3.5 w-3.5" />
+              Pagos
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="atencion" className="mt-0 flex-1 p-4">
@@ -233,31 +236,33 @@ export default function FinanceWorkspacePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="pagos" className="mt-0 flex-1 p-4">
-          {loadingPayables ? <LoadingRows rows={5} /> : payables.length === 0 ? (
-            <EmptyState title="Sin cuentas por pagar" icon={DollarSign}
-              action={<Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables`)}>Ir a pagos</Button>} />
-          ) : (
-            <div className="space-y-2">
-              {payables.map((p) => (
-                <div key={p.id} className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3">
-                  <div>
-                    <p className="text-sm font-medium text-[#17202A]">{p.supplierName}</p>
-                    <p className="text-xs text-[#5B6673]">{p.dueDate ? `Vence: ${new Date(p.dueDate).toLocaleDateString()}` : ''}</p>
+        {MVP_FEATURES.payables && (
+          <TabsContent value="pagos" className="mt-0 flex-1 p-4">
+            {loadingPayables ? <LoadingRows rows={5} /> : payables.length === 0 ? (
+              <EmptyState title="Sin cuentas por pagar" icon={DollarSign}
+                action={<Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables`)}>Ir a pagos</Button>} />
+            ) : (
+              <div className="space-y-2">
+                {payables.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3">
+                    <div>
+                      <p className="text-sm font-medium text-[#17202A]">{p.supplierName}</p>
+                      <p className="text-xs text-[#5B6673]">{p.dueDate ? `Vence: ${new Date(p.dueDate).toLocaleDateString()}` : ''}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <StatusChip variant={p.status === 'PENDING' ? 'warning' : p.status === 'PARTIAL' ? 'pending' : 'success'}
+                        label={p.status === 'PENDING' ? 'Pendiente' : p.status === 'PARTIAL' ? 'Parcial' : 'Pagado'} />
+                      <span className="text-sm font-semibold text-[#17202A]">{formatCurrency(p.remainingAmount)}</span>
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables?accountId=${p.id}`)}>
+                        Pagar
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <StatusChip variant={p.status === 'PENDING' ? 'warning' : p.status === 'PARTIAL' ? 'pending' : 'success'}
-                      label={p.status === 'PENDING' ? 'Pendiente' : p.status === 'PARTIAL' ? 'Parcial' : 'Pagado'} />
-                    <span className="text-sm font-semibold text-[#17202A]">{formatCurrency(p.remainingAmount)}</span>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables?accountId=${p.id}`)}>
-                      Pagar
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </TabsContent>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </WorkspaceShell>
   );

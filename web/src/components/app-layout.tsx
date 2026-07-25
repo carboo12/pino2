@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { AppHeader } from '@/components/app-header';
 import { cn } from '@/lib/utils';
 import { isGlobalAdminRole, normalizeUserRole } from '@/lib/user-role';
+import { MVP_FEATURES } from '@/lib/mvp-features';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
 import { CommandSearch } from '@/components/workspace/command-search';
 import {
@@ -74,7 +75,7 @@ interface RealtimeEvent {
 // ===================================================================
 
 const getChainAdminNav = (): NavItem[] => [
-  { type: 'link', name: 'Panel', href: '/chain-admin/dashboard', icon: LayoutDashboard },
+  ...(MVP_FEATURES.chainDashboard ? [{ type: 'link' as const, name: 'Panel', href: '/chain-admin/dashboard', icon: LayoutDashboard }] : []),
   { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
 ];
 
@@ -537,6 +538,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const helpHref = storeId ? `/store/${storeId}/help` : '/master-admin/help';
 
+  const logoHref = (() => {
+    const role = normalizeUserRole(user?.role);
+    if (role === 'master-admin' || role === 'owner') return '/master-admin/dashboard';
+    if (role === 'chain-admin') {
+      if (MVP_FEATURES.chainDashboard) return '/chain-admin/dashboard';
+      return storeId ? `/store/${storeId}/dashboard` : '/master-admin/stores';
+    }
+    return storeId ? `/store/${storeId}/dashboard` : '/';
+  })();
+
   const sidebarWidth = sidebarCollapsed ? '64px' : '280px';
 
   return (
@@ -558,13 +569,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex h-16 items-center border-b px-4 lg:h-[60px] justify-between">
             {!sidebarCollapsed ? (
               <Link 
-                to={
-                  normalizeUserRole(user?.role) === 'master-admin' || normalizeUserRole(user?.role) === 'owner' 
-                    ? '/master-admin/dashboard' 
-                    : normalizeUserRole(user?.role) === 'chain-admin' 
-                      ? '/chain-admin/dashboard' 
-                      : (storeId ? `/store/${storeId}/dashboard` : '/')
-                } 
+                to={logoHref}
                 className="flex items-center gap-2.5 font-semibold"
               >
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primaryDark flex items-center justify-center shadow-sm">
@@ -574,13 +579,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Link>
             ) : (
               <Link 
-                to={
-                  normalizeUserRole(user?.role) === 'master-admin' || normalizeUserRole(user?.role) === 'owner' 
-                    ? '/master-admin/dashboard' 
-                    : normalizeUserRole(user?.role) === 'chain-admin' 
-                      ? '/chain-admin/dashboard' 
-                      : (storeId ? `/store/${storeId}/dashboard` : '/')
-                } 
+                to={logoHref}
                 className="flex items-center justify-center w-full"
                 title="Pino"
               >
@@ -603,7 +602,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {!sidebarCollapsed && storeId && (normalizeUserRole(user?.role) === 'master-admin' || normalizeUserRole(user?.role) === 'owner' || normalizeUserRole(user?.role) === 'chain-admin') && (
               <div className="px-2 pb-2 mb-1 border-b border-border/50 lg:px-4">
                 <Link
-                  to={normalizeUserRole(user?.role) === 'chain-admin' ? '/chain-admin/dashboard' : '/master-admin/stores'}
+                  to={normalizeUserRole(user?.role) === 'chain-admin' ? (MVP_FEATURES.chainDashboard ? '/chain-admin/dashboard' : '/master-admin/stores') : '/master-admin/stores'}
                   className="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg transition-colors hover:bg-primary/90"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
@@ -638,20 +637,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          {/* Help pinned to sidebar footer */}
-          <div className="border-t p-2">
-            <Link
-              to={helpHref}
-              title="Ayuda"
-              className={cn(
-                'flex items-center rounded-xl px-3 py-2.5 text-xs text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
-                sidebarCollapsed ? 'justify-center' : 'gap-3'
-              )}
-            >
-              <LifeBuoy className="h-4 w-4 flex-shrink-0" />
-              {!sidebarCollapsed && 'Ayuda'}
-            </Link>
-          </div>
+          {MVP_FEATURES.help && (
+            <div className="border-t p-2">
+              <Link
+                to={helpHref}
+                title="Ayuda"
+                className={cn(
+                  'flex items-center rounded-xl px-3 py-2.5 text-xs text-muted-foreground transition-all duration-150 hover:text-primary hover:bg-muted/50',
+                  sidebarCollapsed ? 'justify-center' : 'gap-3'
+                )}
+              >
+                <LifeBuoy className="h-4 w-4 flex-shrink-0" />
+                {!sidebarCollapsed && 'Ayuda'}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
       <div className="flex flex-col">

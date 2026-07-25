@@ -74,8 +74,8 @@ export class SyncService {
       if (!claim.claimed) {
         duplicateCount++;
         results.push({
-          opId,
-          status: 'SUCCESS',
+          operationId: opId,
+          status: 'DUPLICATE',
           isDuplicate: true,
           serverId: claim.existingResult?.id,
           existingResult: claim.existingResult,
@@ -98,6 +98,7 @@ export class SyncService {
                 opData as any,
                 (opData as any).cashierId || (opData as any).userId || 'system',
                 client,
+                { operationId: opId, skipInboxClaim: true },
               );
               break;
             case 'ORDER':
@@ -120,9 +121,9 @@ export class SyncService {
         successCount++;
 
         results.push({
-          opId,
+          operationId: opId,
           serverId: res.id,
-          status: 'SUCCESS',
+          status: 'APPLIED',
           isDuplicate: false,
         });
       } catch (error) {
@@ -137,7 +138,7 @@ export class SyncService {
           `Error procesando operación ${opId} (${op.type}): ${error.message}`,
         );
         results.push({
-          opId,
+          operationId: opId,
           status: 'FAILED',
           error: error.message,
         });
@@ -172,7 +173,6 @@ export class SyncService {
     storeId: string,
     lastSyncTimestamp?: string,
     limit: number = 500,
-    offset: number = 0,
   ) {
     const params: any[] = [storeId];
     let timeCondition = '';
@@ -182,74 +182,33 @@ export class SyncService {
       params.push(new Date(lastSyncTimestamp));
     }
 
-    const pagination = ` ORDER BY updated_at DESC NULLS LAST LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    const fetchPage = async (
+      table: string,
+      extraConditions: string = '',
+    ): Promise<{ items: any[]; hasMore: boolean }> => {
+      const queryParams = [...params, limit + 1];
+      const limitIdx = queryParams.length;
+      const query = `SELECT * FROM ${table} WHERE store_id = $1 ${extraConditions}${timeCondition} ORDER BY updated_at DESC NULLS LAST LIMIT $${limitIdx}`;
+      const result = await this.db.query(query, queryParams);
+      return {
+        items: result.rows.slice(0, limit),
+        hasMore: result.rows.length > limit,
+      };
+    };
 
-    const [
-      products,
-      productBarcodes,
-      clients,
-      orders,
-      sales,
-      pendingDeliveries,
-      vendorInventories,
-      collections,
-      outbox,
-    ] = await Promise.all([
-      this.db.query(
-        `SELECT * FROM products WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM product_barcodes WHERE store_id = $1 ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM clients WHERE store_id = $1 AND (is_active = true OR deleted_at IS NOT NULL) ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM orders WHERE store_id = $1 ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT s.*, array_agg(jsonb_build_object('id', si.id, 'product_id', si.product_id, 'quantity', si.quantity, 'unit_price', si.unit_price, 'subtotal', si.subtotal, 'returned_quantity', si.returned_quantity)) as items
-           FROM sales s
-           LEFT JOIN sale_items si ON si.sale_id = s.id
-           WHERE s.store_id = $1 ${timeCondition ? timeCondition.replace('updated_at', 's.updated_at').replace('created_at', 's.created_at') : ''}
-           GROUP BY s.id${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM pending_deliveries WHERE store_id = $1 ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM vendor_inventories WHERE store_id = $1 ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM collections WHERE store_id = $1 ${timeCondition}${pagination}`,
-        [...params, limit, offset],
-      ),
-      this.db.query(
-        `SELECT * FROM outbox_events WHERE store_id = $1 AND published_at IS NULL ORDER BY created_at ASC LIMIT ${limit}`,
-        [storeId],
-      ),
+    const [products, productBarcodes, clients] = await Promise.all([
+      fetchPage('products', 'AND (is_active = true OR deleted_at IS NOT NULL)'),
+      fetchPage('product_barcodes'),
+      fetchPage('clients', 'AND (is_active = true OR deleted_at IS NOT NULL)'),
     ]);
 
     return {
       serverTimestamp: new Date().toISOString(),
-      limit,
-      offset,
-      products: products.rows,
-      productBarcodes: productBarcodes.rows,
-      clients: clients.rows,
-      orders: orders.rows,
-      sales: sales.rows,
-      pendingDeliveries: pendingDeliveries.rows,
-      vendorInventories: vendorInventories.rows,
-      collections: collections.rows,
-      outboxPending: outbox.rows,
+      entities: {
+        products,
+        productBarcodes,
+        clients,
+      },
     };
   }
 }

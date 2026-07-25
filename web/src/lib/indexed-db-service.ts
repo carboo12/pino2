@@ -21,7 +21,7 @@ export interface PendingOperation {
     storeId: string;
     type: 'SALE' | 'ORDER' | 'COLLECTION' | 'RETURN' | 'INVENTORY' | 'PRODUCT' | 'CLIENT';
     priority: 'high' | 'medium' | 'low';
-    operation: any;
+    data: any;
     timestamp: number;
     retryCount: number;
     lastError?: string;

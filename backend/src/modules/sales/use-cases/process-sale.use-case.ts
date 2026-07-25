@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PoolClient } from 'pg';
@@ -46,39 +47,43 @@ export class ProcessSaleUseCase {
     },
     userId: string,
     transactionalClient?: PoolClient,
+    context?: { operationId?: string; skipInboxClaim?: boolean },
   ) {
     const cashShiftId = dto.cashShiftId || dto.shiftId;
     const ticketNumber = dto.ticketNumber || `T-${Date.now()}`;
 
     const executeInTransaction = async (client: PoolClient) => {
-      const operationId = dto.externalId || crypto.randomUUID();
-      const payloadHash = crypto
-        .createHash('sha256')
-        .update(JSON.stringify(dto))
-        .digest('hex')
-        .substring(0, 64);
+      const operationId = context?.operationId || dto.externalId || crypto.randomUUID();
 
-      const claim = await this.salesRepo.claimOperation(
-        client,
-        dto.storeId,
-        operationId,
-        SOURCE_NODE_ID,
-        'SALE',
-        'sale',
-        dto,
-        payloadHash,
-      );
+      if (!context?.skipInboxClaim) {
+        const payloadHash = crypto
+          .createHash('sha256')
+          .update(JSON.stringify(dto))
+          .digest('hex')
+          .substring(0, 64);
 
-      if (claim.rowCount === 0) {
-        const existing = await this.salesRepo.findExistingOperation(
+        const claim = await this.salesRepo.claimOperation(
           client,
           dto.storeId,
           operationId,
+          SOURCE_NODE_ID,
+          'SALE',
+          'sale',
+          dto,
+          payloadHash,
         );
-        if (existing && existing.result) {
-          return { ...existing.result, isDuplicate: true, message: 'Operación ya procesada (idempotencia)' };
+
+        if (claim.rowCount === 0) {
+          const existing = await this.salesRepo.findExistingOperation(
+            client,
+            dto.storeId,
+            operationId,
+          );
+          if (existing && existing.result) {
+            return { ...existing.result, isDuplicate: true, message: 'Operación ya procesada (idempotencia)' };
+          }
+          return { isDuplicate: true, message: 'OperationId ya registrado' };
         }
-        return { isDuplicate: true, message: 'OperationId ya registrado' };
       }
 
       const shift = await this.salesRepo.findActiveShift(client, cashShiftId, dto.storeId);
@@ -167,32 +172,30 @@ export class ProcessSaleUseCase {
       }
 
       let discount = 0;
-      try {
-        if (this.promotionsService) {
-          const activePromos = await this.promotionsService.findActivePromotions(dto.storeId);
-          for (const promo of activePromos) {
-            const promoProductIds: string[] = promo.product_ids || [];
-            for (const item of processedItems) {
-              if (promoProductIds.length === 0 || promoProductIds.includes(item.productId)) {
-                const lineSubtotal = item.handlesBulk
-                  ? item.bulkCount * item.bulkPrice + item.looseUnitCount * item.unitPrice
-                  : item.quantity * item.unitPrice;
+      let activePromos: any[] = [];
+      if (this.promotionsService) {
+        activePromos = await this.promotionsService.findActivePromotions(dto.storeId);
+        for (const promo of activePromos) {
+          const promoProductIds: string[] = promo.product_ids || [];
+          for (const item of processedItems) {
+            if (promoProductIds.length === 0 || promoProductIds.includes(item.productId)) {
+              const lineSubtotal = item.handlesBulk
+                ? item.bulkCount * item.bulkPrice + item.looseUnitCount * item.unitPrice
+                : item.quantity * item.unitPrice;
 
-                if (promo.discount_type === 'PERCENTAGE') {
-                  discount += lineSubtotal * (Number(promo.discount_value) / 100);
-                } else if (promo.discount_type === 'FIXED_AMOUNT') {
-                  discount += Number(promo.discount_value);
-                }
-                await this.salesRepo.incrementPromotionUses(client, promo.id);
+              if (promo.discount_type === 'PERCENTAGE') {
+                discount += lineSubtotal * (Number(promo.discount_value) / 100);
+              } else if (promo.discount_type === 'FIXED_AMOUNT') {
+                discount += Number(promo.discount_value);
               }
             }
           }
         }
-      } catch {
-        // Silently continue without discount
       }
-
       discount = Math.min(discount, subtotal);
+      for (const promo of activePromos) {
+        await this.salesRepo.incrementPromotionUses(client, promo.id);
+      }
       const tax = (subtotal - discount) * 0.15;
       const total = subtotal - discount + tax;
 
@@ -272,13 +275,15 @@ export class ProcessSaleUseCase {
         },
       });
 
-      await this.salesRepo.updateSyncInbox(
-        client,
-        dto.storeId,
-        operationId,
-        'PROCESSED',
-        { saleId: sale.id, total, success: true },
-      );
+      if (!context?.skipInboxClaim) {
+        await this.salesRepo.updateSyncInbox(
+          client,
+          dto.storeId,
+          operationId,
+          'PROCESSED',
+          { saleId: sale.id, total, success: true },
+        );
+      }
 
       return {
         success: true,

@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database/local_cache_repository.dart';
 import '../../features/catalog/domain/models/catalog_product.dart';
 import '../../features/clients/domain/models/client_summary.dart';
-import '../../features/collections/domain/models/receivable_account.dart';
 import 'api_client.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 
@@ -14,8 +13,15 @@ class DeltaSyncService {
 
   static const int _pageSize = 500;
 
-  static String _cursorKey(String storeId) => 'delta_cursor_$storeId';
+  static String _cursorKey(String storeId, String entity) =>
+      'delta_cursor_${storeId}_$entity';
   static String _timestampKey(String storeId) => 'delta_timestamp_$storeId';
+
+  static String? _extractCursor(List<dynamic> items) {
+    if (items.isEmpty) return null;
+    final lastItem = Map<String, dynamic>.from(items.last);
+    return lastItem['updated_at'] as String?;
+  }
 
   Future<void> syncData({String? storeId}) async {
     final authState = ref.read(authControllerProvider);
@@ -29,81 +35,92 @@ class DeltaSyncService {
     final effectiveStoreId = storeId ?? session.user.primaryStoreId;
     if (effectiveStoreId == null) return;
 
-    final lastCursor = prefs.getString(_cursorKey(effectiveStoreId));
-    String? serverTimestamp;
-
     try {
-      int offset = 0;
-      bool hasMore = true;
+      final productCursor =
+          prefs.getString(_cursorKey(effectiveStoreId, 'products'));
+      final clientCursor =
+          prefs.getString(_cursorKey(effectiveStoreId, 'clients'));
+      final barcodeCursor =
+          prefs.getString(_cursorKey(effectiveStoreId, 'productBarcodes'));
 
-      while (hasMore) {
-        // 1. Fetch delta page from server
-        String url = '/sync/data?storeId=$effectiveStoreId&limit=$_pageSize&offset=$offset';
-        if (lastCursor != null) {
-          url += '&lastSyncTimestamp=$lastCursor';
-        }
+      final allCursors = [
+        productCursor,
+        clientCursor,
+        barcodeCursor,
+      ].where((c) => c != null).map((c) => c!).toList();
 
-        final response = await client.getMap(
-          url,
-          bearerToken: session.accessToken,
-        );
+      final lastCursor = allCursors.isNotEmpty
+          ? allCursors.reduce((a, b) => a.compareTo(b) > 0 ? a : b)
+          : null;
 
-        serverTimestamp = response['serverTimestamp'] as String?;
-        final totalCount = response['totalCount'] as int? ?? 0;
+      String url =
+          '/sync/data?storeId=$effectiveStoreId&limit=$_pageSize';
+      if (lastCursor != null) {
+        url += '&lastSyncTimestamp=$lastCursor';
+      }
 
-        // 2. Process all entity types
-        _processEntity<List>(response['products'], (data) async {
-          final products = data.map((p) => CatalogProduct.fromJson(Map<String, dynamic>.from(p))).toList();
+      final response = await client.getMap(
+        url,
+        bearerToken: session.accessToken,
+      );
+
+      final serverTimestamp = response['serverTimestamp'] as String?;
+      final entities = response['entities'] as Map<String, dynamic>?;
+      if (entities == null) return;
+
+      // Products
+      await _processEntity<Map<String, dynamic>>(
+          entities['products'], (data) async {
+        final items = (data['items'] as List?) ?? [];
+        if (items.isNotEmpty) {
+          final products = items
+              .map((p) =>
+                  CatalogProduct.fromJson(Map<String, dynamic>.from(p)))
+              .toList();
           await cache.upsertProducts(products);
-        });
-
-        _processEntity<List>(response['clients'], (data) async {
-          final clients = data.map((c) => ClientSummary.fromJson(Map<String, dynamic>.from(c))).toList();
-          await cache.upsertClients(effectiveStoreId, clients);
-        });
-
-        _processEntity<List>(response['productBarcodes'], (data) async {
-          if (data.isNotEmpty) {
-            final ids = data.map((b) => Map<String, dynamic>.from(b)['barcode'] as String).toList();
-            // Cached barcodes will be refreshed on next product access
+          final cursor = _extractCursor(items) ?? serverTimestamp ?? '';
+          if (cursor.isNotEmpty) {
+            await prefs.setString(
+                _cursorKey(effectiveStoreId, 'products'), cursor);
           }
-        });
+        }
+      });
 
-        _processEntity<List>(response['orders'], (data) async {
-          // Orders are cached locally; full detail fetched on access
-        });
+      // Clients
+      await _processEntity<Map<String, dynamic>>(
+          entities['clients'], (data) async {
+        final items = (data['items'] as List?) ?? [];
+        if (items.isNotEmpty) {
+          final clients = items
+              .map((c) =>
+                  ClientSummary.fromJson(Map<String, dynamic>.from(c)))
+              .toList();
+          await cache.upsertClients(effectiveStoreId, clients);
+          final cursor = _extractCursor(items) ?? serverTimestamp ?? '';
+          if (cursor.isNotEmpty) {
+            await prefs.setString(
+                _cursorKey(effectiveStoreId, 'clients'), cursor);
+          }
+        }
+      });
 
-        _processEntity<List>(response['sales'], (data) async {
-          // Sales history cached locally; full detail on demand
-        });
+      // Product barcodes
+      await _processEntity<Map<String, dynamic>>(
+          entities['productBarcodes'], (data) async {
+        final items = (data['items'] as List?) ?? [];
+        if (items.isNotEmpty) {
+          final cursor = _extractCursor(items) ?? serverTimestamp ?? '';
+          if (cursor.isNotEmpty) {
+            await prefs.setString(
+                _cursorKey(effectiveStoreId, 'productBarcodes'), cursor);
+          }
+        }
+      });
 
-        _processEntity<List>(response['pendingDeliveries'], (data) async {
-          // Pending deliveries cached in local repository
-        });
-
-        _processEntity<List>(response['vendorInventories'], (data) async {
-          // Vendor inventories refreshed via vendor_inventory feature
-        });
-
-        _processEntity<List>(response['collections'], (data) async {
-          // Collections synced via queue processor, not delta
-        });
-
-        _processEntity<List>(response['outboxPending'], (data) async {
-          // Outbox events logged for audit
-        });
-
-        // 3. Pagination: check if there are more pages
-        offset += _pageSize;
-        hasMore = offset < totalCount;
-      }
-
-      // 4. Save cursor per storeId
       if (serverTimestamp != null) {
-        await prefs.setString(_cursorKey(effectiveStoreId), serverTimestamp);
-        await prefs.setString(_timestampKey(effectiveStoreId), serverTimestamp);
+        await prefs.setString(
+            _timestampKey(effectiveStoreId), serverTimestamp);
       }
-
     } catch (e) {
       print('DeltaSync Error for store $effectiveStoreId: $e');
     }
