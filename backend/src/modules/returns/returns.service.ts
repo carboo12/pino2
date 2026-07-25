@@ -6,7 +6,7 @@ import {
 import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
-import { bulkUnitsToTotal } from '../../common/utils/stock-display.util';
+import { bulkUnitsToTotal, splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class ReturnsService {
@@ -568,11 +568,6 @@ export class ReturnsService {
     totalUnits: number,
     unitsPerBulk: number,
   ): { bulks: number; units: number } {
-    const safeTotal = Math.max(0, this.toInt(totalUnits));
-    const safeUnitsPerBulk = this.toUnitsPerBulk(unitsPerBulk);
-    return {
-      bulks: Math.floor(safeTotal / safeUnitsPerBulk),
-      units: safeTotal % safeUnitsPerBulk,
-    };
+    return splitIntoBulkUnits(this.toInt(totalUnits), this.toUnitsPerBulk(unitsPerBulk));
   }
 }

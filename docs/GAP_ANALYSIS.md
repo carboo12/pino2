@@ -5,60 +5,51 @@
 | Métrica | Valor |
 |---------|-------|
 | Escenarios documentados | 382 |
-| API endpoints | ~200 (39 módulos) |
-| Tablas en BD | 61 + 13 nuevas = 74 |
-| Tests E2E | 128/128 pasan |
-| Módulos sin API | 6 (vehicles, purchase_orders, contracts, promotions, commissions, expenses) |
+| API endpoints | ~220 (43 módulos) |
+| Tablas en BD | 74 tablas creadas |
+| Tests E2E & Unit | 128/128 pasan |
+| Módulos sin API | 2 (contracts, commissions) |
 
-## Gaps Detectados
+## Gaps Resueltos y Detectados
 
-### GAP 1: Vehículos/Flota ⚠️
+### GAP 1: Vehículos/Flota ✅
 **Escenarios que lo requieren:** VH-001 a VH-006 (6 escenarios)
-**Estado:** ❌ No implementado
-**Tablas creadas:** ✅ `vehicles`, `vehicle_maintenance`, `vehicle_fuel_log`, `vehicle_accidents`
-**Falta:** Módulo NestJS con API CRUD + endpoints específicos
-**Prioridad:** Media
+**Estado:** ✅ **Implementado** (Módulo `vehicles` en NestJS)
+**Tablas:** `vehicles`, `vehicle_maintenance`, `vehicle_fuel_log`, `vehicle_accidents`
+**API Endpoints:** `/vehicles`, `/vehicles/maintenance`, `/vehicles/fuel`
 
-### GAP 2: Órdenes de Compra a Proveedores ⚠️
+### GAP 2: Órdenes de Compra a Proveedores ✅
 **Escenarios que lo requieren:** PV-001 a PV-006 (6 escenarios)
-**Estado:** ❌ No implementado
-**Tablas creadas:** ✅ `purchase_orders`, `purchase_order_items`
-**Falta:** Módulo NestJS con API CRUD + flujo de aprobación
-**Prioridad:** Alta
+**Estado:** ✅ **Implementado** (Módulo `purchase-orders` en NestJS)
+**Tablas:** `purchase_orders`, `purchase_order_items`
+**API Endpoints:** `/purchase-orders`, `/purchase-orders/:id/status`
 
-### GAP 3: Contratos con Clientes ⚠️
-**Escenarios que lo requieren:** LG-001, LG-005 (crédito, contratos)
-**Estado:** ❌ No implementado
-**Tablas creadas:** ✅ `client_contracts`
-**Falta:** Módulo NestJS con API CRUD + vinculación a clientes
-**Prioridad:** Media
-
-### GAP 4: Promociones y Descuentos ⚠️
+### GAP 3: Promociones y Descuentos ✅
 **Escenarios que lo requieren:** PR-001 a PR-010 (10 escenarios)
-**Estado:** ❌ No implementado  
-**Tablas creadas:** ✅ `promotions`, `promotion_products`
-**Falta:** Módulo NestJS con API CRUD + aplicación automática en ventas
-**Prioridad:** Alta
+**Estado:** ✅ **Implementado** (Módulo `promotions` en NestJS)
+**Tablas:** `promotions`, `promotion_products`
+**API Endpoints:** `/promotions`, `/promotions/active`
+
+### GAP 4: Gastos (Expenses) ✅
+**Escenarios que lo requieren:** C-015, VH-001 (gastos menores, mantenimiento)
+**Estado:** ✅ **Implementado** (Módulo `expenses` en NestJS)
+**Tablas:** `expenses`
+**API Endpoints:** `/expenses`
 
 ### GAP 5: Comisiones de Vendedores ⚠️
 **Escenarios que lo requieren:** E-020, CR-001 (comisiones, incentivos)
-**Estado:** ❌ No implementado
-**Tablas creadas:** ✅ `commission_rates`, `sales_commissions`
-**Falta:** Módulo NestJS con API CRUD + cálculo automático
+**Estado:** 🔶 Tablas creadas (`commission_rates`, `sales_commissions`), API pendiente
 **Prioridad:** Media
 
-### GAP 6: Gastos (Expenses) ⚠️
-**Escenarios que lo requieren:** C-015, VH-001 (gastos menores, mantenimiento)
-**Estado:** 🔶 Tabla existe, sin API dedicada
-**Tablas:** ✅ `expenses` (existente)
-**Falta:** Módulo NestJS con API CRUD + categorización
-**Prioridad:** Media
+### GAP 6: Contratos con Clientes ⚠️
+**Escenarios que lo requieren:** LG-001, LG-005 (crédito, contratos)
+**Estado:** 🔶 Tabla creada (`client_contracts`), API pendiente
+**Prioridad:** Baja
 
 ### GAP 7: Documentos Adjuntos ⚠️
 **Escenarios que lo requieren:** LG-001 a LG-006 (contratos, inspecciones, actas)
 **Estado:** ❌ No implementado
 **Falta:** Sistema de archivos adjuntos para contratos, facturas, actas
-**Prioridad:** Baja
 
 ### GAP 8: Reportes y Dashboard ⚠️
 **Escenarios que lo requieren:** RP-001 a RP-006 (6 escenarios)

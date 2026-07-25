@@ -46,6 +46,10 @@ import { LiquidacionesRutaModule } from './modules/liquidaciones-ruta/liquidacio
 import { ProductBarcodesModule } from './modules/product-barcodes/product-barcodes.module';
 import { HealthModule } from './modules/health/health.module';
 import { SyncEngineModule } from './modules/sync-engine/sync-engine.module';
+import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { ExpensesModule } from './modules/expenses/expenses.module';
+import { VehiclesModule } from './modules/vehicles/vehicles.module';
 
 @Module({
   imports: [
@@ -92,6 +96,10 @@ import { SyncEngineModule } from './modules/sync-engine/sync-engine.module';
     ProductBarcodesModule,
     HealthModule,
     SyncEngineModule,
+    PurchaseOrdersModule,
+    PromotionsModule,
+    ExpensesModule,
+    VehiclesModule,
   ],
   providers: [
     {

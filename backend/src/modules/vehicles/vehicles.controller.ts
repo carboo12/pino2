@@ -1,0 +1,51 @@
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { VehiclesService } from './vehicles.service';
+import { CreateVehicleDto, CreateVehicleMaintenanceDto, CreateFuelLogDto } from './vehicles.dto';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+
+@ApiTags('Vehicles')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
+@Controller('vehicles')
+export class VehiclesController {
+  constructor(private readonly service: VehiclesService) {}
+
+  @Roles('master-admin', 'store-admin', 'despachador')
+  @Post()
+  @ApiOperation({ summary: 'Registrar un nuevo vehículo' })
+  create(@Body() dto: CreateVehicleDto) {
+    return this.service.create(dto);
+  }
+
+  @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
+  @Get()
+  @ApiOperation({ summary: 'Listar vehículos' })
+  findAll(@Query('storeId') storeId: string, @Query('status') status?: string) {
+    return this.service.findAll(storeId, status);
+  }
+
+  @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener detalle de vehículo con historial' })
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
+  }
+
+  @Roles('master-admin', 'store-admin', 'despachador')
+  @Post('maintenance')
+  @ApiOperation({ summary: 'Registrar mantenimiento de vehículo' })
+  addMaintenance(@Body() dto: CreateVehicleMaintenanceDto) {
+    return this.service.addMaintenance(dto);
+  }
+
+  @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
+  @Post('fuel')
+  @ApiOperation({ summary: 'Registrar carga de combustible' })
+  addFuelLog(@Body() dto: CreateFuelLogDto, @Request() req: any) {
+    return this.service.addFuelLog(dto, req.user?.id);
+  }
+}
