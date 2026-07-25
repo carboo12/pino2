@@ -15,3 +15,4 @@ out/
 backend/pino-5fe44-firebase-adminsdk-fbsvc-23206ab8a2.json
 *.jks
 key.properties
+web/firebase-service-account.json
