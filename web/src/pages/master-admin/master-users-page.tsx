@@ -12,6 +12,8 @@ import { Users, Edit, Eye, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { getRedirectPath } from '@/lib/redirect-logic';
+import { normalizeUserRole } from '@/lib/user-role';
 import { withAppBase } from '@/lib/runtime-config';
 
 interface User {
@@ -155,7 +157,15 @@ export default function MasterUsersPage() {
                         localStorage.setItem('access_token', res.data.accessToken);
                         localStorage.setItem('impersonated', 'true');
                         toast.success(`Sesión como ${user.name}`, 'Redirigiendo...');
-                        setTimeout(() => window.location.href = withAppBase('/'), 1000);
+                        const role = normalizeUserRole(user.role);
+                        const storeId = user.storeId;
+                        let impersonatePath = '/master-admin/dashboard';
+                        if (role === 'store-admin' || role === 'cashier' || role === 'inventory') {
+                          impersonatePath = storeId ? `/store/${storeId}/work/cash` : '/master-admin/stores';
+                        } else if (role === 'rutero' || role === 'vendor') {
+                          impersonatePath = storeId ? `/store/${storeId}/vendors/quick-sale` : '/master-admin/stores';
+                        }
+                        setTimeout(() => window.location.href = withAppBase(impersonatePath), 1000);
                       } catch {
                         toast.error('Error', 'No se pudo iniciar sesión como este usuario');
                       }

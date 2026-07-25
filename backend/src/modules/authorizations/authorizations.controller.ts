@@ -40,7 +40,7 @@ export class AuthorizationsController {
   @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar autorizaciones de una tienda' })
-  findAll(@Query('storeId') storeId: string, @Query('status') status?: string, @Query('limit') limit?: string) {
+  findAll(@Query('storeId') storeId?: string, @Query('status') status?: string, @Query('limit') limit?: string) {
     return this.service.findAll(storeId, status, limit ? parseInt(limit) : undefined);
   }
 
