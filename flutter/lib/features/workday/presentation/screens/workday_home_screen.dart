@@ -159,14 +159,56 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
             const SizedBox(height: 12),
             buildNextAction(),
             const SizedBox(height: 24),
+            _PendingList(role: role),
+            const SizedBox(height: 24),
             Text(
-              'Pendientes',
+              'Accesos Rápidos',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 12),
-            _PendingList(role: role),
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    child: InkWell(
+                      onTap: () => context.push('/expenses'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(Icons.receipt_long, color: Colors.redAccent, size: 28),
+                            SizedBox(height: 8),
+                            Text('Gastos', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Card(
+                    child: InkWell(
+                      onTap: () => context.push('/promotions'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            Icon(Icons.discount, color: Colors.green, size: 28),
+                            SizedBox(height: 8),
+                            Text('Promociones', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
