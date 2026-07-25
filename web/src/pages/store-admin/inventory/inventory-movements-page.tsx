@@ -34,6 +34,8 @@ import { cn } from '@/lib/utils';
 import { useMemo, useState } from 'react';
 import apiClient from '@/services/api-client';
 import { useQuery } from '@tanstack/react-query';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import { useParams } from 'react-router-dom';
 import { PrintableTicket, generatePlainTextTicket } from '@/components/printable-ticket';
 import { toast } from '@/lib/swalert';
@@ -121,6 +123,7 @@ export default function InventoryMovementsPage() {
     );
   }, [movements, searchTerm]);
 
+  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(filteredMovements);
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
@@ -239,7 +242,7 @@ export default function InventoryMovementsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredMovements.map((item) => (
+            {paginatedItems.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   {item.timestamp ? format(new Date(item.timestamp as any), 'p', { locale: es }) : 'N/A'}
@@ -259,6 +262,7 @@ export default function InventoryMovementsPage() {
           </TableBody>
         </Table>
       </div>
+      <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
     )
   }
 

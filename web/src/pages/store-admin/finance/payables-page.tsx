@@ -15,6 +15,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth-context';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/lib/swalert';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import financeService, { type AccountPayable } from '@/services/finance-service';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
 
@@ -74,6 +76,8 @@ export default function PayablesPage() {
 
   const pendingTotal = useMemo(() => accounts.reduce((acc, a) => acc + Number(a.remainingAmount || 0), 0), [accounts]);
   const partialCount = useMemo(() => accounts.filter(a => a.status === 'PARTIAL').length, [accounts]);
+
+  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(accounts);
 
   const openPaymentDialog = (account: AccountPayable) => {
     setSelectedAccount(account);
@@ -191,7 +195,7 @@ export default function PayablesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {accounts.map((acc) => (
+                  {paginatedItems.map((acc) => (
                     <TableRow key={acc.id}>
                       <TableCell className="font-medium">{acc.supplierName || 'Desconocido'}</TableCell>
                       <TableCell className="max-w-[200px] text-sm text-muted-foreground">
@@ -214,6 +218,7 @@ export default function PayablesPage() {
                   ))}
                 </TableBody>
               </Table>
+              <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
             </div>
           )}
         </CardContent>

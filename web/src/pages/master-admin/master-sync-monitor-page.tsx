@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, Eye, Clock } from 'lucide-react';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 
 interface SyncStatus { isOnline: boolean; pendingCount: number; failedCount: number; lastSyncTimestamp: number | null; }
@@ -30,6 +32,7 @@ export default function MasterSyncMonitorPage() {
     }, [toast]);
 
     useEffect(() => { fetchStoresAndStatus(); const i = setInterval(fetchStoresAndStatus, 30000); return () => clearInterval(i); }, [fetchStoresAndStatus]);
+    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(stores);
 
     const handleForceSync = async (storeId: string) => {
         setForcingSyncId(storeId);
@@ -75,8 +78,8 @@ export default function MasterSyncMonitorPage() {
                 <CardContent>
                     {loading ? (<div className="flex items-center justify-center py-8"><RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" /></div>)
                     : stores.length === 0 ? (<div className="text-center py-8 text-muted-foreground">No hay tiendas registradas</div>)
-                    : (<Table><TableHeader><TableRow><TableHead>Tienda</TableHead><TableHead>Estado</TableHead><TableHead className="text-center">Pendientes</TableHead><TableHead className="text-center">Errores</TableHead><TableHead>Última Sync</TableHead><TableHead className="text-right">Acciones</TableHead></TableRow></TableHeader>
-                        <TableBody>{stores.map((store) => (<TableRow key={store.id}>
+                    : (<><Table><TableHeader><TableRow><TableHead>Tienda</TableHead><TableHead>Estado</TableHead><TableHead className="text-center">Pendientes</TableHead><TableHead className="text-center">Errores</TableHead><TableHead>Última Sync</TableHead><TableHead className="text-right">Acciones</TableHead></TableRow></TableHeader>
+                        <TableBody>{paginatedItems.map((store) => (<TableRow key={store.id}>
                             <TableCell className="font-medium">{store.name}</TableCell>
                             <TableCell>{getStatusBadge(store.syncStatus)}</TableCell>
                             <TableCell className="text-center">{store.syncStatus?.pendingCount || 0}</TableCell>
@@ -87,7 +90,9 @@ export default function MasterSyncMonitorPage() {
                                     <Button variant="outline" size="sm" onClick={() => handleForceSync(store.id)} disabled={forcingSyncId === store.id}><RefreshCw className={`h-4 w-4 mr-1 ${forcingSyncId === store.id ? 'animate-spin' : ''}`} />Forzar Sync</Button>
                                 )}
                             </div></TableCell>
-                        </TableRow>))}</TableBody></Table>)}
+                        </TableRow>))}</TableBody></Table>
+                        <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
+                    </>)}
                 </CardContent>
             </Card>
         </div>

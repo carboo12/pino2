@@ -10,6 +10,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Users, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 
 interface User {
@@ -111,10 +113,12 @@ export default function MasterUsersPage() {
       );
     }
 
+    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(users);
+
     return (
       <div className="rounded-md border">
         <Accordion type="single" collapsible className="w-full">
-          {users.map((user) => (
+          {paginatedItems.map((user) => (
             <AccordionItem value={user.uid} key={user.uid}>
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center justify-between w-full">
@@ -149,6 +153,14 @@ export default function MasterUsersPage() {
             </AccordionItem>
           ))}
         </Accordion>
+        <PaginationControls
+          page={page}
+          pageSize={pageSize}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
     );
   };

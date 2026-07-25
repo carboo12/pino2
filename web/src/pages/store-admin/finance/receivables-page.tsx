@@ -21,6 +21,8 @@ import financeService, {
   type CollectionSummary,
 } from '@/services/finance-service';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import { exportToExcel } from '@/lib/export-excel';
 
 const dateOnlyFormatter = new Intl.DateTimeFormat('es-NI', {
@@ -135,6 +137,10 @@ export default function ReceivablesPage() {
     }
     return groups;
   }, [accounts]);
+
+  const groupedEntries = useMemo(() => Object.entries(groupedAccounts), [groupedAccounts]);
+  const { paginatedItems: paginatedGroupedAccounts, page: pageAcc, pageSize: pageSizeAcc, totalPages: totalPagesAcc, totalItems: totalItemsAcc, setPage: setPageAcc, setPageSize: setPageSizeAcc } = usePagination(groupedEntries);
+  const { paginatedItems: paginatedCollections, page: pageCol, pageSize: pageSizeCol, totalPages: totalPagesCol, totalItems: totalItemsCol, setPage: setPageCol, setPageSize: setPageSizeCol } = usePagination(collections);
 
   const openPaymentDialog = (account: AccountReceivable) => {
     setSelectedAccount(account);
@@ -308,7 +314,7 @@ export default function ReceivablesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {Object.entries(groupedAccounts).map(([clientName, clientAccounts]) => {
+                      {paginatedGroupedAccounts.map(([clientName, clientAccounts]) => {
                         const clientTotal = clientAccounts.reduce((sum, acc) => sum + Number(acc.pendingAmount || acc.remainingAmount || 0), 0);
                         return (
                           <React.Fragment key={clientName}>
@@ -354,6 +360,7 @@ export default function ReceivablesPage() {
                       })}
                     </TableBody>
                   </Table>
+                  <PaginationControls page={pageAcc} pageSize={pageSizeAcc} totalPages={totalPagesAcc} totalItems={totalItemsAcc} onPageChange={setPageAcc} onPageSizeChange={setPageSizeAcc} />
                 </div>
               )}
             </CardContent>
@@ -417,7 +424,7 @@ export default function ReceivablesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {collections.map((collection) => (
+                      {paginatedCollections.map((collection) => (
                         <TableRow key={collection.id}>
                           <TableCell>{collection.clientName || 'Cliente no identificado'}</TableCell>
                           <TableCell>{collection.ruteroName || collection.ruteroId || 'Sin rutero'}</TableCell>
@@ -433,6 +440,7 @@ export default function ReceivablesPage() {
                       ))}
                     </TableBody>
                   </Table>
+                  <PaginationControls page={pageCol} pageSize={pageSizeCol} totalPages={totalPagesCol} totalItems={totalItemsCol} onPageChange={setPageCol} onPageSizeChange={setPageSizeCol} />
                 </div>
               )}
             </CardContent>

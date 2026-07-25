@@ -24,6 +24,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth-context';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 import { alert, toast } from '@/lib/swalert';
 import { formatCurrency } from '@/lib/utils';
@@ -225,6 +227,9 @@ export default function SupplierInvoicesPage() {
       ),
     [invoiceDraft.items],
   );
+
+  const { paginatedItems: paginatedInvoices, page: pageInv, pageSize: pageSizeInv, totalPages: totalPagesInv, totalItems: totalItemsInv, setPage: setPageInv, setPageSize: setPageSizeInv } = usePagination(invoices);
+  const { paginatedItems: paginatedPayables, page: pagePay, pageSize: pageSizePay, totalPages: totalPagesPay, totalItems: totalItemsPay, setPage: setPagePay, setPageSize: setPageSizePay } = usePagination(payables);
 
   const updateDraftItem = (localId: string, patch: Partial<DraftInvoiceItem>) => {
     setInvoiceDraft((prev) => ({
@@ -530,7 +535,7 @@ export default function SupplierInvoicesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {invoices.map((invoice) => (
+                      {paginatedInvoices.map((invoice) => (
                         <TableRow key={invoice.id}>
                           <TableCell>
                             <div className="font-medium">{invoice.invoiceNumber}</div>
@@ -565,6 +570,7 @@ export default function SupplierInvoicesPage() {
                       ))}
                     </TableBody>
                   </Table>
+                  <PaginationControls page={pageInv} pageSize={pageSizeInv} totalPages={totalPagesInv} totalItems={totalItemsInv} onPageChange={setPageInv} onPageSizeChange={setPageSizeInv} />
                 </div>
               )}
             </CardContent>
@@ -607,7 +613,7 @@ export default function SupplierInvoicesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {payables.map((account) => (
+                      {paginatedPayables.map((account) => (
                         <TableRow key={account.id}>
                           <TableCell>
                             <div className="font-medium">{account.supplierName || 'Proveedor sin nombre'}</div>
@@ -639,6 +645,7 @@ export default function SupplierInvoicesPage() {
                       ))}
                     </TableBody>
                   </Table>
+                  <PaginationControls page={pagePay} pageSize={pageSizePay} totalPages={totalPagesPay} totalItems={totalItemsPay} onPageChange={setPagePay} onPageSizeChange={setPageSizePay} />
                 </div>
               )}
             </CardContent>

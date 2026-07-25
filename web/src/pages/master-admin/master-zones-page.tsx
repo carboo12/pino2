@@ -8,6 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 
 interface Zone {
@@ -39,6 +41,7 @@ export default function MasterZonesPage() {
     useEffect(() => {
         fetchZones();
     }, []);
+    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(zones);
 
     const handleSave = async () => {
         try {
@@ -135,7 +138,7 @@ export default function MasterZonesPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {zones.map((zone) => (
+                                {paginatedItems.map((zone) => (
                                     <TableRow key={zone.id}>
                                         <TableCell className="font-medium">{zone.name}</TableCell>
                                         <TableCell>{zone.description || zone.code || '-'}</TableCell>
@@ -156,6 +159,7 @@ export default function MasterZonesPage() {
                             </TableBody>
                         </Table>
                     </div>
+                    <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
                 </CardContent>
             </Card>
         </div>

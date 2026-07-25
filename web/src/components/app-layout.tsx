@@ -1,6 +1,6 @@
 import apiClient from '@/services/api-client';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/auth-context';
 import { AppHeader } from '@/components/app-header';
 import { cn } from '@/lib/utils';
@@ -402,10 +402,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     enableSupplierManagement: false,
   });
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [allStores, setAllStores] = useState<Array<{ id: string; name: string }>>([]);
   const seenNotificationIds = useRef<Set<string>>(new Set());
+  const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
   const { lastEvent, connected } = useRealTimeEvents(storeId);
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const res = await apiClient.get('/stores');
+        const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        setAllStores(list.map((s: any) => ({ id: s.id, name: s.name })));
+      } catch {}
+    };
+    if (user?.role === 'master-admin' || user?.role === 'owner') {
+      fetchStores();
+    } else if (user?.storeIds?.length) {
+      setAllStores((user.storeIds || []).map((id: string) => ({ id, name: id })));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!storeId) return;
@@ -552,6 +569,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               {sidebarCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </button>
           </div>
+          {!sidebarCollapsed && allStores.length > 0 && storeId && (
+            <div className="px-3 pt-2 pb-1">
+              <select
+                value={storeId}
+                onChange={(e) => navigate(`/store/${e.target.value}/work/cash`)}
+                className="w-full text-sm border rounded-lg px-3 py-2 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {allStores.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto py-2">
             {!sidebarCollapsed && storeId && (normalizeUserRole(user?.role) === 'master-admin' || normalizeUserRole(user?.role) === 'owner' || normalizeUserRole(user?.role) === 'chain-admin') && (

@@ -33,6 +33,8 @@ import { logError } from "@/lib/error-logger";
 import { calculateStockDisplay } from "@/utils/stock-display";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import { ImportProductsDialog } from "@/components/products/import-products-dialog";
 
 interface Department {
@@ -189,6 +191,12 @@ export default function ProductsPage() {
     return counts;
   }, [products]);
 
+  const activeProducts = useMemo(
+    () => reorganizationMode ? unorganizedProducts : filteredProducts,
+    [reorganizationMode, unorganizedProducts, filteredProducts],
+  );
+  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(activeProducts);
+
   const handleExport = () => {
     const dataToExport = products.map((p: any) => ({
       "Código de Barras": p.barcode || "",
@@ -269,7 +277,7 @@ export default function ProductsPage() {
       );
     }
 
-    const productListContent = (productsToList: Product[]) => {
+    const productListContent = (productsToList: Product[], paginatedList: Product[]) => {
       if (productsToList.length === 0) {
         return (
           <Alert>
@@ -284,7 +292,7 @@ export default function ProductsPage() {
       return (
         <div className="space-y-3">
           <AlertDialog>
-            {productsToList.map((product) => (
+            {paginatedList.map((product) => (
               <AlertDialogTrigger
                 asChild
                 key={product.id}
@@ -360,7 +368,7 @@ export default function ProductsPage() {
 
     // View Reorganization
     if (reorganizationMode) {
-      return productListContent(unorganizedProducts);
+      return <>{productListContent(unorganizedProducts, paginatedItems)}<PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} /></>;
     }
 
     // View Products for a department (no sub-department) or a sub-department
@@ -368,7 +376,7 @@ export default function ProductsPage() {
       selectedSubDepartment ||
       (selectedDepartment && filteredSubDepartments.length === 0)
     ) {
-      return productListContent(filteredProducts);
+      return <>{productListContent(filteredProducts, paginatedItems)}<PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} /></>;
     }
 
     // View Sub-Departments for a department

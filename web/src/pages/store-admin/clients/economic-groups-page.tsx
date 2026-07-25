@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Briefcase, Plus, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 export default function EconomicGroupsPage() {
@@ -31,6 +33,8 @@ export default function EconomicGroupsPage() {
     loadData();
   }, [storeId]);
 
+  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(groups);
+
   const handleSubmit = async () => {
     try {
       await apiClient.post('/grupos-economicos', formData);
@@ -56,7 +60,7 @@ export default function EconomicGroupsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {groups.map(g => (
+        {paginatedItems.map(g => (
           <div key={g.id} className="bg-card border rounded-xl overflow-hidden shadow-sm flex flex-col">
             <div className="p-6">
               <div className="flex justify-between items-start mb-6 border-b pb-4">
@@ -94,6 +98,8 @@ export default function EconomicGroupsPage() {
           </div>
         )}
       </div>
+
+      <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent>

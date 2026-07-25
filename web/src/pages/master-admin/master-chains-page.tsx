@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/floating-action-button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 
 interface Chain { id: string; name: string; ownerName: string; ownerEmail: string; status: string; }
@@ -19,6 +21,7 @@ export default function MasterChainsPage() {
 
     const fetchChains = async () => { try { const res = await apiClient.get('/chains'); setChains(res.data || []); } catch { setError('No se pudieron cargar las cadenas.'); } finally { setLoading(false); } };
     useEffect(() => { fetchChains(); }, []);
+    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(chains);
 
     const handleDelete = async (chainId: string, chainName: string) => {
         try { await apiClient.delete(`/chains/${chainId}`); toast({ title: 'Cadena Eliminada', description: `"${chainName}" eliminada.` }); fetchChains(); }
@@ -31,9 +34,9 @@ export default function MasterChainsPage() {
     return (
         <div>
             <div className="mb-6"><h1 className="text-2xl font-bold tracking-tight">Gestión de Cadenas</h1><p className="text-muted-foreground">Administra las cadenas de tiendas.</p></div>
-            {chains.length === 0 ? (<div className="text-center p-8 border rounded-lg bg-muted/20"><p className="text-muted-foreground">No hay cadenas registradas.</p></div>) : (
+            {chains.length === 0 ? (<div className="text-center p-8 border rounded-lg bg-muted/20"><p className="text-muted-foreground">No hay cadenas registradas.</p></div>) : (<>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {chains.map((chain) => (<Card key={chain.id}>
+                    {paginatedItems.map((chain) => (<Card key={chain.id}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-lg font-medium">{chain.name}</CardTitle><Building2 className="h-4 w-4 text-muted-foreground" /></CardHeader>
                         <CardContent>
                             <div className="text-sm text-muted-foreground mb-4"><p><strong>Propietario:</strong> {chain.ownerName}</p><p><strong>Email:</strong> {chain.ownerEmail}</p><div className="mt-2"><Badge variant={chain.status === 'active' ? 'default' : 'secondary'}>{chain.status === 'active' ? 'Activa' : 'Inactiva'}</Badge></div></div>
@@ -49,7 +52,8 @@ export default function MasterChainsPage() {
                         </CardContent>
                     </Card>))}
                 </div>
-            )}
+                <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
+            </>)}
             <FloatingActionButton href="/master-admin/chains/add" />
         </div>
     );
