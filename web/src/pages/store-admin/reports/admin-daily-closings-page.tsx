@@ -12,8 +12,6 @@ import {
 import { format, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -86,8 +84,6 @@ export default function AdminDailyClosingsPage() {
     setSearchDate('');
     fetchClosings();
   };
-
-  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(closings);
 
   const totals = closings.reduce(
     (acc, c) => ({
@@ -180,7 +176,7 @@ export default function AdminDailyClosingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedItems.map((c) => (
+              {map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">
                     {c.closingDate
@@ -209,10 +205,7 @@ export default function AdminDailyClosingsPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
-          <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-
-          {/* TOTALS ROW */}
+          </Table>          {/* TOTALS ROW */}
           <div className="border-t bg-slate-50 px-4 py-3 flex items-center justify-between">
             <p className="text-sm font-bold text-muted-foreground uppercase tracking-wide">
               Totales ({closings.length} cierres)

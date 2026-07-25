@@ -24,8 +24,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth-context';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 import { alert, toast } from '@/lib/swalert';
 import { formatCurrency } from '@/lib/utils';
@@ -569,9 +567,7 @@ export default function SupplierInvoicesPage() {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
-                  <PaginationControls page={pageInv} pageSize={pageSizeInv} totalPages={totalPagesInv} totalItems={totalItemsInv} onPageChange={setPageInv} onPageSizeChange={setPageSizeInv} />
-                </div>
+                  </Table>                </div>
               )}
             </CardContent>
           </Card>
@@ -644,9 +640,7 @@ export default function SupplierInvoicesPage() {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
-                  <PaginationControls page={pagePay} pageSize={pageSizePay} totalPages={totalPagesPay} totalItems={totalItemsPay} onPageChange={setPagePay} onPageSizeChange={setPageSizePay} />
-                </div>
+                  </Table>                </div>
               )}
             </CardContent>
           </Card>

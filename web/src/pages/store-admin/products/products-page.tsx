@@ -33,8 +33,6 @@ import { logError } from "@/lib/error-logger";
 import { calculateStockDisplay } from "@/utils/stock-display";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import { ImportProductsDialog } from "@/components/products/import-products-dialog";
 
 interface Department {
@@ -195,7 +193,6 @@ export default function ProductsPage() {
     () => reorganizationMode ? unorganizedProducts : filteredProducts,
     [reorganizationMode, unorganizedProducts, filteredProducts],
   );
-  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(activeProducts);
 
   const handleExport = () => {
     const dataToExport = products.map((p: any) => ({

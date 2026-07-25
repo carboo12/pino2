@@ -25,8 +25,6 @@ import apiClient from '@/services/api-client';
 import { useAuth } from '@/contexts/auth-context';
 import { logError } from '@/lib/error-logger';
 import { useQuery } from '@tanstack/react-query';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import { useApiMutation } from '@/hooks/use-api';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -103,8 +101,6 @@ export default function InventoryAdjustmentsPage() {
     );
   }, [products, searchTerm]);
 
-  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(filteredProducts);
-
   async function onSubmit(values: z.infer<typeof adjustmentFormSchema>) {
     if (!selectedProduct || !user) {
       toast.error('Error', 'Debes seleccionar un producto.');
@@ -165,7 +161,7 @@ export default function InventoryAdjustmentsPage() {
               <div className="space-y-2">
                 {loadingProducts ? (
                   Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
-                ) : paginatedItems.map(product => (
+                ) : map(product => (
                   <div
                     key={product.id}
                     onClick={() => setSelectedProduct(product)}
@@ -178,9 +174,7 @@ export default function InventoryAdjustmentsPage() {
                   </div>
                 ))}
               </div>
-            </ScrollArea>
-            <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-          </CardContent>
+            </ScrollArea>          </CardContent>
         </Card>
 
         <Card>

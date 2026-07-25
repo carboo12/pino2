@@ -10,8 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 
 interface Zone {
@@ -54,7 +52,6 @@ export default function MasterSubZonesPage() {
     useEffect(() => {
         fetchData();
     }, []);
-    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(subZones);
 
     const handleSave = async () => {
         try {
@@ -161,7 +158,7 @@ export default function MasterSubZonesPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {paginatedItems.map((sz) => (
+                                {map((sz) => (
                                     <TableRow key={sz.id}>
                                         <TableCell className="font-medium">{sz.name}</TableCell>
                                         <TableCell>{sz.zoneName || getZoneName(sz.zoneId)}</TableCell>
@@ -181,9 +178,7 @@ export default function MasterSubZonesPage() {
                                 )}
                             </TableBody>
                         </Table>
-                    </div>
-                    <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-                </CardContent>
+                    </div>                </CardContent>
             </Card>
         </div>
     );

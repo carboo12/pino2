@@ -8,8 +8,6 @@ import { formatDistanceToNow, format, subHours } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 import { toast } from '@/lib/swalert';
 
@@ -52,7 +50,6 @@ export default function MasterMonitorPage() {
         const interval = setInterval(fetchErrors, 30000);
         return () => clearInterval(interval);
     }, [fetchErrors]);
-    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(errorLogs);
 
     const parseTimestamp = (ts: any): Date | null => {
         if (!ts) return null; if (ts instanceof Date) return ts; if (typeof ts === 'string') return new Date(ts); if (ts._seconds) return new Date(ts._seconds * 1000); return null;
@@ -63,8 +60,8 @@ export default function MasterMonitorPage() {
         if (error) return (<Alert variant="destructive"><Terminal className="h-4 w-4" /><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>);
         if (errorLogs.length === 0) return (<Alert><Terminal className="h-4 w-4" /><AlertTitle>Todo en orden</AlertTitle><AlertDescription>No se han registrado errores recientemente.</AlertDescription></Alert>);
         return (
-            <Accordion type="single" collapsible className="w-full">
-                {paginatedItems.map((log) => { const ts = parseTimestamp(log.timestamp); return (
+            <><Accordion type="single" collapsible className="w-full">
+                {map((log) => { const ts = parseTimestamp(log.timestamp); return (
                     <AccordionItem value={log.id} key={log.id}>
                         <AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-4 w-full text-left"><AlertTriangle className="h-5 w-5 text-destructive shrink-0" /><div className="flex-grow"><p className="font-medium text-destructive truncate">{log.message}</p><p className="text-xs text-muted-foreground">{ts ? formatDistanceToNow(ts, { addSuffix: true, locale: es }) : 'N/A'}</p></div></div></AccordionTrigger>
                         <AccordionContent className="bg-muted/30 p-4 rounded-md">
@@ -79,9 +76,7 @@ export default function MasterMonitorPage() {
                         </AccordionContent>
                     </AccordionItem>
                 ); })}
-            </Accordion>
-            <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-        );
+            </Accordion>        </>);
     };
 
     return (

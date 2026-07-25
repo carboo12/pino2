@@ -23,8 +23,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import { toast } from '@/lib/swalert';
 
 interface Supplier {
@@ -50,8 +48,6 @@ export default function SuppliersPage() {
     },
     enabled: !!storeId,
   });
-
-  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(suppliers);
 
   const refetchSuppliers = () => queryClient.invalidateQueries({ queryKey: ['suppliers', storeId] });
 
@@ -95,7 +91,7 @@ export default function SuppliersPage() {
       ) : (
         <div className="rounded-lg border">
           <Accordion type="single" collapsible className="w-full">
-            {paginatedItems.map((supplier) => (
+            {map((supplier) => (
               <AccordionItem value={supplier.id} key={supplier.id}>
                 <AccordionTrigger className="px-6 py-4 hover:no-underline">
                   <span className="font-medium text-left">{supplier.name}</span>
@@ -160,9 +156,7 @@ export default function SuppliersPage() {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
-        <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-      )}
+        </div>      )}
 
       <FloatingActionButton href={`/store/${storeId}/suppliers/add`} />
     </div>

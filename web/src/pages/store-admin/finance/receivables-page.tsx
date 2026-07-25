@@ -21,8 +21,6 @@ import financeService, {
   type CollectionSummary,
 } from '@/services/finance-service';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import { exportToExcel } from '@/lib/export-excel';
 
 const dateOnlyFormatter = new Intl.DateTimeFormat('es-NI', {
@@ -359,9 +357,7 @@ export default function ReceivablesPage() {
                         );
                       })}
                     </TableBody>
-                  </Table>
-                  <PaginationControls page={pageAcc} pageSize={pageSizeAcc} totalPages={totalPagesAcc} totalItems={totalItemsAcc} onPageChange={setPageAcc} onPageSizeChange={setPageSizeAcc} />
-                </div>
+                  </Table>                </div>
               )}
             </CardContent>
           </Card>
@@ -439,9 +435,7 @@ export default function ReceivablesPage() {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
-                  <PaginationControls page={pageCol} pageSize={pageSizeCol} totalPages={totalPagesCol} totalItems={totalItemsCol} onPageChange={setPageCol} onPageSizeChange={setPageSizeCol} />
-                </div>
+                  </Table>                </div>
               )}
             </CardContent>
           </Card>

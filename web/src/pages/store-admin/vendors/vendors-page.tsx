@@ -7,8 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge } from "@/components/ui/badge";
 import { useParams } from "react-router-dom";
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 import apiClient from '@/services/api-client';
 import { normalizeUserRole } from '@/lib/user-role';
 
@@ -36,16 +34,14 @@ export default function VendorsPage() {
         fetchVendors();
     }, [storeId]);
 
-    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(vendors);
-
     const renderContent = () => {
         if (loading) return (<div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => (<Skeleton key={i} className="h-12 w-full" />))}</div>);
         if (error) return (<Alert variant="destructive"><UsersRound className="h-4 w-4" /><AlertTitle>Error</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>);
         if (vendors.length === 0) return (<Alert><UsersRound className="h-4 w-4" /><AlertTitle>No hay vendedores</AlertTitle><AlertDescription>Aún no has agregado ningún vendedor.</AlertDescription></Alert>);
-        return (
+        return (<>
             <div className="rounded-md border">
                 <Accordion type="single" collapsible className="w-full">
-                    {paginatedItems.map((vendor) => (
+                    {map((vendor) => (
                         <AccordionItem value={vendor.uid} key={vendor.uid}>
                             <AccordionTrigger className="px-6 py-4 hover:no-underline">
                                 <div className="flex items-center justify-between w-full"><span className="font-medium text-left">{vendor.name}</span><Badge variant="outline">{vendor.role}</Badge></div>
@@ -54,9 +50,7 @@ export default function VendorsPage() {
                         </AccordionItem>
                     ))}
                 </Accordion>
-            </div>
-            <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-        );
+            </div>        </>);
     };
 
     return (

@@ -10,8 +10,6 @@ import { FloatingActionButton } from '@/components/floating-action-button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/services/api-client';
-import { PaginationControls } from '@/components/ui/pagination-controls';
-import { usePagination } from '@/hooks/use-pagination';
 
 type LicenseStatus = 'Activa' | 'Pronto a expirar' | 'Expirada' | 'Sin Licencia';
 interface Store { id: string; name: string; address: string; phone: string; ownerEmail: string; license?: { type: string; startDate: string; expiryDate: string; status: string; }; computedStatus?: LicenseStatus; }
@@ -35,7 +33,6 @@ export default function MasterStoresPage() {
         catch { setError('No se pudieron cargar las tiendas.'); } finally { setLoading(false); }
     };
     useEffect(() => { fetchStores(); }, []);
-    const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(stores);
 
     const handleDelete = async (storeId: string, storeName: string) => {
         try { await apiClient.delete(`/stores/${storeId}`); toast({ title: 'Tienda Eliminada', description: `"${storeName}" eliminada.` }); fetchStores(); }
@@ -54,7 +51,7 @@ export default function MasterStoresPage() {
             <div className="mb-6"><h1 className="text-2xl font-bold tracking-tight">Gestión de Tiendas</h1><p className="text-muted-foreground">Administra las tiendas registradas.</p></div>
             {stores.length === 0 ? (<div className="text-center p-8 border rounded-lg bg-muted/20"><p className="text-muted-foreground">No hay tiendas registradas.</p></div>) : (<>
                 <div className="rounded-md border"><Accordion type="single" collapsible className="w-full">
-                    {paginatedItems.map((store) => (<AccordionItem value={store.id} key={store.id}>
+                    {map((store) => (<AccordionItem value={store.id} key={store.id}>
                         <AccordionTrigger className="px-6 py-4 hover:no-underline"><div className="flex items-center justify-between w-full"><span className="font-medium text-left">{store.name}</span><Badge className={getStatusColor(store.computedStatus)}>{store.computedStatus || 'Sin Estado'}</Badge></div></AccordionTrigger>
                         <AccordionContent className="px-6 pb-4 bg-muted/50">
                             <div className="grid gap-4 md:grid-cols-2">
@@ -71,9 +68,7 @@ export default function MasterStoresPage() {
                             </div>
                         </AccordionContent>
                     </AccordionItem>))}
-                </Accordion></div>
-                <PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} />
-            </>)}
+                </Accordion></div>            </>)}
             <FloatingActionButton href="/master-admin/stores/add" />
         </div>
     );
