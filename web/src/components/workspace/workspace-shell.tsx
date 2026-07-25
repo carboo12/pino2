@@ -17,14 +17,14 @@ export function WorkspaceShell({
   className,
 }: WorkspaceShellProps) {
   return (
-    <div className={cn('flex h-full flex-col bg-[#F6F7F9]', className)}>
+    <div className={cn('flex h-full min-h-0 flex-col bg-background', className)}>
       {topbar}
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-auto">
-          <div className="flex-1 p-4 lg:p-6">{children}</div>
-        </div>
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <section className="min-w-0 flex-1 overflow-auto">
+          {children}
+        </section>
         {contextPanel && (
-          <div className="hidden w-[360px] shrink-0 border-l border-[#DDE2E8] bg-white lg:block">
+          <div className="hidden w-[360px] shrink-0 border-l border-border bg-surface lg:block">
             {contextPanel}
           </div>
         )}

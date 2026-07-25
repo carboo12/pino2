@@ -19,14 +19,14 @@ export function WorkspaceTopBar({
   return (
     <div
       className={cn(
-        'flex h-12 items-center justify-between border-b border-[#DDE2E8] bg-white px-4 lg:h-14 lg:px-6',
+        'flex h-12 items-center justify-between border-b border-border bg-background px-4 lg:h-14 lg:px-6',
         className,
       )}
     >
       <div className="flex items-center gap-3">
-        <h1 className="text-sm font-semibold text-[#17202A]">{title}</h1>
+        <h1 className="text-sm font-semibold text-foreground">{title}</h1>
         {storeName && (
-          <span className="text-xs text-[#5B6673]">| {storeName}</span>
+          <span className="text-xs text-muted-foreground">| {storeName}</span>
         )}
       </div>
       <div className="flex items-center gap-2">

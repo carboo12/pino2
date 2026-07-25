@@ -408,6 +408,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
+  const isWorkspace = pathname.includes('/work/');
   const [isImpersonating] = useState(() => localStorage.getItem('impersonated') === 'true');
   const { lastEvent, connected } = useRealTimeEvents(storeId);
 
@@ -548,7 +549,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return storeId ? `/store/${storeId}/dashboard` : '/';
   })();
 
-  const sidebarWidth = sidebarCollapsed ? '64px' : '280px';
+  const sidebarWidth = sidebarCollapsed ? '64px' : '248px';
 
   return (
     <>
@@ -665,13 +666,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           currentStoreId={storeId}
           onStoreChange={(id) => navigate(`/store/${id}/work/cash`)}
         />
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background overflow-x-hidden">
+        <main className={isWorkspace ? 'h-[calc(100dvh-4rem)] overflow-hidden p-0' : 'flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background overflow-x-hidden'}>
           {children}
         </main>
 
-        <footer className="flex items-center justify-between p-4 text-xs text-muted-foreground border-t">
-          <span>&copy; {new Date().getFullYear()} Pino · Sistema de Distribución</span>
-        </footer>
+        {!isWorkspace && (
+          <footer className="flex items-center justify-between p-4 text-xs text-muted-foreground border-t">
+            <span>&copy; {new Date().getFullYear()} Pino · Sistema de Distribución</span>
+          </footer>
+        )}
       </div>
     </div>
     </>

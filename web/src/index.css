@@ -10,8 +10,8 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 173 78% 26%; /* #0F766E Teal */
-    --primary-foreground: 210 40% 98%;
+    --primary: 173 78% 26%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 263 70% 58%;
     --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96%;
@@ -19,11 +19,23 @@
     --accent: 38 92% 50%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 173 78% 26%;
-    --radius: 0.75rem;
+    --surface: 0 0% 100%;
+    --surface-subtle: 210 40% 96%;
+    --success: 158 64% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 222 47% 11%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --control-height: 2.75rem;
+    --control-height-compact: 2.25rem;
+    --radius: 0.625rem;
     --chart-1: 173 78% 26%;
     --chart-2: 217 91% 60%;
     --chart-3: 38 92% 50%;
@@ -39,7 +51,7 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
     --primary: 173 78% 36%;
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 263 70% 58%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
@@ -47,10 +59,22 @@
     --accent: 38 92% 50%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
     --border: 217 19% 27%;
     --input: 217 19% 27%;
     --ring: 173 78% 36%;
+    --surface: 222 47% 11%;
+    --surface-subtle: 217 33% 17%;
+    --success: 158 64% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 0 0% 100%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --control-height: 2.75rem;
+    --control-height-compact: 2.25rem;
   }
 }
 
