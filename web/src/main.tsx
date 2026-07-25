@@ -6,8 +6,11 @@ import './index.css';
 import './lib/firebase';
 import { registerSW } from 'virtual:pwa-register';
 
-// Registro automático de la PWA
-registerSW({ immediate: true });
+const updateSW = registerSW({
+  onNeedRefresh() { updateSW(true); },
+  onOfflineReady() {},
+  immediate: true,
+});
 
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

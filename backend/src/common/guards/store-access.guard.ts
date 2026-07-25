@@ -25,6 +25,7 @@ export class StoreAccessGuard implements CanActivate {
     const storeId =
       request.headers?.['x-store-id'] ||
       request.params?.storeId ||
+      request.params?.id ||
       request.query?.storeId ||
       request.body?.storeId;
 
@@ -37,9 +38,6 @@ export class StoreAccessGuard implements CanActivate {
     }
 
     if (!storeId) {
-      if (user.storeIds && user.storeIds.length > 0) {
-        throw new BadRequestException('Tienda requerida (usar X-Store-Id o storeId)');
-      }
       return true;
     }
 
