@@ -85,6 +85,16 @@ export class ProductBarcodesService {
     return res.rows.map((r) => this.mapRow(r));
   }
 
+  async findByStore(storeId: string): Promise<ProductBarcode[]> {
+    const res = await this.db.query<BarcodeRow>(
+      `SELECT * FROM product_barcodes
+       WHERE store_id = $1
+       ORDER BY created_at DESC`,
+      [storeId],
+    );
+    return res.rows.map((r) => this.mapRow(r));
+  }
+
   /**
    * Elimina un código alternativo. No permite eliminar el principal.
    */

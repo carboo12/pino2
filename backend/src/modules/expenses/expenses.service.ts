@@ -8,7 +8,7 @@ export class ExpensesService {
 
   async create(dto: CreateExpenseDto, userId?: string) {
     const res = await this.db.query(
-      `INSERT INTO expenses (store_id, category, amount, description, payment_method, reference_number, shift_id, user_id)
+       `INSERT INTO expenses (store_id, category, amount, description, payment_method, reference_number, shift_id, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [
@@ -26,9 +26,9 @@ export class ExpensesService {
   }
 
   async findAll(storeId: string, category?: string, shiftId?: string) {
-    let sql = `SELECT e.*, u.full_name as registered_by_name
+    let sql = `SELECT e.*, u.name as registered_by_name
                FROM expenses e
-               LEFT JOIN users u ON u.id = e.user_id
+               LEFT JOIN users u ON u.id = e.created_by
                WHERE e.store_id = $1`;
     const params: any[] = [storeId];
 
@@ -49,9 +49,9 @@ export class ExpensesService {
 
   async findOne(id: string) {
     const res = await this.db.query(
-      `SELECT e.*, u.full_name as registered_by_name
+      `SELECT e.*, u.name as registered_by_name
        FROM expenses e
-       LEFT JOIN users u ON u.id = e.user_id
+       LEFT JOIN users u ON u.id = e.created_by
        WHERE e.id = $1`,
       [id],
     );

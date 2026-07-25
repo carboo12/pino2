@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ProductBarcodesController } from './product-barcodes.controller';
+import { ProductBarcodesController, ProductBarcodesListController } from './product-barcodes.controller';
 import { ProductBarcodesService } from './product-barcodes.service';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [ProductBarcodesController],
+  controllers: [ProductBarcodesController, ProductBarcodesListController],
   providers: [ProductBarcodesService],
   exports: [ProductBarcodesService],
 })

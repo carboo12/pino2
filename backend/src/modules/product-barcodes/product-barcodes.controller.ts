@@ -6,6 +6,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -56,5 +57,20 @@ export class ProductBarcodesController {
     @Body() body: { productId: string },
   ) {
     return this.barcodesService.setPrimary(body.productId, barcodeId);
+  }
+}
+
+@ApiTags('Product Barcodes')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
+@Controller('product-barcodes')
+export class ProductBarcodesListController {
+  constructor(private readonly barcodesService: ProductBarcodesService) {}
+
+  @Roles('master-admin', 'store-admin')
+  @Get()
+  @ApiOperation({ summary: 'Listar todos los códigos de barras por tienda' })
+  findByStore(@Query('storeId') storeId: string) {
+    return this.barcodesService.findByStore(storeId);
   }
 }

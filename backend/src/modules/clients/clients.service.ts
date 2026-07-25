@@ -52,7 +52,7 @@ export class ClientsService {
     let pIdx = 2;
 
     if (filters?.search) {
-      sql += ` AND (name ILIKE $${pIdx} OR code ILIKE $${pIdx} OR phone ILIKE $${pIdx})`;
+      sql += ` AND (name ILIKE $${pIdx} OR phone ILIKE $${pIdx})`;
       params.push(`%${filters.search}%`);
       pIdx++;
     }

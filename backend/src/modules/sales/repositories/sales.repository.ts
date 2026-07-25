@@ -388,7 +388,7 @@ export class SalesRepository {
         params.push(...ids);
       }
     }
-    if (shiftId) {
+    if (shiftId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shiftId)) {
       params.push(shiftId);
       sql += ' AND cash_shift_id = $' + params.length;
     }
@@ -420,7 +420,7 @@ export class SalesRepository {
        JOIN products p ON si.product_id = p.id
        WHERE s.store_id = $1 AND s.created_at BETWEEN $2 AND $3`;
     const params: any[] = [storeId, startDate, endDate];
-    if (shiftId) {
+    if (shiftId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shiftId)) {
       params.push(shiftId);
       sql += ' AND s.cash_shift_id = $' + params.length;
     }
@@ -438,7 +438,7 @@ export class SalesRepository {
        FROM sales
        WHERE store_id = $1 AND created_at BETWEEN $2 AND $3`;
     const params: any[] = [storeId, startDate, endDate];
-    if (shiftId) {
+    if (shiftId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shiftId)) {
       params.push(shiftId);
       sql += ' AND cash_shift_id = $' + params.length;
     }
