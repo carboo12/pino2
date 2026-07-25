@@ -37,11 +37,14 @@ export class StoreAccessGuard implements CanActivate {
     }
 
     if (!storeId) {
-      throw new BadRequestException('Tienda requerida (usar X-Store-Id o storeId)');
+      if (user.storeIds && user.storeIds.length > 0) {
+        throw new BadRequestException('Tienda requerida (usar X-Store-Id o storeId)');
+      }
+      return true;
     }
 
     const userStoreIds: string[] = user.storeIds || [];
-    if (!userStoreIds.includes(storeId)) {
+    if (userStoreIds.length > 0 && !userStoreIds.includes(storeId)) {
       throw new ForbiddenException('Tienda no autorizada');
     }
 

@@ -83,7 +83,7 @@ const getMasterAdminNav = (): NavItem[] => [
   { type: 'link', name: 'Panel', href: '/master-admin/dashboard', icon: LayoutDashboard },
   { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
   { type: 'link', name: 'Usuarios', href: '/master-admin/users', icon: Users },
-  { type: 'link', name: 'Licencias', href: '/master-admin/licenses', icon: WalletCards },
+  // { type: 'link', name: 'Licencias', href: '/master-admin/licenses', icon: WalletCards },
   { type: 'separator' },
   { type: 'group', name: 'Operaciones', icon: AreaChart, children: [
     { type: 'link', name: 'Sync Monitor', href: '/master-admin/sync-monitor', icon: RefreshCw, section: 'ops' },

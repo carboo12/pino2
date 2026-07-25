@@ -67,7 +67,7 @@ const RuteroDailyClosingPage = lazy(() => import('@/pages/store-admin/delivery-r
 const MasterDashboardPage = lazy(() => import('@/pages/master-admin/master-dashboard-page'));
 const MasterStoresPage = lazy(() => import('@/pages/master-admin/master-stores-page'));
 const MasterUsersPage = lazy(() => import('@/pages/master-admin/master-users-page'));
-const MasterLicensesPage = lazy(() => import('@/pages/master-admin/master-licenses-page'));
+// const MasterLicensesPage = lazy(() => import('@/pages/master-admin/master-licenses-page'));
 const MasterMonitorPage = lazy(() => import('@/pages/master-admin/master-monitor-page'));
 const AddStorePage = lazy(() => import('@/pages/master-admin/add-store-page'));
 const EditStorePage = lazy(() => import('@/pages/master-admin/edit-store-page'));
@@ -258,7 +258,7 @@ function App() {
 
                   <Route path="/master-admin/users/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddUserPage /></ProtectedRoute>} />
                   <Route path="/master-admin/users/edit/:userId" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><EditUserPage /></ProtectedRoute>} />
-                  <Route path="/master-admin/licenses" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterLicensesPage /></ProtectedRoute>} />
+                  {/* <Route path="/master-admin/licenses" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterLicensesPage /></ProtectedRoute>} /> */}
                   <Route path="/master-admin/monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterMonitorPage /></ProtectedRoute>} />
                   <Route path="/master-admin/config" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterConfigPage /></ProtectedRoute>} />
                   <Route path="/master-admin/sync-monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterSyncMonitorPage /></ProtectedRoute>} />
