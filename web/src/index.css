@@ -10,7 +10,7 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;
+    --primary: 173 78% 26%; /* #0F766E Teal */
     --primary-foreground: 210 40% 98%;
     --secondary: 263 70% 58%;
     --secondary-foreground: 210 40% 98%;
@@ -22,10 +22,10 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --ring: 173 78% 26%;
     --radius: 0.75rem;
-    --chart-1: 217 91% 60%;
-    --chart-2: 263 70% 58%;
+    --chart-1: 173 78% 26%;
+    --chart-2: 217 91% 60%;
     --chart-3: 38 92% 50%;
     --chart-4: 0 84% 60%;
     --chart-5: 160 84% 39%;
@@ -34,11 +34,11 @@
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 17%;
+    --card: 222 47% 15%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
+    --primary: 173 78% 36%;
     --primary-foreground: 210 40% 98%;
     --secondary: 263 70% 58%;
     --secondary-foreground: 210 40% 98%;
@@ -50,7 +50,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 217 19% 27%;
     --input: 217 19% 27%;
-    --ring: 217 91% 60%;
+    --ring: 173 78% 36%;
   }
 }
 
@@ -61,14 +61,56 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter Variable', 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     transition-property: color, background-color, border-color;
     transition-duration: 150ms;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Accessibility focus visible rules */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--primary));
+    outline-offset: 2px;
+    border-radius: 6px;
   }
 }
 
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Glassmorphism & UI Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .animate-in {
-  animation: fade-in 0.3s ease-out, slide-up 0.3s ease-out;
+  animation: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1), slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fade-in {
@@ -77,51 +119,18 @@
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes shimmer {
-  from { background-position: -200% 0; }
-  to { background-position: 200% 0; }
 }
 
 @media print {
   body {
     background-color: white;
-  }
-
-  /* F7.6: Accesibilidad - focus visible */
-  *:focus-visible {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  button:focus-visible,
-  a:focus-visible,
-  input:focus-visible,
-  select:focus-visible {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 2px;
-    border-radius: 6px;
-  }
-
-  /* F7.6: Botones tamaño mínimo táctil */
-  button, a, .btn {
-    min-height: 40px;
-  }
-
-  @media (pointer: coarse) {
-    button, a, .btn {
-      min-height: 44px;
-      min-width: 44px;
-    }
   }
 
   .print\:hidden {
