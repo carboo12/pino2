@@ -21,7 +21,7 @@ export class AuthorizationsService {
     return res.rows[0];
   }
 
-  async findAll(storeId?: string, status?: string) {
+  async findAll(storeId?: string, status?: string, limit?: number) {
     let q = 'SELECT * FROM authorizations WHERE 1=1';
     const params: any[] = [];
     if (storeId) {
@@ -33,6 +33,10 @@ export class AuthorizationsService {
       q += ` AND status = $${params.length}`;
     }
     q += ' ORDER BY created_at DESC';
+    if (limit) {
+      q += ` LIMIT $${params.length + 1}`;
+      params.push(limit);
+    }
     const res = await this.db.query(q, params);
     return res.rows;
   }

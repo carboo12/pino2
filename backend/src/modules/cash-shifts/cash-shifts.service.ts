@@ -179,7 +179,7 @@ export class CashShiftsService {
     return res.rowCount > 0 ? this.mapRow(res.rows[0]) : null;
   }
 
-  async findAll(storeId: string, status?: string, cashierId?: string) {
+  async findAll(storeId: string, status?: string, cashierId?: string, limit?: string) {
     let sql = `${this.baseSelect()} WHERE cs.store_id = $1`;
     const params: any[] = [storeId];
     if (status) {
@@ -188,7 +188,9 @@ export class CashShiftsService {
     if (cashierId) {
       sql += ` AND cs.opened_by = $${params.push(cashierId)}`;
     }
-    sql += ' ORDER BY cs.opened_at DESC LIMIT 50';
+    sql += ' ORDER BY cs.opened_at DESC';
+    const rowLimit = limit ? parseInt(limit) : 50;
+    sql += ` LIMIT $${params.push(rowLimit)}`;
     const res = await this.db.query(sql, params);
     return res.rows.map((row) => this.mapRow(row));
   }

@@ -83,8 +83,9 @@ export class CashShiftsController {
     @Query('storeId') storeId: string,
     @Query('status') status?: string,
     @Query('cashierId') cashierId?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.service.findAll(storeId, status, cashierId);
+    return this.service.findAll(storeId, status, cashierId, limit);
   }
 
   @Roles('master-admin', 'store-admin')
