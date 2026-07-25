@@ -356,11 +356,4 @@
 - G-005: Reembolso y reposición de caja chica
 - G-006: Rechazo de comprobante imprevisto o no autorizado
 
-## Categoría: Comisiones e Incentivos (comisiones/SCENARIOS.md)
-- CM-001: Configuración de tasa de comisión por categoría de producto
-- CM-002: Cálculo automático de comisión al completar una venta
-- CM-003: Comisión condicionada a venta mínima alcanzada
-- CM-004: Liquidación y pago de comisiones quincenales
-- CM-005: Anulación de comisión por devolución total de venta
-- CM-006: Consulta de comisiones acumuladas desde la App Móvil
 

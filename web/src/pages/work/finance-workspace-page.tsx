@@ -124,9 +124,6 @@ export default function FinanceWorkspacePage() {
               <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/expenses`)}>
                 Gastos
               </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/commissions`)}>
-                Comisiones
-              </Button>
               <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
                 <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
                 Actualizar

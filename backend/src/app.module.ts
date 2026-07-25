@@ -50,7 +50,6 @@ import { PurchaseOrdersModule } from './modules/purchase-orders/purchase-orders.
 import { PromotionsModule } from './modules/promotions/promotions.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { VehiclesModule } from './modules/vehicles/vehicles.module';
-import { CommissionsModule } from './modules/commissions/commissions.module';
 import { ContractsModule } from './modules/contracts/contracts.module';
 
 @Module({
@@ -102,7 +101,6 @@ import { ContractsModule } from './modules/contracts/contracts.module';
     PromotionsModule,
     ExpensesModule,
     VehiclesModule,
-    CommissionsModule,
     ContractsModule,
   ],
   providers: [

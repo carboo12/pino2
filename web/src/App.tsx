@@ -111,7 +111,6 @@ const PurchaseOrdersPage = lazy(() => import('@/pages/store-admin/purchase-order
 const PromotionsPage = lazy(() => import('@/pages/store-admin/promotions/promotions-page'));
 const ExpensesPage = lazy(() => import('@/pages/store-admin/finance/expenses-page'));
 const VehiclesPage = lazy(() => import('@/pages/store-admin/vehicles/vehicles-page'));
-const CommissionsPage = lazy(() => import('@/pages/store-admin/finance/commissions-page'));
 const ContractsPage = lazy(() => import('@/pages/store-admin/clients/contracts-page'));
 
 const LoadingFallback = () => (
@@ -260,7 +259,6 @@ function App() {
                   <Route path="/store/:storeId/promotions" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><PromotionsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/finance/expenses" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><ExpensesPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/vehicles" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><VehiclesPage /></ProtectedRoute>} />
-                  <Route path="/store/:storeId/finance/commissions" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><CommissionsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/clients/contracts" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><ContractsPage /></ProtectedRoute>} />
                   <Route path="/store/:storeId/reports/inventory-valuation" element={<ProtectedRoute requireStoreAccess allowedRoles={STORE_ADMIN_ROLES}><InventoryValuationPage /></ProtectedRoute>} />
 
