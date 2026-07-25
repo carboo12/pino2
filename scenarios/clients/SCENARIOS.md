@@ -434,3 +434,37 @@
 11. Familiar firma conformidad
 **Resultado esperado:** Cuenta bloqueada, deuda condonada (o cobrada al seguro), proceso documentado
 **Variante:** La familia quiere continuar el negocio (herederos); se transfiere la cuenta a nombre del heredero con nuevo crédito
+
+---
+
+## CL-021: Cliente fallece, deuda pasa a familiares
+**Rol:** Administrador
+**Duración:** 2 horas
+**Descripción:** Don José, dueño de Pulpería Los Amigos, falleció. Dejó una deuda de C$34,500 en la tienda. Su hijo quiere seguir el negocio pero no reconoce la deuda completa.
+**Precondiciones:** Cliente con saldo pendiente superior a C$30,000
+**Pasos:**
+1. Administrador se entera del fallecimiento
+2. Revisa el historial de crédito del cliente
+3. Congela la cuenta (no más ventas a crédito)
+4. Contacta a la familia para negociar la deuda
+5. Si el hijo acepta, se transfiere la deuda a un nuevo cliente
+6. Si no acepta, se castiga la cuenta como incobrable
+**Resultado esperado:** Cuenta congelada, deuda transferida o castigada
+**Variante:** No hay familiares que respondan → deuda pasa a cobro judicial
+
+---
+
+## CL-022: Cliente declara quiebra/cierra negocio
+**Rol:** Administrador
+**Duración:** 1 hora
+**Descripción:** "Licorería El Chele" cierra definitivamente. Debe C$12,000 y no tiene activos para pagar.
+**Precondiciones:** Cliente con deuda activa
+**Pasos:**
+1. Se notifica cierre del negocio
+2. Administrador congela cuenta
+3. Intenta cobro con el dueño
+4. Si no hay pago, se castiga la cuenta
+5. Se genera nota de crédito fiscal por deuda incobrable
+6. Se reporta a central de riesgo si aplica
+**Resultado esperado:** Cuenta cerrada, saldo castigado como pérdida
+**Variante:** El cliente ofrece pagar 30% para cerrar la deuda → se negocia quita

@@ -616,3 +616,36 @@
 9. Sistema descuenta del inventario el peso exacto vendido
 **Resultado esperado:** Producto pesado, precio calculado por peso, etiqueta impresa, inventario descuenta 0.850 kg
 **Variante:** Báscula no funciona; cajero debe pesar en báscula manual e ingresar el peso manualmente
+
+---
+
+## I-031: Producto con lote vencido mezclado con bueno
+**Rol:** Bodeguero
+**Duración:** 30 minutos
+**Descripción:** Durante un conteo físico, el bodeguero descubre que 10 unidades de "Leche Klim 400g" tienen fecha de vencimiento de mayo 2026 mezcladas con 40 unidades con fecha diciembre 2026. El lote vencido no debe venderse.
+**Precondiciones:** 50 unidades en stock, mezcla de dos lotes
+**Pasos:**
+1. Bodeguero detecta 10 unidades vencidas en góndola
+2. Separa físicamente las 10 unidades
+3. Registra ajuste de inventario: -10, motivo "VENCIDO"
+4. Imprime reporte de merma para administrador
+5. Las 40 unidades buenas quedan disponibles
+**Resultado esperado:** Stock pasa de 50 a 40, movimiento registrado como salida por vencimiento
+**Variante:** El proveedor acepta devolución de producto vencido → se registra como "DEVOLUCION_PROVEEDOR" en vez de merma
+
+---
+
+## I-032: Producto robado en bodega (ajuste por pérdida)
+**Rol:** Administrador
+**Duración:** 15 minutos
+**Descripción:** Se descubre que faltan 3 bultos de Aceite Patrona 1L (18 unidades) del inventario. No hay registro de venta ni movimiento. Se presume robo interno.
+**Precondiciones:** Diferencia entre inventario físico y sistema
+**Pasos:**
+1. Conteo físico muestra 47 unidades, sistema muestra 65
+2. Administrador investiga: no hay ventas, movimientos ni ajustes recientes
+3. Se confirma pérdida por robo
+4. Registra ajuste: -18 unidades, motivo "ROBO"
+5. Se guarda evidencia (fotos, acta) en el sistema
+6. Se notifica a dueño para decidir acción legal
+**Resultado esperado:** Stock se ajusta a 47, movimiento tipo ROBO registrado
+**Variante:** El responsable es identificado → el ajuste va contra su salario, no contra inventario

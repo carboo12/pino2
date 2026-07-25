@@ -610,3 +610,56 @@
 6. Total: C$158
 **Resultado esperado:** Venta incrementada gracias a sugerencia del sistema
 **Variante:** Cliente se molesta porque "siente que le están metiendo productos"; cajero debe ser discreto en la sugerencia
+
+---
+
+## V-033: Venta con pago en dólares y tipo de cambio
+**Rol:** Cajero
+**Duración:** 3 minutos
+**Descripción:** Un cliente paga con un billete de US$20. La tienda acepta dólares al tipo de cambio del día (C$36.62 por US$1). El sistema debe calcular el equivalente en córdobas y dar el vuelto en la moneda correcta.
+**Precondiciones:** Tipo de cambio configurado en C$36.62, caja con fondos para vuelto en ambas monedas
+**Pasos:**
+1. Cajero registra productos: Arroz Faisán 1lb (C$32), Aceite Patrona 1L (C$85), Café Presto 200g (C$110) = C$227
+2. Cliente entrega US$20
+3. Cajero selecciona método de pago "Dólares"
+4. Sistema calcula US$20 × 36.62 = C$732.40
+5. Vuelto: C$732.40 - C$227 = C$505.40 en córdobas
+6. Se imprime ticket con tipo de cambio y ambos montos
+**Resultado esperado:** Venta registrada en C$227, pago en USD, vuelto en C$505.40
+**Variante:** Tipo de cambio desactualizado; cliente reclama
+
+---
+
+## V-034: Venta con tarjeta cuando el datáfono falla
+**Rol:** Cajero
+**Duración:** 5 minutos
+**Descripción:** El datáfono (POS bancario) no tiene señal. El cliente insiste en pagar con tarjeta. El cajero debe procesar la venta como "Efectivo" y registrar una nota para conciliar cuando el datáfono vuelva.
+**Precondiciones:** Datáfono sin señal, cliente con tarjeta, productos escaneados
+**Pasos:**
+1. Cajero escanea productos (total C$450)
+2. Cliente quiere pagar con tarjeta VISA
+3. Datáfono muestra "SIN SEÑAL"
+4. Cajero cambia método a "EFECTIVO" pero anota en sistema como "TARJETA_PENDIENTE"
+5. Venta se procesa como "CONTADO" pero con nota de método real
+6. Cajero registra voucher pendiente en hoja de caja
+7. Al final del día, el arqueo debe reflejar C$450 menos en efectivo
+**Resultado esperado:** Venta procesada con método alternativo, nota visible en cierre de caja
+**Variante:** Cliente no tiene efectivo para pagar de otra forma; se cancela la venta
+
+---
+
+## V-035: Corte de energía durante una venta
+**Rol:** Cajero
+**Duración:** 10 minutos
+**Descripción:** A las 11am hay un corte de energía programado por Unión Fenosa. El sistema de facturación se cae. La tienda opera con UPS que da 15 minutos de respaldo.
+**Precondiciones:** UPS conectado, sistema funcionando
+**Pasos:**
+1. Cajero está procesando una venta de C$1,200
+2. Se va la luz; el UPS emite alerta sonora
+3. El servidor local tiene batería para 15 minutos
+4. Cajero debe completar la venta actual antes de que el servidor se apague
+5. Si el servidor se apaga antes del COMMIT, la venta no queda registrada
+6. Al volver la energía, el cajero debe verificar la última venta completada
+7. Las ventas no completadas deben re-procesarse
+**Resultado esperado:** Venta en progreso se completa o se descarta consistentemente
+**Variante:** UPS falla antes del respaldo de 15 minutos - pérdida de transacción no confirmada
