@@ -39,7 +39,7 @@ async function run() {
     const appliedMigrations = new Set(rows.map(r => r.filename));
 
     const files = fs.readdirSync(__dirname)
-      .filter(f => f.endsWith('.sql'))
+      .filter(f => /^[0-9]{4}-[0-9]{2}-[0-9]{2}_.+\.sql$/.test(f))
       .sort();
 
     let appliedCount = 0;

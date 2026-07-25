@@ -10,8 +10,9 @@ export class OutboxWorker {
 
   @Cron('*/5 * * * * *')
   async processOutbox() {
-    const client = await this.db.getClient();
+    let client: any;
     try {
+      client = await this.db.getClient();
       const res = await client.query(
         `SELECT * FROM sync_outbox
          WHERE published_at IS NULL
@@ -22,32 +23,69 @@ export class OutboxWorker {
       );
 
       for (const event of res.rows) {
+        if (!event.target_node_id) {
+          await client.query(
+            'UPDATE sync_outbox SET published_at = NOW() WHERE id = $1',
+            [event.id],
+          );
+          continue;
+        }
+
         try {
-          const target = event.target_node_id;
-          if (!target) {
+          const payload = typeof event.payload === 'string'
+            ? JSON.parse(event.payload)
+            : event.payload;
+
+          const body = JSON.stringify({
+            operationId: event.operation_id,
+            eventType: event.event_type,
+            aggregateType: event.aggregate_type,
+            aggregateId: event.aggregate_id,
+            aggregateVersion: event.aggregate_version,
+            payload,
+          });
+
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 5000);
+
+          const response = await fetch(
+            `${process.env.CLOUD_API_URL || 'https://rhclaroni.com/api-dev'}/edge/sync/push`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body,
+              signal: controller.signal,
+            },
+          );
+
+          clearTimeout(timeout);
+
+          if (response.ok) {
             await client.query(
               'UPDATE sync_outbox SET published_at = NOW() WHERE id = $1',
               [event.id],
             );
-            continue;
+          } else {
+            const text = await response.text().catch(() => 'unknown');
+            throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
           }
-
-          await client.query(
-            `UPDATE sync_outbox SET attempts = attempts + 1, last_error = $2 WHERE id = $1`,
-            [event.id, 'target_not_implemented'],
-          );
         } catch (err: any) {
-          this.logger.error(`Outbox event ${event.id} failed: ${err.message}`);
+          const attempts = event.attempts + 1;
+          const backoff = Math.min(Math.pow(2, attempts), 300) * 1000;
           await client.query(
-            `UPDATE sync_outbox SET attempts = attempts + 1, last_error = $2, available_at = NOW() + interval '1 minute' WHERE id = $1`,
-            [event.id, err.message],
+            `UPDATE sync_outbox
+             SET attempts = $1, last_error = $2, available_at = NOW() + interval '1 second' * $3
+             WHERE id = $4`,
+            [attempts, err.message.substring(0, 500), Math.ceil(backoff / 1000), event.id],
           );
         }
       }
     } catch (err: any) {
       this.logger.error(`Outbox worker error: ${err.message}`);
     } finally {
-      client.release();
+      if (client) {
+        client.release();
+      }
     }
   }
 }
