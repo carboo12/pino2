@@ -15,7 +15,15 @@ describe('SalesService', () => {
   let mockClient: any;
 
   beforeEach(async () => {
-    mockClient = { query: jest.fn(), release: jest.fn() };
+    mockClient = {
+      query: jest.fn(async (sql: string) => {
+        if (typeof sql === 'string' && (sql.includes('ALTER TABLE') || sql.includes('UPDATE promotions'))) {
+          return { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      }),
+      release: jest.fn(),
+    };
     mockDb = {
       withTransaction: jest.fn(async (cb: Function) => {
         try {

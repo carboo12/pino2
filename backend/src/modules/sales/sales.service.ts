@@ -180,9 +180,6 @@ export class SalesService {
         });
       }
 
-      // Asegurar columna discount en tabla sales
-      await client.query(`ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount NUMERIC(12,2) DEFAULT 0`);
-
       let discount = 0;
       try {
         if (this.promotionsService) {
