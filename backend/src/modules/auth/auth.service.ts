@@ -116,7 +116,8 @@ export class AuthService {
     let payload: { sub: string };
     try {
       payload = await this.refreshJwt.verifyAsync(token);
-    } catch {
+    } catch (e) {
+      this.logger.warn(`Refresh token verification failed: ${(e as Error).message}`);
       throw new UnauthorizedException('Refresh token expirado o inválido');
     }
 

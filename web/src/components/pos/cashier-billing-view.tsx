@@ -276,7 +276,7 @@ export function CashierBillingView({
                     </div>
                 </div>
 
-                <div className="bg-[#3b4150] text-white p-2 flex justify-between items-center text-xs font-black uppercase tracking-widest">
+                <div className="bg-gray-800 text-white p-2 flex justify-between items-center text-xs font-black uppercase tracking-widest">
                     <div>
                         <span className="opacity-50 mr-2">TICKET:</span>
                         <span>{format(new Date(), 'HH:mm')}</span>

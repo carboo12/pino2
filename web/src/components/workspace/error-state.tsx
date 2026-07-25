@@ -23,10 +23,10 @@ export function ErrorState({
         className,
       )}
     >
-      <AlertCircle className="mb-3 h-10 w-10 text-[#DC2626]" />
-      <p className="text-sm font-medium text-[#17202A]">{message}</p>
+      <AlertCircle className="mb-3 h-10 w-10 text-destructive" />
+      <p className="text-sm font-medium text-foreground">{message}</p>
       {description && (
-        <p className="mt-1 text-xs text-[#5B6673]">{description}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{description}</p>
       )}
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry} className="mt-4 gap-2">

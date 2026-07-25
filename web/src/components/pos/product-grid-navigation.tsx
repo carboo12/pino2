@@ -105,7 +105,7 @@ export function ProductGridNavigation({ storeId, onProductSelect, className }: P
                                 <button
                                     key={dept.id}
                                     onClick={() => setCurrentDept(dept)}
-                                    className="aspect-square bg-[#6b21a8] hover:bg-[#581c87] text-white p-2 rounded-lg shadow-md flex flex-col items-center justify-center transition-all active:scale-95 border-b-4 border-purple-900"
+                                    className="aspect-square bg-purple-800 hover:bg-purple-900 text-white p-2 rounded-lg shadow-md flex flex-col items-center justify-center transition-all active:scale-95 border-b-4 border-purple-900"
                                 >
                                     <span className="font-bold text-center text-sm lg:text-base uppercase leading-tight line-clamp-2">{dept.name}</span>
                                 </button>
@@ -114,7 +114,7 @@ export function ProductGridNavigation({ storeId, onProductSelect, className }: P
                             <>
                                 <button
                                     onClick={handleBack}
-                                    className="aspect-square bg-[#f97316] hover:bg-[#ea580c] text-white p-2 rounded-lg shadow-md flex flex-col items-center justify-center transition-all active:scale-95 border-b-4 border-orange-700"
+                                    className="aspect-square bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-lg shadow-md flex flex-col items-center justify-center transition-all active:scale-95 border-b-4 border-orange-700"
                                 >
                                     <ArrowLeft className="h-8 w-8 mb-1" />
                                     <span className="font-bold text-sm lg:text-base">VOLVER</span>
@@ -124,7 +124,7 @@ export function ProductGridNavigation({ storeId, onProductSelect, className }: P
                                     <button
                                         key={product.id}
                                         onClick={() => onProductSelect(product)}
-                                        className="aspect-square bg-[#0ea5e9] hover:bg-[#0284c7] text-white p-2 rounded-lg shadow-md flex flex-col justify-between transition-all active:scale-95 group border-b-4 border-blue-800"
+                                        className="aspect-square bg-sky-500 hover:bg-sky-600 text-white p-2 rounded-lg shadow-md flex flex-col justify-between transition-all active:scale-95 group border-b-4 border-blue-800"
                                     >
                                         <span className="font-semibold text-center text-xs lg:text-sm uppercase line-clamp-3 leading-tight w-full break-words group-hover:underline">
                                             {product.description}

@@ -39,6 +39,19 @@ export class OrderItemDto {
   priceLevel?: number;
 }
 
+export class OrderResponseDto {
+  id: string;
+  storeId: string;
+  clientId?: string;
+  clientName?: string;
+  total: number;
+  status: string;
+  paymentType?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export class CreateOrderDto {
   @IsUUID('all')
   storeId: string;

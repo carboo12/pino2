@@ -23,8 +23,8 @@ export function ContextPanel({
     <>
       <div className={cn('flex h-full flex-col', className)}>
         {title && (
-          <div className="flex items-center justify-between border-b border-[#DDE2E8] px-4 py-3">
-            <h2 className="text-sm font-medium text-[#17202A]">{title}</h2>
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <h2 className="text-sm font-medium text-foreground">{title}</h2>
             <Button
               variant="ghost"
               size="icon"
@@ -40,8 +40,8 @@ export function ContextPanel({
 
       <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
         <SheetContent side="right" className="w-[90vw] sm:w-[400px] p-0">
-          <SheetHeader className="border-b border-[#DDE2E8] px-4 py-3">
-            <SheetTitle className="text-sm font-medium text-[#17202A]">
+          <SheetHeader className="border-b border-border px-4 py-3">
+            <SheetTitle className="text-sm font-medium text-foreground">
               {title || 'Detalle'}
             </SheetTitle>
           </SheetHeader>

@@ -151,7 +151,7 @@ export function ReturnsDialog({ open: controlledOpen, onOpenChange: controlledOn
         >
             {controlledOpen !== undefined ? null : (
                 <DialogTrigger asChild>
-                    <Button className="flex-1 bg-[#673ab7] hover:bg-[#5e35b1] text-white flex flex-col gap-0.5 rounded-md shadow-sm border-0 p-0 h-full">
+                    <Button className="flex-1 bg-purple-700 hover:bg-purple-800 text-white flex flex-col gap-0.5 rounded-md shadow-sm border-0 p-0 h-full">
                         <FileText className="h-3 w-3" />
                         <span className="text-[8px] font-bold leading-none text-center">NOTA DE<br />CRÉDITO</span>
                     </Button>

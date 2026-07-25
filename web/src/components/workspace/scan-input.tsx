@@ -48,11 +48,11 @@ export function ScanInput({
     <div className={cn('relative flex items-center gap-2', className)}>
       <div
         className={cn(
-          'relative flex-1 rounded-md border border-[#DDE2E8] bg-white transition-colors',
-          focused && 'border-[#0F766E] ring-1 ring-[#0F766E]/20',
+          'relative flex-1 rounded-md border border-border bg-white transition-colors',
+          focused && 'border-teal-600 ring-1 ring-teal-600/20',
         )}
       >
-        <Scan className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5B6673]" />
+        <Scan className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           ref={inputRef}
           type="text"
@@ -69,7 +69,7 @@ export function ScanInput({
           <button
             type="button"
             onClick={() => setValue('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5B6673] hover:text-[#17202A]"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />
           </button>

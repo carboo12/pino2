@@ -8,13 +8,13 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { SalesService } from './sales.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { ProcessSaleDto } from './sales.dto';
+import { ProcessSaleDto, SaleResponseDto } from './sales.dto';
 
 @ApiTags('Sales')
 @ApiBearerAuth()
@@ -26,6 +26,7 @@ export class SalesController {
   @Roles('master-admin', 'store-admin')
   @Post('process')
   @ApiOperation({ summary: 'Procesar una venta (Transaccional puro)' })
+  @ApiOkResponse({ type: SaleResponseDto })
   processSale(@Body() dto: ProcessSaleDto, @Req() req: any) {
     return this.service.processSale(dto, req.user.sub);
   }
@@ -69,6 +70,7 @@ export class SalesController {
   @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una venta con sus items' })
+  @ApiOkResponse({ type: SaleResponseDto })
   findOne(@Param('id') id: string, @Query('storeId') storeId?: string) {
     return this.service.findOne(id, storeId);
   }

@@ -9,13 +9,13 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CreateOrderDto, UpdateOrderStatusBodyDto } from './orders.dto';
+import { CreateOrderDto, UpdateOrderStatusBodyDto, OrderResponseDto } from './orders.dto';
 
 @ApiTags('Orders')
 @ApiBearerAuth()
@@ -27,6 +27,7 @@ export class OrdersController {
   @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo pedido' })
+  @ApiOkResponse({ type: OrderResponseDto })
   create(@Body() dto: CreateOrderDto) {
     return this.service.create(dto);
   }
@@ -55,6 +56,7 @@ export class OrdersController {
   @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un pedido' })
+  @ApiOkResponse({ type: OrderResponseDto })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }

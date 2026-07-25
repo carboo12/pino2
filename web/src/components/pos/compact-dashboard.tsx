@@ -70,47 +70,47 @@ export function CompactDashboard() {
                 label="LIMPIAR"
                 icon={<Trash2 className="h-4 w-4" />}
                 onClick={clearCart}
-                className="bg-[#FF5722]"
+                className="bg-orange-600"
                 shortcut="Del"
             />
             <DashboardButton
                 label="PONER EN ESPERA"
                 icon={<FileText className="h-4 w-4" />}
                 onClick={handleHoldBill}
-                className="bg-[#673AB7]"
+                className="bg-purple-700"
                 shortcut="F2"
             />
             <DashboardButton
                 label="NOTA DE CRÉDITO"
                 icon={<CreditCard className="h-4 w-4" />}
                 onClick={handleCreditNoteClick}
-                className="bg-[#673AB7]"
+                className="bg-purple-700"
                 shortcut="F3"
             />
             <DashboardButton
                 label="VER FACS EN ESPERA"
                 icon={<ListOrdered className="h-4 w-4" />}
                 onClick={toggleHeldBills}
-                className="bg-[#673AB7]"
+                className="bg-purple-700"
                 shortcut="F10"
             />
             <DashboardButton
                 label="CAMBIO USUARIO"
                 icon={<UserIcon className="h-4 w-4" />}
                 onClick={toggleQuickSwitch}
-                className="bg-[#2196F3]"
+                className="bg-blue-500"
             />
             <DashboardButton
                 label="ABRIR GAVETA"
                 icon={<FolderOpen className="h-4 w-4" />}
                 onClick={handleOpenDrawer}
-                className="bg-[#607D8B]"
+                className="bg-gray-500"
             />
             <DashboardButton
                 label="COBRAR"
                 icon={<CreditCard className="h-5 w-5" />}
                 onClick={handlePayment}
-                className="bg-[#8BC34A] text-lg h-auto"
+                className="bg-green-400 text-lg h-auto"
                 colSpan="col-span-3"
                 shortcut="F1"
             />

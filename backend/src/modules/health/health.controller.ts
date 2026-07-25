@@ -1,4 +1,4 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get, Inject, Logger } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -20,6 +20,8 @@ const version = (() => {
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
+  private readonly logger = new Logger(HealthController.name);
+
   constructor(@Inject('PG_CONNECTION') private readonly pool: Pool) {}
 
   @Public()
@@ -30,7 +32,8 @@ export class HealthController {
     let dbStatus = 'ok';
     try {
       await this.pool.query('SELECT 1');
-    } catch {
+    } catch (e) {
+      this.logger.error(`Health check DB query failed: ${(e as Error).message}`);
       dbStatus = 'error';
     }
     return {

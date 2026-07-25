@@ -30,6 +30,26 @@ export class SaleItemDto {
   quantity?: number;
 }
 
+export class SaleItemResponseDto {
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export class SaleResponseDto {
+  id: string;
+  ticketNumber: string;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  paymentMethod: string;
+  cashShiftId?: string;
+  createdAt: Date;
+  items?: SaleItemResponseDto[];
+}
+
 export class ProcessSaleDto {
   @IsUUID('all')
   storeId: string;

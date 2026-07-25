@@ -151,7 +151,7 @@ export function CommandSearch() {
                 <Package className="mr-2 h-4 w-4" />
                 <span>{p.name || p.description}</span>
                 {p.barcode && (
-                  <span className="ml-2 text-xs text-[#5B6673]">
+                  <span className="ml-2 text-xs text-muted-foreground">
                     {p.barcode}
                   </span>
                 )}
@@ -175,7 +175,7 @@ export function CommandSearch() {
                 <Users className="mr-2 h-4 w-4" />
                 <span>{c.name}</span>
                 {c.code && (
-                  <span className="ml-2 text-xs text-[#5B6673]">
+                  <span className="ml-2 text-xs text-muted-foreground">
                     {c.code}
                   </span>
                 )}

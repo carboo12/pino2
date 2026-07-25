@@ -14,6 +14,7 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiQuery,
+  ApiOkResponse,
 } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -24,6 +25,7 @@ import {
   CreateProductDto,
   UpdateProductDto,
   ImportBulkProductsDto,
+  ProductResponseDto,
 } from './products.dto';
 
 @ApiTags('Products')
@@ -36,6 +38,7 @@ export class ProductsController {
   @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear un producto en la tienda' })
+  @ApiOkResponse({ type: ProductResponseDto })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
@@ -98,6 +101,7 @@ export class ProductsController {
   @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un producto' })
+  @ApiOkResponse({ type: ProductResponseDto })
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
   }

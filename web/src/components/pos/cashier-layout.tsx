@@ -54,7 +54,7 @@ export function CashierLayout({ children }: CashierLayoutProps) {
                     {!isCollapsed && (
                         <Link to={storeId ? `/store/${storeId}/billing` : '/'} className="flex items-center gap-2 font-semibold truncate">
                             <WalletCards className="h-6 w-6 text-primary shrink-0" />
-                            <span>PharmaSync</span>
+                            <span>Pino</span>
                         </Link>
                     )}
                     {isCollapsed && (

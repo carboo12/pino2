@@ -159,6 +159,8 @@ class SyncQueueEntries extends Table {
   TextColumn get errorMessage => text().nullable()();
   IntColumn get attemptCount => integer().withDefault(const Constant(0))();
   BoolColumn get tombstone => boolean().withDefault(const Constant(false))();
+  TextColumn get operationId => text().nullable()();
+  DateTimeColumn get nextAttemptAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get lastAttemptAt => dateTime().nullable()();
 }
@@ -192,7 +194,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -232,6 +234,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(cachedRoutes, cachedRoutes.cursor);
         await migrator.addColumn(cachedDeliveries, cachedDeliveries.cursor);
         await migrator.addColumn(syncQueueEntries, syncQueueEntries.tombstone);
+      }
+      if (from < 9) {
+        await migrator.addColumn(syncQueueEntries, syncQueueEntries.operationId);
+        await migrator.addColumn(syncQueueEntries, syncQueueEntries.nextAttemptAt);
       }
     },
   );

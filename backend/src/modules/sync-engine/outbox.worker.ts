@@ -86,7 +86,9 @@ export class OutboxWorker {
     } catch (err: any) {
       try {
         await client.query('ROLLBACK');
-      } catch {}
+      } catch (rollbackErr: any) {
+        this.logger.error(`Rollback failed after outbox error: ${rollbackErr.message}`);
+      }
       this.logger.error(`Outbox worker error: ${err.message}`);
     } finally {
       if (client) {

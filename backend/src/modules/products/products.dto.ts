@@ -243,6 +243,21 @@ export class UpdateProductDto {
   handlesBulk?: boolean;
 }
 
+export class ProductResponseDto {
+  id: string;
+  storeId: string;
+  description: string;
+  barcode?: string;
+  salePrice: number;
+  costPrice?: number;
+  currentStock: number;
+  unitsPerBulk: number;
+  minStock: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Product {
   id: string;
   storeId: string;
