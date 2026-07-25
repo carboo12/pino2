@@ -1095,6 +1095,7 @@ class CachedProductsCompanion extends UpdateCompanion<CachedProduct> {
   final Value<String?> department;
   final Value<String?> subDepartment;
   final Value<int> minStock;
+  final Value<bool> handlesBulk;
   final Value<DateTime> cachedAt;
   final Value<int> rowid;
   const CachedProductsCompanion({
@@ -1111,6 +1112,7 @@ class CachedProductsCompanion extends UpdateCompanion<CachedProduct> {
     this.department = const Value.absent(),
     this.subDepartment = const Value.absent(),
     this.minStock = const Value.absent(),
+    this.handlesBulk = const Value.absent(),
     this.cachedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1128,6 +1130,7 @@ class CachedProductsCompanion extends UpdateCompanion<CachedProduct> {
     this.department = const Value.absent(),
     this.subDepartment = const Value.absent(),
     this.minStock = const Value.absent(),
+    this.handlesBulk = const Value.absent(),
     required DateTime cachedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/models/expense_model.dart';
 
 class ExpensesScreen extends ConsumerStatefulWidget {
@@ -29,8 +29,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
       _error = null;
     });
 
-    final authState = ref.read(authNotifierProvider);
-    final storeId = authState.user?.storeIds.firstOrNull ?? '';
+    final authState = ref.read(authControllerProvider);
+    final token = authState.session?.accessToken;
+    final storeId = authState.session?.user.primaryStoreId ?? '';
 
     if (storeId.isEmpty) {
       setState(() {
@@ -41,9 +42,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     }
 
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final response = await apiClient.get('/expenses', queryParameters: {'storeId': storeId});
-      final list = (response.data as List? ?? [])
+      final apiClient = ref.read(appApiClientProvider);
+      final response = await apiClient.getList('/expenses', queryParameters: {'storeId': storeId}, bearerToken: token);
+      final list = response
           .map((item) => ExpenseModel.fromJson(item as Map<String, dynamic>))
           .toList();
 

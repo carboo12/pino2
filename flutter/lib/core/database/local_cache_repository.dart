@@ -68,22 +68,22 @@ class LocalCacheRepository {
     final now = DateTime.now().toUtc();
     final rows = products
         .map(
-          (product) => CachedProductsCompanion.insert(
-            id: product.id,
-            storeId: storeId,
-            description: product.description,
-            salePrice: product.salePrice,
-            currentStock: product.currentStock,
-            unitsPerBulk: product.unitsPerBulk,
+          (product) => CachedProductsCompanion(
+            id: Value(product.id),
+            storeId: Value(storeId),
+            description: Value(product.description),
+            salePrice: Value(product.salePrice),
+            currentStock: Value(product.currentStock),
+            unitsPerBulk: Value(product.unitsPerBulk),
             handlesBulk: Value(product.handlesBulk),
-            stockBulks: product.stockBulks,
-            stockUnits: product.stockUnits,
+            stockBulks: Value(product.stockBulks),
+            stockUnits: Value(product.stockUnits),
             barcode: Value(product.barcode),
             brand: Value(product.brand),
             department: Value(product.department),
             subDepartment: Value(product.subDepartment),
             minStock: Value(product.minStock),
-            cachedAt: now,
+            cachedAt: Value(now),
           ),
         )
         .toList();
@@ -534,22 +534,22 @@ class LocalCacheRepository {
   // --- Delta Support ---
   Future<void> upsertProducts(List<CatalogProduct> products) async {
     final now = DateTime.now().toUtc();
-    final rows = products.map((product) => CachedProductsCompanion.insert(
-      id: product.id,
-      storeId: product.storeId,
-      description: product.description,
-      salePrice: product.salePrice,
-      currentStock: product.currentStock,
-      unitsPerBulk: product.unitsPerBulk,
+    final rows = products.map((product) => CachedProductsCompanion(
+      id: Value(product.id),
+      storeId: Value(product.storeId),
+      description: Value(product.description),
+      salePrice: Value(product.salePrice),
+      currentStock: Value(product.currentStock),
+      unitsPerBulk: Value(product.unitsPerBulk),
       handlesBulk: Value(product.handlesBulk),
-      stockBulks: product.stockBulks,
-      stockUnits: product.stockUnits,
+      stockBulks: Value(product.stockBulks),
+      stockUnits: Value(product.stockUnits),
       barcode: Value(product.barcode),
       brand: Value(product.brand),
       department: Value(product.department),
       subDepartment: Value(product.subDepartment),
       minStock: Value(product.minStock),
-      cachedAt: now,
+      cachedAt: Value(now),
     )).toList();
 
     await _database.batch((batch) {

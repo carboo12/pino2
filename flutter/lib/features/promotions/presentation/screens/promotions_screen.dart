@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/api_client.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../domain/models/promotion_model.dart';
 
 class PromotionsScreen extends ConsumerStatefulWidget {
@@ -23,8 +23,9 @@ class _PromotionsScreenState extends ConsumerState<PromotionsScreen> {
   }
 
   Future<void> _loadPromotions() async {
-    final authState = ref.read(authNotifierProvider);
-    final storeId = authState.user?.storeIds.firstOrNull ?? '';
+    final authState = ref.read(authControllerProvider);
+    final token = authState.session?.accessToken;
+    final storeId = authState.session?.user.primaryStoreId ?? '';
 
     if (storeId.isEmpty) {
       setState(() => _loading = false);
@@ -32,9 +33,9 @@ class _PromotionsScreenState extends ConsumerState<PromotionsScreen> {
     }
 
     try {
-      final apiClient = ref.read(apiClientProvider);
-      final response = await apiClient.get('/promotions/active', queryParameters: {'storeId': storeId});
-      final list = (response.data as List? ?? [])
+      final apiClient = ref.read(appApiClientProvider);
+      final response = await apiClient.getList('/promotions', queryParameters: {'storeId': storeId}, bearerToken: token);
+      final list = response
           .map((item) => PromotionModel.fromJson(item as Map<String, dynamic>))
           .toList();
 
