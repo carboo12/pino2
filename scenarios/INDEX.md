@@ -347,3 +347,20 @@
 - X-008: Recuperación después de un desastre natural
 - X-009: Migración de sistema antiguo a nuevo
 - X-010: Auditoría completa de fin de año
+
+## Categoría: Gastos y Caja Chica (gastos/SCENARIOS.md)
+- G-001: Registro de gasto de servicios públicos (Luz/Agua)
+- G-002: Compra de suministros de limpieza y papelería
+- G-003: Pago de mantenimiento preventivo de vehículo de reparto
+- G-004: Recarga de combustible de la flota
+- G-005: Reembolso y reposición de caja chica
+- G-006: Rechazo de comprobante imprevisto o no autorizado
+
+## Categoría: Comisiones e Incentivos (comisiones/SCENARIOS.md)
+- CM-001: Configuración de tasa de comisión por categoría de producto
+- CM-002: Cálculo automático de comisión al completar una venta
+- CM-003: Comisión condicionada a venta mínima alcanzada
+- CM-004: Liquidación y pago de comisiones quincenales
+- CM-005: Anulación de comisión por devolución total de venta
+- CM-006: Consulta de comisiones acumuladas desde la App Móvil
+
