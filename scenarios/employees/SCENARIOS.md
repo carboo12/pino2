@@ -339,3 +339,229 @@
 10. Se pagarán como tiempo extra (1.5x según ley)
 **Resultado esperado:** Jornada registrada, horas extra documentadas, pago correspondiente
 **Variante:** Empleado trabaja después de turno sin autorización; se registra como tiempo no autorizado y no se paga
+
+---
+
+## E-016: Administrador asigna permisos a nuevo rol
+**Rol:** Administrador
+**Duración:** 10 minutos
+**Descripción:** Se crea un nuevo rol en el sistema: "Supervisor de rutas". El administrador debe configurar los permisos específicos para este rol.
+**Precondiciones:** Nuevo rol definido, permisos a configurar
+**Pasos:**
+1. Administrador accede a "Gestión de roles" en Pino2
+2. Selecciona "Crear nuevo rol"
+3. Nombre del rol: "Supervisor de rutas"
+4. Configura permisos:
+   - Módulo de rutas: acceso total
+   - Módulo de empleados: solo lectura
+   - Módulo de ventas: reportes
+   - Módulo de inventario: solo lectura
+   - Administración: no
+5. Asigna acceso a reportes de rendimiento de ruteros
+6. Configura límite de autorización de descuentos: hasta 5%
+7. Guarda el nuevo rol
+8. Asigna el rol al empleado Carlos Mendoza (nuevo supervisor)
+9. Carlos inicia sesión con su nuevo rol
+10. Verifica que solo ve los módulos asignados
+**Resultado esperado:** Nuevo rol creado con permisos específicos, empleado asignado, accesos verificados
+**Variante:** Administrador asigna permisos de más (puede modificar precios); se debe corregir inmediatamente
+
+---
+
+## E-017: Bodeguero realiza conteo cíclico programado
+**Rol:** Bodeguero
+**Duración:** 20 minutos
+**Descripción:** El sistema programa un conteo cíclico de la sección de lácteos. El bodeguero debe contar 30 productos y reportar diferencias.
+**Precondiciones:** Conteo cíclico asignado, terminal móvil disponible
+**Pasos:**
+1. Bodeguero recibe notificación: "Conteo cíclico asignado — Sección Lácteos"
+2. Toma la terminal móvil y va a la sección
+3. Sistema muestra lista de 30 productos a contar
+4. Bodeguero cuenta Leche Klim 400g: sistema dice 120, físico 118 (diferencia -2)
+5. Cuenta Leche Klim 800g: sistema 45, físico 46 (+1)
+6. Cuenta Yogurt: sistema 30, físico 30 (exacto)
+7. Ingresa cada conteo en la terminal
+8. Sistema marca diferencias mayores al 2% para revisión
+9. Leche Klim 400g tiene diferencia de 1.67% — dentro del margen, ajuste automático
+10. Bodeguero completa los 30 productos y cierra el conteo
+**Resultado esperado:** Conteo completado, diferencias registradas, ajustes automáticos aplicados
+**Variante:** Una diferencia es mayor al 5%; el sistema bloquea el ajuste y requiere autorización del supervisor
+
+---
+
+## E-018: Cajero maneja billete de alta denominación sin cambio
+**Rol:** Cajero
+**Duración:** 3 minutos
+**Descripción:** Un cliente paga un producto de C$38 con un billete de C$1,000. El cajero no tiene suficiente cambio en caja. Debe gestionar la situación.
+**Precondiciones:** Caja con cambio limitado, cliente con billete grande
+**Pasos:**
+1. Cliente compra Azúcar Sulí 1kg (C$38)
+2. Paga con billete de C$1,000
+3. Cajero revisa su caja: no tiene suficientes billetes pequeños para dar C$962 de vuelto
+4. Cajero: "Disculpe, no tengo suficiente cambio para ese billete. ¿Tiene uno más pequeño?"
+5. Cliente busca: tiene C$50
+6. Cliente paga con C$50, vuelto C$12
+7. Cajero da vuelto de C$12
+8. Transacción completada
+9. Cajero registra incidente: "Cliente con billete grande — sin cambio suficiente"
+10. Al final del día, reporta necesidad de más denominaciones pequeñas
+**Resultado esperado:** Transacción completada con billete más pequeño, cliente atendido, necesidad reportada
+**Variante:** Cliente insiste en pagar con C$1,000; cajero llama al administrador para que le cambien el billete en la caja fuerte
+
+---
+
+## E-019: Rutero sufre pinchazo en la ruta
+**Rol:** Rutero
+**Duración:** 30 minutos
+**Descripción:** El camión del rutero sufre un pinchazo en una llanta en la carretera a Granada. Debe cambiarla él mismo para no esperar grúa.
+**Precondiciones:** Llanta de repuesto disponible, herramientas en el camión
+**Pasos:**
+1. Rutero siente que el camión se desvía — llanta trasera izquierda desinflada
+2. Se detiene a un lado seguro de la carretera
+3. Coloca triángulos de seguridad
+4. Saca la llanta de repuesto y las herramientas
+5. Cambia la llanta (20 minutos)
+6. Reporta al dispatcher: "Pinchazo en carretera a Granada, ya cambié la llanta"
+7. Dispatcher: "¿Estás bien? ¿Necesitas ayuda?"
+8. Rutero: "No, ya quedó. Continuo la ruta"
+9. Llega a la próxima entrega 25 minutos tarde
+10. Al regresar, lleva la llanta dañada al taller
+**Resultado esperado:** Llanta cambiada por el rutero, ruta continuada con retraso mínimo, incidente reportado
+**Variante:** No hay llanta de repuesto; rutero debe esperar grúa (1 hora) y la ruta se retrasa significativamente
+
+---
+
+## E-020: Administrador configura alerta de stock mínimo
+**Rol:** Administrador
+**Duración:** 10 minutos
+**Descripción:** El administrador configura alertas de stock mínimo para productos críticos. Cuando el stock baje de cierto nivel, el sistema debe notificar automáticamente.
+**Precondiciones:** Productos críticos identificados, configuración de alertas disponible
+**Pasos:**
+1. Administrador accede a "Configuración de alertas de inventario"
+2. Selecciona producto: Arroz Faisán 1lb
+3. Configura punto de reorden: 200 bultos
+4. Configura cantidad mínima: 100 bultos (alerta crítica)
+5. Configura notificaciones: enviar alerta a administrador y a compras
+6. Repite para: Aceite Patrona (punto reorden 50 cajas)
+7. Repite para: Huevos San Felipe (punto reorden 30 bultos)
+8. Guarda configuración
+9. Sistema confirma: "Alertas configuradas para 3 productos"
+10. Programa revisión semanal de puntos de reorden
+**Resultado esperado:** Alertas configuradas, sistema notificará cuando el stock baje del punto de reorden
+**Variante:** Punto de reorden configurado muy alto; sistema alerta constantemente — se debe ajustar
+
+---
+
+## E-021: Administrador fusiona dos cuentas de cliente duplicadas
+**Rol:** Administrador
+**Duración:** 15 minutos
+**Descripción:** Se descubre que "Pulpería Doña Mary" y "Pulpería Mary" son el mismo cliente pero están registrados como dos cuentas separadas. El administrador debe fusionarlas.
+**Precondiciones:** Cliente duplicado identificado, admin con permisos de fusión
+**Pasos:**
+1. Administrador accede a "Gestión de clientes"
+2. Busca "Pulpería Doña Mary" — encuentra 2 registros similares
+3. Revisa direcciones: ambos en Masaya, misma dirección
+4. Confirma con el vendedor: son el mismo cliente
+5. Selecciona la cuenta principal (la más antigua): "Pulpería Doña Mary" (ID CL-042)
+6. Selecciona la cuenta a fusionar: "Pulpería Mary" (ID CL-089)
+7. Sistema muestra: CL-089 tiene historial de 5 facturas y saldo C$0
+8. Administrador confirma fusión
+9. Sistema mueve todo el historial de CL-089 a CL-042
+10. CL-089 se desactiva y CL-042 conserva todos los datos
+**Resultado esperado:** Cuentas fusionadas, historial consolidado, cliente duplicado eliminado
+**Variante:** Las cuentas tienen saldos diferentes; se deben conciliar antes de fusionar
+
+---
+
+## E-022: Empleado solicita cambio de turno
+**Rol:** Empleado (Cajero)
+**Duración:** 5 minutos
+**Descripción:** Un cajero necesita cambiar su turno de la mañana a la tarde por motivos de estudio. Debe solicitar el cambio y que el administrador lo apruebe.
+**Precondiciones:** Empleado con turno fijo, solicitud de cambio registrada
+**Pasos:**
+1. Cajero María accede a "Solicitar cambio de turno" en el sistema
+2. Selecciona turno actual: "Matutino (6:30 AM - 2:30 PM)"
+3. Selecciona turno deseado: "Vespertino (2:30 PM - 9:30 PM)"
+4. Motivo: "Inicio de clases universitarias en la mañana"
+5. Adjunta horario de clases como justificación
+6. Fecha deseada de cambio: 01/08/2026
+7. Envía solicitud
+8. Administrador recibe notificación
+9. Revisa cobertura: el turno matutino tiene suficientes cajeros
+10. Aprueba el cambio
+**Resultado esperado:** Solicitud aprobada, turno cambiado, empleado puede estudiar
+**Variante:** No hay suficiente personal en el turno matutino; administrador rechaza y negocia medio turno u otra solución
+
+---
+
+## E-023: Administrador genera reporte de comisiones de vendedores
+**Rol:** Administrador
+**Duración:** 15 minutos
+**Descripción:** Fin de mes, el administrador debe generar el reporte de comisiones para los vendedores basado en sus ventas del mes.
+**Precondiciones:** Ventas del mes registradas, esquema de comisiones configurado
+**Pasos:**
+1. Administrador accede a "Reportes → Comisiones de ventas"
+2. Selecciona período: Julio 2026
+3. Sistema calcula comisiones según reglas:
+   - Vendedor Don Freddy: ventas C$280,000 → comisión 3% = C$8,400
+   - Vendedor Don Juan: ventas C$195,000 → comisión 2.5% = C$4,875
+   - Vendedora Doña Marta: ventas C$310,000 → comisión 3% = C$9,300
+4. Administrador revisa y verifica cálculos
+5. Ajusta comisión de Doña Marta: superó meta de C$300,000 — bono extra de C$2,000
+6. Exporta reporte a PDF
+7. Envía a contabilidad para pago de nómina
+8. Notifica a cada vendedor su comisión
+9. Archiva reporte
+10. Prepara metas de ventas para agosto
+**Resultado esperado:** Comisiones calculadas, bonos aplicados, reporte enviado a contabilidad
+**Variante:** Un vendedor reclama que su comisión está mal calculada; administrador revisa el detalle y corrige si es necesario
+
+---
+
+## E-024: Bodeguero recibe capacitación en uso de terminal móvil
+**Rol:** Bodeguero
+**Duración:** 30 minutos
+**Descripción:** La empresa adquiere nuevas terminales móviles para bodega. El bodeguero debe recibir capacitación sobre su uso para conteos y preparación de pedidos.
+**Precondiciones:** Nuevas terminales recibidas, capacitador asignado
+**Pasos:**
+1. Supervisor reúne a los 3 bodegueros
+2. Entrega las nuevas terminales móviles
+3. Explica funciones principales:
+   - Escanear códigos de barras
+   - Registrar conteos cíclicos
+   - Confirmar preparación de pedidos
+   - Consultar ubicaciones de productos
+4. Bodeguero Luis práctica: escanea 5 productos
+5. Bodeguero Luis práctica: registra un conteo
+6. Bodeguero Luis práctica: confirma preparación de un pedido
+7. Supervisor resuelve dudas
+8. Bodeguero firma hoja de capacitación
+9. Las terminales se asignan nominalmente a cada bodeguero
+10. A partir de mañana, solo usarán las nuevas terminales
+**Resultado esperado:** Bodegueros capacitados, terminales asignadas, proceso migrado a nuevo equipo
+**Variante:** Un bodeguero tiene dificultad con la tecnología; supervisor programa capacitación individual adicional
+
+---
+
+## E-025: Dueño autoriza aumento de límite de crédito a cliente
+**Rol:** Dueño
+**Duración:** 10 minutos
+**Descripción:** La Cooperativa San Miguel solicita aumentar su límite de crédito de C$200,000 a C$300,000 porque ha crecido su negocio. El dueño debe evaluar y autorizar.
+**Precondiciones:** Cliente con buen historial de pagos, solicitud formal de aumento
+**Pasos:**
+1. Dueño recibe solicitud de aumento de crédito de Cooperativa San Miguel
+2. Revisa historial del cliente en el sistema:
+   - Cliente desde 2023
+   - Pagos puntuales: 95%
+   - Deuda máxima usada: C$180,000
+   - Ventas del último año: C$2,400,000
+3. Dueño evalúa: el cliente es confiable y ha crecido
+4. Autoriza aumento a C$300,000
+5. En el sistema, selecciona el cliente y modifica límite
+6. Ingresa nuevo límite: C$300,000
+7. Motivo: "Crecimiento del negocio — buen historial de pagos"
+8. Guarda cambios
+9. Notifica al cliente: "Su límite de crédito ha sido aumentado a C$300,000"
+10. Registra la decisión en el sistema
+**Resultado esperado:** Límite de crédito actualizado, cliente notificado, decisión documentada
+**Variante:** El historial muestra pagos atrasados frecuentes (60% puntualidad); dueño rechaza el aumento y sugiere mantener el límite actual

@@ -65,6 +65,14 @@
 - I-028: Producto mal ubicado en el sistema
 - I-029: Conteo con báscula
 - I-030: Producto con peso variable
+- I-033: Producto congelado pierde cadena de frío
+- I-034: Recepción de producto con etiquetado incorrecto
+- I-035: Ajuste por producto vencido en cuarentena
+- I-036: Traspaso de producto entre lotes
+- I-037: Devolución de empaques retornables
+- I-038: Producto con código de barras de otro producto
+- I-039: Producto próximo a vencer en promoción masiva
+- I-040: Reclasificación masiva de productos por cambio de categoría
 
 ## Categoría: Pedidos (orders/SCENARIOS.md)
 - O-001: Pedido normal de bodega a tienda
@@ -168,6 +176,21 @@
 - R-018: Orden de entrega incorrecta
 - R-019: Devolución por cliente equivocado
 - R-020: Ruta sin conexión (modo offline)
+- R-021: Ruta con cliente que solicita cambio de producto en entrega
+- R-022: Ruta con recogida de producto para reciclaje
+- R-023: Ruta con pago contra entrega y vuelto exacto
+- R-024: Ruta con entrega parcial (cliente acepta solo parte)
+- R-025: Ruta con cliente que pide factura en el momento de entrega
+- R-026: Ruta con entrega a cliente con perro peligroso
+- R-027: Ruta con cliente que no tiene cambio
+- R-028: Ruta con bloqueo de carretera por manifestación
+- R-029: Ruta con promoción especial para clientes frecuentes
+- R-030: Ruta con entrega express (motocicleta)
+- R-031: Ruta con cliente que se muda de dirección
+- R-032: Ruta con cliente que solicita factura de compras anteriores
+- R-033: Ruta con vehículo prestado de otra flota
+- R-034: Ruta con entrega de muestras gratis a clientes potenciales
+- R-035: Ruta con cierre de día y devolución de sobrantes
 
 ## Categoría: Empleados (employees/SCENARIOS.md)
 - E-001: Bodeguero prepara pedido correctamente
@@ -185,6 +208,16 @@
 - E-013: Empleado intenta acceder a función no autorizada
 - E-014: Dos cajeros en la misma caja
 - E-015: Empleado trabaja después de su turno
+- E-016: Administrador asigna permisos a nuevo rol
+- E-017: Bodeguero realiza conteo cíclico programado
+- E-018: Cajero maneja billete de alta denominación sin cambio
+- E-019: Rutero sufre pinchazo en la ruta
+- E-020: Administrador configura alerta de stock mínimo
+- E-021: Administrador fusiona dos cuentas de cliente duplicadas
+- E-022: Empleado solicita cambio de turno
+- E-023: Administrador genera reporte de comisiones de vendedores
+- E-024: Bodeguero recibe capacitación en uso de terminal móvil
+- E-025: Dueño autoriza aumento de límite de crédito a cliente
 
 ## Categoría: Tecnología (tech/SCENARIOS.md)
 - T-001: Corte de energía eléctrica
@@ -202,6 +235,11 @@
 - T-013: UPS activado (respaldo de energía)
 - T-014: Servidor en mantenimiento programado
 - T-015: Backup automático en hora pico
+- T-016: Impresora térmica sin papel
+- T-017: Escáner de código de barras no funciona
+- T-018: Pantalla táctil del POS descalibrada
+- T-019: Error al actualizar versión de la app móvil
+- T-020: Ataque de virus/malware en terminal de bodega
 
 ## Categoría: Datos (data/SCENARIOS.md)
 - D-001: Producto duplicado en el sistema
@@ -219,6 +257,84 @@
 - D-013: Historial de precios inconsistente
 - D-014: Unidad de medida incorrecta
 - D-015: Conversión bulto/unidad incorrecta
+
+## Categoría: Preventa (preventa/SCENARIOS.md)
+- PR-001: Vendedor toma pedido de pulpería habitual
+- PR-002: Vendedor toma pedido de cliente nuevo sin historial
+- PR-003: Vendedor negocia precio especial en preventa
+- PR-004: Vendedor sugiere productos complementarios
+- PR-005: Cliente no tiene efectivo para abono
+- PR-006: Vendedor registra pedido y cobra en efectivo en preventa
+- PR-007: Cliente cancela pedido después de tomado
+- PR-008: Vendedor no encuentra al cliente en la dirección
+- PR-009: Cliente solicita productos que no están en catálogo
+- PR-010: Vendedor reorganiza ruta del día
+- PR-011: Vendedor detecta cliente con crédito vencido
+- PR-012: Vendedor toma pedido en zona sin internet
+- PR-013: Vendedor aplica promoción especial del mes
+- PR-014: Vendedor recibe reclamo de cliente por entrega anterior
+- PR-015: Vendedor gestiona devolución de producto dañado en preventa
+- PR-016: Vendedor modifica pedido ya registrado
+- PR-017: Vendedor cierra su ruta diaria
+- PR-018: Vendedor atiende cliente que compra para eventos especiales
+- PR-019: Vendedor detecta cliente que vende productos fuera de su giro
+- PR-020: Vendedor registra pedido con nota de envío especial
+- PR-021: Vendedor visita cliente en mora severa (60+ días)
+- PR-022: Vendedor promociona producto nuevo en el mercado
+- PR-023: Vendedor soluciona diferencia de precio con cliente
+- PR-024: Vendedor cierra pedido con pago mixto (efectivo + crédito)
+- PR-025: Vendedor maneja cliente insatisfecho por servicio previo
+
+## Categoría: Despacho (despacho/SCENARIOS.md)
+- DE-001: Dispatcher asigna rutas del día
+- DE-002: Pedido urgente entra en medio del despacho
+- DE-003: Dispatcher gestiona sobrepeso en camión
+- DE-004: Camión sufre avería antes de salir
+- DE-005: Dispatcher rastrea ruta en tiempo real
+- DE-006: Dispatcher reprograma entrega por mal clima
+- DE-007: Dispatcher recibe notificación de producto dañado en carga
+- DE-008: Dispatcher consolida pedidos para optimizar ruta
+- DE-009: Dispatcher gestiona devolución de pedido completo
+- DE-010: Dispatcher enfrenta huelga de transporte
+- DE-011: Dispatcher coordina entrega nocturna especial
+- DE-012: Dispatcher maneja urgencia médica de un rutero
+- DE-013: Dispatcher recibe queja de cliente por entrega incompleta
+- DE-014: Dispatcher cierra el día de despacho
+- DE-015: Dispatcher planifica rutas para día festivo
+
+## Categoría: Cobranza (cobranza/SCENARIOS.md)
+- CO-001: Cobrador visita cliente con pago puntual
+- CO-002: Cobrador recibe pago parcial
+- CO-003: Cobrador gestiona cliente moroso (30 días)
+- CO-004: Cobrador enfrenta cliente agresivo
+- CO-005: Cobrador recibe pago con cheque
+- CO-006: Cobrador encuentra negocio cerrado
+- CO-007: Cobrador aplica recargo por mora
+- CO-008: Cobrador recibe pago en dólares
+- CO-009: Cobrador negocia plan de pagos
+- CO-010: Cobrador gestiona cobro de cliente fallecido
+- CO-011: Cobrador entrega efectivo y cierra jornada
+- CO-012: Cobrador detecta billete falso en pago
+- CO-013: Cobrador recalcula factura por diferencia de precio
+- CO-014: Cobrador enfrenta cliente que se niega a pagar
+- CO-015: Cobrador recibe pago por transferencia bancaria
+
+## Categoría: Supervisión (supervision/SCENARIOS.md)
+- SU-001: Supervisor realiza arqueo sorpresa de caja
+- SU-002: Supervisor revisa rendimiento de ruteros
+- SU-003: Supervisor atiende queja de cliente por mal servicio
+- SU-004: Supervisor detecta diferencia en inventario durante inspección
+- SU-005: Supervisor capacita a nuevo empleado en Pino2
+- SU-006: Supervisor revisa reportes de ventas semanales
+- SU-007: Supervisor media conflicto entre empleados
+- SU-008: Supervisor verifica cumplimiento de horarios
+- SU-009: Supervisor implementa nueva política de precios
+- SU-010: Supervisor gestiona emergencia por robo en tienda
+- SU-011: Supervisor realiza evaluación de desempeño mensual
+- SU-012: Supervisor coordina inventario físico general
+- SU-013: Supervisor aplica medida disciplinaria
+- SU-014: Supervisor revisa y aprueba solicitudes de permiso
+- SU-015: Supervisor prepara reporte mensual para la gerencia
 
 ## Categoría: Integrales (comprehensive/SCENARIOS.md)
 - X-001: Día completo de un bodeguero

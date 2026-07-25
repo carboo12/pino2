@@ -327,3 +327,108 @@
 10. Reporta a soporte técnico: "Cambiar horario de backup automático"
 **Resultado esperado:** Backup detenido, rendimiento restablecido, backup reprogramado para madrugada
 **Variante:** Backup no se puede detener (ya está en mitad del proceso); se debe esperar que termine (30 minutos de lentitud)
+
+---
+
+## T-016: Impresora térmica sin papel
+**Rol:** Cajero
+**Duración:** 3 minutos
+**Descripción:** En medio de una venta, la impresora térmica se queda sin papel. El cajero no puede imprimir el ticket. Debe reemplazar el rollo rápidamente.
+**Precondiciones:** Impresora en uso, fin del rollo de papel
+**Pasos:**
+1. Cajero procesa venta, presiona "Imprimir"
+2. Impresora suena pero no imprime — papel terminado
+3. Cajero: "Un momento, se acabó el papel"
+4. Abre la impresora, saca el rollo vacío
+5. Toma un rollo nuevo del stock de la caja
+6. Coloca el rollo nuevo en la impresora
+7. Cierra la tapa
+8. Presiona el botón de avance para probar
+9. Impresora imprime correctamente
+10. Cajero reimprime el ticket de la venta actual
+**Resultado esperado:** Rollo reemplazado, ticket reimpreso, venta entregada al cliente
+**Variante:** No hay rollos de repuesto en la caja; cajero debe ir a bodega a buscar mientras el cliente espera
+
+---
+
+## T-017: Escáner de código de barras no funciona
+**Rol:** Cajero
+**Duración:** 5 minutos
+**Descripción:** El escáner de código de barras deja de funcionar (no lee ningún código). El cajero debe ingresar los productos manualmente.
+**Precondiciones:** Escáner con falla, cajero debe operar sin escáner
+**Pasos:**
+1. Cajero intenta escanear Arroz Faisán — no lee
+2. Reinicia el escáner (desconecta y conecta USB) — sigue sin leer
+3. Cambia el puerto USB — no funciona
+4. Reporta al administrador: "Escáner de Caja #1 no funciona"
+5. Mientras tanto, opera manualmente:
+6. Busca cada producto por código en el catálogo
+7. Ingresa "ARROZ-FAISAN-1LB" manualmente
+8. Procesa la venta sin escáner (más lento)
+9. Administrador trae un escáner de repuesto
+10. Conecta el nuevo escáner y funciona
+**Resultado esperado:** Ventas continúan con ingreso manual, escáner reemplazado
+**Variante:** No hay escáner de repuesto; el cajero opera todo el día con ingreso manual (más lento, clientes esperan más)
+
+---
+
+## T-018: Pantalla táctil del POS descalibrada
+**Rol:** Cajero
+**Duración:** 5 minutos
+**Descripción:** La pantalla táctil del POS registra toques en lugares incorrectos (descalibrada). El cajero no puede seleccionar botones correctamente.
+**Precondiciones:** Pantalla táctil descalibrada, mouse disponible como alternativa
+**Pasos:**
+1. Cajero toca "Totalizar" pero el sistema registra "Cancelar"
+2. Reintenta — mismo problema
+3. Administrador verifica: pantalla táctil descalibrada
+4. Conecta un mouse USB a la terminal
+5. Cajero opera con el mouse mientras se calibra
+6. Administrador va a "Configuración de pantalla"
+7. Selecciona "Calibrar pantalla táctil"
+8. Sigue las instrucciones: toca los puntos de calibración
+9. Calibración completada
+10. Cajero prueba la pantalla — funciona correctamente
+**Resultado esperado:** Pantalla calibrada, operación normal restablecida, mouse como respaldo
+**Variante:** La calibración no resuelve; el cajero debe usar el mouse todo el día hasta reparar o reemplazar la pantalla
+
+---
+
+## T-019: Error al actualizar versión de la app móvil
+**Rol:** Rutero
+**Duración:** 20 minutos
+**Descripción:** La app de Pino2 en el teléfono del rutero muestra una notificación de actualización obligatoria. Al actualizar, la app falla y no abre.
+**Precondiciones:** Actualización disponible, app instalada
+**Pasos:**
+1. Rutero abre la app y ve: "Actualización obligatoria disponible"
+2. Presiona "Actualizar"
+3. La app se descarga e instala
+4. Al abrirla: "La app se ha detenido" — no abre
+5. Rutero reintenta 3 veces — mismo error
+6. Reporta al administrador: "La app no abre después de la actualización"
+7. Administrador: "Borre los datos de la app y vuelva a iniciar sesión"
+8. Rutero va a Configuración → Apps → Pino2 → Borrar datos
+9. Abre la app nuevamente — ahora inicia
+10. Inicia sesión y la app funciona (los datos offline se pierden)
+**Resultado esperado:** App funcionando después de borrar datos, rutero puede continuar, datos offline perdidos pero recuperables del servidor
+**Variante:** El problema es la versión nueva (bug); el rutero debe desinstalar e instalar la versión anterior desde un APK
+
+---
+
+## T-020: Ataque de virus/malware en terminal de bodega
+**Rol:** Administrador
+**Duración:** 1 hora
+**Descripción:** La terminal de bodega (usada para inventario) muestra ventanas emergentes extrañas y se comporta lento. Posible infección de malware.
+**Precondiciones:** Terminal con posible infección, acceso a datos críticos
+**Pasos:**
+1. Bodeguero reporta: "La terminal de bodega está muy lenta y salen ventanas raras"
+2. Administrador revisa: efectivamente, hay pop-ups sospechosos
+3. Desconecta la terminal de la red inmediatamente (aislamiento)
+4. Ejecuta escaneo antivirus: detecta 3 amenazas
+5. El antivirus no puede eliminar 1 de ellas
+6. Administrador decide: restaurar la terminal a un punto de restauración anterior
+7. Restaura el sistema a 3 días antes
+8. Terminal se reinicia
+9. Escaneo completo: limpio
+10. Reconecta a la red y verifica que Pino2 funciona
+**Resultado esperado:** Malware eliminado, terminal restaurada, datos no comprometidos
+**Variante:** El malware encriptó archivos del sistema (ransomware); se debe restaurar desde backup completo y reportar a autoridades de ciberseguridad

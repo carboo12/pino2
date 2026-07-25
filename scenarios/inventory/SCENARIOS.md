@@ -649,3 +649,173 @@
 6. Se notifica a dueño para decidir acción legal
 **Resultado esperado:** Stock se ajusta a 47, movimiento tipo ROBO registrado
 **Variante:** El responsable es identificado → el ajuste va contra su salario, no contra inventario
+
+---
+
+## I-033: Producto congelado pierde cadena de frío
+**Rol:** Bodeguero
+**Duración:** 15 minutos
+**Descripción:** El congelador de la bodega falló durante la noche. La temperatura subió de -18°C a -5°C. Los productos congelados pueden estar dañados.
+**Precondiciones:** Falla del congelador, alarma de temperatura activada
+**Pasos:**
+1. Bodeguero llega a las 6 AM y encuentra alarma sonando en el congelador
+2. Revisa temperatura: -5°C (debía ser -18°C)
+3. Reporta al administrador inmediatamente
+4. Administrador evalúa: los productos estuvieron a temperatura inadecuada por 6 horas
+5. Se decide: los productos no son aptos para consumo humano
+6. En Pino2, selecciona "Ajuste por pérdida de cadena de frío"
+7. Registra productos afectados: 30 unidades de carne congelada, 20 de vegetales congelados
+8. Productos pasan a estado "Cuarentena — cadena de frío rota"
+9. Se llama al técnico para reparar el congelador
+10. Se genera reporte de pérdida para el seguro
+**Resultado esperado:** Productos en cuarentena, pérdida registrada, congelador en reparación
+**Variante:** Temperatura solo subió a -15°C y el tiempo fue corto (1 hora); un inspector evalúa y libera los productos
+
+---
+
+## I-034: Recepción de producto con etiquetado incorrecto
+**Rol:** Bodeguero
+**Duración:** 10 minutos
+**Descripción:** Llega un pallet de Azúcar Sulí 1kg pero las etiquetas del empaque dicen "Azúcar Fantur 1kg". El empaque exterior está equivocado aunque el contenido parece correcto.
+**Precondiciones:** Recepción de mercancía, etiquetado incorrecto detectado
+**Pasos:**
+1. Bodeguero recibe 20 bultos de Azúcar
+2. Las etiquetas dicen "Azúcar Fantur 1kg" pero el producto es Sulí
+3. Bodeguero abre un bulto y verifica: el contenido es Azúcar Sulí (empaque individual correcto)
+4. El problema es solo el empaque exterior (bulto)
+5. Bodeguero reporta al administrador
+6. Administrador: "Acepte el producto pero registre la novedad"
+7. Bodeguero ingresa en Pino2: "Etiquetado exterior incorrecto — contenido OK"
+8. Adjunta fotos como evidencia
+9. El proveedor será notificado para que corrija el empaque
+10. Producto se almacena normalmente
+**Resultado esperado:** Producto recibido con nota de etiquetado incorrecto, proveedor notificado para corrección
+**Variante:** El contenido también es incorrecto (Fantur en vez de Sulí); se rechaza toda la recepción
+
+---
+
+## I-035: Ajuste por producto vencido en cuarentena
+**Rol:** Bodeguero
+**Duración:** 5 minutos
+**Descripción:** Los productos que estaban en cuarentena por vencimiento ya pasaron la fecha de devolución al proveedor. Deben destruirse y ajustarse como pérdida total.
+**Precondiciones:** Productos en cuarentena por vencimiento, plazo de devolución vencido
+**Pasos:**
+1. Bodeguero revisa productos en cuarentena: 15 Leche Klim vencidas
+2. Plazo de devolución al proveedor venció ayer
+3. Ya no se pueden devolver
+4. Reporta al administrador: "Las 15 Leche Klim vencidas no se pueden devolver"
+5. Administrador: "Proceda a destrucción y ajuste como pérdida"
+6. Bodeguero selecciona "Ajuste por destrucción — producto vencido"
+7. Ingresa: 15 unidades Leche Klim, motivo: "Vencido — plazo de devolución vencido"
+8. Sistema descuenta del inventario
+9. Bodeguero destruye los productos (desecha según normativa Minsa)
+10. Se genera reporte de pérdida para contabilidad
+**Resultado esperado:** Productos dados de baja, pérdida registrada, reporte contable generado
+**Variante:** El proveedor acepta la devolución aunque haya vencido el plazo; se coordina recogida
+
+---
+
+## I-036: Traspaso de producto entre lotes
+**Rol:** Bodeguero
+**Duración:** 10 minutos
+**Descripción:** En la bodega hay 10 unidades de Leche Klim del lote L2310 (vence diciembre) mezcladas con 5 del lote L2305 (vence agosto). Se deben separar y ajustar los lotes.
+**Precondiciones:** Dos lotes del mismo producto, necesidad de separación
+**Pasos:**
+1. Bodeguero detecta la mezcla de lotes durante el conteo
+2. Separa físicamente: 10 unidades L2310 y 5 unidades L2305
+3. En Pino2, selecciona "Separación de lotes"
+4. Escanea el producto
+5. Ingresa cantidades por lote:
+   - Lote L2305: 5 unidades (vence 15/08/2026)
+   - Lote L2310: 10 unidades (vence 15/12/2026)
+6. Sistema ajusta el inventario por lote
+7. Los lotes ahora están correctamente separados
+8. Bodeguero ubica cada lote en su zona correspondiente
+9. El lote L2305 (próximo a vencer) se coloca al frente para rotación FIFO
+10. Reporta: "Lotes separados correctamente"
+**Resultado esperado:** Lotes separados en el sistema y físicamente, inventario por lote correcto, FIFO aplicable
+**Variante:** No se pueden separar físicamente (ya están mezclados); se unifican bajo el lote más próximo a vencer
+
+---
+
+## I-037: Devolución de empaques retornables
+**Rol:** Bodeguero
+**Duración:** 10 minutos
+**Descripción:** Los clientes devuelven envases retornables de Aceite Patrona (botellas de vidrio). El bodeguero debe recibirlas, contar y registrar la devolución.
+**Precondiciones:** Programa de envases retornables activo, clientes participantes
+**Pasos:**
+1. Llega un cliente con 24 botellas de vidrio vacías de Aceite Patrona
+2. Bodeguero verifica: las botellas son las retornables (tienen el sello)
+3. Cuenta: 24 botellas en buen estado
+4. En Pino2, selecciona "Recepción de envases retornables"
+5. Escanea o ingresa el producto: "Envase retornable Aceite Patrona 1L"
+6. Ingresa cantidad: 24
+7. Sistema acredita el depósito al cliente (C$5 por envase)
+8. Cliente recibe C$120 de crédito para próxima compra
+9. Bodeguero almacena los envases en el área de retornables
+10. Se genera reporte de envases recibidos
+**Resultado esperado:** Envases recibidos, cliente acreditado, inventario de retornables actualizado
+**Variante:** 3 botellas están rotas; se rechazan y no se acredita depósito por esas
+
+---
+
+## I-038: Producto con código de barras de otro producto
+**Rol:** Administrador
+**Duración:** 10 minutos
+**Descripción:** Se descubre que los envases de "Aceite Patrona 500ml" tienen el mismo código de barras que "Aceite Patrona 1L". El administrador debe corregir el error con el proveedor.
+**Precondiciones:** Dos productos diferentes con mismo GTIN, ventas afectadas
+**Pasos:**
+1. Cajero reporta: al escanear Aceite Patrona 500ml, sale Aceite Patrona 1L (precio incorrecto)
+2. Administrador investiga en el catálogo
+3. Encuentra: ambos productos tienen GTIN 744100123456
+4. El proveedor (Aceitera Patrona) imprimió el mismo código en ambas presentaciones
+5. Administrador notifica al proveedor: "Error en código de barras de presentación 500ml"
+6. Mientras se resuelve, asigna código interno temporal: "ACEITE-PATRONA-500ML"
+7. Imprime etiqueta correctiva y la pega en los productos existentes
+8. Actualiza el catálogo con el código temporal
+9. Proveedor confirma que emitirá nuevo código de barras
+10. Se programa seguimiento en 15 días
+**Resultado esperado:** Código temporal asignado, productos diferenciados, proveedor notificado
+**Variante:** El error es del sistema (se cargó mal el GTIN); administrador corrige directamente en Pino2
+
+---
+
+## I-039: Producto próximo a vencer en promoción masiva
+**Rol:** Administrador
+**Duración:** 15 minutos
+**Descripción:** Hay 200 unidades de Café Presto 200g que vencen en 20 días. Se debe crear una promoción masiva para liquidar el stock antes de la fecha de vencimiento.
+**Precondiciones:** Producto próximo a vencer, promoción autorizada por gerencia
+**Pasos:**
+1. Administrador genera reporte: "Productos próximos a vencer (menos de 30 días)"
+2. Café Presto 200g: 200 unidades, vence en 20 días
+3. Precio normal: C$110, precio de costo: C$75
+4. Administrador decide: promoción "Liquidación — 30% de descuento"
+5. En Pino2, selecciona "Crear promoción"
+6. Producto: Café Presto 200g
+7. Descuento: 30%
+8. Precio promocional: C$77
+9. Fecha inicio: hoy, fecha fin: 15 días (5 días antes del vencimiento)
+10. Activa la promoción
+**Resultado esperado:** Promoción de liquidación activa, precio reducido, producto visible en sección de ofertas
+**Variante:** Después de 15 días solo se vendieron 120 unidades; se renueva la promoción con 40% de descuento o se dona el resto
+
+---
+
+## I-040: Reclasificación masiva de productos por cambio de categoría
+**Rol:** Administrador
+**Duración:** 20 minutos
+**Descripción:** La gerencia decide reclasificar todos los productos de limpieza de la categoría "Hogar" a una nueva categoría "Limpieza e Higiene". Son 45 productos.
+**Precondiciones:** Nueva categoría creada, productos a migrar identificados
+**Pasos:**
+1. Administrador accede a "Gestión de categorías"
+2. Selecciona la categoría existente: "Hogar"
+3. Filtra productos de limpieza: Jabón Rey, Detergente Ariel, Cloro, etc.
+4. Selecciona los 45 productos a migrar
+5. Selecciona acción: "Mover a categoría"
+6. Selecciona categoría destino: "Limpieza e Higiene"
+7. Sistema muestra resumen: 45 productos serán movidos
+8. Administrador confirma
+9. Sistema actualiza todos los productos en lote
+10. Verifica: los 45 productos aparecen ahora en la nueva categoría
+**Resultado esperado:** 45 productos reclasificados masivamente, categoría nueva poblada, reporte de cambio generado
+**Variante:** Algunos productos no deberían haberse movido (ej. ambientadores van en "Hogar"); administrador los devuelve manualmente

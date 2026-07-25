@@ -418,3 +418,323 @@
 10. Sistema confirma sincronización exitosa
 **Resultado esperado:** Entregas procesadas offline, datos sincronizados al recuperar conexión
 **Variante:** El dispositivo se queda sin batería antes de sincronizar; los datos se pierden y deben ingresarse manualmente
+
+---
+
+## R-021: Ruta con cliente que solicita cambio de producto en entrega
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** El cliente recibe su pedido pero pide cambiar 3 bultos de Arroz Faisán por 3 de Frijoles Seda porque "los clientes están pidiendo más frijoles esta semana". El rutero debe procesar el cambio.
+**Precondiciones:** Pedido en entrega, cliente solicita modificación, productos disponibles en camión
+**Pasos:**
+1. Rutero llega a Pulpería Los Amigos en Granada con el pedido
+2. Cliente revisa: "Oye, ¿puedo cambiar 3 bultos de Arroz por 3 de Frijoles?"
+3. Rutero verifica en su carga: hay 3 bultos de Frijoles Seda disponibles
+4. Rutero selecciona "Modificar entrega" en la app
+5. Registra: -3 Arroz Faisán, +3 Frijoles Seda
+6. Sistema recalcula la factura
+7. Cliente paga la diferencia (si aplica) o recibe nota de crédito
+8. Rutero descarga los 3 Frijoles y recarga los 3 Arroz
+9. Cliente firma la entrega modificada
+10. Pedido original se actualiza en el sistema
+**Resultado esperado:** Cambio procesado en ruta, factura ajustada, cliente satisfecho
+**Variante:** No hay Frijoles en el camión; rutero debe entregar el pedido original sin cambios
+
+---
+
+## R-022: Ruta con recogida de producto para reciclaje
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** La empresa tiene un programa de reciclaje de envases de aceite usados. El rutero debe recoger los envases vacíos de los clientes en su ruta.
+**Precondiciones:** Programa de reciclaje activo, clientes participantes identificados
+**Pasos:**
+1. Rutero tiene en su ruta 4 clientes que participan en el programa de reciclaje
+2. Cliente 1 (Pulpería Doña Mary): entrega 20 envases de Aceite Patrona vacíos
+3. Rutero escanea los envases con la app (control de reciclaje)
+4. Cliente recibe un voucher de descuento por cada envase (C$2 c/u)
+5. Rutero carga los envases en la sección de reciclaje del camión
+6. Repite con los otros 3 clientes
+7. Total del día: 65 envases recogidos
+8. Al regresar a bodega, entrega los envases al área de reciclaje
+9. Sistema registra los vouchers emitidos a los clientes
+10. Reporte de reciclaje generado
+**Resultado esperado:** Envases recogidos, clientes reciben descuento, programa de reciclaje registrado
+**Variante:** Cliente no tenía los envases limpios; rutero no acepta y explica los requisitos del programa
+
+---
+
+## R-023: Ruta con pago contra entrega y vuelto exacto
+**Rol:** Rutero
+**Duración:** 5 minutos
+**Descripción:** Cliente paga contra entrega con el monto exacto. El rutero solo debe registrar el pago sin necesidad de dar vuelto.
+**Precondiciones:** Pedido marcado como pago contra entrega, monto exacto
+**Pasos:**
+1. Rutero entrega pedido a Cooperativa San Miguel: C$12,350
+2. Cliente: "Aquí tiene, C$12,350 exactos"
+3. Rutero cuenta el efectivo: C$12,350 correcto
+4. En la app, selecciona "Pago contra entrega" e ingresa monto recibido: C$12,350
+5. Sistema marca: vuelto C$0
+6. Rutero entrega los productos
+7. Cliente firma la entrega
+8. Pedido queda como "Pagado y entregado"
+9. Rutero guarda el efectivo en la caja portátil
+10. Continúa con la siguiente entrega
+**Resultado esperado:** Pago registrado, productos entregados, sin necesidad de vuelto
+**Variante:** Cliente paga de más (C$13,000); rutero debe calcular y dar vuelto de C$650
+
+---
+
+## R-024: Ruta con entrega parcial (cliente acepta solo parte)
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** El cliente acepta solo parte del pedido porque "no le cabe en la bodega". Solicita que el resto se entregue la próxima semana.
+**Precondiciones:** Pedido completo en camión, cliente solo recibe parcial
+**Pasos:**
+1. Rutero llega a Licorería El Chele con 15 bultos de Arroz y 10 cajas de Aceite
+2. Cliente: "Recibo solo 10 bultos de Arroz y 5 cajas de Aceite, no me cabe"
+3. Rutero: "¿El resto lo dejamos para la próxima entrega?"
+4. Cliente: "Sí, la próxima semana"
+5. Rutero selecciona "Entrega parcial" en la app
+6. Ingresa cantidades entregadas: 10 Arroz, 5 Aceite
+7. Sistema genera nota de crédito por los productos no entregados
+8. Cliente firma por lo recibido
+9. Rutero carga de vuelta los 5 bultos de Arroz y 5 cajas de Aceite
+10. Los productos regresan a bodega para próxima entrega
+**Resultado esperado:** Entrega parcial registrada, nota de crédito generada, productos devueltos para próxima ruta
+**Variante:** Cliente no acepta pagar el flete de la segunda entrega; rutero debe cobrar el flete adicional
+
+---
+
+## R-025: Ruta con cliente que pide factura en el momento de entrega
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** Un cliente que normalmente no pide factura, hoy la solicita en el momento de la entrega porque "el contador se la pidió". El rutero debe emitir la factura desde la app.
+**Precondiciones:** Pedido preparado sin factura, cliente solicita factura fiscal
+**Pasos:**
+1. Rutero llega a Comedor Santa Ana
+2. Cliente: "Necesito factura fiscal de esta entrega, mi contador me la pidió"
+3. Rutero: "¿Tiene su RUC a la mano?"
+4. Cliente da el RUC: J0310000123456
+5. Rutero selecciona "Emitir factura" en la app
+6. Ingresa datos fiscales del cliente
+7. Sistema envía a validación con DGI
+8. Factura se genera con timbrado fiscal
+9. Rutero entrega factura impresa (impresora portátil)
+10. Cliente agradece
+**Resultado esperado:** Factura fiscal emitida en ruta, cliente recibe su comprobante
+**Variante:** No hay conexión a DGI en la zona; se genera factura contingente con número provisional
+
+---
+
+## R-026: Ruta con entrega a cliente con perro peligroso
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** El cliente tiene un perro agresivo suelto en el patio. El rutero debe entregar sin arriesgarse.
+**Precondiciones:** Cliente con perro, medidas de seguridad
+**Pasos:**
+1. Rutero llega a la dirección: Pulpería El Buen Gusto, casa con reja
+2. Perro grande suelto en el patio, ladrando agresivamente
+3. Rutero no puede entrar
+4. Llama al cliente: "Don Javier, el perro está suelto, no puedo entrar"
+5. Cliente: "Ah, ya voy"
+6. Cliente asegura al perro
+7. Rutero ingresa con precaución
+8. Entrega los productos: 5 bultos Arroz, 3 cajas Aceite
+9. Cliente firma
+10. Rutero se retira rápido
+**Resultado esperado:** Entrega completada con seguridad, cliente notificado del riesgo
+**Variante:** Cliente no contesta el teléfono y el perro no deja entrar; rutero marca como "No entregado — riesgo de seguridad"
+
+---
+
+## R-027: Ruta con cliente que no tiene cambio
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** El cliente paga contra entrega pero no tiene cambio para un billete grande. El rutero debe resolver sin quedarse sin cambio.
+**Precondiciones:** Pago contra entrega, cliente con billete grande
+**Pasos:**
+1. Pedido: C$4,500
+2. Cliente paga con billete de C$1,000 — necesita dar 5 billetes = C$5,000
+3. Rutero: "¿Tiene cambio de C$1,000?"
+4. Cliente: "No, solo tengo este billete"
+5. Rutero revisa su cartera de cambio: tiene C$500 en billetes pequeños
+6. No alcanza para dar vuelto de C$550
+7. Rutero sugiere: "¿Puede pagar con dos billetes de C$500 y uno de C$500? O completar con monedas"
+8. Cliente busca y encuentra monedas por C$100
+9. Cliente paga: 4 billetes de C$1,000 + C$100 en monedas = C$4,100 — faltan C$400
+10. Cliente paga C$400 adicionales en efectivo que encontró
+**Resultado esperado:** Pago completado, vuelto entregado, cliente y rutero encuentran solución
+**Variante:** Cliente no tiene forma de pagar exacto; rutero deja el pedido pendiente y vuelve después de conseguir cambio en otro cliente
+
+---
+
+## R-028: Ruta con bloqueo de carretera por manifestación
+**Rol:** Rutero
+**Duración:** 30 minutos
+**Descripción:** Hay una manifestación política en la carretera a Masaya. El tráfico está totalmente detenido. El rutero debe buscar ruta alternativa o esperar.
+**Precondiciones:** Manifestación en ruta, tráfico bloqueado
+**Pasos:**
+1. Rutero va a Masaya por la carretera principal
+2. Encuentra tráfico detenido — manifestación a 500 metros
+3. Pregunta a otros conductores: "¿Hace cuánto están aquí?"
+4. "Ya va media hora, no se puede pasar"
+5. Rutero abre Google Maps: busca ruta alternativa
+6. Encuentra desvío por camino de tierra (5 km extra)
+7. Reporta al dispatcher: "Manifestación en Masaya, voy por el desvío de Nindirí"
+8. Toma el desvío
+9. Llega a Masaya 25 minutos después
+10. Entregas se realizan con retraso
+**Resultado esperado:** Ruta alternativa exitosa, entregas completadas con retraso, dispatcher informado
+**Variante:** Todas las rutas alternativas también bloqueadas; rutero espera 2 horas hasta que la manifestación se disuelve
+
+---
+
+## R-029: Ruta con promoción especial para clientes frecuentes
+**Rol:** Rutero
+**Duración:** 5 minutos
+**Descripción:** El sistema indica que un cliente frecuente califica para una promoción especial. El rutero debe informar al cliente y aplicar el descuento.
+**Precondiciones:** Cliente frecuente identificado, promoción activa
+**Pasos:**
+1. Rutero entrega pedido a Pulpería Doña Mary (cliente frecuente)
+2. App muestra notificación: "Cliente frecuente — califica para promoción 5% de descuento"
+3. Rutero: "Doña Mary, por ser cliente frecuente, tiene un 5% de descuento en su pedido de hoy"
+4. Cliente: "¡Qué bien!"
+5. Rutero selecciona "Aplicar descuento por fidelidad"
+6. Sistema calcula: C$4,215 - 5% = C$4,004.25
+7. Cliente paga el monto con descuento
+8. Se emite factura con el descuento aplicado
+9. Cliente firma
+10. Rutero: "Gracias por su preferencia"
+**Resultado esperado:** Descuento aplicado, cliente satisfecho, programa de fidelidad funcionando
+**Variante:** Cliente ya tiene otro descuento aplicado; el sistema valida si son acumulables o elige el mayor
+
+---
+
+## R-030: Ruta con entrega express (motocicleta)
+**Rol:** Rutero (motociclista)
+**Duración:** 15 minutos por entrega
+**Descripción:** Un cliente necesita un pedido pequeño urgente (2 bultos de Arroz). Se envía un motociclista para entrega express en vez de esperar al camión.
+**Precondiciones:** Pedido pequeño, motociclista disponible, distancia corta
+**Pasos:**
+1. Dispatcher asigna pedido urgente a motociclista: 2 bultos Arroz, dirección Villa Fontana
+2. Motociclista carga los 2 bultos en la parrilla de la moto
+3. Sale inmediatamente (10 AM)
+4. Llega a Villa Fontana en 12 minutos (vs 40 minutos que tardaría el camión)
+5. Cliente: "Qué rápido, gracias"
+6. Motociclista entrega el pedido
+7. Cliente firma (en app móvil)
+8. Motociclista registra la entrega
+9. Reporta a dispatcher: "Entrega express completada"
+10. Regresa a base para siguiente asignación
+**Resultado esperado:** Entrega express rápida, cliente satisfecho, tiempo de entrega reducido
+**Variante:** Los 2 bultos no caben en la moto; se envía un segundo viaje o se usa vehículo más grande
+
+---
+
+## R-031: Ruta con cliente que se muda de dirección
+**Rol:** Rutero
+**Duración:** 15 minutos
+**Descripción:** El rutero llega a la dirección registrada del cliente y descubre que el cliente se mudó. Debe localizar la nueva dirección.
+**Precondiciones:** Cliente con dirección desactualizada, pedido en ruta
+**Pasos:**
+1. Rutero llega a "Ciudad Sandino, casa #142" — no hay negocio
+2. Pregunta a vecinos: "¿Qué pasó con la pulpería de aquí?"
+3. Vecino: "Doña Marta se mudó a la 5ta calle, al lado de la iglesia"
+4. Rutero llama a Doña Marta: "Me dijeron que se mudó. ¿Me da la nueva dirección?"
+5. Cliente: "Ah, sí, disculpe, olvidé actualizar. Estoy en la 5ta calle, casa #23"
+6. Rutero va a la nueva dirección (5 minutos)
+7. Encuentra el negocio
+8. Entrega el pedido
+9. Cliente firma
+10. Rutero actualiza la dirección en el sistema
+**Resultado esperado:** Entrega exitosa en nueva dirección, sistema actualizado
+**Variante:** Cliente se mudó a otra ciudad (León); rutero no puede entregar — el pedido regresa a bodega
+
+---
+
+## R-032: Ruta con cliente que solicita factura de compras anteriores
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** Durante la entrega, un cliente pide facturas de compras de semanas anteriores que perdió. El rutero debe consultar el sistema y reimprimirlas.
+**Precondiciones:** Facturas anteriores existentes en sistema, cliente solicita duplicados
+**Pasos:**
+1. Cliente: "Perdí las facturas de las últimas 3 entregas, ¿me las puede reimprimir?"
+2. Rutero busca al cliente en la app
+3. Selecciona "Historial de facturas"
+4. Encuentra las últimas 3 facturas: #FAC-1250, #FAC-1260, #FAC-1270
+5. Selecciona "Reimprimir"
+6. La impresora portátil imprime las 3 facturas
+7. Rutero entrega las facturas al cliente
+8. Cliente: "Gracias, así le llevo al contador"
+9. Rutero: "¿Necesita algo más?"
+10. Cliente: "No, gracias"
+**Resultado esperado:** Facturas reimpresas, cliente satisfecho, sin costo adicional
+**Variante:** Las facturas son electrónicas (ya timbradas); también se reimprimen pero con marca de "Duplicado"
+
+---
+
+## R-033: Ruta con vehículo prestado de otra flota
+**Rol:** Rutero
+**Duración:** 15 minutos
+**Descripción:** El camión asignado al rutero está en mantenimiento. Debe usar un camión prestado de otra flota (diferente placa, diferente capacidad). Debe actualizar la asignación.
+**Precondiciones:** Camión original en taller, camión alternativo disponible
+**Pasos:**
+1. Rutero llega y le asignan camión #8 (prestado de la flota de León)
+2. El camión tiene placa diferente: LE-1234 en vez de MN-5678
+3. Rutero registra en la app: "Cambio de vehículo — uso camión #8 placa LE-1234"
+4. Verifica capacidad: 3.5 ton — suficiente para su ruta (2.8 ton)
+5. Bodegueros cargan el camión
+6. Rutero sale con el nuevo vehículo
+7. Durante la ruta, el GPS reporta correctamente la ubicación
+8. Los clientes no notan la diferencia
+9. Al final del día, devuelve el camión #8 a la flota de León
+10. Reporta kilometraje y combustible usado
+**Resultado esperado:** Ruta completada con vehículo alternativo, asignación temporal registrada
+**Variante:** El camión prestado tiene una caja de carga más pequeña; algunos pedidos grandes no caben y deben separarse
+
+---
+
+## R-034: Ruta con entrega de muestras gratis a clientes potenciales
+**Rol:** Rutero
+**Duración:** 10 minutos
+**Descripción:** La empresa lanzó un producto nuevo (Frijoles Negros Seda) y quiere dejar muestras gratis a clientes potenciales en la ruta. El rutero debe identificar candidatos y registrar la entrega.
+**Precondiciones:** Muestras disponibles, clientes potenciales identificados por zona
+**Pasos:**
+1. Rutero recibe 20 muestras de Frijoles Negros Seda (1 lb cada una)
+2. Dispatcher indica: "Deja muestras en pulperías que no compran frijoles con nosotros"
+3. En la ruta, identifica 3 pulperías que no son clientes de Los Pinos
+4. Pulpería 1: "Le traigo una muestra de nuestros nuevos Frijoles Negros, para que los pruebe"
+5. Cliente: "Ah, gracias, los voy a probar"
+6. Rutero registra en la app: "Muestra entregada a cliente potencial — Pulpería El Nuevo Amigo"
+7. Pulpería 2: mismo proceso
+8. Pulpería 3: mismo proceso
+9. Al final del día: 3 muestras entregadas
+10. Reporta al supervisor para seguimiento de ventas
+**Resultado esperado:** Muestras entregadas, clientes potenciales registrados, seguimiento programado
+**Variante:** Un cliente se interesa y quiere comprar directamente; rutero toma el pedido de preventa en el momento
+
+---
+
+## R-035: Ruta con cierre de día y devolución de sobrantes
+**Rol:** Rutero
+**Duración:** 15 minutos
+**Descripción:** Al finalizar la ruta, el rutero regresa a bodega con productos no entregados (clientes ausentes), efectivo cobrado, y devoluciones. Debe cerrar su ruta formalmente.
+**Precondiciones:** Ruta completada, todos los pedidos gestionados
+**Pasos:**
+1. Rutero regresa a bodega a las 5:30 PM
+2. Selecciona "Cerrar ruta" en la app
+3. Sistema muestra resumen:
+   - Pedidos entregados: 10
+   - No entregados: 2 (ausentes)
+   - Efectivo cobrado: C$28,500
+   - Devoluciones recogidas: 3
+   - Muestras entregadas: 3
+4. Rutero entrega efectivo al administrador: C$28,500
+5. Administrador verifica y firma recibo
+6. Rutero entrega los productos no entregados al bodeguero
+7. Bodeguero escanea y registra devolución de inventario
+8. Rutero entrega las devoluciones recogidas
+9. Sistema cierra la ruta
+10. Rutero firma su hoja de ruta del día
+**Resultado esperado:** Ruta cerrada, efectivo entregado, productos devueltos a inventario
+**Variante:** Efectivo no cuadra (sobran C$200); se registra como diferencia positiva y se investiga
