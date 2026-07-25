@@ -193,14 +193,12 @@ export default function CashWorkspacePage() {
           ? { bulkCount: item.bulkCount, looseUnitCount: item.looseUnitCount }
           : { quantity: item.quantity }),
       })),
-      total,
       paymentMethod: data.method,
-      amountReceived: data.amountReceived,
-      change: data.change,
-      clientId: client?.id || null,
+      clientId: client?.id || undefined,
     };
-    await apiClient.post('/sales/process', payload);
-    toast.success('Venta completada', `Total: ${formatCurrency(total)}`);
+    const res = await apiClient.post('/sales/process', payload);
+    const sale = res.data;
+    toast.success('Venta completada', `Ticket ${sale.ticketNumber || ''} · Total: ${formatCurrency(sale.total || total)}`);
     clearCartAfterSuccess();
   }, [storeId, activeShift?.id, cart, total, client, clearCartAfterSuccess]);
 

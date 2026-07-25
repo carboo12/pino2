@@ -69,6 +69,10 @@ export class ProcessSaleDto {
   @IsEnum(['CASH', 'CARD', 'TRANSFER', 'EFECTIVO', 'CREDITO'])
   paymentMethod: string;
 
+  @IsUUID('all')
+  @IsOptional()
+  clientId?: string;
+
   @IsString()
   @IsOptional()
   externalId?: string;

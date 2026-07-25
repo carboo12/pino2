@@ -306,18 +306,13 @@ export default function BillingPage() {
 
       const salePayload = {
         storeId,
-        shiftId: activeShift.id,
-        cashierId: user.id,
-        cashierName: user.name,
-        clientId: selectedClient?.id ?? 'temp-mostrador',
-        clientName: selectedClient?.name ?? 'VENTA MOSTRADOR',
-        items: cart.map(({ id, description, quantity, salePrice, costPrice, usesInventory, currentStock }) => ({ 
-           id, description, quantity, salePrice, costPrice: costPrice || 0, usesInventory, currentStock 
+        cashShiftId: activeShift.id,
+        clientId: selectedClient?.id || undefined,
+        items: cart.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
         })),
         paymentMethod: normalizedPaymentMethod,
-        paymentCurrency: finalPaymentCurrency,
-        amountReceived: finalAmountReceived,
-        change: finalChange,
       };
 
       const response = await apiClient.post('/sales/process', salePayload);
