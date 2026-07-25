@@ -104,3 +104,20 @@ jobs:
           if grep -r "process\.env\." backend/test/ --include='*.ts' | grep -q -v "|| process.env"; then
             echo "OK: tests use env vars"
           fi
+
+  flutter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24'
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter build apk --release

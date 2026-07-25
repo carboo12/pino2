@@ -65,7 +65,7 @@ describe('Concurrency real (e2e)', () => {
        LIMIT 1`,
     );
     if (prodRes.rows.length === 0) {
-      console.log('SKIP: no product with stock >= 30');
+      
       return;
     }
 
@@ -80,7 +80,7 @@ describe('Concurrency real (e2e)', () => {
     );
     const cashShiftId = activeShift.rows[0]?.id;
     if (!cashShiftId) {
-      console.log('SKIP: no open cash shift');
+      
       return;
     }
 

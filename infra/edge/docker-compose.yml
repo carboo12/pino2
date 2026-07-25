@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: multitienda_edge
+      POSTGRES_USER: pino_app
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pino_app -d multitienda_edge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    image: pino2-api:${RELEASE_TAG:-latest}
+    environment:
+      NODE_MODE: EDGE
+      EDGE_NODE_ID: ${EDGE_NODE_ID}
+      STORE_ID: ${STORE_ID}
+      CLOUD_API_URL: ${CLOUD_API_URL}
+      DATABASE_HOST: postgres
+      DATABASE_NAME: multitienda_edge
+      DATABASE_USER: pino_app
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3035
+    ports:
+      - "127.0.0.1:3035:3035"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

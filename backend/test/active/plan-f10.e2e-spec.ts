@@ -51,15 +51,15 @@ describe('F10: Pruebas de falla (e2e)', () => {
   // T05: 100 veces mismo operationId = 1 efecto
   it('T05: 100 envios mismo operationId producen un solo efecto', async () => {
     const storeRes = await pool.query("SELECT id FROM stores WHERE is_active=true LIMIT 1");
-    if (!storeRes.rows.length) return;
+    if (!storeRes.rows.length) throw new Error('No stores found in database');
     const storeId = storeRes.rows[0].id;
 
     const shiftRes = await pool.query("SELECT id FROM cash_shifts WHERE store_id=$1 AND status='OPEN' LIMIT 1", [storeId]);
-    if (!shiftRes.rows.length) return;
+    if (!shiftRes.rows.length) throw new Error('No open cash shifts found');
     const cashShiftId = shiftRes.rows[0].id;
 
     const prodRes = await pool.query("SELECT id, current_stock FROM products WHERE store_id=$1 AND uses_inventory=true AND price1>0 AND current_stock>10 LIMIT 1", [storeId]);
-    if (!prodRes.rows.length) return;
+    if (!prodRes.rows.length) throw new Error('No products with sufficient stock found');
     const productId = prodRes.rows[0].id;
     const initialStock = Number(prodRes.rows[0].current_stock);
 
