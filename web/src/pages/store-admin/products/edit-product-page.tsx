@@ -1,17 +1,29 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Save } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/lib/swalert';
-import apiClient from '@/services/api-client';
-import { AlternativeBarcodes } from './alternative-barcodes';
-import { useQuery } from '@tanstack/react-query';
-import { useApiMutation } from '@/hooks/use-api';
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "@/lib/swalert";
+import apiClient from "@/services/api-client";
+import { AlternativeBarcodes } from "./alternative-barcodes";
+import { useQuery } from "@tanstack/react-query";
+import { useApiMutation } from "@/hooks/use-api";
 
 interface Department {
   id: string;
@@ -83,36 +95,36 @@ interface ProductFormState {
 }
 
 const emptyForm: ProductFormState = {
-  barcode: '',
-  brand: '',
-  description: '',
-  costPrice: '0',
-  price1: '0',
-  price2: '0',
-  price3: '0',
-  price4: '0',
-  price5: '0',
-  bulkPrice1: '0',
-  bulkPrice2: '0',
-  bulkPrice3: '0',
-  bulkPrice4: '0',
-  bulkPrice5: '0',
-  departmentId: '',
-  supplierId: '',
-  subDepartment: '',
+  barcode: "",
+  brand: "",
+  description: "",
+  costPrice: "0",
+  price1: "0",
+  price2: "0",
+  price3: "0",
+  price4: "0",
+  price5: "0",
+  bulkPrice1: "0",
+  bulkPrice2: "0",
+  bulkPrice3: "0",
+  bulkPrice4: "0",
+  bulkPrice5: "0",
+  departmentId: "",
+  supplierId: "",
+  subDepartment: "",
   usesInventory: true,
-  currentStock: '0',
-  minStock: '0',
-  unitsPerBulk: '1',
-  stockBulks: '0',
-  stockUnits: '0',
+  currentStock: "0",
+  minStock: "0",
+  unitsPerBulk: "1",
+  stockBulks: "0",
+  stockUnits: "0",
 };
 
 function toFormData(product: ProductResponse): ProductFormState {
   return {
-    barcode: product.barcode || '',
-    brand: product.brand || '',
-    description: product.description || '',
+    barcode: product.barcode || "",
+    brand: product.brand || "",
+    description: product.description || "",
     costPrice: String(product.costPrice ?? 0),
     price1: String(product.price1 ?? 0),
     price2: String(product.price2 ?? 0),
@@ -124,9 +136,9 @@ function toFormData(product: ProductResponse): ProductFormState {
     bulkPrice3: String(product.bulkPrice3 ?? 0),
     bulkPrice4: String(product.bulkPrice4 ?? 0),
     bulkPrice5: String(product.bulkPrice5 ?? 0),
-    departmentId: product.departmentId || '',
-    supplierId: product.supplierId || '',
-    subDepartment: product.subDepartment || '',
+    departmentId: product.departmentId || "",
+    supplierId: product.supplierId || "",
+    subDepartment: product.subDepartment || "",
     usesInventory: product.usesInventory !== false,
     currentStock: String(product.currentStock ?? 0),
     minStock: String(product.minStock ?? 0),
@@ -137,11 +149,14 @@ function toFormData(product: ProductResponse): ProductFormState {
 }
 
 export default function EditProductPage() {
-  const { storeId, productId } = useParams<{ storeId: string; productId: string }>();
+  const { storeId, productId } = useParams<{
+    storeId: string;
+    productId: string;
+  }>();
   const navigate = useNavigate();
 
   const { data: productData, isLoading: loadingProduct } = useQuery({
-    queryKey: ['product', productId],
+    queryKey: ["product", productId],
     queryFn: async () => {
       const res = await apiClient.get(`/products/${productId}`);
       return res.data as ProductResponse;
@@ -150,9 +165,11 @@ export default function EditProductPage() {
   });
 
   const { data: departments = [], isLoading: loadingDepts } = useQuery({
-    queryKey: ['departments', storeId],
+    queryKey: ["departments", storeId],
     queryFn: async () => {
-      const res = await apiClient.get('/departments', { params: { storeId, type: 'main' } });
+      const res = await apiClient.get("/departments", {
+        params: { storeId, type: "main" },
+      });
       return (res.data || []).map((department: any) => ({
         id: department.id,
         name: department.name || department.nombre,
@@ -162,22 +179,28 @@ export default function EditProductPage() {
   });
 
   const { data: subDepartments = [], isLoading: loadingSubDepts } = useQuery({
-    queryKey: ['sub-departments', storeId],
+    queryKey: ["sub-departments", storeId],
     queryFn: async () => {
-      const res = await apiClient.get('/departments/sub-departments', { params: { storeId } });
+      const res = await apiClient.get("/departments/sub-departments", {
+        params: { storeId },
+      });
       return (res.data || []).map((subDepartment: any) => ({
         id: subDepartment.id,
         name: subDepartment.name || subDepartment.nombre,
-        departmentId: subDepartment.departmentId || subDepartment.parentId || subDepartment.parent_id || '',
+        departmentId:
+          subDepartment.departmentId ||
+          subDepartment.parentId ||
+          subDepartment.parent_id ||
+          "",
       }));
     },
     enabled: !!storeId,
   });
 
   const { data: suppliers = [], isLoading: loadingSuppliers } = useQuery({
-    queryKey: ['suppliers', storeId],
+    queryKey: ["suppliers", storeId],
     queryFn: async () => {
-      const res = await apiClient.get('/suppliers', { params: { storeId } });
+      const res = await apiClient.get("/suppliers", { params: { storeId } });
       return (res.data || []).map((supplier: any) => ({
         id: supplier.id,
         name: supplier.name || supplier.nombre,
@@ -196,30 +219,38 @@ export default function EditProductPage() {
 
   const updateProductMutation = useApiMutation(
     (data: any) => apiClient.patch(`/products/${productId}`, data),
-    [['products', storeId], ['product', productId]]
+    [
+      ["products", storeId],
+      ["product", productId],
+    ],
   );
 
-  const loading = loadingProduct || loadingDepts || loadingSubDepts || loadingSuppliers;
+  const loading =
+    loadingProduct || loadingDepts || loadingSubDepts || loadingSuppliers;
 
-  const updateField = (field: keyof ProductFormState, value: string | boolean) => {
+  const updateField = (
+    field: keyof ProductFormState,
+    value: string | boolean,
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   useEffect(() => {
     if (!formData.departmentId) {
       if (formData.subDepartment) {
-        updateField('subDepartment', '');
+        updateField("subDepartment", "");
       }
       return;
     }
 
     const belongsToDepartment = subDepartments.some(
       (subDepartment) =>
-        subDepartment.departmentId === formData.departmentId && subDepartment.name === formData.subDepartment,
+        subDepartment.departmentId === formData.departmentId &&
+        subDepartment.name === formData.subDepartment,
     );
 
     if (formData.subDepartment && !belongsToDepartment) {
-      updateField('subDepartment', '');
+      updateField("subDepartment", "");
     }
   }, [formData.departmentId, formData.subDepartment, subDepartments]);
 
@@ -228,7 +259,7 @@ export default function EditProductPage() {
     if (!productId || !storeId) return;
 
     if (!formData.description.trim()) {
-      toast.error('Error', 'La descripción es obligatoria.');
+      toast.error("Error", "La descripción es obligatoria.");
       return;
     }
 
@@ -260,11 +291,17 @@ export default function EditProductPage() {
         stockUnits: Number(formData.stockUnits || 0),
       });
 
-      toast.success('Producto actualizado', `Se guardaron los cambios de "${formData.description}".`);
+      toast.success(
+        "Producto actualizado",
+        `Se guardaron los cambios de "${formData.description}".`,
+      );
       navigate(`/store/${storeId}/products`);
     } catch (error: any) {
       console.error(error);
-      toast.error('Error', error?.response?.data?.message || 'No se pudo actualizar el producto.');
+      toast.error(
+        "Error",
+        error?.response?.data?.message || "No se pudo actualizar el producto.",
+      );
     }
   };
 
@@ -291,7 +328,8 @@ export default function EditProductPage() {
         <CardHeader>
           <CardTitle>Editar producto</CardTitle>
           <CardDescription>
-            Ajusta precios, clasificación e inventario base del producto seleccionado.
+            Ajusta precios, clasificación e inventario base del producto
+            seleccionado.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -302,7 +340,9 @@ export default function EditProductPage() {
                 <Input
                   id="description"
                   value={formData.description}
-                  onChange={(event) => updateField('description', event.target.value)}
+                  onChange={(event) =>
+                    updateField("description", event.target.value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -310,10 +350,13 @@ export default function EditProductPage() {
                 <Input
                   id="barcode"
                   value={formData.barcode}
-                  onChange={(event) => updateField('barcode', event.target.value)}
+                  onChange={(event) =>
+                    updateField("barcode", event.target.value)
+                  }
                 />
                 <p className="text-[10px] text-muted-foreground mt-1 leading-tight">
-                  Puede editar el código principal aquí o agregar códigos alternativos abajo.
+                  Puede editar el código principal aquí o agregar códigos
+                  alternativos abajo.
                 </p>
               </div>
               <div className="space-y-2">
@@ -321,12 +364,17 @@ export default function EditProductPage() {
                 <Input
                   id="brand"
                   value={formData.brand}
-                  onChange={(event) => updateField('brand', event.target.value)}
+                  onChange={(event) => updateField("brand", event.target.value)}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Departamento</Label>
-                <Select value={formData.departmentId || 'none'} onValueChange={(value) => updateField('departmentId', value === 'none' ? '' : value)}>
+                <Select
+                  value={formData.departmentId || "none"}
+                  onValueChange={(value) =>
+                    updateField("departmentId", value === "none" ? "" : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un departamento" />
                   </SelectTrigger>
@@ -342,7 +390,12 @@ export default function EditProductPage() {
               </div>
               <div className="space-y-2">
                 <Label>Proveedor</Label>
-                <Select value={formData.supplierId || 'none'} onValueChange={(value) => updateField('supplierId', value === 'none' ? '' : value)}>
+                <Select
+                  value={formData.supplierId || "none"}
+                  onValueChange={(value) =>
+                    updateField("supplierId", value === "none" ? "" : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un proveedor" />
                   </SelectTrigger>
@@ -358,16 +411,27 @@ export default function EditProductPage() {
               </div>
               <div className="space-y-2">
                 <Label>Sub-departamento</Label>
-                <Select value={formData.subDepartment || 'none'} onValueChange={(value) => updateField('subDepartment', value === 'none' ? '' : value)}>
+                <Select
+                  value={formData.subDepartment || "none"}
+                  onValueChange={(value) =>
+                    updateField("subDepartment", value === "none" ? "" : value)
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona un sub-departamento" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Sin sub-departamento</SelectItem>
                     {subDepartments
-                      .filter((subDepartment) => subDepartment.departmentId === formData.departmentId)
+                      .filter(
+                        (subDepartment) =>
+                          subDepartment.departmentId === formData.departmentId,
+                      )
                       .map((subDepartment) => (
-                        <SelectItem key={subDepartment.id} value={subDepartment.name}>
+                        <SelectItem
+                          key={subDepartment.id}
+                          value={subDepartment.name}
+                        >
                           {subDepartment.name}
                         </SelectItem>
                       ))}
@@ -379,54 +443,157 @@ export default function EditProductPage() {
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="costPrice">Costo</Label>
-                <Input id="costPrice" type="number" min="0" step="0.01" value={formData.costPrice} onChange={(event) => updateField('costPrice', event.target.value)} />
+                <Input
+                  id="costPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.costPrice}
+                  onChange={(event) =>
+                    updateField("costPrice", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price1">Precio 1</Label>
-                <Input id="price1" type="number" min="0" step="0.01" value={formData.price1} onChange={(event) => updateField('price1', event.target.value)} />
+                <Input
+                  id="price1"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price1}
+                  onChange={(event) =>
+                    updateField("price1", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price2">Precio 2</Label>
-                <Input id="price2" type="number" min="0" step="0.01" value={formData.price2} onChange={(event) => updateField('price2', event.target.value)} />
+                <Input
+                  id="price2"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price2}
+                  onChange={(event) =>
+                    updateField("price2", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price3">Precio 3</Label>
-                <Input id="price3" type="number" min="0" step="0.01" value={formData.price3} onChange={(event) => updateField('price3', event.target.value)} />
+                <Input
+                  id="price3"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price3}
+                  onChange={(event) =>
+                    updateField("price3", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price4">Precio 4</Label>
-                <Input id="price4" type="number" min="0" step="0.01" value={formData.price4} onChange={(event) => updateField('price4', event.target.value)} />
+                <Input
+                  id="price4"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price4}
+                  onChange={(event) =>
+                    updateField("price4", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="price5">Precio 5</Label>
-                <Input id="price5" type="number" min="0" step="0.01" value={formData.price5} onChange={(event) => updateField('price5', event.target.value)} />
+                <Input
+                  id="price5"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price5}
+                  onChange={(event) =>
+                    updateField("price5", event.target.value)
+                  }
+                />
               </div>
             </div>
 
             {Number(formData.unitsPerBulk || 1) > 1 && (
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="md:col-span-3">
-                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Precios por Bulto</p>
+                  <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    Precios por Bulto
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bulkPrice1">Precio Bulto 1 (Detalle)</Label>
-                  <Input id="bulkPrice1" type="number" min="0" step="0.01" value={formData.bulkPrice1} onChange={(event) => updateField('bulkPrice1', event.target.value)} />
+                  <Input
+                    id="bulkPrice1"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.bulkPrice1}
+                    onChange={(event) =>
+                      updateField("bulkPrice1", event.target.value)
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bulkPrice2">Precio Bulto 2 (Semi-Mayoreo)</Label>
-                  <Input id="bulkPrice2" type="number" min="0" step="0.01" value={formData.bulkPrice2} onChange={(event) => updateField('bulkPrice2', event.target.value)} />
+                  <Label htmlFor="bulkPrice2">
+                    Precio Bulto 2 (Semi-Mayoreo)
+                  </Label>
+                  <Input
+                    id="bulkPrice2"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.bulkPrice2}
+                    onChange={(event) =>
+                      updateField("bulkPrice2", event.target.value)
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bulkPrice3">Precio Bulto 3 (Mayoreo)</Label>
-                  <Input id="bulkPrice3" type="number" min="0" step="0.01" value={formData.bulkPrice3} onChange={(event) => updateField('bulkPrice3', event.target.value)} />
+                  <Input
+                    id="bulkPrice3"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.bulkPrice3}
+                    onChange={(event) =>
+                      updateField("bulkPrice3", event.target.value)
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bulkPrice4">Precio Bulto 4 (Especial)</Label>
-                  <Input id="bulkPrice4" type="number" min="0" step="0.01" value={formData.bulkPrice4} onChange={(event) => updateField('bulkPrice4', event.target.value)} />
+                  <Input
+                    id="bulkPrice4"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.bulkPrice4}
+                    onChange={(event) =>
+                      updateField("bulkPrice4", event.target.value)
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bulkPrice5">Precio Bulto 5 (Mínimo)</Label>
-                  <Input id="bulkPrice5" type="number" min="0" step="0.01" value={formData.bulkPrice5} onChange={(event) => updateField('bulkPrice5', event.target.value)} />
+                  <Input
+                    id="bulkPrice5"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.bulkPrice5}
+                    onChange={(event) =>
+                      updateField("bulkPrice5", event.target.value)
+                    }
+                  />
                 </div>
               </div>
             )}
@@ -434,21 +601,50 @@ export default function EditProductPage() {
             <div className="grid gap-4 md:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="currentStock">Existencia total</Label>
-                <Input id="currentStock" type="number" min="0" step="1" value={formData.currentStock} onChange={(event) => updateField('currentStock', event.target.value)} />
+                <Input
+                  id="currentStock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.currentStock}
+                  onChange={(event) =>
+                    updateField("currentStock", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="minStock">Existencia mínima</Label>
-                <Input id="minStock" type="number" min="0" step="1" value={formData.minStock} onChange={(event) => updateField('minStock', event.target.value)} />
+                <Input
+                  id="minStock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={formData.minStock}
+                  onChange={(event) =>
+                    updateField("minStock", event.target.value)
+                  }
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="unitsPerBulk">Unidades por bulto</Label>
-                <Input id="unitsPerBulk" type="number" min="1" step="1" value={formData.unitsPerBulk} onChange={(event) => updateField('unitsPerBulk', event.target.value)} />
+                <Input
+                  id="unitsPerBulk"
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={formData.unitsPerBulk}
+                  onChange={(event) =>
+                    updateField("unitsPerBulk", event.target.value)
+                  }
+                />
               </div>
               <div className="flex items-center gap-3 rounded-lg border px-4 py-3">
                 <Checkbox
                   id="usesInventory"
                   checked={formData.usesInventory}
-                  onCheckedChange={(checked) => updateField('usesInventory', Boolean(checked))}
+                  onCheckedChange={(checked) =>
+                    updateField("usesInventory", Boolean(checked))
+                  }
                 />
                 <Label htmlFor="usesInventory" className="cursor-pointer">
                   Usa inventario
@@ -458,25 +654,51 @@ export default function EditProductPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="stockBulks">Bultos</Label>
-                <Input id="stockBulks" type="number" min="0" step="1" value={formData.stockBulks} onChange={(event) => updateField('stockBulks', event.target.value)} />
+                <Label htmlFor="stockBulks">Bultos (calculado)</Label>
+                <Input
+                  id="stockBulks"
+                  type="number"
+                  value={
+                    product?.stockDisplay?.bulkCount ??
+                    Math.floor(
+                      Number(formData.currentStock || 0) /
+                        Math.max(Number(formData.unitsPerBulk || 1), 1),
+                    )
+                  }
+                  disabled
+                  className="bg-muted"
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stockUnits">Unidades sueltas</Label>
-                <Input id="stockUnits" type="number" min="0" step="1" value={formData.stockUnits} onChange={(event) => updateField('stockUnits', event.target.value)} />
+                <Label htmlFor="stockUnits">Unidades sueltas (calculado)</Label>
+                <Input
+                  id="stockUnits"
+                  type="number"
+                  value={
+                    product?.stockDisplay?.looseUnitCount ??
+                    Number(formData.currentStock || 0) %
+                      Math.max(Number(formData.unitsPerBulk || 1), 1)
+                  }
+                  disabled
+                  className="bg-muted"
+                />
               </div>
             </div>
 
             <div className="flex justify-end">
               <Button type="submit" disabled={updateProductMutation.isPending}>
-                {updateProductMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {updateProductMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 Guardar cambios
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
-      
+
       {productId && storeId && (
         <AlternativeBarcodes productId={productId} storeId={storeId} />
       )}
