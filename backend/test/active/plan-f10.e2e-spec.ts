@@ -93,14 +93,14 @@ describe('F10: Pruebas de falla (e2e)', () => {
   // T17: Version vieja produce 409
   it('T17: expectedVersion desactualizado da 409', async () => {
     const orderRes = await pool.query(
-      "SELECT id FROM orders WHERE status='RECIBIDO' LIMIT 1"
+      "SELECT id, store_id FROM orders WHERE status='RECIBIDO' LIMIT 1"
     );
     if (!orderRes.rows.length) return;
 
     const res = await request(app.getHttpServer())
       .patch(`/api/orders/${orderRes.rows[0].id}/status`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ status: 'EN_PREPARACION', expectedVersion: 999 });
+      .send({ storeId: orderRes.rows[0].store_id, status: 'EN_PREPARACION', expectedVersion: 999 });
     expect(res.status).toBe(409);
   });
 

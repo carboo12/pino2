@@ -128,8 +128,9 @@ export class SalesService {
         const unitsPerBulk = parseInt(row.units_per_bulk || 1, 10);
         const handlesBulk = row.handles_bulk === true && unitsPerBulk > 1;
 
-        const bulkCount = item.bulkCount ?? 0;
-        const looseUnitCount = item.looseUnitCount ?? 0;
+        const hasBulkUnit = item.bulkCount !== undefined || item.looseUnitCount !== undefined;
+        const bulkCount = hasBulkUnit ? (item.bulkCount ?? 0) : 0;
+        const looseUnitCount = hasBulkUnit ? (item.looseUnitCount ?? 0) : (item.quantity ?? 0);
         const totalUnits = bulkUnitsToTotal(
           bulkCount,
           looseUnitCount,

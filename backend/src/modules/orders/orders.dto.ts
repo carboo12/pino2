@@ -90,6 +90,10 @@ export class CreateOrderDto {
 }
 
 export class UpdateOrderStatusBodyDto {
+  @IsUUID('all')
+  @IsOptional()
+  storeId?: string;
+
   @IsString()
   @IsNotEmpty()
   status: string;
