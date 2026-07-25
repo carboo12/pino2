@@ -1,0 +1,1 @@
+Migracion canonica aplicada: handles_bulk, GENERATED columns, constraints
