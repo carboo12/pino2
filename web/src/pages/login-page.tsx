@@ -1,9 +1,8 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Eye, EyeOff, Loader2, TreePine } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { toast } from '@/lib/swalert';
-import { Preloader } from '@/components/preloader';
 
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -31,13 +30,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const { login, user } = useAuth();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -54,10 +50,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  if (user) {
-    return <Preloader message="Iniciando sesión..." />;
-  }
 
   return (
     <div className="relative w-full h-screen flex flex-col items-center justify-center px-4 overflow-hidden bg-gradient-to-br from-background via-primary/5 to-primaryLight">
