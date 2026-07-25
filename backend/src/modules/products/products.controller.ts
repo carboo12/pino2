@@ -63,7 +63,18 @@ export class ProductsController {
     @Query('subDepartmentId') subDepartmentId?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('page') page?: string,
   ) {
+    if (page) {
+      return this.productsService.findPaginated(
+        storeId,
+        search,
+        departmentId,
+        subDepartmentId,
+        parseInt(page, 10) || 1,
+        limit ? parseInt(limit, 10) : 50,
+      );
+    }
     return this.productsService.findAll(
       storeId,
       search,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   WorkspaceShell,
   WorkspaceTopBar,
@@ -83,6 +83,7 @@ const STATUS_ORDER = ['RECIBIDO', 'EN_PREPARACION', 'ALISTADO', 'CARGADO_CAMION'
 
 export default function WarehouseWorkspacePage() {
   const { storeId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -211,6 +212,12 @@ export default function WarehouseWorkspacePage() {
           storeName={user?.storeName}
           actions={
             <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/purchase-orders`)}>
+                Órdenes Compra
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/vehicles`)}>
+                Flota
+              </Button>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#5B6673]" />
                 <Input

@@ -120,10 +120,18 @@ export default function FinanceWorkspacePage() {
           title="Finanzas"
           storeName={user?.storeName}
           actions={
-            <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-              <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-              Actualizar
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/expenses`)}>
+                Gastos
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/commissions`)}>
+                Comisiones
+              </Button>
+              <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
+                <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+                Actualizar
+              </Button>
+            </div>
           }
         />
       }

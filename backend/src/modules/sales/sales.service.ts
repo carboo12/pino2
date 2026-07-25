@@ -10,6 +10,8 @@ import { EventsGateway } from '../../common/gateways/events.gateway';
 import { bulkUnitsToTotal, splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 import * as crypto from 'crypto';
 
+import { PromotionsService } from '../promotions/promotions.service';
+
 const SOURCE_NODE_ID = '00000000-0000-4000-8000-000000000000'; // cloud node
 
 @Injectable()
@@ -17,6 +19,7 @@ export class SalesService {
   constructor(
     private readonly db: DatabaseService,
     private readonly eventsGateway: EventsGateway,
+    private readonly promotionsService: PromotionsService,
   ) {}
 
   /**
@@ -176,17 +179,52 @@ export class SalesService {
           currentStock,
         });
       }
-      const tax = subtotal * 0.15;
-      const total = subtotal + tax;
 
-      const sql = `INSERT INTO sales (store_id, cash_shift_id, cashier_id, ticket_number, subtotal, tax, total, payment_method, external_id)
-                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
+      // Asegurar columna discount en tabla sales
+      await client.query(`ALTER TABLE sales ADD COLUMN IF NOT EXISTS discount NUMERIC(12,2) DEFAULT 0`);
+
+      let discount = 0;
+      try {
+        if (this.promotionsService) {
+          const activePromos = await this.promotionsService.findActivePromotions(dto.storeId);
+          for (const promo of activePromos) {
+            const promoProductIds: string[] = promo.product_ids || [];
+            for (const item of processedItems) {
+              if (promoProductIds.length === 0 || promoProductIds.includes(item.productId)) {
+                const lineSubtotal = item.handlesBulk
+                  ? item.bulkCount * item.bulkPrice + item.looseUnitCount * item.unitPrice
+                  : item.quantity * item.unitPrice;
+
+                if (promo.discount_type === 'PERCENTAGE') {
+                  discount += lineSubtotal * (Number(promo.discount_value) / 100);
+                } else if (promo.discount_type === 'FIXED_AMOUNT') {
+                  discount += Number(promo.discount_value);
+                }
+                await client.query(
+                  `UPDATE promotions SET current_uses = current_uses + 1 WHERE id = $1`,
+                  [promo.id],
+                );
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // En caso de que no haya promociones o falle la consulta, continuar sin descuento
+      }
+
+      discount = Math.min(discount, subtotal);
+      const tax = (subtotal - discount) * 0.15;
+      const total = subtotal - discount + tax;
+
+      const sql = `INSERT INTO sales (store_id, cash_shift_id, cashier_id, ticket_number, subtotal, discount, tax, total, payment_method, external_id)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`;
       const vals = [
         dto.storeId,
         cashShiftId,
         userId,
         ticketNumber,
         subtotal,
+        discount,
         tax,
         total,
         dto.paymentMethod,
@@ -650,7 +688,7 @@ export class SalesService {
       clientId: null,
       ticketNumber: row.ticket_number,
       subtotal: parseFloat(row.subtotal || 0),
-      discount: 0,
+      discount: parseFloat(row.discount || 0),
       tax: parseFloat(row.tax || 0),
       total: parseFloat(row.total || 0),
       paymentMethod: row.payment_method,

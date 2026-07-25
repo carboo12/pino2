@@ -207,6 +207,46 @@ export class ProductsService {
     return res.rows.map((row) => this.mapRow(row));
   }
 
+  async findPaginated(
+    storeId: string,
+    search?: string,
+    departmentId?: string,
+    subDepartmentId?: string,
+    page: number = 1,
+    limit: number = 50,
+  ) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, Math.min(1000, limit));
+    const offset = (safePage - 1) * safeLimit;
+
+    let countQuery = `SELECT COUNT(*)::int as total FROM products p WHERE p.store_id = $1 AND p.is_active = true`;
+    const countParams: any[] = [storeId];
+    if (search) {
+      countQuery += ` AND (p.description ILIKE $2 OR p.id IN (SELECT product_id FROM product_barcodes WHERE barcode = $3 AND store_id = $1))`;
+      countParams.push(`%${search}%`, search);
+    }
+    if (departmentId) {
+      countQuery += ` AND p.department_id = $${countParams.length + 1}`;
+      countParams.push(departmentId);
+    }
+    if (subDepartmentId) {
+      countQuery += ` AND p.sub_department = $${countParams.length + 1}`;
+      countParams.push(subDepartmentId);
+    }
+
+    const countRes = await this.db.query(countQuery, countParams);
+    const total = parseInt(countRes.rows[0]?.total || '0', 10);
+    const data = await this.findAll(storeId, search, departmentId, subDepartmentId, safeLimit, offset);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit) || 1,
+    };
+  }
+
   async findOne(id: string): Promise<Product> {
     const res = await this.db.query<ProductRow>(
       `SELECT p.*, d.name as department_name 

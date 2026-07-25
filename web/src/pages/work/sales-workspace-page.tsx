@@ -64,14 +64,19 @@ export default function SalesWorkspacePage() {
         <WorkspaceTopBar
           title="Ventas / Ruta"
           actions={
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#5B6673]" />
-              <Input
-                placeholder="Buscar cliente..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-8 w-48 pl-8 text-xs"
-              />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/clients/contracts`)}>
+                Contratos
+              </Button>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#5B6673]" />
+                <Input
+                  placeholder="Buscar cliente..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="h-8 w-48 pl-8 text-xs"
+                />
+              </div>
             </div>
           }
         />

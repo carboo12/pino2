@@ -129,7 +129,12 @@ export default function CatalogWorkspacePage() {
           title="Catálogo"
           storeName={user?.storeName}
           actions={
-            <ScanInput onScan={handleScan} placeholder="Escanear código..." />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/promotions`)}>
+                Promociones
+              </Button>
+              <ScanInput onScan={handleScan} placeholder="Escanear código..." />
+            </div>
           }
         />
       }
