@@ -207,6 +207,30 @@ export class AuthService {
     };
   }
 
+  async impersonate(targetUserId: string) {
+    const resUser = await this.db.query(
+      'SELECT * FROM users WHERE id = $1 AND is_active = true',
+      [targetUserId],
+    );
+    if (resUser.rowCount === 0)
+      throw new UnauthorizedException('Usuario no encontrado');
+
+    const user = resUser.rows[0];
+    const resStores = await this.db.query(
+      'SELECT store_id FROM user_stores WHERE user_id = $1',
+      [user.id],
+    );
+    user.userStores = resStores.rows.map((r: any) => ({ storeId: r.store_id }));
+
+    const client = await this.db.getClient();
+    try {
+      const tokens = await this.generateTokens(client, user);
+      return { ...tokens, impersonated: true, originalRole: 'master-admin' };
+    } finally {
+      client.release();
+    }
+  }
+
   async logout(userId: string) {
     await this.db.query(
       'UPDATE users SET refresh_token_hash = NULL, updated_at = now() WHERE id = $1',

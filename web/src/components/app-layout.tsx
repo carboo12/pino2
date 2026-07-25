@@ -407,7 +407,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const pathname = location.pathname;
+  const [isImpersonating] = useState(() => localStorage.getItem('impersonated') === 'true');
   const { lastEvent, connected } = useRealTimeEvents(storeId);
+
+  const stopImpersonating = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('impersonated');
+    window.location.href = '/login';
+  };
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -521,6 +528,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {isImpersonating && (
+        <div className="sticky top-0 z-50 w-full bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-sm">
+          <span>🔍 Estás viendo como otro usuario</span>
+          <button onClick={stopImpersonating} className="underline font-semibold hover:text-amber-100">
+            Salir del modo vista
+          </button>
+        </div>
+      )}
       <CommandSearch />
       <div className="grid min-h-screen w-full grid-cols-1 md:grid-cols-[var(--sidebar-w)_1fr]" style={{ '--sidebar-w': sidebarWidth } as React.CSSProperties}>
       <div className={cn(

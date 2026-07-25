@@ -6,6 +6,7 @@ import {
   UseGuards,
   Request,
   HttpCode,
+  Param,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -95,6 +96,15 @@ export class AuthController {
   @ApiOperation({ summary: 'Obtener perfil del usuario autenticado' })
   getProfile(@Request() req: any) {
     return this.authService.getProfile(req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles('master-admin')
+  @Post('impersonate/:userId')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Iniciar sesión como otro usuario (solo master-admin)' })
+  impersonate(@Param('userId') userId: string) {
+    return this.authService.impersonate(userId);
   }
 
   @UseGuards(JwtAuthGuard)

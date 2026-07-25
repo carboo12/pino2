@@ -8,10 +8,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Users, Edit } from 'lucide-react';
+import { Users, Edit, Eye, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { usePagination } from '@/hooks/use-pagination';
+import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
 
 interface User {
@@ -145,8 +146,25 @@ export default function MasterUsersPage() {
                 <div className="mt-4 pt-4 border-t flex gap-2">
                   <Button asChild variant="outline" size="sm">
                     <Link to={`/master-admin/users/edit/${user.uid}`}>
-                      <Edit className="mr-2 h-4 w-4" /> Editar Usuario
+                      <Edit className="mr-2 h-4 w-4" /> Editar
                     </Link>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const res = await apiClient.post(`/auth/impersonate/${user.uid}`);
+                        localStorage.setItem('access_token', res.data.accessToken);
+                        localStorage.setItem('impersonated', 'true');
+                        toast.success(`Sesión como ${user.name}`, 'Redirigiendo...');
+                        setTimeout(() => window.location.href = '/', 1000);
+                      } catch {
+                        toast.error('Error', 'No se pudo iniciar sesión como este usuario');
+                      }
+                    }}
+                  >
+                    <Eye className="mr-2 h-4 w-4" /> Ver como
                   </Button>
                 </div>
               </AccordionContent>
