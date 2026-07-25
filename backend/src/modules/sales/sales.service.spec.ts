@@ -7,6 +7,7 @@ import {
 import { SalesService } from './sales.service';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
+import { PromotionsService } from '../promotions/promotions.service';
 
 describe('SalesService', () => {
   let service: SalesService;
@@ -27,12 +28,14 @@ describe('SalesService', () => {
       getClient: jest.fn().mockResolvedValue(mockClient),
     };
     const mockEvents = { emitSyncUpdate: jest.fn() };
+    const mockPromotions = { findActivePromotions: jest.fn().mockResolvedValue([]) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SalesService,
         { provide: DatabaseService, useValue: mockDb },
         { provide: EventsGateway, useValue: mockEvents },
+        { provide: PromotionsService, useValue: mockPromotions },
       ],
     }).compile();
 
