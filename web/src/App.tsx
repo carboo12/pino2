@@ -268,12 +268,12 @@ function App() {
                   <Route path="/master-admin/users" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterUsersPage /></ProtectedRoute>} />
                   {/* MVP-HIDDEN: master admin avanzado */}
                   {false && <Route path="/chain-admin/dashboard" element={<ProtectedRoute allowedRoles={['chain-admin', 'owner', 'master-admin']}><ChainDashboardPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/stores/add" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><AddStorePage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/stores/edit/:storeId" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><EditStorePage /></ProtectedRoute>} />}
+                  <Route path="/master-admin/stores/add" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><AddStorePage /></ProtectedRoute>} />
+                  <Route path="/master-admin/stores/edit/:storeId" element={<ProtectedRoute allowedRoles={[...MASTER_ROLES, 'chain-admin']}><EditStorePage /></ProtectedRoute>} />
                   {false && <Route path="/master-admin/chains" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterChainsPage /></ProtectedRoute>} />}
                   {false && <Route path="/master-admin/chains/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddChainPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/users/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddUserPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/users/edit/:userId" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><EditUserPage /></ProtectedRoute>} />}
+                  <Route path="/master-admin/users/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddUserPage /></ProtectedRoute>} />
+                  <Route path="/master-admin/users/edit/:userId" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><EditUserPage /></ProtectedRoute>} />
                   {false && <Route path="/master-admin/licenses" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterLicensesPage /></ProtectedRoute>} />}
                   {false && <Route path="/master-admin/monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterMonitorPage /></ProtectedRoute>} />}
                   {false && <Route path="/master-admin/config" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterConfigPage /></ProtectedRoute>} />}
