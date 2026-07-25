@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import type { Notification, NavLink } from './app-layout';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
 
@@ -22,6 +22,9 @@ interface AppHeaderProps {
   notifications: Notification[];
   onNotificationClick: (notificationId: string) => void;
   isSocketConnected?: boolean;
+  stores?: Array<{ id: string; name: string }>;
+  currentStoreId?: string;
+  onStoreChange?: (storeId: string) => void;
 }
 
 const breadcrumbLabels: Record<string, string> = {
@@ -149,8 +152,12 @@ export function AppHeader({
   navItems,
   notifications,
   onNotificationClick,
+  stores,
+  currentStoreId,
+  onStoreChange,
 }: AppHeaderProps) {
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm md:px-6">
@@ -159,6 +166,24 @@ export function AppHeader({
       </div>
 
       <Breadcrumb />
+
+      {stores && stores.length > 0 && (
+        <div className="hidden md:flex items-center gap-1">
+          <select
+            value={currentStoreId || ''}
+            onChange={(e) => {
+              if (e.target.value && onStoreChange) {
+                onStoreChange(e.target.value);
+              }
+            }}
+            className="max-w-[200px] text-sm border rounded-lg px-3 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {stores.map((s) => (
+              <option key={s.id} value={s.id}>{s.name.length > 20 ? s.name.substring(0, 20) + '…' : s.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="flex w-full items-center justify-end gap-2">
         <DropdownMenu>
