@@ -446,7 +446,16 @@ export default function CashWorkspacePage() {
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
-                              <span className="w-6 text-center text-xs font-medium">
+                              <Input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) => setQuantity(item.uniqueId, Math.max(0, parseInt(e.target.value) || 0))}
+                                className="hidden md:inline-flex h-8 w-16 text-center [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                                min={0}
+                                max={999}
+                                aria-label={`Cantidad de ${item.description}`}
+                              />
+                              <span className="md:hidden w-6 text-center text-xs font-medium">
                                 {item.quantity}
                               </span>
                               <button
@@ -456,6 +465,7 @@ export default function CashWorkspacePage() {
                               >
                                 <Plus className="h-3 w-3" />
                               </button>
+                              <span className="text-[10px] text-muted-foreground ml-1">Stock: {item.currentStock}</span>
                             </div>
                           )}
                           <div className="col-span-2 text-right text-[#5B6673]">
