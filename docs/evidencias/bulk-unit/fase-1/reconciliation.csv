@@ -1,0 +1,6 @@
+4 productos con mismatch:
+1. Coca Cola 2L: current_stock=900 split=1000 diff=-100
+2. Frijoles Rojos 1lb: current_stock=900 split=1000 diff=-100
+3. Producto Test 1: current_stock=1000 split=0 (seed, sin split)
+4. Producto Test 2: current_stock=500 split=0 (seed, sin split)
+
