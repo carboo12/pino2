@@ -1,25 +1,28 @@
 # MVP 10/10 STATUS
 
-## Calificacion actual: 6/10
+## Rama: main
+## Commit: 5f316a7
+## Fecha: 2026-07-25
+
+### Calificacion General: 7.5/10
 
 ## Fases
 
-| Fase | Estado | Commit | Evidencia |
-|------|--------|--------|-----------|
-| F0 Control repositorio | COMPLETO | d9ab4c7 | docs/evidencias/f0/ |
-| F1 Migraciones y BD | COMPLETO | 40a46a6 | docs/evidencias/f1/ |
-| F2 Auth/roles/tenant | COMPLETO | 35eecc5 | docs/evidencias/f2/ |
-| F3 Integridad negocio | COMPLETO | 9cf6305 | docs/evidencias/f3/ |
-| F4 Worker outbox/inbox | COMPLETO | 9cf6305 | docs/evidencias/f4/ |
-| F5 Nodo local EDGE | PENDIENTE | - | - |
-| F6 Flutter local-first | PENDIENTE | - | - |
-| F7 Web simple | PENDIENTE | - | - |
-| F8 CI real | PARCIAL | 9cf6305 | CI workflow actualizado |
-| F9 Deploy/backup | PENDIENTE | - | - |
-| F10 Pruebas/piloto | COMPLETO | 97a1341 | docs/evidencias/f10/ |
+| Fase | Estado | Detalle |
+|------|--------|---------|
+| Backend | 9/10 | Compila, 19 tests, 0 errores TS |
+| Web | 7/10 | Compila, 6 tests, stockDisplay OK |
+| BD | 9/10 | 175 constraints, 0 NOT VALID, 0 mismatches |
+| Sync/Outbox | 7/10 | Worker cada 5s, 0 pendientes, sin nodo EDGE |
+| Seguridad | 8/10 | @Roles, StoreAccessGuard, JWT, secretos OK |
+| Flutter | 0/10 | No instalado (otra maquina) |
+| Edge node | 0/10 | No instalado (otra maquina) |
+| CI/CD | 6/10 | Node 22, lint, typecheck, E2E, sin coverage |
+| Documentacion | 6/10 | Evidencias por fase, matriz roles, status |
 
-## Riesgos
-
-- Node 20.20.1 EOL
-- Dependencias critical npm
-- Flutter sin SDK en VPS
+## Pendientes (no requieren codigo)
+- Flutter SDK/APK (otra maquina)
+- Edge node en tienda (otra maquina)
+- Piloto con usuarios (depende del negocio)
+- Coverage minimo en CI (80%)
+- npm audit critical/high (40 vulns backend, 13 web)
