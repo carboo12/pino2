@@ -424,10 +424,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         setAllStores(list.map((s: any) => ({ id: s.id, name: s.name })));
       } catch {}
     };
+    const fetchStoreNames = async (ids: string[]) => {
+      try {
+        const names = await Promise.all(
+          ids.map(async (id) => {
+            const res = await apiClient.get(`/stores/${id}`);
+            return res.data ? { id, name: res.data.name || id } : { id, name: id };
+          })
+        );
+        setAllStores(names);
+      } catch {
+        setAllStores(ids.map((id) => ({ id, name: id })));
+      }
+    };
     if (user?.role === 'master-admin' || user?.role === 'owner') {
       fetchStores();
     } else if (user?.storeIds?.length) {
-      setAllStores((user.storeIds || []).map((id: string) => ({ id, name: id })));
+      fetchStoreNames(user.storeIds);
     }
   }, [user]);
 
