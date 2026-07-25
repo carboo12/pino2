@@ -14,12 +14,20 @@ class PromotionsScreen extends ConsumerStatefulWidget {
 
 class _PromotionsScreenState extends ConsumerState<PromotionsScreen> {
   bool _loading = true;
-  List<PromotionModel> _promotions = [];
+  List<PromotionModel> _allPromotions = [];
+  List<PromotionModel> _filteredPromotions = [];
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadPromotions();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPromotions() async {
@@ -40,7 +48,8 @@ class _PromotionsScreenState extends ConsumerState<PromotionsScreen> {
           .toList();
 
       setState(() {
-        _promotions = list;
+        _allPromotions = list;
+        _filteredPromotions = list;
         _loading = false;
       });
     } catch (_) {
@@ -48,42 +57,102 @@ class _PromotionsScreenState extends ConsumerState<PromotionsScreen> {
     }
   }
 
+  void _filterPromotions(String query) {
+    if (query.trim().isEmpty) {
+      setState(() => _filteredPromotions = _allPromotions);
+      return;
+    }
+
+    final q = query.toLowerCase();
+    setState(() {
+      _filteredPromotions = _allPromotions.where((p) {
+        return p.name.toLowerCase().contains(q) ||
+            (p.description?.toLowerCase().contains(q) ?? false);
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Promociones Vigentes')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _promotions.isEmpty
-              ? const Center(child: Text('No hay promociones activas'))
-              : ListView.builder(
-                  itemCount: _promotions.length,
-                  padding: const EdgeInsets.all(12),
-                  itemBuilder: (context, index) {
-                    final promo = _promotions[index];
-                    final textValue = promo.discountType == 'PERCENTAGE'
-                        ? '${promo.discountValue}% OFF'
-                        : 'C\$ ${promo.discountValue} OFF';
-                    return Card(
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          backgroundColor: Colors.green,
-                          child: Icon(Icons.percent, color: Colors.white),
-                        ),
-                        title: Text(promo.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(promo.description ?? 'Aplica en catálogo'),
-                        trailing: Text(
-                          textValue,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                            fontSize: 16,
-                          ),
-                        ),
+      appBar: AppBar(
+        title: const Text('Promociones Vigentes'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadPromotions,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: _filterPromotions,
+              decoration: InputDecoration(
+                hintText: 'Buscar promoción por nombre...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          _filterPromotions('');
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredPromotions.isEmpty
+                    ? const Center(child: Text('No hay promociones activas'))
+                    : ListView.builder(
+                        itemCount: _filteredPromotions.length,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        itemBuilder: (context, index) {
+                          final promo = _filteredPromotions[index];
+                          final textValue = promo.discountType == 'PERCENTAGE'
+                              ? '${promo.discountValue}% OFF'
+                              : 'C\$ ${promo.discountValue} OFF';
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              leading: const CircleAvatar(
+                                backgroundColor: Colors.green,
+                                child: Icon(Icons.percent, color: Colors.white),
+                              ),
+                              title: Text(promo.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(promo.description ?? 'Aplica en catálogo general'),
+                              trailing: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.green.shade200),
+                                ),
+                                child: Text(
+                                  textValue,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
+          ),
+        ],
+      ),
     );
   }
 }

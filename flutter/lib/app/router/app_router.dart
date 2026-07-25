@@ -32,6 +32,7 @@ import '../../features/preventa/presentation/screens/preventa_route_screen.dart'
 import '../../features/preventa/presentation/screens/preventa_order_screen.dart';
 import '../../features/preventa/presentation/screens/preventa_clients_screen.dart';
 import '../../features/preventa/presentation/screens/preventa_add_client_screen.dart';
+import '../../features/preventa/presentation/screens/preventa_home_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/promotions/presentation/screens/promotions_screen.dart';
 
@@ -225,6 +226,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       _fadeRoute(
         path: '/promotions',
         builder: (context, state) => const PromotionsScreen(),
+      ),
+      _fadeRoute(
+        path: '/preventa',
+        builder: (context, state) => const PreventaHomeScreen(),
       ),
     ],
     redirect: (context, state) {
