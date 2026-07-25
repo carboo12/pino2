@@ -18,11 +18,21 @@ export interface Product {
     price3?: number;
     price4?: number;
     price5?: number;
+    bulkPrice1?: number;
+    bulkPrice2?: number;
+    bulkPrice3?: number;
+    bulkPrice4?: number;
+    bulkPrice5?: number;
     costPrice: number;
     currentStock: number;
-    unitsPerBulk?: number;
-    stockBulks?: number;
-    stockUnits?: number;
+    stockTotalUnits: number;
+    handlesBulk: boolean;
+    unitsPerBulk: number;
+    stockDisplay: {
+        bulkCount: number;
+        looseUnitCount: number;
+        formatted: string;
+    };
     minStock?: number;
     usesInventory: boolean;
     departmentId?: string;
