@@ -2,7 +2,6 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../services/api-client';
 import { User } from '../types';
-import { getRedirectPath } from '../lib/redirect-logic';
 
 interface AuthContextType {
   user: User | null;
@@ -60,12 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       localStorage.setItem('access_token', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      
-      // Manejar redirección automática
-      const redirectPath = getRedirectPath(userData);
-      if (redirectPath) {
-        navigate(redirectPath);
-      }
       
       return userData;
     } catch (error) {

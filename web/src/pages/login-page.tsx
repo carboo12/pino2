@@ -3,6 +3,7 @@ import { Eye, EyeOff, Loader2, TreePine } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Navigate } from 'react-router-dom';
 import { toast } from '@/lib/swalert';
+import { getRedirectPath } from '@/lib/redirect-logic';
 
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -32,7 +33,7 @@ export default function LoginPage() {
   const { login, user } = useAuth();
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={getRedirectPath(user) || '/'} replace />;
   }
 
   const handleLogin = async (e: FormEvent) => {
