@@ -45,6 +45,8 @@ export class OrdersService {
     },
     transactionalClient?: PoolClient,
   ) {
+    let wsPayload: any = null;
+
     const execute = async (client: PoolClient) => {
       // Check idempotency
       if (dto.externalId) {
@@ -248,19 +250,23 @@ export class OrdersService {
         ],
       );
 
-      this.eventsGateway.emitSyncUpdate({
+      wsPayload = {
         type: 'NEW_ORDER',
         storeId: finalOrder.storeId,
         payload: finalOrder,
-      });
+      };
 
       return finalOrder;
     };
 
     if (transactionalClient) {
-      return execute(transactionalClient);
+      const result = await execute(transactionalClient);
+      if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+      return result;
     }
-    return this.db.withTransaction(execute);
+    const result = await this.db.withTransaction(execute);
+    if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+    return result;
   }
 
   async findAll(filters: {
@@ -376,7 +382,10 @@ export class OrdersService {
       PENDING: [OrderStatus.RECIBIDO, OrderStatus.CANCELADO],
     };
 
-    return this.db.withTransaction(async (client) => {
+    let wsStatusPayload: any = null;
+    let wsTransferPayload: any = null;
+
+    const updatedOrder = await this.db.withTransaction(async (client) => {
       // 1. Check current status + version
       const res = await client.query(
         'SELECT store_id, status, vendor_id, version FROM orders WHERE id = $1 FOR UPDATE',
@@ -560,7 +569,7 @@ export class OrdersService {
       const order = this.mapRow(updateRes.rows[0]);
 
       // Produce precise realtime event for web dashboards logic tracking
-      this.eventsGateway.emitSyncUpdate({
+      wsStatusPayload = {
         type: 'ORDER_STATUS_CHANGE',
         storeId: storeId,
         payload: {
@@ -569,7 +578,7 @@ export class OrdersService {
           previousStatus: currentStatus,
           updatedBy,
         },
-      });
+      };
 
       // NOTIFICACIÓN: Si el pedido fue cargado al camión o entregado, avisar al stakeholder
       if (
@@ -634,7 +643,7 @@ export class OrdersService {
         targetStatus === 'CARGADO_CAMION' &&
         currentStatus !== 'CARGADO_CAMION'
       ) {
-        this.eventsGateway.emitSyncUpdate({
+        wsTransferPayload = {
           type: 'INVENTORY_TRANSFER',
           storeId,
           payload: {
@@ -644,11 +653,14 @@ export class OrdersService {
             vendorId: effectiveVendorId,
             updatedBy,
           },
-        });
+        };
       }
 
       return order;
     });
+    if (wsStatusPayload) this.eventsGateway.emitSyncUpdate(wsStatusPayload);
+    if (wsTransferPayload) this.eventsGateway.emitSyncUpdate(wsTransferPayload);
+    return updatedOrder;
   }
 
   async autorizarPrice(

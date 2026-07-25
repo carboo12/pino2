@@ -12,14 +12,17 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { RoutesService } from './routes.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Routes')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('routes')
 export class RoutesController {
   constructor(private readonly service: RoutesService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar rutas de vendedores' })
   findAll(
@@ -29,6 +32,7 @@ export class RoutesController {
     return this.service.findAll(storeId, vendorId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear ruta de vendedor' })
   create(
@@ -45,6 +49,7 @@ export class RoutesController {
     return this.service.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar ruta' })
   update(

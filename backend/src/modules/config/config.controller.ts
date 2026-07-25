@@ -3,27 +3,32 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ConfigService } from './config.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { UpsertConfigDto } from './config.dto';
 
 @ApiTags('Config')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('config')
 export class ConfigController {
   constructor(private readonly service: ConfigService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Obtener todas las configuraciones' })
   getAll() {
     return this.service.getAll();
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':key')
   @ApiOperation({ summary: 'Obtener configuración por clave' })
   getByKey(@Param('key') key: string) {
     return this.service.getByKey(key);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Put(':key')
   @ApiOperation({ summary: 'Crear o actualizar configuración' })
   upsert(@Param('key') key: string, @Body() dto: UpsertConfigDto) {

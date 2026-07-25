@@ -50,6 +50,7 @@ export class SalesService {
   ) {
     const cashShiftId = dto.cashShiftId || dto.shiftId;
     const ticketNumber = dto.ticketNumber || `T-${Date.now()}`;
+    let wsPayload: any = null;
 
     const execute = async (client: PoolClient) => {
       // 0. Claim idempotente ANTES de cualquier SELECT FOR UPDATE o efecto
@@ -248,14 +249,7 @@ export class SalesService {
         [dto.storeId, operationId, JSON.stringify({ saleId: sale.id, total, success: true })],
       );
 
-      this.eventsGateway.emitSyncUpdate({
-        type: 'SALE_COMPLETED',
-        storeId: dto.storeId,
-        payload: {
-          saleId: sale.id,
-          ticketNumber: sale.ticket_number || ticketNumber,
-        },
-      });
+      wsPayload = { saleId: sale.id, ticketNumber: sale.ticket_number || ticketNumber, storeId: dto.storeId };
 
       return {
         success: true,
@@ -278,9 +272,13 @@ export class SalesService {
     };
 
     if (transactionalClient) {
-      return execute(transactionalClient);
+      const result = await execute(transactionalClient);
+      if (wsPayload) this.eventsGateway.emitSyncUpdate({ type: 'SALE_COMPLETED', storeId: wsPayload.storeId, payload: wsPayload });
+      return result;
     }
-    return await this.db.withTransaction(execute);
+    const result = await this.db.withTransaction(execute);
+    if (wsPayload) this.eventsGateway.emitSyncUpdate({ type: 'SALE_COMPLETED', storeId: wsPayload.storeId, payload: wsPayload });
+    return result;
   }
 
   async findAll(

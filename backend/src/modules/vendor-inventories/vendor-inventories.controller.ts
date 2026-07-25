@@ -12,6 +12,7 @@ import { VendorInventoriesService } from './vendor-inventories.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { ProcessTransactionDto } from './vendor-inventories.dto';
 
 @ApiTags('Vendor Inventories')
@@ -21,6 +22,7 @@ import { ProcessTransactionDto } from './vendor-inventories.dto';
 export class VendorInventoriesController {
   constructor(private readonly service: VendorInventoriesService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Get(':vendorId/:productId')
   @ApiOperation({
     summary: 'Obtener inventario de un producto asignado a un vendedor',
@@ -32,12 +34,14 @@ export class VendorInventoriesController {
     return this.service.getInventory(vendorId, productId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':vendorId')
   @ApiOperation({ summary: 'Listar productos asignados a un vendedor' })
   getVendorProducts(@Param('vendorId') vendorId: string) {
     return this.service.getVendorProducts(vendorId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post('transaction')
   @ApiOperation({
     summary:

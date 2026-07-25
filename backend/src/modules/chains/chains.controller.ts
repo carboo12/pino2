@@ -32,12 +32,14 @@ export class ChainsController {
     return this.chainsService.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar todas las cadenas' })
   findAll() {
     return this.chainsService.findAll();
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una cadena' })
   findOne(@Param('id') id: string) {

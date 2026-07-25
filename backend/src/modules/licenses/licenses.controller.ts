@@ -13,26 +13,31 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { LicensesService } from './licenses.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Licenses')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('licenses')
 export class LicensesController {
   constructor(private readonly service: LicensesService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar licencias' })
   findAll(@Query('storeId') storeId?: string) {
     return this.service.findAll(storeId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una licencia' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear licencia' })
   create(
@@ -48,6 +53,7 @@ export class LicensesController {
     return this.service.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar licencia' })
   update(
@@ -63,6 +69,7 @@ export class LicensesController {
     return this.service.update(id, dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar licencia' })
   remove(@Param('id') id: string) {

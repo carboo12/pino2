@@ -33,18 +33,21 @@ import {
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear un producto en la tienda' })
   create(@Body() dto: CreateProductDto) {
     return this.productsService.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post('import')
   @ApiOperation({ summary: 'Importación masiva de productos (Transaccional)' })
   importBulk(@Body() dto: ImportBulkProductsDto) {
     return this.productsService.importBulk(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiQuery({ name: 'storeId', required: true })
   @ApiQuery({ name: 'search', required: false })
@@ -71,6 +74,7 @@ export class ProductsController {
     );
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('barcode/:barcode')
   @ApiOperation({ summary: 'Buscar producto por código de barras' })
   findByBarcode(
@@ -80,18 +84,21 @@ export class ProductsController {
     return this.productsService.findByBarcode(storeId, barcode);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un producto' })
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar producto' })
   update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar producto (Desactivación lógica)' })
   remove(@Param('id') id: string) {

@@ -36,6 +36,8 @@ export class CollectionsService {
       );
     }
 
+    let wsPayload: any = null;
+
     const execute = async (client: PoolClient) => {
       // Check idempotency
       if (dto.externalId) {
@@ -129,19 +131,23 @@ export class CollectionsService {
       const result = this.mapRow(collection);
 
       // 3. Emit realtime event
-      this.eventsGateway.emitSyncUpdate({
+      wsPayload = {
         type: 'NEW_COLLECTION',
         storeId: dto.storeId,
         payload: result,
-      });
+      };
 
       return result;
     };
 
     if (transactionalClient) {
-      return execute(transactionalClient);
+      const result = await execute(transactionalClient);
+      if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+      return result;
     }
-    return this.db.withTransaction(execute);
+    const result = await this.db.withTransaction(execute);
+    if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+    return result;
   }
 
   async findAll(filters: {

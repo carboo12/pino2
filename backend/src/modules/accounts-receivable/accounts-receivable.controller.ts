@@ -13,6 +13,7 @@ import { AccountsReceivableService } from './accounts-receivable.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import {
   CreateAccountReceivableDto,
   AddPaymentDto,
@@ -25,6 +26,7 @@ import {
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar cuentas por cobrar' })
   findAll(
@@ -34,18 +36,21 @@ export class AccountsReceivableController {
     return this.service.findAll(storeId, pending === 'true');
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener cuenta por cobrar' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear cuenta por cobrar' })
   create(@Body() dto: CreateAccountReceivableDto) {
     return this.service.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post(':id/payments')
   @ApiOperation({ summary: 'Registrar pago a cuenta' })
   addPayment(

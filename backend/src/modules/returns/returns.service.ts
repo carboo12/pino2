@@ -52,6 +52,8 @@ export class ReturnsService {
       );
     }
 
+    let wsPayload: any = null;
+
     const execute = async (client: PoolClient) => {
       // Check idempotency
       if (dto.externalId) {
@@ -236,19 +238,23 @@ export class ReturnsService {
 
       const result = this.mapRow(returnRecord);
 
-      this.eventsGateway.emitSyncUpdate({
+      wsPayload = {
         type: 'NEW_RETURN',
         storeId: dto.storeId,
         payload: result,
-      });
+      };
 
       return result;
     };
 
     if (transactionalClient) {
-      return execute(transactionalClient);
+      const result = await execute( transactionalClient);
+      if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+      return result;
     }
-    return this.db.withTransaction(execute);
+    const result = await this.db.withTransaction(execute);
+    if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+    return result;
   }
 
   async findAll(filters: {
@@ -330,6 +336,8 @@ export class ReturnsService {
     },
     transactionalClient?: PoolClient,
   ) {
+    let wsPayload: any = null;
+
     const execute = async (client: PoolClient) => {
       // Check idempotency
       if (dto.externalId) {
@@ -508,19 +516,23 @@ export class ReturnsService {
         success: true,
       };
 
-      this.eventsGateway.emitSyncUpdate({
+      wsPayload = {
         type: 'NEW_RETURN',
         storeId,
         payload: result,
-      });
+      };
 
       return result;
     };
 
     if (transactionalClient) {
-      return execute(transactionalClient);
+      const result = await execute(transactionalClient);
+      if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+      return result;
     }
-    return this.db.withTransaction(execute);
+    const result = await this.db.withTransaction(execute);
+    if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+    return result;
   }
 
   private mapRow(row: any): any {

@@ -38,12 +38,14 @@ export class UsersController {
     return this.service.findAll(storeId, role);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un usuario por ID' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar perfil de usuario' })
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
@@ -57,6 +59,7 @@ export class UsersController {
     return this.service.assignToStore(id, storeId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id/stores')
   @ApiOperation({ summary: 'Obtener tiendas asignadas a un usuario' })
   getUserStores(@Param('id') id: string) {

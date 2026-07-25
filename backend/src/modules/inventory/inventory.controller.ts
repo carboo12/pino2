@@ -12,6 +12,7 @@ import { InventoryService } from './inventory.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import {
   AdjustStockDto,
   TransferBetweenStoresDto,
@@ -27,6 +28,7 @@ import {
 export class InventoryController {
   constructor(private readonly service: InventoryService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post('adjust')
   @ApiOperation({ summary: 'Ajustar stock de un producto' })
   adjustStock(@Body() dto: AdjustStockDto, @Req() req: any) {
@@ -36,6 +38,7 @@ export class InventoryController {
     } as any);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('movements')
   @ApiOperation({ summary: 'Obtener historial de movimientos de inventario' })
   getMovements(
@@ -46,18 +49,21 @@ export class InventoryController {
     return this.service.getMovements(storeId, date, type);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('warehouse')
   @ApiOperation({ summary: 'Obtener inventario de bodega por tienda' })
   getWarehouseInventory(@Query('storeId') storeId: string) {
     return this.service.getWarehouseInventory(storeId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('vendor')
   @ApiOperation({ summary: 'Obtener inventario asignado a un rutero/vendedor' })
   getVendorInventory(@Query('vendorId') vendorId: string) {
     return this.service.getVendorInventory(vendorId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post('transfer')
   @ApiOperation({ summary: 'Trasladar producto entre tiendas/bodegas' })
   transferBetweenStores(
@@ -70,6 +76,7 @@ export class InventoryController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post('quick-entry')
   @ApiOperation({
     summary: 'Entrada rápida de producto sin factura ni proveedor',
@@ -85,6 +92,7 @@ export class InventoryController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post('merma')
   @ApiOperation({
     summary: 'Registrar merma (producto dañado, vencido o perdido)',
@@ -100,6 +108,7 @@ export class InventoryController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post('ajuste')
   @ApiOperation({ summary: 'Ajuste de inventario (positivo o negativo)' })
   registerAjuste(@Body() dto: AjusteDto, @Req() req: any) {

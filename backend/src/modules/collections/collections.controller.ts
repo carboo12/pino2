@@ -12,6 +12,7 @@ import { CollectionsService } from './collections.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CreateCollectionDto } from './collections.dto';
 
 @ApiTags('Collections')
@@ -21,6 +22,7 @@ import { CreateCollectionDto } from './collections.dto';
 export class CollectionsController {
   constructor(private readonly service: CollectionsService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Registrar cobro del rutero' })
   create(@Body() dto: CreateCollectionDto, @Req() req: any) {
@@ -30,6 +32,7 @@ export class CollectionsController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar cobros con filtros' })
   findAll(
@@ -41,6 +44,7 @@ export class CollectionsController {
     return this.service.findAll({ storeId, ruteroId, clientId, date });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('summary')
   @ApiOperation({ summary: 'Resumen de cobros por rutero/fecha' })
   getSummary(

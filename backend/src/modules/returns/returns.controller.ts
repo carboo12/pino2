@@ -13,6 +13,7 @@ import { ReturnsService } from './returns.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CreateReturnDto } from './returns.dto';
 
 @ApiTags('Returns')
@@ -22,6 +23,7 @@ import { CreateReturnDto } from './returns.dto';
 export class ReturnsController {
   constructor(private readonly service: ReturnsService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({
     summary: 'Registrar devolución de rutero o devolución POS basada en venta',
@@ -34,6 +36,7 @@ export class ReturnsController {
     } as any);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar devoluciones con filtros' })
   findAll(
@@ -52,6 +55,7 @@ export class ReturnsController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de devolución con items' })
   findOne(@Param('id') id: string) {

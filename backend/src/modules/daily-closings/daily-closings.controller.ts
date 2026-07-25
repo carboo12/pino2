@@ -12,15 +12,18 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { DailyClosingsService } from './daily-closings.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { CreateDailyClosingDto } from './daily-closings.dto';
 
 @ApiTags('Daily Closings')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, StoreAccessGuard)
+@UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
 @Controller('daily-closings')
 export class DailyClosingsController {
   constructor(private readonly service: DailyClosingsService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Registrar cierre de caja del rutero' })
   create(@Body() dto: CreateDailyClosingDto, @Req() req: any) {
@@ -30,6 +33,7 @@ export class DailyClosingsController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar cierres de caja' })
   findAll(
@@ -40,6 +44,7 @@ export class DailyClosingsController {
     return this.service.findAll({ storeId, ruteroId, date });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de cierre' })
   findOne(@Param('id') id: string) {

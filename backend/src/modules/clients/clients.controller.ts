@@ -16,6 +16,7 @@ import { CreateClientDto, UpdateClientDto } from './clients.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Clients')
 @ApiBearerAuth()
@@ -24,12 +25,14 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 export class ClientsController {
   constructor(private readonly service: ClientsService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo cliente' })
   create(@Body() dto: CreateClientDto) {
     return this.service.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({ summary: 'Listar clientes de una tienda' })
   findAll(
@@ -45,30 +48,35 @@ export class ClientsController {
     });
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un cliente por ID' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id/estado-cuenta')
   @ApiOperation({ summary: 'Obtener el estado de cuenta de un cliente' })
   estadoCuenta(@Param('id') id: string) {
     return this.service.estadoCuenta(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar un cliente' })
   update(@Param('id') id: string, @Body() dto: UpdateClientDto) {
     return this.service.update(id, dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar un cliente' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post(':id/reasignar')
   @ApiOperation({ summary: 'Reasignar preventa de un cliente' })
   reasignar(

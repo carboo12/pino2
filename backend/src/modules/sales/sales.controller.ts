@@ -23,12 +23,14 @@ import { ProcessSaleDto } from './sales.dto';
 export class SalesController {
   constructor(private readonly service: SalesService) {}
 
+  @Roles('master-admin', 'store-admin')
   @Post('process')
   @ApiOperation({ summary: 'Procesar una venta (Transaccional puro)' })
   processSale(@Body() dto: ProcessSaleDto, @Req() req: any) {
     return this.service.processSale(dto, req.user.sub);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiOperation({
     summary: 'Listar ventas (Filtrable por tienda, turno y fecha)',
@@ -43,6 +45,7 @@ export class SalesController {
     return this.service.findAll(storeId, shiftId, startDate, endDate, storeIds);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('dashboard-stats')
   @ApiOperation({
     summary:
@@ -52,6 +55,7 @@ export class SalesController {
     return this.service.getDashboardStats(storeId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get('report')
   @ApiOperation({ summary: 'Obtener reporte consolidado de ventas' })
   getReport(
@@ -62,12 +66,14 @@ export class SalesController {
     return this.service.getSalesReport(storeId, startDate, endDate);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una venta con sus items' })
   findOne(@Param('id') id: string, @Query('storeId') storeId?: string) {
     return this.service.findOne(id, storeId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Post(':id/return')
   @ApiOperation({ summary: 'Procesar devolución de una venta' })
   processReturn(

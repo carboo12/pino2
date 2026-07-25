@@ -39,7 +39,9 @@ export class InventoryService {
     quantity: number;
     reference: string;
   }) {
-    return await this.db.withTransaction(async (client) => {
+    let wsPayload: any = null;
+
+    const result = await this.db.withTransaction(async (client) => {
       if (!dto.storeId || !dto.productId || !dto.userId) {
         throw new BadRequestException(
           'storeId, productId y userId son obligatorios',
@@ -127,7 +129,7 @@ export class InventoryService {
         balanceUnits,
       };
 
-      this.eventsGateway.emitSyncUpdate({
+      wsPayload = {
         type: 'INVENTORY_UPDATE',
         storeId: dto.storeId,
         payload: {
@@ -139,10 +141,12 @@ export class InventoryService {
           balanceUnits,
           reference: dto.reference,
         },
-      });
+      };
 
       return result;
     });
+    if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
+    return result;
   }
 
   async getKardex(storeId: string, productId: string) {
@@ -301,7 +305,10 @@ export class InventoryService {
       throw new BadRequestException('No se puede trasladar a la misma tienda');
     }
 
-    return await this.db.withTransaction(async (client) => {
+    let wsFromPayload: any = null;
+    let wsToPayload: any = null;
+
+    const transferResult = await this.db.withTransaction(async (client) => {
       const quantity = this.parseInteger(dto.quantity, 'quantity');
       if (quantity <= 0)
         throw new BadRequestException('quantity debe ser mayor que cero');
@@ -424,17 +431,17 @@ export class InventoryService {
         reference: ref,
       };
 
-      this.eventsGateway.emitSyncUpdate({
+      wsFromPayload = {
         type: 'INVENTORY_TRANSFER',
         storeId: dto.fromStoreId,
         payload,
-      });
+      };
 
-      this.eventsGateway.emitSyncUpdate({
+      wsToPayload = {
         type: 'INVENTORY_TRANSFER',
         storeId: dto.toStoreId,
         payload,
-      });
+      };
 
       return {
         success: true,
@@ -444,5 +451,8 @@ export class InventoryService {
         toStock: newDestStock,
       };
     });
+    if (wsFromPayload) this.eventsGateway.emitSyncUpdate(wsFromPayload);
+    if (wsToPayload) this.eventsGateway.emitSyncUpdate(wsToPayload);
+    return transferResult;
   }
 }

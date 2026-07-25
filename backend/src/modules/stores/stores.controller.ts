@@ -38,6 +38,7 @@ export class StoresController {
     return this.storesService.create(dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get()
   @ApiQuery({ name: 'chainId', required: false })
   @ApiOperation({ summary: 'Listar tiendas (Filtrable por cadena)' })
@@ -45,6 +46,7 @@ export class StoresController {
     return this.storesService.findAll(chainId);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de una tienda específica' })
   findOne(@Param('id') id: string) {
@@ -58,6 +60,7 @@ export class StoresController {
     return this.storesService.update(id, dto);
   }
 
+  @Roles('master-admin', 'store-admin')
   @Get(':id/default-client')
   @ApiOperation({ summary: 'Obtener o crear cliente por defecto de la tienda' })
   async getDefaultClient(@Param('id') id: string) {
