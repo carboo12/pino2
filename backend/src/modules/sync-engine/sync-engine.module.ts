@@ -6,7 +6,7 @@ import { OutboxWorker } from './outbox.worker';
 import { InboxService } from './inbox.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, ScheduleModule.forRoot()],
   controllers: [SyncEngineController],
   providers: [OutboxWorker, InboxService],
   exports: [OutboxWorker, InboxService],
