@@ -56,7 +56,7 @@ export default function EconomicGroupsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {map(g => (
+        {groups.map(g => (
           <div key={g.id} className="bg-card border rounded-xl overflow-hidden shadow-sm flex flex-col">
             <div className="p-6">
               <div className="flex justify-between items-start mb-6 border-b pb-4">

@@ -25,6 +25,7 @@ export function AdminAuthDialog({
     onConfirm,
     title = "Autorización Requerida",
     description = "Esta acción requiere permisos de administrador. Por favor ingrese su clave.",
+    requiredRole,
 }: AdminAuthDialogProps) {
     const { user } = useAuth();
     const isCurrentUserPrivileged = ['store-admin', 'master-admin', 'owner'].includes(normalizeUserRole(user?.role));

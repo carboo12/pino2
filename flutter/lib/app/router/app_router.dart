@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -36,7 +37,9 @@ import '../../features/preventa/presentation/screens/preventa_home_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/promotions/presentation/screens/promotions_screen.dart';
 
-import 'package:flutter/material.dart';
+class _AuthRouterNotifier extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
 
 GoRoute _fadeRoute({
   required String path,
@@ -57,9 +60,16 @@ GoRoute _fadeRoute({
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authControllerProvider);
+  final notifier = _AuthRouterNotifier();
+
+  ref.listen(authControllerProvider, (_, __) {
+    notifier.notify();
+  });
+
+  ref.onDispose(notifier.dispose);
 
   return GoRouter(
+    refreshListenable: notifier,
     initialLocation: '/',
     routes: [
       _fadeRoute(path: '/', builder: (context, state) => const SplashScreen()),
@@ -233,6 +243,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
     redirect: (context, state) {
+      final authState = ref.read(authControllerProvider);
       final location = state.uri.path;
       final stage = authState.stage;
 

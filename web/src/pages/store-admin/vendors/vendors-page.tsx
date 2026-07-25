@@ -41,7 +41,7 @@ export default function VendorsPage() {
         return (<>
             <div className="rounded-md border">
                 <Accordion type="single" collapsible className="w-full">
-                    {map((vendor) => (
+                    {vendors.map((vendor) => (
                         <AccordionItem value={vendor.uid} key={vendor.uid}>
                             <AccordionTrigger className="px-6 py-4 hover:no-underline">
                                 <div className="flex items-center justify-between w-full"><span className="font-medium text-left">{vendor.name}</span><Badge variant="outline">{vendor.role}</Badge></div>

@@ -15,6 +15,7 @@ class CachedStores extends Table {
   TextColumn get address => text().nullable()();
   TextColumn get phone => text().nullable()();
   TextColumn get chainId => text().nullable()();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -36,6 +37,7 @@ class CachedProducts extends Table {
   TextColumn get subDepartment => text().nullable()();
   IntColumn get minStock => integer().withDefault(const Constant(0))();
   BoolColumn get handlesBulk => boolean().withDefault(const Constant(false))();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -49,6 +51,7 @@ class CachedProductBarcodes extends Table {
   TextColumn get barcode => text()();
   TextColumn get label => text().nullable()();
   BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
+  TextColumn get cursor => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -61,6 +64,7 @@ class CachedClients extends Table {
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
   TextColumn get address => text().nullable()();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -78,6 +82,7 @@ class CachedReceivableAccounts extends Table {
   TextColumn get status => text()();
   TextColumn get orderId => text().nullable()();
   TextColumn get description => text().nullable()();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -91,6 +96,7 @@ class CachedCollectionSummaries extends Table {
   RealColumn get totalAmount => real()();
   RealColumn get cashTotal => real()();
   RealColumn get otherTotal => real()();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -105,6 +111,7 @@ class CachedRoutes extends Table {
   DateTimeColumn get routeDate => dateTime().nullable()();
   TextColumn get status => text()();
   TextColumn get notes => text().nullable()();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -125,6 +132,7 @@ class CachedDeliveries extends Table {
   TextColumn get paymentType => text().nullable()();
   TextColumn get salesManagerName => text().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get cursor => text().nullable()();
   DateTimeColumn get cachedAt => dateTime()();
 
   @override
@@ -150,6 +158,7 @@ class SyncQueueEntries extends Table {
   TextColumn get operationType => text().nullable()();
   TextColumn get errorMessage => text().nullable()();
   IntColumn get attemptCount => integer().withDefault(const Constant(0))();
+  BoolColumn get tombstone => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get lastAttemptAt => dateTime().nullable()();
 }
@@ -183,7 +192,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -212,6 +221,17 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await _createBarcodeIndex();
+      }
+      if (from < 8) {
+        await migrator.addColumn(cachedStores, cachedStores.cursor);
+        await migrator.addColumn(cachedProducts, cachedProducts.cursor);
+        await migrator.addColumn(cachedProductBarcodes, cachedProductBarcodes.cursor);
+        await migrator.addColumn(cachedClients, cachedClients.cursor);
+        await migrator.addColumn(cachedReceivableAccounts, cachedReceivableAccounts.cursor);
+        await migrator.addColumn(cachedCollectionSummaries, cachedCollectionSummaries.cursor);
+        await migrator.addColumn(cachedRoutes, cachedRoutes.cursor);
+        await migrator.addColumn(cachedDeliveries, cachedDeliveries.cursor);
+        await migrator.addColumn(syncQueueEntries, syncQueueEntries.tombstone);
       }
     },
   );

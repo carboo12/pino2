@@ -158,7 +158,7 @@ export default function MasterSubZonesPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {map((sz) => (
+                                {subZones.map((sz) => (
                                     <TableRow key={sz.id}>
                                         <TableCell className="font-medium">{sz.name}</TableCell>
                                         <TableCell>{sz.zoneName || getZoneName(sz.zoneId)}</TableCell>

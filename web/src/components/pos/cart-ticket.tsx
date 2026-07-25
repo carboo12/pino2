@@ -1,5 +1,5 @@
 
-import { usePos } from '@/context/pos-context';
+import { usePos } from '@/contexts/pos-context';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Trash, Minus, Plus } from 'lucide-react';

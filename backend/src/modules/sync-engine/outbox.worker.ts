@@ -13,6 +13,7 @@ export class OutboxWorker {
     let client: any;
     try {
       client = await this.db.getClient();
+      await client.query('BEGIN');
       const res = await client.query(
         `SELECT * FROM sync_outbox
          WHERE published_at IS NULL
@@ -80,7 +81,12 @@ export class OutboxWorker {
           );
         }
       }
+
+      await client.query('COMMIT');
     } catch (err: any) {
+      try {
+        await client.query('ROLLBACK');
+      } catch {}
       this.logger.error(`Outbox worker error: ${err.message}`);
     } finally {
       if (client) {

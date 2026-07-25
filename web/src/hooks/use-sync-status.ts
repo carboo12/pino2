@@ -34,7 +34,7 @@ export function useSyncStatus(storeId: string | null): UseSyncStatusReturn {
             setIsOnline(online);
         });
 
-        return unsubscribe;
+        return () => { unsubscribe(); };
     }, []);
 
     // Subscribe to sync status for the store
@@ -62,7 +62,7 @@ export function useSyncStatus(storeId: string | null): UseSyncStatusReturn {
             setLastSync(status.lastSyncTimestamp);
         });
 
-        return unsubscribe;
+        return () => { unsubscribe(); };
     }, [storeId]);
 
     // Monitor syncing state

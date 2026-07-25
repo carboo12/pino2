@@ -22,6 +22,7 @@ import financeService, {
 } from '@/services/finance-service';
 import { useRealTimeEvents } from '@/hooks/use-real-time-events';
 import { exportToExcel } from '@/lib/export-excel';
+import { usePagination } from '@/hooks/use-pagination';
 
 const dateOnlyFormatter = new Intl.DateTimeFormat('es-NI', {
   dateStyle: 'medium',

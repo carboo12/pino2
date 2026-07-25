@@ -9,7 +9,7 @@ interface LeftPanelProps {
     className?: string;
 }
 
-import { usePos } from '@/context/pos-context';
+import { usePos } from '@/contexts/pos-context';
 
 export function LeftPanel({ className }: LeftPanelProps) {
     const { client, setClient } = usePos();
@@ -41,7 +41,7 @@ export function LeftPanel({ className }: LeftPanelProps) {
                         onClick={() => {
                             // Mock client toggle for demo
                             if (client) setClient(null);
-                            else setClient({ name: 'JUAN PEREZ', id: '123' });
+                            else setClient({ name: 'JUAN PEREZ', id: '123', storeId: 'mock-store', address: 'N/A' });
                         }}
                     >
                         <UserPlus className="h-4 w-4 text-gray-600" />

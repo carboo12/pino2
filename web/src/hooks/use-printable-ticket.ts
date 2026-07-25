@@ -1,7 +1,5 @@
 
 import { useCallback, RefObject } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from './use-toast';
 
@@ -10,6 +8,10 @@ export function usePrintableTicket(ticketRef: RefObject<HTMLDivElement>) {
   const { toast } = useToast();
 
   const handlePrint = useCallback(async () => {
+    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+      import('html2canvas'),
+      import('jspdf'),
+    ]);
     const element = ticketRef.current;
     if (!element) {
       toast({

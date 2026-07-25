@@ -6,25 +6,31 @@ import {
   IsUUID,
   ValidateNested,
   IsOptional,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+const OPERATION_TYPES = [
+  'SALE',
+  'ORDER',
+  'COLLECTION',
+  'RETURN',
+  'INVENTORY',
+  'PRODUCT',
+  'CLIENT',
+] as const;
+
+export type OperationType = (typeof OPERATION_TYPES)[number];
 
 export class SyncOperationDto {
   @IsString()
   @IsNotEmpty()
-  type!: string;
-
-  @IsString()
-  @IsOptional()
-  id?: string;
-
-  @IsString()
-  @IsOptional()
-  localId?: string;
+  @IsIn(OPERATION_TYPES)
+  type!: OperationType;
 
   @IsUUID('all')
   @IsNotEmpty()
-  externalId!: string;
+  operationId!: string;
 
   @IsObject()
   @IsOptional()

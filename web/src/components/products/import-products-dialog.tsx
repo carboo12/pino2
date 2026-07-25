@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import { Upload, FileDown, Loader2, FileSpreadsheet } from 'lucide-react';
 
 import apiClient from '@/services/api-client';
@@ -152,8 +151,9 @@ export function ImportProductsDialog({ storeId }: ImportProductsDialogProps) {
         };
         reader.readAsText(file);
       } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
+            const XLSX = await import('xlsx');
             const data = new Uint8Array(e.target?.result as ArrayBuffer);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
@@ -181,7 +181,8 @@ export function ImportProductsDialog({ storeId }: ImportProductsDialogProps) {
     }
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const XLSX = await import('xlsx');
     const worksheet = XLSX.utils.json_to_sheet(TEMPLATE_ROWS);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Plantilla");

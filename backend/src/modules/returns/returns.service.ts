@@ -7,11 +7,13 @@ import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
 import { bulkUnitsToTotal, splitIntoBulkUnits } from '../../common/utils/stock-display.util';
+import { ReturnsRepository } from './repositories/returns.repository';
 
 @Injectable()
 export class ReturnsService {
   constructor(
     private readonly db: DatabaseService,
+    private readonly repository: ReturnsRepository,
     private readonly eventsGateway: EventsGateway,
   ) {}
 
@@ -56,19 +58,17 @@ export class ReturnsService {
     let wsPayload: any = null;
 
     const execute = async (client: PoolClient) => {
-      // Check idempotency
       if (dto.externalId) {
-        const existing = await client.query(
-          'SELECT * FROM returns WHERE external_id = $1',
-          [dto.externalId],
-        );
-        if (existing.rowCount > 0) {
-          await client.query(
-            'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
-            [dto.storeId, dto.externalId, 'RETURN'],
+        const existing = await this.repository.findByExternalId(dto.externalId, client);
+        if (existing) {
+          await this.repository.insertIdempotencyLog(
+            dto.storeId,
+            dto.externalId,
+            'RETURN',
+            client,
           );
           return {
-            ...this.mapRow(existing.rows[0]),
+            ...existing,
             message: 'Operación ya procesada anteriormente (Idempotencia)',
             isDuplicate: true,
           };
@@ -93,17 +93,12 @@ export class ReturnsService {
         const quantityBulks = this.toInt(item.quantityBulks);
         const quantityUnits = this.toInt(item.quantityUnits);
 
-        const prodRes = await client.query(
-          'SELECT current_stock, units_per_bulk FROM products WHERE id = $1 FOR UPDATE',
-          [item.productId],
-        );
-        if (prodRes.rowCount === 0) {
+        const product = await this.repository.findProductForUpdate(item.productId, client);
+        if (!product) {
           throw new NotFoundException('Producto no encontrado para devolución');
         }
 
-        const unitsPerBulk = this.toUnitsPerBulk(
-          prodRes.rows[0].units_per_bulk,
-        );
+        const unitsPerBulk = this.toUnitsPerBulk(product.unitsPerBulk);
         const totalUnits = bulkUnitsToTotal(
           quantityBulks,
           quantityUnits,
@@ -130,71 +125,54 @@ export class ReturnsService {
         0,
       );
 
-      const returnRes = await client.query(
-        `INSERT INTO returns (store_id, order_id, rutero_id, notes, total, external_id)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [
-          dto.storeId,
-          dto.orderId || null,
-          dto.ruteroId || null,
-          dto.notes || null,
-          total,
-          dto.externalId || null,
-        ],
+      const returnRecord = await this.repository.insertReturn(
+        dto.storeId,
+        dto.orderId || null,
+        dto.ruteroId || null,
+        dto.notes || null,
+        total,
+        dto.externalId || null,
+        client,
       );
-      const returnRecord = returnRes.rows[0];
 
       for (const item of preparedItems) {
         const subtotal = item.totalUnits * item.unitPrice;
 
-        await client.query(
-          `INSERT INTO return_items (return_id, product_id, quantity_bulks, quantity_units, unit_price, subtotal)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            returnRecord.id,
-            item.productId,
-            item.quantityBulks,
-            item.quantityUnits,
-            item.unitPrice,
-            subtotal,
-          ],
+        await this.repository.insertReturnItem(
+          returnRecord.id,
+          item.productId,
+          item.quantityBulks,
+          item.quantityUnits,
+          item.unitPrice,
+          subtotal,
+          client,
         );
 
-        const prodRes = await client.query(
-          'SELECT current_stock, stock_bulks, stock_units, units_per_bulk FROM products WHERE id = $1 FOR UPDATE',
-          [item.productId],
+        const product = await this.repository.findProductWithStockForUpdate(
+          item.productId,
+          client,
         );
-
-        if (prodRes.rowCount === 0) {
+        if (!product) {
           throw new NotFoundException('Producto no encontrado para devolución');
         }
 
-        const product = prodRes.rows[0];
-        const unitsPerBulk = this.toUnitsPerBulk(product.units_per_bulk);
-        const currentStock = this.toInt(product.current_stock);
+        const unitsPerBulk = this.toUnitsPerBulk(product.unitsPerBulk);
+        const currentStock = this.toInt(product.currentStock);
         const newCurrentStock = currentStock + item.totalUnits;
         const newProductSplit = this.toSplit(newCurrentStock, unitsPerBulk);
 
-        await client.query(
-          'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
-          [
-            newCurrentStock,
-            item.productId,
-          ],
-        );
+        await this.repository.updateProductStock(newCurrentStock, item.productId, client);
 
         if (dto.ruteroId) {
-          const vendorRes = await client.query(
-            `SELECT current_quantity
-             FROM vendor_inventories
-             WHERE vendor_id = $1 AND product_id = $2
-             FOR UPDATE`,
-            [dto.ruteroId, item.productId],
+          const vendorInv = await this.repository.findVendorInventoryForUpdate(
+            dto.ruteroId,
+            item.productId,
+            client,
           );
 
           if (
-            vendorRes.rowCount === 0 ||
-            this.toInt(vendorRes.rows[0].current_quantity) < item.totalUnits
+            !vendorInv ||
+            this.toInt(vendorInv.currentQuantity) < item.totalUnits
           ) {
             throw new BadRequestException(
               'Inventario insuficiente del rutero para procesar la devolución',
@@ -202,57 +180,45 @@ export class ReturnsService {
           }
 
           const newVendorStock =
-            this.toInt(vendorRes.rows[0].current_quantity) - item.totalUnits;
+            this.toInt(vendorInv.currentQuantity) - item.totalUnits;
           const newVendorSplit = this.toSplit(newVendorStock, unitsPerBulk);
 
-          await client.query(
-            `UPDATE vendor_inventories
-             SET current_quantity = $1,
-                 current_bulks = $2,
-                 current_units = $3,
-                 updated_at = NOW()
-             WHERE vendor_id = $4 AND product_id = $5`,
-            [
-              newVendorStock,
-              newVendorSplit.bulks,
-              newVendorSplit.units,
-              dto.ruteroId,
-              item.productId,
-            ],
+          await this.repository.updateVendorInventory(
+            dto.ruteroId,
+            item.productId,
+            newVendorStock,
+            newVendorSplit.bulks,
+            newVendorSplit.units,
+            client,
           );
         }
 
-        await client.query(
-          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, balance, quantity_bulks, quantity_units, balance_bulks, balance_units, reference)
-           VALUES ($1, $2, $3, 'IN', $4, $5, $6, $7, $8, $9, $10)`,
-          [
-            dto.storeId,
-            item.productId,
-            dto.ruteroId || null,
-            item.totalUnits,
-            newCurrentStock,
-            item.quantityBulks,
-            item.quantityUnits,
-            newProductSplit.bulks,
-            newProductSplit.units,
-            `Devolución #${returnRecord.id.substring(0, 8)}`,
-          ],
+        await this.repository.insertMovement(
+          dto.storeId,
+          item.productId,
+          dto.ruteroId || null,
+          item.totalUnits,
+          newCurrentStock,
+          item.quantityBulks,
+          item.quantityUnits,
+          newProductSplit.bulks,
+          newProductSplit.units,
+          `Devolución #${returnRecord.id.substring(0, 8)}`,
+          client,
         );
       }
-
-      const result = this.mapRow(returnRecord);
 
       wsPayload = {
         type: 'NEW_RETURN',
         storeId: dto.storeId,
-        payload: result,
+        payload: returnRecord,
       };
 
-      return result;
+      return returnRecord;
     };
 
     if (transactionalClient) {
-      const result = await execute( transactionalClient);
+      const result = await execute(transactionalClient);
       if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
       return result;
     }
@@ -268,64 +234,16 @@ export class ReturnsService {
     fromDate?: string;
     toDate?: string;
   }) {
-    let sql = 'SELECT * FROM returns WHERE 1=1';
-    const params: any[] = [];
-    let idx = 1;
-
-    if (filters.storeId) {
-      sql += ` AND store_id = $${idx++}`;
-      params.push(filters.storeId);
-    }
-    if (filters.ruteroId) {
-      sql += ` AND rutero_id = $${idx++}`;
-      params.push(filters.ruteroId);
-    }
-    if (filters.orderId) {
-      sql += ` AND order_id = $${idx++}`;
-      params.push(filters.orderId);
-    }
-    if (filters.fromDate) {
-      sql += ` AND created_at >= $${idx++}`;
-      params.push(new Date(filters.fromDate));
-    }
-    if (filters.toDate) {
-      sql += ` AND created_at <= $${idx++}`;
-      params.push(new Date(filters.toDate));
-    }
-
-    sql += ' ORDER BY created_at DESC';
-    const res = await this.db.query(sql, params);
-    return res.rows.map(this.mapRow);
+    return this.repository.findAll(filters);
   }
 
   async findOne(id: string) {
-    const res = await this.db.query('SELECT * FROM returns WHERE id = $1', [
-      id,
-    ]);
-    if ((res.rowCount ?? 0) === 0)
+    const returnRecord = await this.repository.findById(id);
+    if (!returnRecord)
       throw new NotFoundException('Devolución no encontrada');
 
-    const returnRecord = this.mapRow(res.rows[0]);
-
-    const itemsRes = await this.db.query(
-      `SELECT ri.*, p.description as product_name, p.barcode
-       FROM return_items ri
-       LEFT JOIN products p ON p.id = ri.product_id
-       WHERE ri.return_id = $1`,
-      [id],
-    );
-
-    returnRecord.items = itemsRes.rows.map((r) => ({
-      id: r.id,
-      productId: r.product_id,
-      productName: r.product_name || 'N/A',
-      barcode: r.barcode,
-      quantityBulks: parseInt(r.quantity_bulks || 0),
-      quantityUnits: parseInt(r.quantity_units || 0),
-      unitPrice: parseFloat(r.unit_price || 0),
-      subtotal: parseFloat(r.subtotal || 0),
-    }));
-
+    const items = await this.repository.findItemsByReturnId(id);
+    returnRecord.items = items;
     return returnRecord;
   }
 
@@ -343,35 +261,30 @@ export class ReturnsService {
     let wsPayload: any = null;
 
     const execute = async (client: PoolClient) => {
-      // Check idempotency
       if (dto.externalId) {
-        const existing = await client.query(
-          'SELECT * FROM returns WHERE external_id = $1',
-          [dto.externalId],
-        );
-        if (existing.rowCount > 0) {
-          await client.query(
-            'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
-            [dto.storeId, dto.externalId, 'RETURN'],
+        const existing = await this.repository.findByExternalId(dto.externalId, client);
+        if (existing) {
+          await this.repository.insertIdempotencyLog(
+            dto.storeId,
+            dto.externalId,
+            'RETURN',
+            client,
           );
           return {
-            ...this.mapRow(existing.rows[0]),
+            ...existing,
             message: 'Operación ya procesada anteriormente (Idempotencia)',
             isDuplicate: true,
           };
         }
       }
 
-      const saleRes = await client.query('SELECT * FROM sales WHERE id = $1', [
-        dto.saleId,
-      ]);
-      if (saleRes.rowCount === 0) {
+      const sale = await this.repository.findSaleById(dto.saleId, client);
+      if (!sale) {
         throw new NotFoundException('Venta no encontrada');
       }
 
-      const sale = saleRes.rows[0];
-      const storeId = dto.storeId || sale.store_id;
-      const userId = dto.cashierId || sale.cashier_id || null;
+      const storeId = dto.storeId || sale.storeId;
+      const userId = dto.cashierId || sale.cashierId || null;
       const normalizedItems = dto.items.map((item) => ({
         productId: item.productId,
         quantity: this.toInt(item.quantity),
@@ -390,32 +303,33 @@ export class ReturnsService {
       const preparedItems = [];
 
       for (const item of normalizedItems) {
-        const saleItemRes = await client.query(
-          'SELECT id, product_id, unit_price, quantity, returned_quantity FROM sale_items WHERE sale_id = $1 AND (product_id = $2 OR id = $2) FOR UPDATE',
-          [dto.saleId, item.productId],
+        const saleItem = await this.repository.findSaleItemForUpdate(
+          dto.saleId,
+          item.productId,
+          client,
         );
-        if (saleItemRes.rowCount === 0) {
+        if (!saleItem) {
           throw new BadRequestException(
             'El producto no pertenece a la venta indicada',
           );
         }
 
-        const si = saleItemRes.rows[0];
-        const alreadyReturned = this.toInt(si.returned_quantity);
-        const maxReturnable = this.toInt(si.quantity) - alreadyReturned;
+        const alreadyReturned = this.toInt(saleItem.returnedQuantity);
+        const maxReturnable = this.toInt(saleItem.quantity) - alreadyReturned;
         if (item.quantity > maxReturnable) {
           throw new BadRequestException(
             `Solo se pueden devolver ${maxReturnable} unidades de este producto (ya devueltas: ${alreadyReturned})`,
           );
         }
 
-        await client.query(
-          'UPDATE sale_items SET returned_quantity = returned_quantity + $1 WHERE id = $2',
-          [item.quantity, si.id],
+        await this.repository.updateSaleItemReturnedQuantity(
+          item.quantity,
+          saleItem.id,
+          client,
         );
 
-        const resolvedProductId = si.product_id;
-        const unitPrice = this.toAmount(si.unit_price);
+        const resolvedProductId = saleItem.productId;
+        const unitPrice = this.toAmount(saleItem.unitPrice);
         totalRefund += unitPrice * item.quantity;
         preparedItems.push({
           productId: resolvedProductId,
@@ -424,95 +338,74 @@ export class ReturnsService {
         });
       }
 
-      const returnRes = await client.query(
-        `INSERT INTO returns (store_id, order_id, rutero_id, notes, total, external_id)
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-        [
-          storeId,
-          null,
-          userId,
-          dto.notes ||
-            `Devolución de venta ${sale.ticket_number || dto.saleId}`,
-          totalRefund,
-          dto.externalId || null,
-        ],
+      const returnRecord = await this.repository.insertReturn(
+        storeId,
+        null,
+        userId,
+        dto.notes ||
+          `Devolución de venta ${sale.ticketNumber || dto.saleId}`,
+        totalRefund,
+        dto.externalId || null,
+        client,
       );
-      const returnRecord = returnRes.rows[0];
 
       for (const item of preparedItems) {
-        const prodRes = await client.query(
-          'SELECT current_stock, units_per_bulk FROM products WHERE id = $1 FOR UPDATE',
-          [item.productId],
+        const product = await this.repository.findProductForUpdate(
+          item.productId,
+          client,
         );
-        if (prodRes.rowCount === 0) {
+        if (!product) {
           throw new NotFoundException('Producto no encontrado para devolución');
         }
 
-        const unitsPerBulk = this.toUnitsPerBulk(
-          prodRes.rows[0].units_per_bulk,
-        );
-        const currentStock = this.toInt(prodRes.rows[0].current_stock);
+        const unitsPerBulk = this.toUnitsPerBulk(product.unitsPerBulk);
+        const currentStock = this.toInt(product.currentStock);
         const newCurrentStock = currentStock + item.quantity;
         const newProductSplit = this.toSplit(newCurrentStock, unitsPerBulk);
 
-        await client.query(
-          `INSERT INTO return_items (return_id, product_id, quantity_bulks, quantity_units, unit_price, subtotal)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            returnRecord.id,
-            item.productId,
-            0,
-            item.quantity,
-            item.unitPrice,
-            item.quantity * item.unitPrice,
-          ],
+        await this.repository.insertReturnItem(
+          returnRecord.id,
+          item.productId,
+          0,
+          item.quantity,
+          item.unitPrice,
+          item.quantity * item.unitPrice,
+          client,
         );
 
-        await client.query(
-          'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
-          [
-            newCurrentStock,
-            item.productId,
-          ],
-        );
+        await this.repository.updateProductStock(newCurrentStock, item.productId, client);
 
-        await client.query(
-          `INSERT INTO movements (store_id, product_id, user_id, type, quantity, balance, quantity_bulks, quantity_units, balance_bulks, balance_units, reference)
-           VALUES ($1, $2, $3, 'IN', $4, $5, $6, $7, $8, $9, $10)`,
-          [
-            storeId,
-            item.productId,
-            userId,
-            item.quantity,
-            newCurrentStock,
-            0,
-            item.quantity,
-            newProductSplit.bulks,
-            newProductSplit.units,
-            `Devolución Venta: ${sale.ticket_number || dto.saleId}`,
-          ],
+        await this.repository.insertMovement(
+          storeId,
+          item.productId,
+          userId,
+          item.quantity,
+          newCurrentStock,
+          0,
+          item.quantity,
+          newProductSplit.bulks,
+          newProductSplit.units,
+          `Devolución Venta: ${sale.ticketNumber || dto.saleId}`,
+          client,
         );
       }
 
-      await client.query(
-        `INSERT INTO outbox_events (aggregate_type, aggregate_id, store_id, event_type, payload)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          'return',
-          returnRecord.id,
-          storeId,
-          'RETURN_CREATED',
-          JSON.stringify({
-            returnId: returnRecord.id,
-            saleId: dto.saleId,
-            totalRefund,
-            items: preparedItems.length,
-          }),
-        ],
+      await this.repository.insertOutboxEvent(
+        'return',
+        returnRecord.id,
+        storeId,
+        'RETURN_CREATED',
+        {
+          returnId: returnRecord.id,
+          saleId: dto.saleId,
+          totalRefund,
+          items: preparedItems.length,
+        },
+        client,
       );
 
       const result = {
-        ...this.mapRow(returnRecord),
+        ...returnRecord,
         saleId: dto.saleId,
         totalRefund,
         success: true,
@@ -535,18 +428,6 @@ export class ReturnsService {
     const result = await this.db.withTransaction(execute);
     if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
     return result;
-  }
-
-  private mapRow(row: any): any {
-    return {
-      id: row.id,
-      storeId: row.store_id,
-      orderId: row.order_id,
-      ruteroId: row.rutero_id,
-      notes: row.notes,
-      total: parseFloat(row.total || 0),
-      createdAt: row.created_at,
-    };
   }
 
   private toAmount(value: any): number {

@@ -1,3 +1,7 @@
+// Shared canonical error codes defined in /shared/contracts.ts
+// Keep this file in sync. Codegen from shared/contracts.ts is the source of truth.
+
+// LEGACY — kept for backward compat during migration
 export enum ErrorCode {
   INVALID_BULK_FACTOR = 'INVALID_BULK_FACTOR',
   PRODUCT_DOES_NOT_HANDLE_BULK = 'PRODUCT_DOES_NOT_HANDLE_BULK',

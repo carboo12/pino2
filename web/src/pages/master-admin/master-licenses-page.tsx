@@ -43,7 +43,7 @@ export default function MasterLicensesPage() {
         if (stores.length === 0) return (<Alert><FileWarning className="h-4 w-4" /><AlertTitle>No hay tiendas</AlertTitle><AlertDescription>Sin tiendas para mostrar licencias.</AlertDescription></Alert>);
         return (<>
             <div className="rounded-md border"><Accordion type="single" collapsible className="w-full">
-                {map((store) => (<AccordionItem value={store.id} key={store.id}>
+                {stores.map((store) => (<AccordionItem value={store.id} key={store.id}>
                     <AccordionTrigger className="px-6 py-4 hover:no-underline"><div className="flex items-center justify-between w-full"><span className="font-medium text-left">{store.name}</span><Badge className={getStatusClass(store.computedStatus)}>{store.computedStatus || 'Sin Licencia'}</Badge></div></AccordionTrigger>
                     <AccordionContent className="px-6 pb-4 bg-muted/50">
                         <div className="grid gap-4 md:grid-cols-2">

@@ -82,7 +82,7 @@ export default function SuppliersPage() {
         </div>
       ) : error ? (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 text-center text-destructive">
-          {error}
+          {String(error)}
         </div>
       ) : suppliers.length === 0 ? (
         <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 text-center text-muted-foreground">
@@ -91,7 +91,7 @@ export default function SuppliersPage() {
       ) : (
         <div className="rounded-lg border">
           <Accordion type="single" collapsible className="w-full">
-            {map((supplier) => (
+            {suppliers.map((supplier) => (
               <AccordionItem value={supplier.id} key={supplier.id}>
                 <AccordionTrigger className="px-6 py-4 hover:no-underline">
                   <span className="font-medium text-left">{supplier.name}</span>

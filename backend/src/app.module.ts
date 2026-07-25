@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -107,6 +108,10 @@ import { ContractsModule } from './modules/contracts/contracts.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ApiExceptionFilter,
     },
   ],
 })

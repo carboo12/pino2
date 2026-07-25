@@ -26,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/auth-context';
 import apiClient from '@/services/api-client';
 import { alert, toast } from '@/lib/swalert';
+import { usePagination } from '@/hooks/use-pagination';
 import { formatCurrency } from '@/lib/utils';
 import financeService, {
   type AccountPayable,

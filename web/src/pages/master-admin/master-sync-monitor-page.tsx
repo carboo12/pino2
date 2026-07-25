@@ -76,7 +76,7 @@ export default function MasterSyncMonitorPage() {
                     {loading ? (<div className="flex items-center justify-center py-8"><RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" /></div>)
                     : stores.length === 0 ? (<div className="text-center py-8 text-muted-foreground">No hay tiendas registradas</div>)
                     : (<><Table><TableHeader><TableRow><TableHead>Tienda</TableHead><TableHead>Estado</TableHead><TableHead className="text-center">Pendientes</TableHead><TableHead className="text-center">Errores</TableHead><TableHead>Última Sync</TableHead><TableHead className="text-right">Acciones</TableHead></TableRow></TableHeader>
-                        <TableBody>{map((store) => (<TableRow key={store.id}>
+                        <TableBody>{stores.map((store) => (<TableRow key={store.id}>
                             <TableCell className="font-medium">{store.name}</TableCell>
                             <TableCell>{getStatusBadge(store.syncStatus)}</TableCell>
                             <TableCell className="text-center">{store.syncStatus?.pendingCount || 0}</TableCell>

@@ -61,7 +61,7 @@ export default function MasterMonitorPage() {
         if (errorLogs.length === 0) return (<Alert><Terminal className="h-4 w-4" /><AlertTitle>Todo en orden</AlertTitle><AlertDescription>No se han registrado errores recientemente.</AlertDescription></Alert>);
         return (
             <><Accordion type="single" collapsible className="w-full">
-                {map((log) => { const ts = parseTimestamp(log.timestamp); return (
+                {errorLogs.map((log) => { const ts = parseTimestamp(log.timestamp); return (
                     <AccordionItem value={log.id} key={log.id}>
                         <AccordionTrigger className="hover:no-underline"><div className="flex items-center gap-4 w-full text-left"><AlertTriangle className="h-5 w-5 text-destructive shrink-0" /><div className="flex-grow"><p className="font-medium text-destructive truncate">{log.message}</p><p className="text-xs text-muted-foreground">{ts ? formatDistanceToNow(ts, { addSuffix: true, locale: es }) : 'N/A'}</p></div></div></AccordionTrigger>
                         <AccordionContent className="bg-muted/30 p-4 rounded-md">

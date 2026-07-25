@@ -53,10 +53,11 @@ class SyncService {
     }
 
     async enqueuePendingOperation(params: { storeId: string, type: OperationType, operation: any, priority?: OperationPriority }): Promise<string> {
-        const operationId = `op_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        const operationId = crypto.randomUUID();
 
         const pendingOp: PendingOperation = {
-            id: operationId,
+            id: `op_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            operationId,
             storeId: params.storeId,
             type: params.type,
             priority: params.priority || 'medium',
@@ -97,19 +98,23 @@ class SyncService {
                 
                 try {
                     // LLAMADA AL BATCH API DE NESTJS
-                    await apiClient.post('/sync/batch', {
+                    const res = await apiClient.post('/sync/batch', {
                         storeId,
                         operations: storeOps.map(op => ({
-                            id: op.id,
+                            operationId: op.operationId,
                             type: op.type,
                             data: op.operation,
-                            localId: op.id
                         }))
                     });
 
-                    // Si tiene éxito, eliminar de IndexedDB
+                    const results: Array<{ operationId: string; status: string }> = res.data?.results || [];
                     for (const op of storeOps) {
-                        await indexedDBService.removePendingOperation(op.id);
+                        const result = results.find(r => r.operationId === op.operationId);
+                        if (!result || result.status === 'APPLIED' || result.status === 'DUPLICATE') {
+                            await indexedDBService.removePendingOperation(op.id);
+                        } else {
+                            await indexedDBService.updateOperationStatus(op.id, 'failed', `Server rejected: ${result.status}`);
+                        }
                     }
                 } catch (error: any) {
                     for (const op of storeOps) {
@@ -146,6 +151,25 @@ class SyncService {
         if (!this.syncListeners.has(storeId)) this.syncListeners.set(storeId, new Set());
         this.syncListeners.get(storeId)!.add(callback);
         return () => this.syncListeners.get(storeId)?.delete(callback);
+    }
+
+    onNetworkStatusChange(callback: (isOnline: boolean) => void) {
+        this.networkStatusListeners.add(callback);
+        return () => this.networkStatusListeners.delete(callback);
+    }
+
+    async getSyncStatus(storeId: string): Promise<SyncStatus> {
+        const cached = await indexedDBService.getSyncStatus(storeId);
+        return cached || { storeId, lastSyncTimestamp: 0, pendingCount: 0, failedCount: 0, isOnline: this.isOnline };
+    }
+
+    async forceSyncStore(storeId: string): Promise<void> {
+        await this.processPendingQueue();
+    }
+
+    async clearFailedOperations(storeId: string): Promise<void> {
+        await indexedDBService.clearPendingOperations(storeId);
+        await this.updateStoreSyncStatus(storeId);
     }
 
     getIsOnline(): boolean {

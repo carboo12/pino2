@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useApiMutation } from '@/hooks/use-api';
-import { jsPDF } from 'jspdf';
 import { 
   Banknote, 
   DoorOpen, 
@@ -119,6 +118,7 @@ export default function CashRegisterPage() {
 
   const handlePrintCorteX = async () => {
     if (!activeShift || !storeId) return;
+    const { jsPDF } = await import('jspdf');
     try {
       const res = await apiClient.get(`/sales/report?storeId=${storeId}&shiftId=${activeShift.id}`);
       const reportData = res.data;

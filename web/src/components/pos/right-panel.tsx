@@ -2,7 +2,7 @@
 import { cn } from '@/lib/utils';
 import { ProductGrid } from './product-grid';
 import { PaymentGrid } from './payment-grid';
-import { usePos } from '@/context/pos-context';
+import { usePos } from '@/contexts/pos-context';
 
 interface RightPanelProps {
     className?: string;

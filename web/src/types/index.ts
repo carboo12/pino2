@@ -4,6 +4,7 @@ export interface User {
     name: string;
     role: string;
     storeIds?: string[];
+    storeName?: string;
     chainId?: string | null;
 }
 
@@ -56,6 +57,8 @@ export interface Client {
     phone?: string;
     address: string;
     email?: string;
+    code?: string;
+    creditLimit?: number;
 }
 
 export interface CashShift {
@@ -80,6 +83,10 @@ export interface OrderItem {
     subtotal: number;
     presentation?: 'BULK' | 'UNIT';
     priceLevel?: number;
+    unitsPerBulk?: number;
+    handlesBulk?: boolean;
+    quantityBulks?: number;
+    quantityUnits?: number;
 }
 
 export interface Order {

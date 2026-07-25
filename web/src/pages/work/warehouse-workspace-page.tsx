@@ -49,6 +49,8 @@ interface OrderItem {
   quantity: number;
   quantityBulks?: number;
   quantityUnits?: number;
+  unitsPerBulk?: number;
+  handlesBulk?: boolean;
   unitsPerBulkSnapshot?: number;
   handlesBulkSnapshot?: boolean;
   presentation?: string;
@@ -126,6 +128,23 @@ export default function WarehouseWorkspacePage() {
       .catch(() => {});
   }, [storeId]);
 
+  const filteredOrders = orders.filter((o) => {
+    if (!filter) return true;
+    const q = filter.toLowerCase();
+    return (
+      o.id?.toLowerCase().includes(q) ||
+      o.clientName?.toLowerCase().includes(q) ||
+      o.vendorName?.toLowerCase().includes(q)
+    );
+  });
+
+  const groupedOrders = STATUS_ORDER.map((status) => ({
+    status,
+    label: STATUS_LABELS[status],
+    color: STATUS_COLORS[status],
+    orders: filteredOrders.filter((o) => o.status === status),
+  }));
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -178,23 +197,6 @@ export default function WarehouseWorkspacePage() {
       setSelectedOrder(order);
     }
   };
-
-  const filteredOrders = orders.filter((o) => {
-    if (!filter) return true;
-    const q = filter.toLowerCase();
-    return (
-      o.id?.toLowerCase().includes(q) ||
-      o.clientName?.toLowerCase().includes(q) ||
-      o.vendorName?.toLowerCase().includes(q)
-    );
-  });
-
-  const groupedOrders = STATUS_ORDER.map((status) => ({
-    status,
-    label: STATUS_LABELS[status],
-    color: STATUS_COLORS[status],
-    orders: filteredOrders.filter((o) => o.status === status),
-  }));
 
   if (error) {
     return (
@@ -285,7 +287,7 @@ export default function WarehouseWorkspacePage() {
                     >
                       <span className="text-[#17202A]">{item.productName}</span>
                       <span className="font-medium text-[#5B6673]">
-                        {calculateStockDisplay(item.quantity, (item as any).handlesBulk || Boolean(item.unitsPerBulk && item.unitsPerBulk > 1), item.unitsPerBulk || 1).formatted}
+                        {calculateStockDisplay(item.quantity, item.handlesBulk || Boolean(item.unitsPerBulk && item.unitsPerBulk > 1), item.unitsPerBulk || 1).formatted}
                       </span>
                     </div>
                   ))}

@@ -689,7 +689,7 @@ export default function EditProductPage() {
                   id="stockBulks"
                   type="number"
                   value={
-                    product?.stockDisplay?.bulkCount ??
+                    productData?.stockDisplay?.bulkCount ??
                     Math.floor(
                       Number(formData.currentStock || 0) /
                         Math.max(Number(formData.unitsPerBulk || 1), 1),
@@ -705,7 +705,7 @@ export default function EditProductPage() {
                   id="stockUnits"
                   type="number"
                   value={
-                    product?.stockDisplay?.looseUnitCount ??
+                    productData?.stockDisplay?.looseUnitCount ??
                     Number(formData.currentStock || 0) %
                       Math.max(Number(formData.unitsPerBulk || 1), 1)
                   }

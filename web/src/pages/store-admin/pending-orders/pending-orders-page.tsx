@@ -90,7 +90,7 @@ export default function PendingOrdersPage() {
                 <Alert variant="destructive">
                     <Hourglass className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertDescription>{String(error)}</AlertDescription>
                 </Alert>
             );
         }
@@ -171,7 +171,7 @@ export default function PendingOrdersPage() {
                         Comandas listas para ser facturadas.
                     </p>
                 </div>
-                <Button onClick={fetchOrders} variant="outline" className="gap-2 shrink-0">
+                <Button onClick={refetchOrders} variant="outline" className="gap-2 shrink-0">
                     <Hourglass className="h-4 w-4" /> Actualizar
                 </Button>
             </div>

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider, useAuth } from '@/contexts/auth-context';
 import { PosProvider } from '@/contexts/pos-context';
+import { RealtimeProvider } from '@/contexts/realtime-context';
 import { GlobalAlertProvider } from '@/components/global-alert-provider';
 import { Toaster } from '@/components/ui/toaster';
 import ErrorBoundary from '@/components/error-boundary';
@@ -172,6 +173,7 @@ function App() {
       <BrowserRouter basename={APP_BASENAME}>
         <AuthProvider>
           <PosProvider>
+            <RealtimeProvider>
             <GlobalAlertProvider />
             <Toaster />
             <ErrorBoundary>
@@ -274,18 +276,19 @@ function App() {
                   {false && <Route path="/master-admin/chains/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddChainPage /></ProtectedRoute>} />}
                   <Route path="/master-admin/users/add" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><AddUserPage /></ProtectedRoute>} />
                   <Route path="/master-admin/users/edit/:userId" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><EditUserPage /></ProtectedRoute>} />
-                  {false && <Route path="/master-admin/licenses" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterLicensesPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterMonitorPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/config" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterConfigPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/sync-monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterSyncMonitorPage /></ProtectedRoute>} />}
-                  {false && <Route path="/master-admin/comparison" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MultiStoreComparisonPage /></ProtectedRoute>} />}
+                  <Route path="/master-admin/licenses" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterLicensesPage /></ProtectedRoute>} />
+                  <Route path="/master-admin/monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterMonitorPage /></ProtectedRoute>} />
+                  <Route path="/master-admin/config" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterConfigPage /></ProtectedRoute>} />
+                  <Route path="/master-admin/sync-monitor" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MasterSyncMonitorPage /></ProtectedRoute>} />
+                  <Route path="/master-admin/comparison" element={<ProtectedRoute allowedRoles={MASTER_ROLES}><MultiStoreComparisonPage /></ProtectedRoute>} />
 
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
             </ErrorBoundary>
-          </PosProvider>
-        </AuthProvider>
+        </RealtimeProvider>
+        </PosProvider>
+      </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
     </QueryClientProvider>

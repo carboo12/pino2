@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 
 interface TicketData {
@@ -18,6 +17,7 @@ interface TicketData {
 
 export class TicketService {
   static async generateAndPrint(data: TicketData) {
+    const { jsPDF } = await import('jspdf');
     const { settings = {} } = data;
     const doc = new jsPDF({
       unit: 'mm',

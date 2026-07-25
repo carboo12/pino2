@@ -206,7 +206,7 @@ export default function InventoryMovementsPage() {
         <Alert variant="destructive">
           <History className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{String(error)}</AlertDescription>
         </Alert>
       )
     }
@@ -238,7 +238,7 @@ export default function InventoryMovementsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {map((item) => (
+            {filteredMovements.map((item) => (
               <TableRow key={item.id}>
                 <TableCell>
                   {item.timestamp ? format(new Date(item.timestamp as any), 'p', { locale: es }) : 'N/A'}

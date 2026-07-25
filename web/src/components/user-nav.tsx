@@ -66,9 +66,9 @@ export function UserNav() {
         <div className="px-2 py-1.5">
           <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
             <span className="text-xs capitalize font-medium">{user?.role?.replace(/-/g, ' ') || ''}</span>
-            {user?.storeId && (
-              <span className="text-xs text-muted-foreground">Tienda: {user.storeId}</span>
-            )}
+            {user?.storeIds?.length ? (
+              <span className="text-xs text-muted-foreground">Tienda: {user.storeIds[0]}</span>
+            ) : null}
           </div>
         </div>
         <DropdownMenuSeparator />

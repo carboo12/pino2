@@ -1,0 +1,1394 @@
+PLAN MAESTRO DE PENDIENTES PARA EL MVP DE PINO
+Fecha del análisis: 2026-07-25
+Repositorio analizado: /opt/apps/pino2
+Commit base visible: 838eb8d
+Rol del documento: instrucciones directas para otro agente de IA
+
+===============================================================================
+0. ALCANCE OBLIGATORIO
+===============================================================================
+
+Este plan cubre únicamente:
+
+- Integridad funcional necesaria para un MVP.
+- Backend NestJS y contratos de datos que afectan los flujos operativos.
+- Web React, con prioridad máxima en UX, HTML y CSS.
+- Flutter únicamente donde afecta el flujo MVP y la sincronización.
+- PostgreSQL únicamente donde afecta consistencia y funcionamiento.
+- Navegación, formularios, tablas, caja/POS, bodega, catálogo y finanzas.
+
+Fuera de alcance por decisión del propietario:
+
+- Seguridad.
+- CI/CD.
+- Despliegue.
+- Documentación general.
+- Creación o ampliación de suites de pruebas.
+
+REGLA PARA EL AGENTE:
+No expandir el alcance hacia los puntos excluidos. No reescribir el sistema, no
+cambiar de stack y no dividirlo en microservicios.
+
+===============================================================================
+1. VEREDICTO DIRECTO
+===============================================================================
+
+PUNTUACIÓN GLOBAL ACTUAL COMO MVP COMPLETO: 5.2 / 10
+
+Interpretación:
+
+- 1 a 3: prototipo incompleto.
+- 4 a 5: demostrable, pero todavía riesgoso para operación real.
+- 6 a 7: MVP utilizable en operación controlada.
+- 8 a 9: producto estable y consistente.
+- 10: producto maduro.
+
+Pino está en la parte alta de "demostrable", pero aún no alcanza "MVP utilizable
+en operación controlada" porque existen fallos funcionales capaces de:
+
+- perder operaciones offline;
+- mostrar una venta exitosa aunque el backend la rechace;
+- enviar métodos de pago que el backend no acepta;
+- borrar una operación local sin confirmación válida del servidor;
+- dejar rutas visibles que redirigen a una pantalla inexistente;
+- mostrar que la caja está cerrada cuando ya existe un turno activo;
+- limitar la sincronización móvil a una sola página;
+- avanzar el cursor móvil antes de terminar de guardar los datos;
+- calcular o representar mal productos por bulto en el carrito web.
+
+PUNTUACIÓN POR ÁREA
+
+[6.8/10] Arquitectura general
+Base modular razonable. Mantener monolito NestJS, SPA React y app Flutter.
+No crear microservicios, micro-frontends ni un BFF desplegado por separado.
+
+[6.6/10] Backend NestJS
+La reciente separación en repositorios, mappers y casos de uso es positiva.
+Compila sin errores. Todavía hay idempotencia duplicada, promociones que fallan
+silenciosamente, contratos incompletos y estados no completamente unificados.
+
+[5.8/10] PostgreSQL y consistencia de datos
+Modelo amplio y útil, pero el historial de migraciones y el esquema visible no
+son una fuente totalmente confiable. Hay fuentes de verdad duplicadas.
+
+[5.7/10] Web React funcional
+Compila sin errores y la carga diferida está bien encaminada. Aún mezcla varios
+patrones de datos y conserva pantallas duplicadas o contradictorias.
+
+[4.4/10] UX/UI web
+La base visual es limpia, pero falta un sistema operacional coherente. Hay 370
+usos de colores hexadecimales directos, 38 colores únicos y 70 textos de 10 u
+11 px. Las páginas cambian demasiado de estilo y varias acciones táctiles son
+demasiado pequeñas.
+
+[4.0/10] Caja/POS web
+Es el flujo más importante y todavía tiene contradicciones graves: búsqueda no
+conectada, pago con estados falsos, método incompatible con el DTO, carrito sin
+modelo explícito de bultos y estado visual incorrecto de caja.
+
+[2.6/10] Offline y sincronización web
+No es confiable. Se serializa una función con toString(), el cliente y servidor
+no usan la misma clave de resultado y se puede borrar una operación local sin
+haber sido aplicada.
+
+[4.8/10] Flutter
+La estructura Riverpod/Drift es recuperable y el router mejoró. El delta sync
+todavía no persiste varias entidades, no espera todas las escrituras y depende
+de un totalCount que el backend no entrega.
+
+[6.0/10] Mantenibilidad
+Hay mejoras recientes, pero siguen existiendo muchos any, estilos directos,
+interfaces duplicadas y componentes/páginas que implementan el mismo flujo de
+formas diferentes.
+
+META PARA DECLARARLO MVP: 7.0 / 10
+
+Para llegar a 7.0 no hace falta terminar todos los módulos. Hace falta:
+
+1. Venta online correcta y sin mensajes falsos.
+2. Operaciones offline que nunca se eliminen sin acuse positivo.
+3. Estados de pedidos y caja coherentes.
+4. Navegación sin enlaces muertos.
+5. Interfaz legible, rápida y consistente en escritorio, tablet y móvil.
+6. Formularios y tablas con un patrón común.
+7. Esquema/migraciones alineados con el código que realmente se ejecuta.
+
+===============================================================================
+2. ORDEN DE EJECUCIÓN INNEGOCIABLE
+===============================================================================
+
+El agente debe trabajar en este orden. No comenzar una fase posterior mientras
+exista un ítem crítico abierto en la fase actual.
+
+[ ] FASE P0-A: corregir caja/POS y confirmación real de venta.
+[ ] FASE P0-B: corregir contrato de sincronización web/backend.
+[ ] FASE P0-C: corregir delta sync Flutter/backend.
+[ ] FASE P0-D: eliminar rutas visibles que no existen.
+[ ] FASE P0-E: cerrar inconsistencias de estados y bulto/unidad.
+[ ] FASE P1-A: crear sistema visual operacional.
+[ ] FASE P1-B: rediseñar AppLayout y navegación.
+[ ] FASE P1-C: rediseñar Caja, Bodega, Catálogo y Finanzas.
+[ ] FASE P1-D: unificar formularios, tablas, vacíos, errores y confirmaciones.
+[ ] FASE P2-A: consolidar acceso a datos web.
+[ ] FASE P2-B: consolidar contratos compartidos.
+[ ] FASE P2-C: reconciliar esquema y migraciones.
+[ ] FASE P2-D: simplificar duplicaciones y código muerto.
+
+===============================================================================
+3. REGLAS DE IMPLEMENTACIÓN PARA EL AGENTE DE IA
+===============================================================================
+
+[ ] Conservar todos los cambios no confirmados existentes.
+[ ] Antes de editar, leer el diff del archivo objetivo.
+[ ] No reemplazar archivos completos si basta un cambio localizado.
+[ ] No cambiar nombres de rutas o contratos sin actualizar todos sus consumidores.
+[ ] No confiar en total, precio, impuesto, descuento ni stock enviados por React
+    o Flutter; la respuesta del backend es el resultado definitivo.
+[ ] Usar un solo operationId estable desde que una operación nace hasta que el
+    servidor la confirma.
+[ ] Nunca borrar una operación offline ante una respuesta vacía, desconocida o
+    parcialmente válida.
+[ ] No usar funciones serializadas, strings ejecutables ni operation.toString().
+[ ] No agregar otro motor de sincronización.
+[ ] No introducir un ORM completo.
+[ ] No crear microservicios.
+[ ] No crear micro-frontends.
+[ ] No conservar dos pantallas distintas para el mismo flujo MVP.
+[ ] No usar colores hexadecimales nuevos dentro de páginas.
+[ ] No usar texto menor de 12 px para información operativa.
+[ ] No usar botones de icono sin nombre accesible.
+[ ] No mostrar éxito antes de recibir éxito del backend.
+[ ] No ocultar una ruta con "false &&" si otro componente todavía enlaza a ella.
+[ ] Toda acción principal debe ser obvia, visible y tener un solo significado.
+
+===============================================================================
+4. P0-A — CAJA/POS WEB: BLOQUEOS CRÍTICOS
+===============================================================================
+
+Archivos principales:
+
+- web/src/pages/work/cash-workspace-page.tsx
+- web/src/contexts/pos-context.tsx
+- web/src/components/pos/product-search.tsx
+- web/src/components/pos/payment-dialog.tsx
+- web/src/types/index.ts
+- backend/src/modules/sales/sales.dto.ts
+- backend/src/modules/sales/use-cases/process-sale.use-case.ts
+
+4.1 MÉTODO DE PAGO INCOMPATIBLE
+
+Problema:
+PaymentDialog entrega "Efectivo" o "Tarjeta". El DTO acepta CASH, CARD,
+TRANSFER, EFECTIVO o CREDITO. "Efectivo" y "Tarjeta" no coinciden exactamente.
+La interfaz puede anunciar éxito y luego recibir rechazo de validación.
+
+Checklist:
+
+[ ] Cambiar PaymentData.method a 'CASH' | 'CARD'.
+[ ] Mostrar etiquetas "Efectivo" y "Tarjeta" solo en la vista.
+[ ] Enviar únicamente códigos canónicos al backend.
+[ ] Hacer que onConfirm devuelva Promise<void>.
+[ ] Esperar la promesa antes de cerrar el diálogo.
+[ ] Mostrar éxito solamente desde CashWorkspace después de la respuesta válida.
+[ ] Si falla, mantener abierto el diálogo y conservar carrito/monto.
+[ ] Bloquear doble clic mientras se procesa.
+
+CÓDIGO DE REFERENCIA OBLIGATORIO:
+
+export type PaymentMethod = 'CASH' | 'CARD';
+
+export interface PaymentData {
+  method: PaymentMethod;
+  amountReceived: number;
+  paymentCurrency: 'NIO' | 'USD';
+  change: number;
+}
+
+interface PaymentDialogProps {
+  total: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: (data: PaymentData) => Promise<void>;
+}
+
+const [submitting, setSubmitting] = useState(false);
+
+const handleConfirm = async () => {
+  if (!isAmountValid || submitting) return;
+  setSubmitting(true);
+  try {
+    await onConfirm({
+      method,
+      amountReceived: amountNum,
+      paymentCurrency: currency,
+      change,
+    });
+    onOpenChange(false);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
+No colocar toast de éxito dentro de PaymentDialog. El diálogo no sabe si la
+venta fue aceptada; solo CashWorkspace conoce el resultado final.
+
+4.2 ESTADO DE CAJA CONTRADICTORIO
+
+Problema:
+Cuando no hay turno, la página ya bloquea y ofrece abrirlo. Cuando sí hay turno,
+la cabecera interna todavía muestra "Caja cerrada" y botón "Abrir caja".
+
+Checklist:
+
+[ ] Eliminar el segundo flujo de apertura dentro del workspace.
+[ ] Si activeShift existe, mostrar "Caja abierta".
+[ ] Mostrar hora de apertura y número corto del turno.
+[ ] Dejar una sola acción secundaria: "Ver turno".
+[ ] No permitir abrir dos turnos desde la misma página.
+[ ] Usar color de estado semántico, no texto ambiguo.
+
+Referencia visual:
+
+Estado: ● Caja abierta
+Turno: #A82F31
+Apertura: 08:14
+
+4.3 BÚSQUEDA DE PRODUCTOS NO CONECTADA
+
+Problema:
+ProductSearch solo busca con externalSearchTerm, pero CashWorkspace lo renderiza
+sin enviar ese valor. El componente no contiene un input propio. En la práctica,
+la tabla de resultados nunca recibe una búsqueda escrita.
+
+Checklist:
+
+[ ] Crear un único estado productQuery en CashWorkspace.
+[ ] Renderizar un input visible con foco rápido.
+[ ] Pasar productQuery a ProductSearch.
+[ ] Mantener el escáner separado del texto escrito, pero ambos agregan al mismo
+    carrito.
+[ ] Si se escanea un código exacto, agregar directamente.
+[ ] Si se escribe texto, mostrar resultados después de 2 caracteres.
+[ ] Al elegir un producto, limpiar la búsqueda y devolver foco al input.
+[ ] Eliminar clases inválidas "bg-white/9" y "worst-blur".
+[ ] Evitar toast por cada unidad agregada repetidamente; usar confirmación visual
+    breve en la fila del carrito.
+
+CÓDIGO DE REFERENCIA:
+
+const [productQuery, setProductQuery] = useState('');
+const searchRef = useRef<HTMLInputElement>(null);
+
+<Input
+  ref={searchRef}
+  value={productQuery}
+  onChange={(event) => setProductQuery(event.target.value)}
+  placeholder="Buscar por nombre o código"
+  className="h-12 text-base"
+/>
+
+<ProductSearch
+  searchTerm={productQuery}
+  onProductSelect={(product) => {
+    addToCart(product);
+    setProductQuery('');
+    requestAnimationFrame(() => searchRef.current?.focus());
+  }}
+/>
+
+4.4 CANTIDAD DEL CARRITO
+
+Problema:
+PosContext ya expone setQuantity, pero CashWorkspace elimina y vuelve a agregar
+el producto en un ciclo. Es lento, complejo y propenso a resultados inesperados.
+
+Checklist:
+
+[ ] Extraer setQuantity desde usePos().
+[ ] Reemplazar remove+add+for por una sola llamada.
+[ ] Botón menos: área mínima 44 x 44 px.
+[ ] Botón más: área mínima 44 x 44 px.
+[ ] Botón eliminar: área mínima 44 x 44 px y nombre accesible.
+[ ] Permitir escribir cantidad directamente en escritorio.
+[ ] No reducir stock local por debajo de cero.
+[ ] Mostrar stock disponible junto a la cantidad.
+
+CÓDIGO CORRECTO:
+
+const handleQuantityChange = useCallback(
+  (uniqueId: string, delta: number) => {
+    const item = cart.find((candidate) => candidate.uniqueId === uniqueId);
+    if (!item) return;
+    setQuantity(uniqueId, item.quantity + delta);
+  },
+  [cart, setQuantity],
+);
+
+4.5 BULTOS Y UNIDADES EN POS
+
+Problema:
+CartItem solo contiene quantity. El backend ya diferencia bulkCount y
+looseUnitCount. La UI calcula total = salePrice * quantity, lo que no representa
+el precio por bulto.
+
+Decisión MVP:
+El carrito debe guardar cantidades canónicas. No inferirlas al cobrar.
+
+Modelo mínimo:
+
+interface CartItem extends Product {
+  uniqueId: string;
+  bulkCount: number;
+  looseUnitCount: number;
+}
+
+Checklist:
+
+[ ] Para productos handlesBulk=false, usar bulkCount=0 y looseUnitCount=cantidad.
+[ ] Para productos handlesBulk=true, mostrar dos controles: "Bultos" y "Unidades".
+[ ] Mostrar unitsPerBulk como ayuda: "1 bulto = 12 unidades".
+[ ] Calcular total de línea con bulkPrice1 para bultos y price1 para unidades.
+[ ] Enviar bulkCount y looseUnitCount al backend.
+[ ] No enviar price ni total como autoridad.
+[ ] Usar total devuelto por backend para ticket y mensaje final.
+[ ] Mostrar en carrito: "2 bultos + 3 unidades", no "27" sin contexto.
+
+CÓDIGO DE REFERENCIA:
+
+function getCartLineTotal(item: CartItem): number {
+  if (item.handlesBulk && item.unitsPerBulk > 1) {
+    return item.bulkCount * (item.bulkPrice1 ?? 0)
+      + item.looseUnitCount * item.price1;
+  }
+  return item.looseUnitCount * item.price1;
+}
+
+const payload = {
+  storeId,
+  cashShiftId: activeShift.id,
+  externalId: crypto.randomUUID(),
+  paymentMethod: data.method,
+  items: cart.map((item) => ({
+    productId: item.id,
+    bulkCount: item.bulkCount,
+    looseUnitCount: item.looseUnitCount,
+  })),
+};
+
+const response = await apiClient.post('/sales/process', payload);
+const confirmedSale = response.data;
+toast.success(
+  'Venta completada',
+  `Ticket ${confirmedSale.ticketNumber} · ${formatCurrency(confirmedSale.total)}`,
+);
+
+4.6 ESTRUCTURA VISUAL DEL POS
+
+Objetivo:
+Una venta común debe requerir escanear/buscar, ajustar cantidad si hace falta y
+cobrar. No obligar al usuario a interpretar paneles innecesarios.
+
+Desktop recomendado:
+
++--------------------------------------------------------------------------+
+| CAJA ABIERTA · TURNO #A82F      [Cliente] [Devolución] [Escáner activo] |
++--------------------------------------------------------------------------+
+| Buscar producto o escanear código...                                    |
++--------------------------------------------------------------------------+
+| PRODUCTO                    CANTIDAD       PRECIO              TOTAL      |
+| Coca-Cola 600 ml            [-] 2 [+]      C$ 35.00            C$ 70.00  |
+| Arroz 12u             Bultos [-]1[+] Uds [-]3[+]              C$ 540.00 |
+|                                                                          |
++--------------------------------------------------------------------------+
+| 2 líneas · 17 unidades       TOTAL C$ 610.00    [Cancelar] [COBRAR F10] |
++--------------------------------------------------------------------------+
+
+Tablet/móvil:
+
+- Buscador arriba.
+- Lista vertical de productos.
+- Resumen total fijo abajo.
+- Botón cobrar ocupa al menos 50% del ancho.
+- Panel cliente abre como Sheet inferior/lateral.
+- No renderizar tabla de 12 columnas comprimida.
+
+===============================================================================
+5. P0-B — SINCRONIZACIÓN WEB/BACKEND
+===============================================================================
+
+Archivos:
+
+- web/src/hooks/use-offline-operation.ts
+- web/src/lib/sync-service.ts
+- web/src/lib/indexed-db-service.ts
+- backend/src/modules/sync/sync.dto.ts
+- backend/src/modules/sync/sync.service.ts
+- backend/src/modules/sync-engine/inbox.service.ts
+- backend/src/modules/sales/use-cases/process-sale.use-case.ts
+
+5.1 NO SERIALIZAR FUNCIONES
+
+Problema crítico:
+useOfflineOperation guarda operation.toString(). El DTO exige data como objeto.
+Una función convertida a texto no es una operación reproducible.
+
+Checklist:
+
+[ ] Cambiar execute(() => Promise) por execute(data).
+[ ] Guardar endpoint lógico o type más payload JSON puro.
+[ ] Validar que data sea serializable antes de persistir.
+[ ] Generar operationId una sola vez.
+[ ] Conservar operationId en cada reintento.
+
+Contrato canónico:
+
+type SyncOperationType =
+  | 'SALE'
+  | 'ORDER'
+  | 'COLLECTION'
+  | 'RETURN';
+
+interface PendingOperation<T extends Record<string, unknown>> {
+  id: string;
+  operationId: string;
+  storeId: string;
+  type: SyncOperationType;
+  data: T;
+  status: 'pending' | 'processing' | 'failed';
+  retryCount: number;
+  createdAt: number;
+  nextAttemptAt: number;
+  lastError?: string;
+}
+
+Firma correcta:
+
+execute: (data: Record<string, unknown>) => Promise<{
+  queued: boolean;
+  operationId: string;
+}>;
+
+5.2 RESPUESTA DE BATCH INCONSISTENTE
+
+Problema crítico:
+Backend responde con opId y estado SUCCESS/FAILED. Web busca operationId y espera
+APPLIED/DUPLICATE. Además, si no encuentra resultado, elimina la operación:
+
+if (!result || result.status === 'APPLIED' || result.status === 'DUPLICATE')
+
+Eso convierte una respuesta desconocida en éxito y puede perder datos.
+
+Decisión obligatoria:
+Backend y clientes usarán exactamente:
+
+interface SyncResult {
+  operationId: string;
+  status: 'APPLIED' | 'DUPLICATE' | 'FAILED';
+  serverId?: string;
+  errorCode?: string;
+  errorMessage?: string;
+}
+
+Checklist backend:
+
+[ ] Cambiar opId por operationId en toda respuesta.
+[ ] Cambiar SUCCESS por APPLIED.
+[ ] Usar DUPLICATE explícito.
+[ ] Conservar FAILED.
+[ ] Devolver siempre un resultado por cada operación recibida.
+
+Checklist web:
+
+[ ] Solo borrar IndexedDB en APPLIED o DUPLICATE.
+[ ] Si no existe resultado, marcar failed y conservar.
+[ ] Si status es desconocido, marcar failed y conservar.
+[ ] Guardar errorCode y errorMessage.
+[ ] No borrar lotes completos por HTTP 200.
+
+CÓDIGO WEB OBLIGATORIO:
+
+const result = results.find(
+  (candidate) => candidate.operationId === operation.operationId,
+);
+
+if (!result) {
+  await indexedDBService.updateOperationStatus(
+    operation.id,
+    'failed',
+    'El servidor no devolvió confirmación para esta operación',
+  );
+  continue;
+}
+
+if (result.status === 'APPLIED' || result.status === 'DUPLICATE') {
+  await indexedDBService.removePendingOperation(operation.id);
+  continue;
+}
+
+await indexedDBService.updateOperationStatus(
+  operation.id,
+  'failed',
+  result.errorMessage ?? 'La operación fue rechazada',
+);
+
+5.3 DOBLE CLAIM DE IDEMPOTENCIA EN VENTA OFFLINE
+
+Problema crítico:
+SyncService reclama operationId con InboxService antes de abrir la transacción.
+Después ProcessSaleUseCase intenta insertar el mismo operationId en sync_inbox.
+La venta puede interpretarse como duplicada antes de haberse procesado.
+
+Decisión:
+El flujo batch es dueño del claim. El caso de uso no debe reclamar otra vez
+cuando se ejecuta desde batch.
+
+Estructura recomendada:
+
+interface OperationContext {
+  operationId: string;
+  inboxAlreadyClaimed: boolean;
+}
+
+await db.withTransaction(async (client) => {
+  const claim = await inboxRepository.claim(client, envelope);
+
+  if (!claim.claimed) {
+    return duplicateResult(claim.existingResult);
+  }
+
+  const sale = await processSaleUseCase.execute(
+    saleDto,
+    userId,
+    client,
+    {
+      operationId: envelope.operationId,
+      inboxAlreadyClaimed: true,
+    },
+  );
+
+  await inboxRepository.markProcessed(
+    client,
+    envelope.storeId,
+    envelope.operationId,
+    sale,
+  );
+
+  return sale;
+});
+
+Checklist:
+
+[ ] InboxRepository debe aceptar PoolClient.
+[ ] claim, operación y markProcessed deben compartir transacción.
+[ ] El endpoint directo /sales/process puede hacer su propio claim.
+[ ] El batch no debe llamar un segundo claim.
+[ ] Un registro PROCESSING antiguo no equivale automáticamente a DUPLICATE
+    aplicado; distinguir IN_PROGRESS, PROCESSED y FAILED.
+
+5.4 REINTENTOS
+
+[ ] Agregar nextAttemptAt a IndexedDB.
+[ ] No reintentar inmediatamente en ciclo infinito.
+[ ] Backoff: 2 s, 5 s, 15 s, 30 s, 60 s, máximo 5 min.
+[ ] Las operaciones de una misma tienda se procesan por orden de creación.
+[ ] No procesar dos ventas del mismo turno en paralelo.
+[ ] Mostrar al usuario: "Guardado sin conexión" y cantidad pendiente.
+[ ] Si falla definitivamente, mostrar acción "Revisar", no borrar.
+
+===============================================================================
+6. P0-C — DELTA SYNC FLUTTER/BACKEND
+===============================================================================
+
+Archivos:
+
+- backend/src/modules/sync/sync.service.ts
+- flutter/lib/core/network/delta_sync_service.dart
+- flutter/lib/core/database/app_database.dart
+- flutter/lib/core/database/local_cache_repository.dart
+
+Problemas actuales:
+
+1. Flutter espera totalCount, pero backend no lo devuelve.
+2. Por defecto totalCount=0 y el ciclo termina después de la primera página.
+3. Flutter llama _processEntity(...) sin await.
+4. Varias entidades tienen handlers vacíos.
+5. Backend aplica un mismo offset a tablas independientes.
+6. Un timestamp global no es un cursor seguro para múltiples tablas.
+7. El backend usa updated_at/created_at de forma genérica aunque no todas las
+   tablas garantizan ambas columnas.
+
+Decisión MVP:
+Usar cursor por entidad y por tienda. No usar un offset común para nueve tablas.
+
+Respuesta recomendada:
+
+{
+  "serverTime": "2026-07-25T12:00:00.000Z",
+  "entities": {
+    "products": {
+      "items": [],
+      "nextCursor": "2026-07-25T11:58:00.000Z|uuid",
+      "hasMore": false
+    },
+    "clients": {
+      "items": [],
+      "nextCursor": "...",
+      "hasMore": false
+    }
+  }
+}
+
+Orden MVP de entidades:
+
+[ ] products
+[ ] productBarcodes
+[ ] clients
+[ ] receivables
+[ ] routes
+[ ] deliveries
+
+No incluir una entidad en la respuesta si Flutter no la persiste ni la usa.
+
+Checklist Flutter:
+
+[ ] Agregar await delante de cada _processEntity.
+[ ] Eliminar handlers vacíos.
+[ ] Implementar upsert real por entidad.
+[ ] Guardar cursor después del commit local.
+[ ] Guardar cursor por storeId + entityName.
+[ ] Si una entidad falla, no avanzar su cursor.
+[ ] Procesar tombstones para bajas.
+[ ] No reemplazar todo el catálogo ante cada delta.
+[ ] Conservar queue de escritura separada del delta de lectura.
+
+CÓDIGO DART MÍNIMO:
+
+await _processEntity<List<dynamic>>(
+  response['products'],
+  (items) async {
+    final products = items
+        .map((item) => CatalogProduct.fromJson(
+              Map<String, dynamic>.from(item as Map),
+            ))
+        .toList();
+    await cache.upsertProducts(products);
+  },
+);
+
+final nextCursor = productsEnvelope['nextCursor'] as String?;
+if (nextCursor != null) {
+  await prefs.setString(
+    'delta_cursor_${effectiveStoreId}_products',
+    nextCursor,
+  );
+}
+
+===============================================================================
+7. P0-D — NAVEGACIÓN Y RUTAS MUERTAS
+===============================================================================
+
+Problemas actuales:
+
+- Sidebar enlaza a ayuda, pero la ruta está deshabilitada.
+- Finanzas enlaza a cuentas por pagar, pero la ruta está deshabilitada.
+- Chain admin redirige a un dashboard deshabilitado.
+- Algunas páginas se ocultan con {false && <Route ...>}.
+- El comodín redirige a "/" y oculta el error de navegación.
+
+Checklist:
+
+[ ] Crear una única configuración MVP de funcionalidades.
+[ ] Construir rutas, navegación y accesos internos desde la misma configuración.
+[ ] Si feature.enabled=false, no renderizar enlace ni botón.
+[ ] Reemplazar "false &&" por configuración explícita.
+[ ] Definir destino válido para chain-admin o no exponer ese acceso en MVP.
+[ ] Si ayuda queda fuera, eliminar enlace del sidebar.
+[ ] Si CxP queda fuera, quitar pestaña "Pagos" y botones hacia payables.
+[ ] Crear una pantalla "Ruta no disponible" en lugar de redirigir silenciosamente.
+[ ] Breadcrumb no debe mostrar UUID de tienda como texto.
+
+CÓDIGO DE REFERENCIA:
+
+export const MVP_FEATURES = {
+  help: false,
+  payables: false,
+  chainDashboard: false,
+  billingLegacy: false,
+  settings: false,
+} as const;
+
+const navItems = [
+  MVP_FEATURES.help && {
+    type: 'link',
+    name: 'Ayuda',
+    href: `/store/${storeId}/help`,
+    icon: LifeBuoy,
+  },
+].filter(Boolean);
+
+La misma bandera debe controlar Route y botones internos. No duplicar banderas.
+
+===============================================================================
+8. P0-E — ESTADOS, PROMOCIONES Y CONTRATOS
+===============================================================================
+
+8.1 ESTADOS DE PEDIDO
+
+[ ] Elegir un único conjunto canónico.
+[ ] Eliminar EN_ENTREGA si el canónico es EN_RUTA, o viceversa.
+[ ] Incluir PENDIENTE_AUTORIZACION si realmente participa en el flujo.
+[ ] Incluir RECHAZO_TOTAL solo si es distinto de RECHAZADO.
+[ ] No mezclar "Pendiente", "PENDING" y "Pendiente de Pago".
+[ ] UI recibe código y lo traduce con un mapa de etiquetas.
+[ ] Backend valida transición con el mismo conjunto.
+[ ] Flutter usa los mismos códigos.
+
+8.2 PROMOCIONES
+
+Problema:
+ProcessSaleUseCase captura cualquier error de promoción y continúa con descuento
+cero. Esto puede cobrar más al cliente sin avisar.
+
+Checklist:
+
+[ ] No usar catch vacío.
+[ ] Si la promoción es opcional y falla, registrar resultado explícito y avisar
+    a la UI antes de cobrar.
+[ ] Para MVP, la opción más segura es rechazar la venta con código
+    PROMOTION_CALCULATION_FAILED.
+[ ] No incrementar usos de promoción antes de confirmar la venta.
+[ ] Limitar descuento fijo para que no se aplique una vez por cada producto si
+    la promoción fue definida por ticket.
+
+CÓDIGO:
+
+try {
+  discount = await promotionCalculator.calculate(client, {
+    storeId: dto.storeId,
+    items: processedItems,
+    subtotal,
+  });
+} catch (error) {
+  throw new ConflictException({
+    code: 'PROMOTION_CALCULATION_FAILED',
+    message: 'No se pudo calcular la promoción. La venta no fue procesada.',
+  });
+}
+
+8.3 CONTRATO COMPARTIDO
+
+El archivo shared/contracts.ts existe, pero solo web user-role lo consume.
+
+[ ] Convertirlo en fuente real o eliminar la afirmación de que lo es.
+[ ] Backend debe importar/generar estados, eventos y métodos desde una fuente.
+[ ] Web debe consumir tipos de API, no declarar Product/Order locales por página.
+[ ] Flutter necesita equivalentes generados o un archivo canónico controlado.
+[ ] No mantener listas manuales "sincronizadas por comentario".
+
+===============================================================================
+9. P1-A — SISTEMA VISUAL OPERACIONAL HTML/CSS
+===============================================================================
+
+Objetivo:
+Que el usuario final encuentre la acción correcta en menos de 3 segundos y pueda
+operar con mouse, teclado o pantalla táctil sin interpretar estilos diferentes.
+
+9.1 TOKENS
+
+Problema:
+Hay 370 hexadecimales directos y 38 colores únicos. El modo oscuro y el tema
+semántico no pueden mantenerse así.
+
+Checklist:
+
+[ ] Prohibir nuevos #RRGGBB dentro de componentes/páginas.
+[ ] Reemplazar #17202A por foreground.
+[ ] Reemplazar #5B6673 por muted-foreground.
+[ ] Reemplazar #F6F7F9 por muted/background según contexto.
+[ ] Reemplazar #DDE2E8 por border.
+[ ] Reemplazar #0F766E por primary.
+[ ] Crear tokens de estado: success, warning, info, danger.
+[ ] Usar los mismos tokens en badges, banners, bordes e iconos.
+[ ] Eliminar primaryDark fijo azul si primary es teal.
+[ ] Usar Inter como única fuente de interfaz.
+[ ] Quitar dependencia visual de Google Fonts porque Inter ya está empaquetada.
+
+CSS DE REFERENCIA:
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --surface: 0 0% 100%;
+    --surface-subtle: 210 40% 96%;
+    --border: 214 32% 91%;
+    --primary: 173 78% 26%;
+    --primary-foreground: 0 0% 100%;
+    --success: 158 64% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 222 47% 11%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --control-height: 2.75rem;
+    --control-height-compact: 2.25rem;
+    --radius: 0.625rem;
+  }
+}
+
+9.2 TIPOGRAFÍA
+
+[ ] Título de página: 24 px / 700.
+[ ] Título de workspace: 18–20 px / 700, no 14 px.
+[ ] Texto normal: mínimo 14 px.
+[ ] Texto operativo denso: mínimo 12 px.
+[ ] Total de dinero: 20–32 px según pantalla.
+[ ] Evitar uppercase completo en párrafos y formularios.
+[ ] Reservar monospace para códigos, tickets y cantidades tabulares.
+[ ] Eliminar estilos "font-black italic uppercase" de formularios administrativos.
+
+9.3 CONTROLES
+
+[ ] Input normal: altura 44 px.
+[ ] Input POS: altura 48–56 px.
+[ ] Botón normal: mínimo 40 px escritorio, 44 px táctil.
+[ ] Botón POS primario: mínimo 52 px.
+[ ] Icon button: mínimo 44 x 44 px.
+[ ] Cada icon button debe tener aria-label.
+[ ] No usar color accent amarillo para guardar formularios.
+[ ] Primario = continuar/guardar/cobrar.
+[ ] Destructivo = cancelar/eliminar/anular.
+[ ] Outline = acción secundaria.
+[ ] No usar un FAB circular sin texto para "Guardar" en escritorio.
+
+9.4 ANIMACIÓN
+
+[ ] Mantener transiciones entre 120 y 200 ms.
+[ ] Evitar scale en botones de caja que mueva el layout.
+[ ] Respetar prefers-reduced-motion.
+[ ] No usar glassmorphism en tablas o áreas de operación.
+[ ] Skeleton solo durante carga inicial; actualización silenciosa conserva datos.
+
+9.5 ACCESIBILIDAD OPERACIONAL
+
+[ ] Agregar nombres accesibles a todos los botones de icono.
+[ ] Estados no dependen solo del color: icono + etiqueta.
+[ ] Focus visible consistente.
+[ ] Encabezados de tabla con scope="col".
+[ ] Filas clicables también deben poder activarse con teclado.
+[ ] Dialog debe enfocar la primera acción útil.
+[ ] Errores de campo deben quedar junto al campo.
+
+===============================================================================
+10. P1-B — APP LAYOUT Y NAVEGACIÓN
+===============================================================================
+
+Problemas:
+
+- AppLayout añade padding y WorkspaceShell vuelve a añadir padding.
+- WorkspaceShell usa h-full sin garantía de altura disponible.
+- Sidebar y rutas internas no siempre coinciden.
+- El header puede quedar saturado con breadcrumb, tienda, alertas y usuario.
+- Breadcrumb incluye segmentos técnicos y UUID.
+- El footer consume espacio en pantallas operativas.
+
+Checklist:
+
+[ ] Detectar si la ruta es workspace.
+[ ] Workspace ocupa el alto restante del viewport y no muestra footer.
+[ ] Páginas CRUD usan PageShell con ancho máximo.
+[ ] Sidebar abierto: 248 px, no 280 px.
+[ ] Sidebar cerrado: 64 px.
+[ ] En móvil usar Sheet con acciones de 48 px de alto.
+[ ] Guardar preferencia de sidebar.
+[ ] Mostrar máximo 6 destinos principales.
+[ ] Poner funciones secundarias dentro del workspace correspondiente.
+[ ] Breadcrumb solo en CRUD/detail, no en POS.
+[ ] Selector de tienda con etiqueta visible.
+
+CÓDIGO DE REFERENCIA:
+
+const isWorkspace = pathname.includes('/work/');
+
+<main
+  className={cn(
+    'min-w-0 flex-1',
+    isWorkspace
+      ? 'h-[calc(100dvh-4rem)] overflow-hidden p-0'
+      : 'p-4 lg:p-6',
+  )}
+>
+  {children}
+</main>
+
+WorkspaceShell:
+
+<div className="flex h-full min-h-0 flex-col bg-background">
+  {topbar}
+  <div className="flex min-h-0 flex-1 overflow-hidden">
+    <section className="min-w-0 flex-1 overflow-auto">
+      {children}
+    </section>
+    {contextPanel}
+  </div>
+  {actionDock}
+</div>
+
+===============================================================================
+11. P1-C — REDISEÑO DE WORKSPACES
+===============================================================================
+
+11.1 CAJA
+
+[ ] Aplicar el diseño de la sección 4.6.
+[ ] Una sola barra superior.
+[ ] Un solo buscador.
+[ ] Resumen fijo inferior.
+[ ] Cliente y devolución como acciones secundarias.
+[ ] Éxito solo después de respuesta.
+[ ] Error mantiene contexto.
+[ ] Mostrar pendientes offline cerca del estado de conexión.
+
+11.2 BODEGA
+
+Lo bueno:
+El tablero por estados es apropiado para operación.
+
+Pendientes:
+
+[ ] En móvil cambiar columnas horizontales por tabs de estado.
+[ ] En escritorio permitir columnas de mínimo 280 px.
+[ ] No abrir detalles solo en panel oculto en resoluciones medianas; usar Sheet.
+[ ] Mostrar cantidad de líneas, unidades y prioridad en tarjeta.
+[ ] Acción de cambio de estado debe indicar el siguiente paso.
+[ ] Al cargar camión, enviar también vendorId al backend; actualmente la
+    selección visual puede no formar parte del PATCH.
+[ ] No refrescar toda la pantalla cada 15 s si hay datos visibles; actualizar sin
+    borrar la selección.
+[ ] Reemplazar textos de 10 px por mínimo 12 px.
+[ ] Usar token de estado, no hex directo.
+
+11.3 CATÁLOGO
+
+[ ] En desktop conservar tabla.
+[ ] En móvil usar ProductCard, no tabla comprimida.
+[ ] Añadir acción principal "Nuevo producto" en topbar.
+[ ] Mostrar stock en bultos/unidades cuando aplique.
+[ ] Stock crítico debe comparar currentStock con minStock, no usar fijo <= 5.
+[ ] Unificar barcode exacto y búsqueda textual.
+[ ] Mostrar filtros activos y botón limpiar.
+[ ] No mostrar una tabla vacía antes de que el usuario busque.
+
+11.4 FINANZAS
+
+[ ] Si payables no es MVP, eliminar pestaña Pagos y enlaces.
+[ ] La pestaña Atención debe ser la vista inicial.
+[ ] Ordenar excepciones por severidad y antigüedad.
+[ ] Botón de flecha solo debe llevar texto o aria-label "Abrir cuenta".
+[ ] En móvil apilar cliente, estado, monto y acción.
+[ ] Usar fechas locales consistentes.
+[ ] No usar Promise.allSettled para ocultar silenciosamente módulos fallidos;
+    mostrar aviso parcial: "Cartera no disponible".
+
+11.5 CENTRO DE CONTROL
+
+[ ] Mostrar únicamente excepciones accionables.
+[ ] No mezclar métricas decorativas con tareas.
+[ ] Corregir endpoint /cash-registers si el módulo real es /cash-shifts.
+[ ] Cada tarjeta debe llevar: problema, impacto, antigüedad y acción.
+[ ] No afirmar "Todo en orden" si una fuente falló.
+
+===============================================================================
+12. P1-D — FORMULARIOS
+===============================================================================
+
+Problema:
+Hay 22 páginas con form y solo parte usa React Hook Form + Zod. Los estilos y
+patrones cambian entre módulos.
+
+Componentes obligatorios:
+
+- FormPage
+- FormSection
+- FormGrid
+- FieldHelp
+- InlineFieldError
+- StickyFormActions
+
+Checklist general:
+
+[ ] React Hook Form + Zod en formularios MVP.
+[ ] Labels siempre visibles.
+[ ] Placeholder solo como ejemplo, nunca como label.
+[ ] Campo requerido marcado de forma consistente.
+[ ] Error debajo del campo.
+[ ] Guardar fijo abajo con texto "Guardar producto", no icono flotante.
+[ ] Cancelar a la izquierda, guardar a la derecha.
+[ ] Desactivar guardar mientras se procesa.
+[ ] Si falla, conservar valores.
+[ ] Al guardar, usar respuesta backend y navegar al detalle/lista.
+[ ] No pedir en primera vista campos avanzados que casi nunca se cambian.
+
+REDISEÑO "NUEVO PRODUCTO":
+
+Sección 1 — Información básica
+
+- Código de barras.
+- Descripción.
+- Marca.
+- Departamento.
+- Proveedor.
+
+Sección 2 — Presentación e inventario
+
+- Se vende por unidad / bulto y unidad.
+- Unidades por bulto.
+- Stock inicial.
+- Stock mínimo.
+
+Sección 3 — Precios
+
+- Costo.
+- Precio principal.
+- Precio por bulto.
+
+Sección avanzada colapsable
+
+- Precios 2 a 5.
+- Precios por bulto 2 a 5.
+- Subdepartamento.
+
+Checklist específico:
+
+[ ] Cambiar "Por Bulto" a "Por bulto y por unidad" si ambos son vendibles.
+[ ] Mostrar margen calculado junto al precio.
+[ ] No usar tres filas densas de precios en móvil.
+[ ] Botón final con texto y ancho claro.
+[ ] Eliminar FAB amarillo fijo.
+[ ] Conservar resumen lateral en desktop:
+    producto, presentación, costo, precio, margen y stock.
+
+===============================================================================
+13. P1-D — TABLAS Y LISTAS
+===============================================================================
+
+Hay al menos 26 pantallas con tablas.
+
+Crear DataTableShell con:
+
+- toolbar;
+- búsqueda;
+- filtros;
+- contador;
+- loading;
+- empty;
+- error;
+- pagination;
+- vista móvil.
+
+Checklist:
+
+[ ] Encabezado sticky solo dentro de contenedor con altura definida.
+[ ] Columnas numéricas alineadas a la derecha.
+[ ] Códigos con fuente monoespaciada.
+[ ] Acciones en última columna.
+[ ] Menú de acciones no depender solo de tres puntos sin etiqueta.
+[ ] Filas de mínimo 44 px.
+[ ] No incluir inputs de 24 px dentro de encabezados.
+[ ] Filtros en toolbar o popover, no uno por cada columna en móvil.
+[ ] En pantalla menor de 768 px usar cards para entidades operativas.
+[ ] Mantener tabla en desktop para finanzas, inventario y administración.
+[ ] Empty state debe explicar la siguiente acción.
+
+Patrón móvil:
+
+<article className="rounded-lg border bg-card p-4">
+  <header className="flex items-start justify-between gap-3">
+    <div>
+      <h3 className="text-sm font-semibold">Nombre principal</h3>
+      <p className="text-xs text-muted-foreground">Código o referencia</p>
+    </div>
+    <StatusChip ... />
+  </header>
+  <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+    ...
+  </dl>
+  <Button className="mt-4 w-full">Acción principal</Button>
+</article>
+
+===============================================================================
+14. P2-A — DATOS EN REACT
+===============================================================================
+
+Situación:
+Muchos archivos llaman apiClient directamente y pocos usan TanStack Query.
+La caché Axios previa fue eliminada, lo cual es correcto.
+
+Decisión:
+TanStack Query será el único estado remoto en nuevas refactorizaciones.
+
+Checklist:
+
+[ ] Crear queryKeys por dominio.
+[ ] Encapsular productos, ventas, caja, pedidos e inventario en hooks.
+[ ] Invalidar claves exactas tras mutación.
+[ ] Realtime invalida queryKeys, no hace fetch paralelo manual.
+[ ] No guardar copias de datos remotos en contextos globales.
+[ ] PosContext conserva solo estado de venta en curso.
+[ ] RealtimeProvider debe mantener una sola conexión.
+[ ] Eliminar polling redundante cuando realtime cubra el evento.
+[ ] Mantener polling solo como respaldo y sin resetear UI.
+[ ] No crear interfaces Product/Order distintas por página.
+
+Ejemplo:
+
+export const productKeys = {
+  all: (storeId: string) => ['products', storeId] as const,
+  search: (storeId: string, query: string) =>
+    ['products', storeId, 'search', query] as const,
+};
+
+export function useProductSearch(storeId: string, query: string) {
+  return useQuery({
+    queryKey: productKeys.search(storeId, query),
+    queryFn: () => productsApi.search(storeId, query),
+    enabled: query.trim().length >= 2,
+    staleTime: 30_000,
+  });
+}
+
+===============================================================================
+15. P2-B — BACKEND INTERNO
+===============================================================================
+
+Mantener los nuevos repositorios, mappers y casos de uso. No retroceder a
+servicios gigantes.
+
+Checklist:
+
+[ ] Inyectar repositorios/casos de uso por Nest, no crearlos con new dentro del
+    servicio.
+[ ] OrdersService no debe construir OrdersRepository manualmente.
+[ ] SalesService no debe duplicar utilidades de mapper.
+[ ] Los casos de uso controlan transacción.
+[ ] Repositorios solo consultan/persisten.
+[ ] Mappers convierten snake_case a camelCase.
+[ ] Controllers no contienen reglas de negocio.
+[ ] Crear DTO de respuesta para ventas, pedidos, productos y sync.
+[ ] Eliminar SELECT * en caminos MVP.
+[ ] No usar any en contratos públicos.
+[ ] No capturar errores con catch vacío.
+[ ] Unificar envelope de error solo si se conecta de forma completa; el
+    ApiResponseInterceptor existe pero no está registrado globalmente.
+[ ] Si no se va a envolver éxito, eliminar el interceptor muerto para evitar dos
+    formatos posibles.
+
+===============================================================================
+16. P2-C — POSTGRESQL Y MIGRACIONES
+===============================================================================
+
+Situación observada previamente en la base accesible por la aplicación:
+
+- El esquema visible no coincidía completamente con los archivos de migración.
+- Había migraciones anotadas en el ledger sin todas sus tablas visibles.
+- Algunos índices existían sin migración registrada.
+- El runner solo toma archivos con fecha.
+- Varias migraciones escriben por sí mismas schema_migrations aunque el runner
+  también lo hace.
+
+Checklist:
+
+[ ] Elegir al runner como único escritor de schema_migrations.
+[ ] Quitar INSERT INTO schema_migrations de cada SQL.
+[ ] No colocar BEGIN/COMMIT dentro del SQL si el runner ya abre transacción.
+[ ] Crear una migración de reconciliación, no editar migraciones históricas.
+[ ] Verificar que todas las tablas usadas por módulos MVP existen.
+[ ] Verificar columnas updated_at/created_at usadas por delta.
+[ ] Verificar unicidad de sales.external_id y orders.external_id.
+[ ] Verificar unicidad de sync_inbox(store_id, operation_id).
+[ ] No eliminar client_ids JSONB hasta que todo el código use route_clients.
+[ ] La migración normalize_route_clients debe tolerar strings que no sean UUID;
+    el cast client_id::UUID puede abortar toda la migración.
+[ ] La política de retención no debe ser una migración destructiva ejecutada una
+    sola vez. La función y su invocación operativa son conceptos distintos.
+[ ] No borrar historial financiero/operativo solo para reducir volumen del MVP.
+
+FUENTES DE VERDAD A RESOLVER:
+
+[ ] products.current_stock vs stock_bulks/stock_units.
+    Canónico: current_stock en unidades base. Los otros son derivados.
+
+[ ] vendor_inventories.current_quantity vs current_bulks/current_units.
+    Canónico: current_quantity en unidades base. Los otros son derivados.
+
+[ ] movements vs inventory_ledger.
+    Elegir uno para MVP; no escribir parcialmente en ambos.
+
+[ ] products.barcode vs product_barcodes.
+    Canónico: product_barcodes. Mantener products.barcode solo como compatibilidad
+    temporal si todavía tiene consumidores.
+
+[ ] outbox_events vs sync_outbox.
+    Definir: outbox_events para eventos internos y sync_outbox para entrega entre
+    nodos, o consolidar. No duplicar el mismo evento sin dueño claro.
+
+[ ] pending_orders vs orders.
+    Definir si pending_orders es staging offline o una entidad real.
+
+===============================================================================
+17. P2-D — FLUTTER MVP
+===============================================================================
+
+Sin rediseñar toda la app:
+
+[ ] Mantener GoRouter estable con refreshListenable.
+[ ] Reemplazar state.extra obligatorio en picking-checklist por orderId en URL.
+[ ] Reemplazar state.extra obligatorio en delivery-detail por deliveryId en URL.
+[ ] Cargar detalle por ID desde Drift/API.
+[ ] Conservar schema Drift adaptado; no copiar las 61 tablas del backend.
+[ ] Persistir productBarcodes de verdad.
+[ ] Persistir routes, deliveries y receivables recibidos por delta.
+[ ] Agregar operationId a SyncQueueEntries.
+[ ] Agregar nextAttemptAt.
+[ ] Guardar latitud/longitud en VisitLogs si la visita usa GPS.
+[ ] Encolar VisitLogs para envío al backend.
+[ ] Mostrar estado offline/pending en la pantalla principal.
+[ ] Evitar print() como único aviso de error al usuario.
+
+===============================================================================
+18. LIMPIEZA DE UX Y CÓDIGO MUERTO
+===============================================================================
+
+[ ] Eliminar referencias visuales a "PharmaSync"; el producto es Pino.
+[ ] Eliminar CashierLayout si no se usa.
+[ ] Eliminar PosLayout si el MVP usa CashWorkspace.
+[ ] Elegir entre BillingPage y CashWorkspace; no mantener dos POS activos.
+[ ] Eliminar imports lazy de rutas permanentemente fuera del MVP.
+[ ] Eliminar botones deshabilitados de funciones "aún no implementadas" si no
+    aportan al flujo actual.
+[ ] Eliminar comentarios "FASE 3" de la navegación visible.
+[ ] Eliminar clases Tailwind inválidas.
+[ ] Eliminar componentes de ayuda si la función queda fuera del MVP inmediato.
+[ ] Eliminar estilos neumórficos/gradientes que rompen el sistema visual.
+[ ] Mantener gráficas solo donde ayudan a decidir, no como decoración.
+
+===============================================================================
+19. CRITERIOS DE FINALIZACIÓN DEL MVP
+===============================================================================
+
+El agente solo puede marcar cada punto cuando el comportamiento final ya existe.
+
+VENTA
+
+[ ] Usuario ve claramente si la caja está abierta.
+[ ] Puede encontrar producto por escáner y texto.
+[ ] Puede vender unidades y bultos sin cálculo ambiguo.
+[ ] Puede cambiar cantidad con un solo control.
+[ ] Método de pago llega con código canónico.
+[ ] Diálogo espera respuesta.
+[ ] Si backend falla, carrito sigue intacto.
+[ ] Si backend acepta, se usa total/ticket del backend.
+[ ] No se puede enviar dos veces por doble clic.
+
+OFFLINE
+
+[ ] Se guarda JSON, nunca código de función.
+[ ] operationId se conserva.
+[ ] Respuesta usa operationId.
+[ ] Solo APPLIED/DUPLICATE eliminan operación.
+[ ] Ausencia de resultado conserva operación.
+[ ] Venta batch no hace doble claim.
+[ ] El usuario ve pendientes y errores.
+
+NAVEGACIÓN
+
+[ ] No existe enlace visible hacia ruta deshabilitada.
+[ ] Ayuda/CxP/chain dashboard son coherentes con feature flags.
+[ ] Ruta desconocida muestra pantalla útil.
+[ ] Sidebar, botones internos y router derivan de la misma configuración.
+
+UX/UI
+
+[ ] No se agregaron hexadecimales en páginas.
+[ ] Texto operativo mínimo 12 px.
+[ ] Botones táctiles mínimo 44 px.
+[ ] Cada página usa PageShell o WorkspaceShell.
+[ ] Formularios usan acciones con texto.
+[ ] Tablas tienen variante móvil.
+[ ] Estados usan color + icono + etiqueta.
+[ ] Carga, vacío y error tienen patrones comunes.
+
+FLUTTER
+
+[ ] Delta usa cursor por tienda/entidad.
+[ ] Todas las escrituras se esperan con await.
+[ ] No existen handlers vacíos para entidades anunciadas.
+[ ] Cursor avanza después de persistir.
+[ ] Navegación de detalle funciona por ID.
+
+BASE DE DATOS
+
+[ ] Ledger de migraciones representa el esquema real.
+[ ] El runner es el único escritor del ledger.
+[ ] Tablas/columnas MVP existen.
+[ ] operationId/externalId tienen unicidad.
+[ ] No se ejecutan casts UUID inseguros.
+[ ] Cada dato derivado tiene una fuente canónica.
+
+===============================================================================
+20. PUNTUACIÓN ESPERADA DESPUÉS DEL PLAN
+===============================================================================
+
+Después de P0:
+
+- MVP global esperado: 6.4 / 10.
+- Ya puede operar online sin contradicciones graves.
+- Offline deja de ser un riesgo directo de pérdida.
+
+Después de P1:
+
+- MVP global esperado: 7.2 / 10.
+- Interfaz práctica, rápida y coherente.
+- Caja, bodega, catálogo y finanzas funcionan como un mismo producto.
+
+Después de P2:
+
+- MVP global esperado: 7.8 / 10.
+- Base mantenible para continuar funcionalidades sin multiplicar deuda.
+
+===============================================================================
+21. RESUMEN EJECUTIVO PARA EL AGENTE
+===============================================================================
+
+NO comenzar por colores, dashboards o animaciones.
+
+Primero corregir:
+
+1. Método y confirmación de pago.
+2. Búsqueda y cantidades del carrito.
+3. Bultos/unidades.
+4. Contrato offline y doble idempotencia.
+5. Delta sync.
+6. Enlaces muertos.
+
+Después construir:
+
+7. Tokens visuales.
+8. AppLayout.
+9. Workspaces.
+10. Formularios y tablas.
+
+Finalmente consolidar:
+
+11. React Query.
+12. Contratos compartidos.
+13. Backend interno.
+14. Esquema/migraciones.
+15. Flutter por ID y cursor.
+
+La prioridad del MVP no es tener más pantallas. Es que las pantallas visibles
+sean correctas, legibles, rápidas y no permitan perder una venta u operación.
+
+FIN DEL PLAN

@@ -135,7 +135,7 @@ export default function MasterZonesPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {map((zone) => (
+                                {zones.map((zone) => (
                                     <TableRow key={zone.id}>
                                         <TableCell className="font-medium">{zone.name}</TableCell>
                                         <TableCell>{zone.description || zone.code || '-'}</TableCell>

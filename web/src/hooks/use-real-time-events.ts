@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { toast } from '@/lib/swalert';
-import { clearCache } from '@/services/api-client';
-import { SOCKET_PATH, SOCKET_URL } from '@/lib/runtime-config';
+import { useRealtime } from '@/contexts/realtime-context';
 
 export const useRealTimeEvents = (storeId?: string) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const { socket, connected } = useRealtime();
   const [lastEvent, setLastEvent] = useState<any>(null);
-  const [connected, setConnected] = useState(false);
 
   const isRelevantEvent = useCallback(
     (event: any) => {
@@ -52,46 +49,31 @@ export const useRealTimeEvents = (storeId?: string) => {
   }, []);
 
   useEffect(() => {
-    // Append namespace to the URL
-    const namespaceUrl = `${SOCKET_URL}/events`.replace(/\/\//g, '/').replace(':/', '://');
-    const newSocket = io(namespaceUrl, {
-      transports: ['websocket'],
-      autoConnect: true,
-      path: SOCKET_PATH,
-    });
+    if (socket && connected && storeId) {
+      socket.emit('join_store', storeId);
+    }
+  }, [socket, connected, storeId]);
+
+  useEffect(() => {
+    if (!socket) return;
 
     const handleRealtimeEvent = (data: any) => {
       if (!isRelevantEvent(data)) {
         return;
       }
 
-      clearCache();
       setLastEvent(data);
       handleNotification(data);
     };
 
-    newSocket.on('connect', () => {
-      setConnected(true);
-      if (storeId) {
-        newSocket.emit('join_store', storeId);
-      }
-    });
-
-    newSocket.on('disconnect', () => {
-      setConnected(false);
-    });
-
-    newSocket.on('sync_update', handleRealtimeEvent);
-    newSocket.on('store_update', handleRealtimeEvent);
-
-    setSocket(newSocket);
+    socket.on('sync_update', handleRealtimeEvent);
+    socket.on('store_update', handleRealtimeEvent);
 
     return () => {
-      newSocket.off('sync_update', handleRealtimeEvent);
-      newSocket.off('store_update', handleRealtimeEvent);
-      newSocket.close();
+      socket.off('sync_update', handleRealtimeEvent);
+      socket.off('store_update', handleRealtimeEvent);
     };
-  }, [handleNotification, isRelevantEvent, storeId]);
+  }, [socket, isRelevantEvent, handleNotification]);
 
   return { socket, lastEvent, connected };
 };

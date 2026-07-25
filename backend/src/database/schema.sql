@@ -555,7 +555,80 @@ ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_4 DECIMAL(12, 2) DEFAUL
 ALTER TABLE products ADD COLUMN IF NOT EXISTS bulk_price_5 DECIMAL(12, 2) DEFAULT 0;
 
 -- ============================================================
--- SECCIÓN 5: ÍNDICES DE PERFORMANCE
+-- SECCIÓN 6: TABLAS DE SYNC ENGINE (inbox/outbox/status)
+-- ============================================================
+
+-- Estado de sincronización por tienda
+CREATE TABLE IF NOT EXISTS sync_status (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    status VARCHAR(30) DEFAULT 'PENDING',
+    ops_count INT DEFAULT 0,
+    duplicates_avoided INT DEFAULT 0,
+    last_sync TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_sync_status_store ON sync_status(store_id);
+
+-- Inbox de sincronización (idempotencia offline→online)
+CREATE TABLE IF NOT EXISTS sync_inbox (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    operation_id UUID NOT NULL,
+    source_node_id VARCHAR(100),
+    operation_type VARCHAR(50),
+    aggregate_type VARCHAR(50),
+    payload JSONB,
+    payload_hash VARCHAR(64),
+    status VARCHAR(20) DEFAULT 'CLAIMED',
+    result JSONB,
+    error_code VARCHAR(100),
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    processed_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT uq_sync_inbox_op UNIQUE (store_id, operation_id)
+);
+CREATE INDEX IF NOT EXISTS idx_sync_inbox_store ON sync_inbox(store_id, status);
+
+-- Outbox de sincronización (eventos para nodos EDGE)
+CREATE TABLE IF NOT EXISTS sync_outbox (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    aggregate_type VARCHAR(50) NOT NULL,
+    aggregate_id UUID,
+    event_type VARCHAR(50) NOT NULL,
+    payload JSONB NOT NULL,
+    target_node_id VARCHAR(100),
+    published_at TIMESTAMP WITH TIME ZONE,
+    available_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    attempts INT DEFAULT 0,
+    last_error TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_sync_outbox_pending ON sync_outbox(published_at NULLS FIRST, available_at) WHERE published_at IS NULL;
+
+-- Outbox events (eventos de negocio para integración)
+CREATE TABLE IF NOT EXISTS outbox_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    event_type VARCHAR(100) NOT NULL,
+    aggregate_type VARCHAR(50),
+    aggregate_id UUID,
+    payload JSONB NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+CREATE INDEX IF NOT EXISTS idx_outbox_events_status ON outbox_events(status) WHERE status = 'pending';
+
+-- DEPRECATED: Use sync_inbox instead. Will be removed.
+-- sync_idempotency_log
+-- DEPRECATED: Use sync_outbox instead. Will be removed.
+-- sync_logs
+
+-- ============================================================
+-- SECCIÓN 7: ÍNDICES DE PERFORMANCE
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_vendor_inventories_vendor ON vendor_inventories(vendor_id);
 CREATE INDEX IF NOT EXISTS idx_accounts_receivable_store ON accounts_receivable(store_id);
@@ -573,3 +646,236 @@ CREATE INDEX IF NOT EXISTS idx_routes_store ON routes(store_id, vendor_id);
 CREATE INDEX IF NOT EXISTS idx_visit_logs_store_vendor ON visit_logs(store_id, vendor_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_consultasql_historial_created_at ON consultasql_historial(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_consultasql_historial_duracion ON consultasql_historial(duracion_ms DESC);
+
+-- ============================================================
+-- SECCIÓN 8: TABLAS FALTANTES (18 tablas existentes en BD, no en DDL)
+-- ============================================================
+
+-- 8.1 Arqueos de Caja
+CREATE TABLE IF NOT EXISTS arqueos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id),
+    rutero_id UUID NOT NULL REFERENCES users(id),
+    realizado_por UUID NOT NULL REFERENCES users(id),
+    fecha DATE NOT NULL DEFAULT CURRENT_DATE,
+    efectivo_declarado NUMERIC(12,2) NOT NULL DEFAULT 0,
+    efectivo_contado NUMERIC(12,2) NOT NULL DEFAULT 0,
+    diferencia NUMERIC(12,2) DEFAULT 0,
+    cheques NUMERIC(12,2) DEFAULT 0,
+    depositos NUMERIC(12,2) DEFAULT 0,
+    notas TEXT,
+    status VARCHAR(20) DEFAULT 'PENDIENTE',
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- 8.2 Autorizaciones
+CREATE TABLE IF NOT EXISTS authorizations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID,
+    requester_id UUID,
+    type VARCHAR(50) NOT NULL,
+    details JSONB,
+    status VARCHAR(20) DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8.3 Cargas de Camión
+CREATE TABLE IF NOT EXISTS cargas_camion (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id),
+    rutero_id UUID NOT NULL REFERENCES users(id),
+    camion_placa VARCHAR(20),
+    fecha_carga DATE NOT NULL DEFAULT CURRENT_DATE,
+    fecha_salida TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'ALISTANDO',
+    total_pedidos INTEGER DEFAULT 0,
+    total_bultos INTEGER DEFAULT 0,
+    total_unidades_sueltas INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- 8.4 Tokens de Dispositivos
+CREATE TABLE IF NOT EXISTS device_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL,
+    platform VARCHAR(20) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS device_tokens_token_key ON device_tokens(token);
+
+-- 8.5 Logs de Errores
+CREATE TABLE IF NOT EXISTS error_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    message TEXT,
+    stack TEXT,
+    location TEXT,
+    user_id UUID,
+    store_id UUID,
+    additional_info JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_error_logs_date ON error_logs(created_at DESC);
+
+-- 8.6 Gastos
+CREATE TABLE IF NOT EXISTS expenses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID,
+    cash_shift_id UUID,
+    amount NUMERIC(15,2),
+    description TEXT,
+    category VARCHAR(100),
+    created_by UUID,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);
+CREATE INDEX IF NOT EXISTS idx_expenses_store_date ON expenses(store_id, created_at);
+
+-- 8.7 Grupos de Clientes
+CREATE TABLE IF NOT EXISTS grupos_clientes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id),
+    nombre VARCHAR(200) NOT NULL,
+    descripcion TEXT,
+    color VARCHAR(20) DEFAULT '#3B82F6',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+-- 8.8 Grupos Económicos
+CREATE TABLE IF NOT EXISTS grupos_economicos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id),
+    nombre VARCHAR(200) NOT NULL,
+    limite_credito_global NUMERIC(12,2) DEFAULT 0,
+    notas TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+-- 8.9 Historial de Asignación de Clientes
+CREATE TABLE IF NOT EXISTS historial_asignacion_clientes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    client_id UUID NOT NULL REFERENCES clients(id),
+    preventa_anterior_id UUID REFERENCES users(id),
+    preventa_nuevo_id UUID REFERENCES users(id),
+    motivo TEXT,
+    realizado_por UUID REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- 8.10 Ajustes de Inventario
+CREATE TABLE IF NOT EXISTS inventory_adjustments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID,
+    quantity INTEGER DEFAULT 0,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8.11 Kárdex de Inventario (Ledger contable)
+CREATE TABLE IF NOT EXISTS inventory_ledger (
+    id BIGSERIAL PRIMARY KEY,
+    store_id UUID NOT NULL REFERENCES stores(id),
+    operation_id UUID NOT NULL,
+    product_id UUID NOT NULL REFERENCES products(id),
+    location_type VARCHAR(20) NOT NULL,
+    location_id UUID NOT NULL,
+    movement_type VARCHAR(40) NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity <> 0),
+    balance_after INTEGER NOT NULL CHECK (balance_after >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    handles_bulk_snapshot BOOLEAN,
+    units_per_bulk_snapshot INTEGER,
+    CONSTRAINT uq_inventory_ledger UNIQUE (store_id, operation_id, product_id, location_type, location_id)
+);
+CREATE INDEX IF NOT EXISTS idx_general_ledger_store_date ON inventory_ledger(store_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_inventory_ledger_store ON inventory_ledger(store_id, created_at);
+
+-- 8.12 Liquidaciones de Ruta
+CREATE TABLE IF NOT EXISTS liquidaciones_ruta (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID NOT NULL REFERENCES stores(id),
+    rutero_id UUID NOT NULL REFERENCES users(id),
+    fecha_ruta DATE NOT NULL,
+    total_pedidos INTEGER DEFAULT 0,
+    total_entregados INTEGER DEFAULT 0,
+    total_rechazados INTEGER DEFAULT 0,
+    total_cobrado_contado NUMERIC(12,2) DEFAULT 0,
+    total_cobrado_credito NUMERIC(12,2) DEFAULT 0,
+    total_devoluciones NUMERIC(12,2) DEFAULT 0,
+    efectivo_esperado NUMERIC(12,2) DEFAULT 0,
+    efectivo_entregado NUMERIC(12,2) DEFAULT 0,
+    diferencia NUMERIC(12,2) DEFAULT 0,
+    arqueo_id UUID REFERENCES arqueos(id),
+    status VARCHAR(20) DEFAULT 'PENDIENTE',
+    liquidado_por UUID REFERENCES users(id),
+    notas TEXT,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+-- 8.13 Notificaciones
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    store_id UUID,
+    user_id UUID,
+    type VARCHAR(50) DEFAULT 'info',
+    title VARCHAR(255),
+    message TEXT,
+    metadata JSONB DEFAULT '{}',
+    read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8.14 Historial de Estados de Pedidos
+CREATE TABLE IF NOT EXISTS order_status_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+    status VARCHAR(50) NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8.15 Migraciones de Esquema
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    filename TEXT PRIMARY KEY,
+    applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 8.16 Cursores de Sincronización
+CREATE TABLE IF NOT EXISTS sync_cursors (
+    node_id UUID NOT NULL,
+    store_id UUID NOT NULL,
+    stream VARCHAR(50) NOT NULL,
+    last_event_id BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (node_id, store_id, stream)
+);
+
+-- 8.17 Nodos de Sincronización
+CREATE TABLE IF NOT EXISTS sync_nodes (
+    id UUID PRIMARY KEY,
+    store_id UUID NOT NULL REFERENCES stores(id),
+    node_type VARCHAR(10) NOT NULL CHECK (node_type IN ('EDGE', 'CLOUD')),
+    name VARCHAR(100) NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    last_seen_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS sync_nodes_store_id_id_key ON sync_nodes(store_id, id);
+
+-- 8.18 Rutas de Vendedor
+CREATE TABLE IF NOT EXISTS vendor_routes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    vendor_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    client_ids JSONB DEFAULT '[]',
+    route_date DATE,
+    status VARCHAR(30) DEFAULT 'PLANNED',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

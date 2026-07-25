@@ -191,7 +191,7 @@ export default function PayablesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {map((acc) => (
+                  {accounts.map((acc) => (
                     <TableRow key={acc.id}>
                       <TableCell className="font-medium">{acc.supplierName || 'Desconocido'}</TableCell>
                       <TableCell className="max-w-[200px] text-sm text-muted-foreground">

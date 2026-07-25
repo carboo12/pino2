@@ -47,28 +47,26 @@ const productFormSchema = z.object({
   barcode: z.string().optional(),
   brand: z.string().optional(),
   description: z.string().min(3, { message: 'La descripción es requerida.' }),
-  packagingType: z.enum(['UNIT', 'BULTO'], {
-    errorMap: () => ({ message: 'Debes seleccionar un tipo de venta.' }),
-  }),
-  unitsPerBulk: z.coerce.number().optional(),
-  costPrice: z.coerce.number().min(0, { message: 'El precio no puede ser negativo.' }),
-  price1: z.coerce.number().min(0, { message: 'El precio no puede ser negativo.' }),
-  price2: z.coerce.number().min(0, { message: 'El precio no puede ser negativo.' }),
-  price3: z.coerce.number().optional(),
-  price4: z.coerce.number().optional(),
-  price5: z.coerce.number().optional(),
-  bulkPrice1: z.coerce.number().optional(),
-  bulkPrice2: z.coerce.number().optional(),
-  bulkPrice3: z.coerce.number().optional(),
-  bulkPrice4: z.coerce.number().optional(),
-  bulkPrice5: z.coerce.number().optional(),
-  department: z.string({ required_error: 'Debes seleccionar un departamento.' }),
+  packagingType: z.enum(['UNIT', 'BULTO'], 'Debes seleccionar un tipo de venta.'),
+  unitsPerBulk: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  costPrice: z.any().transform(v => Number(v)).pipe(z.number().min(0, { message: 'El precio no puede ser negativo.' })),
+  price1: z.any().transform(v => Number(v)).pipe(z.number().min(0, { message: 'El precio no puede ser negativo.' })),
+  price2: z.any().transform(v => Number(v)).pipe(z.number().min(0, { message: 'El precio no puede ser negativo.' })),
+  price3: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  price4: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  price5: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  bulkPrice1: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  bulkPrice2: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  bulkPrice3: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  bulkPrice4: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  bulkPrice5: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  department: z.string('Debes seleccionar un departamento.'),
   subDepartment: z.string().optional(),
   supplierId: z.string().optional(),
   supplierName: z.string().optional(),
-  usesInventory: z.boolean().default(true),
-  currentStock: z.coerce.number().optional(),
-  minStock: z.coerce.number().optional(),
+  usesInventory: z.boolean(),
+  currentStock: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
+  minStock: z.any().transform(v => v === '' || v == null ? undefined : Number(v)).pipe(z.number().optional()),
 }).refine(data => {
   if (data.packagingType === 'BULTO') {
     return data.unitsPerBulk !== undefined && data.unitsPerBulk > 0;
@@ -170,10 +168,6 @@ export default function AddProductPage() {
   const usesInventory = form.watch('usesInventory');
   const packagingType = form.watch('packagingType');
   const selectedDepartment = form.watch('department');
-
-  useEffect(() => {
-    form.setValue('subDepartment', '');
-  }, [selectedDepartment, form]);
 
   useEffect(() => {
     form.setValue('subDepartment', '');

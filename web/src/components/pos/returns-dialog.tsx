@@ -37,9 +37,15 @@ interface Sale {
     createdAt: string;
 }
 
-export function ReturnsDialog() {
+interface ReturnsDialogProps {
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    storeId?: string;
+}
+
+export function ReturnsDialog({ open: controlledOpen, onOpenChange: controlledOnOpenChange, storeId: propStoreId }: ReturnsDialogProps = {}) {
     const params = useParams();
-    const storeId = params.storeId as string;
+    const storeId = propStoreId || params.storeId as string;
     const { user } = useAuth();
 
     const [ticketId, setTicketId] = useState('');
@@ -139,13 +145,18 @@ export function ReturnsDialog() {
         .reduce((acc, item) => acc + (item.salePrice * (selectedQuantities[item.originalIndex] || 1)), 0);
 
     return (
-        <Dialog onOpenChange={(open) => !open && setSale(null)}>
-            <DialogTrigger asChild>
-                <Button className="flex-1 bg-[#673ab7] hover:bg-[#5e35b1] text-white flex flex-col gap-0.5 rounded-md shadow-sm border-0 p-0 h-full">
-                    <FileText className="h-3 w-3" />
-                    <span className="text-[8px] font-bold leading-none text-center">NOTA DE<br />CRÉDITO</span>
-                </Button>
-            </DialogTrigger>
+        <Dialog
+            open={controlledOpen !== undefined ? controlledOpen : undefined}
+            onOpenChange={controlledOpen !== undefined ? controlledOnOpenChange : (open) => !open && setSale(null)}
+        >
+            {controlledOpen !== undefined ? null : (
+                <DialogTrigger asChild>
+                    <Button className="flex-1 bg-[#673ab7] hover:bg-[#5e35b1] text-white flex flex-col gap-0.5 rounded-md shadow-sm border-0 p-0 h-full">
+                        <FileText className="h-3 w-3" />
+                        <span className="text-[8px] font-bold leading-none text-center">NOTA DE<br />CRÉDITO</span>
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-xl border-none shadow-2xl bg-white p-0 overflow-hidden rounded-2xl">
                 <div className="bg-purple-600 p-6 text-white">
                     <DialogHeader>

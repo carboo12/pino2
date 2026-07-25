@@ -115,7 +115,7 @@ export default function MasterUsersPage() {
     return (
       <div className="rounded-md border">
         <Accordion type="single" collapsible className="w-full">
-          {map((user) => (
+          {users.map((user) => (
             <AccordionItem value={user.uid} key={user.uid}>
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center justify-between w-full">

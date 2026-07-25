@@ -50,7 +50,6 @@ export const ProductSchema = z.object({
   bulkPrice5: z.number().optional(),
   isActive: z.boolean().optional(),
   usesInventory: z.boolean().optional(),
-  unitsPerBulk: z.number().int().optional(),
   version: z.number().int().optional(),
 });
 

@@ -161,7 +161,7 @@ export default function InventoryAdjustmentsPage() {
               <div className="space-y-2">
                 {loadingProducts ? (
                   Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)
-                ) : map(product => (
+                ) : filteredProducts.map(product => (
                   <div
                     key={product.id}
                     onClick={() => setSelectedProduct(product)}

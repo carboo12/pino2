@@ -51,7 +51,7 @@ export default function MasterStoresPage() {
             <div className="mb-6"><h1 className="text-2xl font-bold tracking-tight">Gestión de Tiendas</h1><p className="text-muted-foreground">Administra las tiendas registradas.</p></div>
             {stores.length === 0 ? (<div className="text-center p-8 border rounded-lg bg-muted/20"><p className="text-muted-foreground">No hay tiendas registradas.</p></div>) : (<>
                 <div className="rounded-md border"><Accordion type="single" collapsible className="w-full">
-                    {map((store) => (<AccordionItem value={store.id} key={store.id}>
+                    {stores.map((store) => (<AccordionItem value={store.id} key={store.id}>
                         <AccordionTrigger className="px-6 py-4 hover:no-underline"><div className="flex items-center justify-between w-full"><span className="font-medium text-left">{store.name}</span><Badge className={getStatusColor(store.computedStatus)}>{store.computedStatus || 'Sin Estado'}</Badge></div></AccordionTrigger>
                         <AccordionContent className="px-6 pb-4 bg-muted/50">
                             <div className="grid gap-4 md:grid-cols-2">

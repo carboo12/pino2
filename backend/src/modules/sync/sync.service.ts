@@ -5,7 +5,7 @@ import { SalesService } from '../sales/sales.service';
 import { OrdersService } from '../orders/orders.service';
 import { CollectionsService } from '../collections/collections.service';
 import { ReturnsService } from '../returns/returns.service';
-import { SyncStatus } from '../../common/constants/enums';
+import { InboxService } from '../sync-engine/inbox.service';
 import { SyncOperationDto } from './sync.dto';
 
 @Injectable()
@@ -18,6 +18,7 @@ export class SyncService {
     private readonly ordersService: OrdersService,
     private readonly collectionsService: CollectionsService,
     private readonly returnsService: ReturnsService,
+    private readonly inboxService: InboxService,
   ) {}
 
   async getStatuses() {
@@ -48,97 +49,110 @@ export class SyncService {
     );
 
     const results: any[] = [];
+    let successCount = 0;
+    let duplicateCount = 0;
 
-    await this.db.withTransaction(async (client: PoolClient) => {
-      // 1. Registrar intento de sincro
-      await client.query(
-        `INSERT INTO sync_status (store_id, last_sync, status, ops_count, duplicates_avoided) 
-         VALUES ($1, NOW(), 'PROCESSING', 0, 0)
-         ON CONFLICT (store_id) DO UPDATE SET status = 'PROCESSING', last_sync = NOW()`,
-        [storeId],
+    await this.db.query(
+      `INSERT INTO sync_status (store_id, last_sync, status, ops_count, duplicates_avoided) 
+       VALUES ($1, NOW(), 'PROCESSING', 0, 0)
+       ON CONFLICT (store_id) DO UPDATE SET status = 'PROCESSING', last_sync = NOW()`,
+      [storeId],
+    );
+
+    for (const op of operations) {
+      const opId = op.operationId;
+
+      const claim = await this.inboxService.claim(
+        storeId,
+        opId,
+        'sync-batch',
+        op.type,
+        op.type,
+        op.data || {},
       );
 
-      let successCount = 0;
-      let duplicateCount = 0;
+      if (!claim.claimed) {
+        duplicateCount++;
+        results.push({
+          opId,
+          status: 'SUCCESS',
+          isDuplicate: true,
+          serverId: claim.existingResult?.id,
+          existingResult: claim.existingResult,
+        });
+        continue;
+      }
 
-      for (let i = 0; i < operations.length; i++) {
-        const op = operations[i];
-        const opId = op.id || op.localId || op.externalId;
-        const savepointName = `sp_op_${i}`;
-
-        try {
-          // SAVEPOINT por operación: permite rollback individual sin afectar el batch
-          await client.query(`SAVEPOINT ${savepointName}`);
-
+      try {
+        const res = await this.db.withTransaction(async (client: PoolClient) => {
           const opData = {
             ...op.data,
             storeId,
             externalId: op.data?.externalId || opId,
           };
 
-          let res: any;
+          let result: any;
           switch (op.type) {
             case 'SALE':
-              res = await this.salesService.processSale(
+              result = await this.salesService.processSale(
                 opData as any,
                 (opData as any).cashierId || (opData as any).userId || 'system',
                 client,
               );
               break;
             case 'ORDER':
-              res = await this.ordersService.create(opData as any, client);
+              result = await this.ordersService.create(opData as any, client);
               break;
             case 'COLLECTION':
-              res = await this.collectionsService.create(opData as any, client);
+              result = await this.collectionsService.create(opData as any, client);
               break;
             case 'RETURN':
-              res = await this.returnsService.create(opData as any, client);
+              result = await this.returnsService.create(opData as any, client);
               break;
             default:
-              this.logger.warn(`Tipo de operación no soportado: ${op.type}`);
-              results.push({
-                opId,
-                status: 'SKIPPED',
-                error: 'Unsupported type',
-              });
-              await client.query(`RELEASE SAVEPOINT ${savepointName}`);
-              continue;
+              throw new Error(`Unsupported operation type: ${op.type}`);
           }
 
-          // Operación exitosa: liberar savepoint
-          await client.query(`RELEASE SAVEPOINT ${savepointName}`);
-          results.push({
-            opId,
-            serverId: res.id,
-            status: 'SUCCESS',
-            isDuplicate: !!res.isDuplicate,
-          });
-          if (res.isDuplicate) duplicateCount++;
-          else successCount++;
-        } catch (error) {
-          // Rollback solo esta operación, el resto del batch continúa
-          await client.query(`ROLLBACK TO SAVEPOINT ${savepointName}`);
-          this.logger.error(
-            `Error procesando operación ${opId} (${op.type}): ${error.message}`,
-          );
-          results.push({
-            opId,
-            status: 'FAILED',
-            error: error.message,
-          });
-        }
-      }
+          return result;
+        });
 
-      await client.query(
-        `UPDATE sync_status 
-         SET status = 'COMPLETED', 
-             last_sync = NOW(), 
-             ops_count = ops_count + $1,
-             duplicates_avoided = duplicates_avoided + $2
-         WHERE store_id = $3`,
-        [successCount, duplicateCount, storeId],
-      );
-    });
+        await this.inboxService.markProcessed(storeId, opId, res);
+        successCount++;
+
+        results.push({
+          opId,
+          serverId: res.id,
+          status: 'SUCCESS',
+          isDuplicate: false,
+        });
+      } catch (error) {
+        await this.inboxService.markError(
+          storeId,
+          opId,
+          'PROCESSING_ERROR',
+          error.message,
+        );
+
+        this.logger.error(
+          `Error procesando operación ${opId} (${op.type}): ${error.message}`,
+        );
+        results.push({
+          opId,
+          status: 'FAILED',
+          error: error.message,
+        });
+      }
+    }
+
+    await this.db.query(
+      `UPDATE sync_status 
+       SET status = 'COMPLETED', 
+           last_sync = NOW(), 
+           ops_count = ops_count + $1,
+           duplicates_avoided = duplicates_avoided + $2
+       WHERE store_id = $3`,
+      [successCount, duplicateCount, storeId],
+    );
 
     return results;
   }

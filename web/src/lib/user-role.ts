@@ -1,3 +1,5 @@
+import { USER_ROLES, type UserRole } from '@shared/contracts';
+
 const normalizeRawRole = (value?: string | null) =>
   (value || '')
     .normalize('NFD')
@@ -6,21 +8,7 @@ const normalizeRawRole = (value?: string | null) =>
     .trim()
     .replace(/[_\s]+/g, '-');
 
-export type NormalizedUserRole =
-  | 'master-admin'
-  | 'owner'
-  | 'chain-admin'
-  | 'store-admin'
-  | 'cashier'
-  | 'inventory'
-  | 'dispatcher'
-  | 'rutero'
-  | 'vendor'
-  | 'sales-manager'
-  | 'auxiliar'
-  | 'supervisor-caja'
-  | 'supervisor-pasillo'
-  | 'unknown';
+export type NormalizedUserRole = UserRole | 'unknown';
 
 export const normalizeUserRole = (value?: string | null): NormalizedUserRole => {
   const role = normalizeRawRole(value);

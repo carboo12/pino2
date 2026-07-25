@@ -57,7 +57,7 @@ export default function StoreUsersPage() {
         <Alert variant="destructive">
           <Users className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{String(error)}</AlertDescription>
         </Alert>
       );
     }

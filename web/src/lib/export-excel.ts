@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 /**
@@ -7,11 +6,12 @@ import { saveAs } from 'file-saver';
  * @param fileName - Name of the file (without extension)
  * @param sheetName - Name of the Excel sheet (default: "Datos")
  */
-export function exportToExcel<T extends Record<string, unknown>>(
+export async function exportToExcel<T extends Record<string, unknown>>(
   data: T[],
   fileName: string,
   sheetName = 'Datos',
 ) {
+  const XLSX = await import('xlsx');
   if (data.length === 0) return;
 
   const worksheet = XLSX.utils.json_to_sheet(data);

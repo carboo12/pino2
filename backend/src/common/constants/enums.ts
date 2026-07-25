@@ -1,3 +1,9 @@
+// NOTE: Shared canonical contracts defined in /shared/contracts.ts
+// Keep this file in sync. Codegen from shared/contracts.ts is the source of truth.
+
+// ===== LEGACY enums — kept for backward compat during migration =====
+// New code should use shared/contracts.ts directly.
+
 export enum OrderStatus {
   PENDIENTE = 'PENDIENTE',
   RECIBIDO = 'RECIBIDO',
@@ -44,18 +50,6 @@ export enum LiquidacionStatus {
   CON_OBSERVACION = 'CON_OBSERVACION',
 }
 
-export enum PaymentType {
-  CONTADO = 'CONTADO',
-  CREDITO = 'CREDITO',
-}
-
-export enum PaymentMethod {
-  CASH = 'CASH',
-  TRANSFER = 'TRANSFER',
-  CHECK = 'CHECK',
-  CARD = 'CARD',
-}
-
 export enum ChainStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
@@ -65,4 +59,16 @@ export enum RouteStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
+}
+
+export enum PaymentMethod {
+  CASH = 'CASH',
+  TRANSFER = 'TRANSFER',
+  CHECK = 'CHECK',
+  CARD = 'CARD',
+}
+
+export enum PaymentType {
+  CONTADO = 'CONTADO',
+  CREDITO = 'CREDITO',
 }

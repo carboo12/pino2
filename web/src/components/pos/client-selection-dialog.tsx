@@ -18,13 +18,18 @@ import apiClient from '@/services/api-client';
 import { toast } from '@/lib/swalert';
 
 interface ClientSelectionDialogProps {
-    currentClient: Client | null;
-    onSelectClient: (client: Client) => void;
+    currentClient?: Client | null;
+    onSelectClient?: (client: Client) => void;
     trigger?: React.ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    onSelect?: (client: Client) => void;
 }
 
-export function ClientSelectionDialog({ currentClient, onSelectClient, trigger }: ClientSelectionDialogProps) {
-    const [isOpen, setIsOpen] = useState(false);
+export function ClientSelectionDialog({ currentClient = null, onSelectClient, trigger, open: controlledOpen, onOpenChange: controlledOnOpenChange, onSelect }: ClientSelectionDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setIsOpen = controlledOnOpenChange || setInternalOpen;
     const [searchTerm, setSearchTerm] = useState('');
     const [clients, setClients] = useState<Client[]>([]);
     const [loading, setLoading] = useState(false);
@@ -70,7 +75,8 @@ export function ClientSelectionDialog({ currentClient, onSelectClient, trigger }
     });
 
     const handleSelect = (client: Client) => {
-        onSelectClient(client);
+        if (onSelectClient) onSelectClient(client);
+        if (onSelect) onSelect(client);
         setSearchTerm('');
         setIsOpen(false);
     };

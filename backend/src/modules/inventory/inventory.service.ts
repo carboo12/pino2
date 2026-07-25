@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { EventsGateway } from '../../common/gateways/events.gateway';
+import { InventoryRepository } from './repositories/inventory.repository';
 import { splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class InventoryService {
   constructor(
     private readonly db: DatabaseService,
     private readonly eventsGateway: EventsGateway,
+    private readonly repo: InventoryRepository,
   ) {}
 
   private parseInteger(value: unknown, fieldName: string): number {
@@ -54,24 +56,19 @@ export class InventoryService {
         throw new BadRequestException('quantity debe ser mayor que cero');
       }
 
-      const prodRes = await client.query(
-        'SELECT current_stock, units_per_bulk FROM products WHERE id = $1 AND store_id = $2 FOR UPDATE',
-        [dto.productId, dto.storeId],
+      const product = await this.repo.findProductForUpdate(
+        client,
+        dto.productId,
+        dto.storeId,
       );
-      if (prodRes.rowCount === 0)
+      if (!product)
         throw new BadRequestException('Producto no encontrado en esta tienda');
 
       const currentStock = this.parseInteger(
-        prodRes.rows[0].current_stock,
+        product.currentStock,
         'current_stock',
       );
-      const unitsPerBulk = Math.max(
-        1,
-        this.parseInteger(
-          prodRes.rows[0].units_per_bulk ?? 1,
-          'units_per_bulk',
-        ),
-      );
+      const unitsPerBulk = product.unitsPerBulk;
 
       let newStock = currentStock;
       const addTypes = ['IN', 'AJUSTE_POSITIVO', 'TRASLADO_IN'];
@@ -91,41 +88,30 @@ export class InventoryService {
         );
       }
 
-      const { bulks: balanceBulks, units: balanceUnits } = splitIntoBulkUnits(newStock, unitsPerBulk);
-      const { bulks: qtyBulks, units: qtyUnits } = splitIntoBulkUnits(quantity, unitsPerBulk);
-
-      await client.query(
-        'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
-        [newStock, dto.productId],
+      const { bulks: balanceBulks, units: balanceUnits } = splitIntoBulkUnits(
+        newStock,
+        unitsPerBulk,
       );
-
-      const movRes = await client.query(
-        `INSERT INTO movements (store_id, product_id, user_id, type, quantity, quantity_bulks, quantity_units, balance, balance_bulks, balance_units, reference) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
-        [
-          dto.storeId,
-          dto.productId,
-          dto.userId,
-          dto.type,
-          quantity,
-          qtyBulks,
-          qtyUnits,
-          newStock,
-          balanceBulks,
-          balanceUnits,
-          dto.reference,
-        ],
-      );
-
-      const result = {
-        ...movRes.rows[0],
+      const { bulks: qtyBulks, units: qtyUnits } = splitIntoBulkUnits(
         quantity,
-        balance: newStock,
+        unitsPerBulk,
+      );
+
+      await this.repo.updateProductStock(client, dto.productId, newStock);
+
+      const movement = await this.repo.insertMovement(client, {
+        storeId: dto.storeId,
+        productId: dto.productId,
+        userId: dto.userId,
+        type: dto.type,
+        quantity,
         quantityBulks: qtyBulks,
         quantityUnits: qtyUnits,
+        balance: newStock,
         balanceBulks,
         balanceUnits,
-      };
+        reference: dto.reference,
+      });
 
       wsPayload = {
         type: 'INVENTORY_UPDATE',
@@ -141,154 +127,26 @@ export class InventoryService {
         },
       };
 
-      return result;
+      return movement;
     });
     if (wsPayload) this.eventsGateway.emitSyncUpdate(wsPayload);
     return result;
   }
 
   async getKardex(storeId: string, productId: string) {
-    const res = await this.db.query(
-      `SELECT m.*, u.name as user_name 
-       FROM movements m 
-       LEFT JOIN users u ON m.user_id = u.id 
-       WHERE m.store_id = $1 AND m.product_id = $2 
-       ORDER BY m.created_at DESC`,
-      [storeId, productId],
-    );
-    return res.rows;
+    return this.repo.getKardex(storeId, productId);
   }
 
   async getMovements(storeId: string, date?: string, type?: string) {
-    let sql = `
-      SELECT m.*, p.description as product_description, u.name as user_name 
-      FROM movements m
-      LEFT JOIN products p ON m.product_id = p.id
-      LEFT JOIN users u ON m.user_id = u.id
-      WHERE m.store_id = $1
-    `;
-    const params: any[] = [storeId];
-
-    if (date) {
-      sql += ' AND m.created_at::date = $' + params.push(date);
-    }
-
-    if (type && type !== 'all') {
-      sql += ' AND m.type = $' + params.push(type.toUpperCase());
-    }
-
-    sql += ' ORDER BY m.created_at DESC LIMIT 200';
-
-    const res = await this.db.query(sql, params);
-
-    return res.rows.map((row) => ({
-      id: row.id,
-      storeId: row.store_id,
-      productId: row.product_id,
-      productDescription: row.product_description,
-      userId: row.user_id,
-      userName: row.user_name,
-      type: row.type,
-      quantity: Number.parseInt(row.quantity, 10),
-      balance: Number.parseInt(row.balance, 10),
-      reference: row.reference,
-      createdAt: row.created_at,
-    }));
+    return this.repo.getMovements(storeId, date, type);
   }
 
   async getWarehouseInventory(storeId: string) {
-    const res = await this.db.query(
-      `SELECT
-         p.id,
-         p.store_id,
-         p.barcode,
-         p.description,
-         p.current_stock,
-         p.stock_bulks,
-         p.stock_units,
-         p.units_per_bulk,
-         p.min_stock
-       FROM products p
-       WHERE p.store_id = $1
-         AND p.is_active = true
-         AND p.uses_inventory = true
-       ORDER BY p.description ASC`,
-      [storeId],
-    );
-
-    return res.rows.map((row) => ({
-      id: row.id,
-      storeId: row.store_id,
-      barcode: row.barcode,
-      description: row.description,
-      currentStock: this.parseInteger(row.current_stock ?? 0, 'current_stock'),
-      stockBulks: this.parseInteger(row.stock_bulks ?? 0, 'stock_bulks'),
-      stockUnits: this.parseInteger(row.stock_units ?? 0, 'stock_units'),
-      unitsPerBulk: Math.max(
-        1,
-        this.parseInteger(row.units_per_bulk ?? 1, 'units_per_bulk'),
-      ),
-      minStock: this.parseInteger(row.min_stock ?? 0, 'min_stock'),
-    }));
+    return this.repo.getWarehouseInventory(storeId);
   }
 
   async getVendorInventory(vendorId: string) {
-    const res = await this.db.query(
-      `SELECT
-         vi.id,
-         vi.vendor_id,
-         vi.product_id,
-         vi.store_id,
-         vi.assigned_quantity,
-         vi.sold_quantity,
-         vi.current_quantity,
-         vi.assigned_bulks,
-         vi.assigned_units,
-         vi.current_bulks,
-         vi.current_units,
-         vi.updated_at,
-         p.description,
-         p.barcode,
-         p.units_per_bulk
-       FROM vendor_inventories vi
-       JOIN products p ON p.id = vi.product_id
-       WHERE vi.vendor_id = $1
-       ORDER BY p.description ASC`,
-      [vendorId],
-    );
-
-    return res.rows.map((row) => ({
-      id: row.id,
-      vendorId: row.vendor_id,
-      productId: row.product_id,
-      storeId: row.store_id,
-      description: row.description,
-      barcode: row.barcode,
-      assignedQuantity: this.parseInteger(
-        row.assigned_quantity ?? 0,
-        'assigned_quantity',
-      ),
-      soldQuantity: this.parseInteger(row.sold_quantity ?? 0, 'sold_quantity'),
-      currentQuantity: this.parseInteger(
-        row.current_quantity ?? 0,
-        'current_quantity',
-      ),
-      assignedBulks: this.parseInteger(
-        row.assigned_bulks ?? 0,
-        'assigned_bulks',
-      ),
-      assignedUnits: this.parseInteger(
-        row.assigned_units ?? 0,
-        'assigned_units',
-      ),
-      currentBulks: this.parseInteger(row.current_bulks ?? 0, 'current_bulks'),
-      currentUnits: this.parseInteger(row.current_units ?? 0, 'current_units'),
-      unitsPerBulk: Math.max(
-        1,
-        this.parseInteger(row.units_per_bulk ?? 1, 'units_per_bulk'),
-      ),
-      updatedAt: row.updated_at,
-    }));
+    return this.repo.getVendorInventory(vendorId);
   }
 
   async transferBetweenStores(dto: {
@@ -312,20 +170,18 @@ export class InventoryService {
         throw new BadRequestException('quantity debe ser mayor que cero');
 
       // 1. Lock and validate source product
-      const srcRes = await client.query(
-        'SELECT current_stock, description FROM products WHERE id = $1 AND store_id = $2 FOR UPDATE',
-        [dto.productId, dto.fromStoreId],
+      const srcProduct = await this.repo.findProductForUpdate(
+        client,
+        dto.productId,
+        dto.fromStoreId,
       );
-      if (srcRes.rowCount === 0)
+      if (!srcProduct)
         throw new BadRequestException(
           'Producto no encontrado en la tienda origen',
         );
 
-      const srcStock = this.parseInteger(
-        srcRes.rows[0].current_stock,
-        'current_stock',
-      );
-      const productDesc = srcRes.rows[0].description;
+      const srcStock = this.parseInteger(srcProduct.currentStock, 'current_stock');
+      const productDesc = srcProduct.description;
 
       if (srcStock < quantity) {
         throw new BadRequestException(
@@ -334,91 +190,64 @@ export class InventoryService {
       }
 
       // 2. Find or create product in destination store
-      const destProdRes = await client.query(
-        'SELECT id, current_stock FROM products WHERE store_id = $1 AND description = $2 FOR UPDATE',
-        [dto.toStoreId, productDesc],
+      const destProd = await this.repo.findProductByDescriptionForUpdate(
+        client,
+        dto.toStoreId,
+        productDesc,
       );
 
       let destProductId: string;
       let destCurrentStock: number;
 
-      if (destProdRes.rowCount === 0) {
-        // Copy full product to destination store to ensure sellability
-        const copyRes = await client.query(
-          `INSERT INTO products (
-             store_id, description, barcode, sale_price, cost_price, wholesale_price,
-             price1, price2, price3, price4, price5,
-             current_stock, uses_inventory, department_id, units_per_bulk, min_stock,
-             brand, supplier_id, sub_department
-           )
-           SELECT $1, description, barcode, sale_price, cost_price, wholesale_price,
-             price1, price2, price3, price4, price5,
-             0, uses_inventory, department_id, units_per_bulk, min_stock,
-             brand, supplier_id, sub_department
-           FROM products WHERE id = $2
-           RETURNING id, current_stock`,
-          [dto.toStoreId, dto.productId],
+      if (!destProd) {
+        const copy = await this.repo.copyProductToStore(
+          client,
+          dto.toStoreId,
+          dto.productId,
         );
-        destProductId = copyRes.rows[0].id;
+        destProductId = copy.id;
         destCurrentStock = 0;
 
-        await client.query(
-          `INSERT INTO product_barcodes (product_id, store_id, barcode, label, is_primary)
-           SELECT $1, $2, pb.barcode, pb.label, pb.is_primary
-           FROM product_barcodes pb
-           WHERE pb.product_id = $3
-           ON CONFLICT (barcode, store_id) DO NOTHING`,
-          [destProductId, dto.toStoreId, dto.productId],
+        await this.repo.copyProductBarcodes(
+          client,
+          destProductId,
+          dto.toStoreId,
+          dto.productId,
         );
       } else {
-        destProductId = destProdRes.rows[0].id;
-        destCurrentStock = this.parseInteger(
-          destProdRes.rows[0].current_stock ?? 0,
-          'current_stock',
-        );
+        destProductId = destProd.id;
+        destCurrentStock = this.parseInteger(destProd.currentStock, 'current_stock');
       }
 
       // 3. Update stocks
       const newSrcStock = srcStock - quantity;
       const newDestStock = destCurrentStock + quantity;
 
-      await client.query(
-        'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
-        [newSrcStock, dto.productId],
-      );
-      await client.query(
-        'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
-        [newDestStock, destProductId],
-      );
+      await this.repo.updateProductStock(client, dto.productId, newSrcStock);
+      await this.repo.updateProductStock(client, destProductId, newDestStock);
 
       const ref = dto.reference || `Traslado entre tiendas`;
 
       // 4. Record kardex on BOTH stores
-      await client.query(
-        `INSERT INTO movements (store_id, product_id, user_id, type, quantity, balance, reference)
-         VALUES ($1, $2, $3, 'TRASLADO_OUT', $4, $5, $6)`,
-        [
-          dto.fromStoreId,
-          dto.productId,
-          dto.userId,
-          quantity,
-          newSrcStock,
-          `${ref}`,
-        ],
-      );
+      await this.repo.insertMovement(client, {
+        storeId: dto.fromStoreId,
+        productId: dto.productId,
+        userId: dto.userId,
+        type: 'TRASLADO_OUT',
+        quantity,
+        balance: newSrcStock,
+        reference: ref,
+      });
 
-      await client.query(
-        `INSERT INTO movements (store_id, product_id, user_id, type, quantity, balance, reference)
-         VALUES ($1, $2, $3, 'TRASLADO_IN', $4, $5, $6)`,
-        [
-          dto.toStoreId,
-          destProductId,
-          dto.userId,
-          quantity,
-          newDestStock,
-          `${ref}`,
-        ],
-      );
+      await this.repo.insertMovement(client, {
+        storeId: dto.toStoreId,
+        productId: destProductId,
+        userId: dto.userId,
+        type: 'TRASLADO_IN',
+        quantity,
+        balance: newDestStock,
+        reference: ref,
+      });
 
       // 5. Emit real-time events to both stores
       const payload = {

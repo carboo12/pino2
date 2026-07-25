@@ -8,7 +8,7 @@ import {
     FolderOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { usePos } from '@/context/pos-context';
+import { usePos } from '@/contexts/pos-context';
 import { useEffect, useCallback } from 'react';
 
 interface DashboardButtonProps {
@@ -44,86 +44,73 @@ export function CompactDashboard() {
         clearCart,
         handleHoldBill,
         handleCreditNoteClick,
-        setIsHeldBillsOpen,
-        setShowQuickSwitch,
+        toggleHeldBills,
+        toggleQuickSwitch,
         handleOpenDrawer,
         handlePayment,
-        setIsLoading
     } = usePos();
-
-    const withLoading = useCallback((action: () => void) => {
-        return async () => {
-            setIsLoading(true);
-            await new Promise(resolve => setTimeout(resolve, 800)); // Simulate 800ms delay
-            action();
-            setIsLoading(false);
-        };
-    }, [setIsLoading]);
 
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Delete') withLoading(clearCart)();
-            if (e.key === 'F2') withLoading(handleHoldBill)();
-            if (e.key === 'F3') withLoading(handleCreditNoteClick)();
-            if (e.key === 'F10') setIsHeldBillsOpen(true);
-            if (e.key === 'F1') withLoading(handlePayment)();
-            // Add more as needed
+            if (e.key === 'Delete') clearCart();
+            if (e.key === 'F2') handleHoldBill();
+            if (e.key === 'F3') handleCreditNoteClick();
+            if (e.key === 'F10') toggleHeldBills();
+            if (e.key === 'F1') handlePayment();
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [clearCart, handleHoldBill, handleCreditNoteClick, setIsHeldBillsOpen, handlePayment, withLoading]);
+    }, [clearCart, handleHoldBill, handleCreditNoteClick, toggleHeldBills, handlePayment]);
 
     return (
         <div className="grid grid-cols-3 gap-1.5 p-2 bg-white border-t shrink-0">
             <DashboardButton
                 label="LIMPIAR"
                 icon={<Trash2 className="h-4 w-4" />}
-                onClick={withLoading(clearCart)}
+                onClick={clearCart}
                 className="bg-[#FF5722]"
                 shortcut="Del"
             />
             <DashboardButton
                 label="PONER EN ESPERA"
                 icon={<FileText className="h-4 w-4" />}
-                onClick={withLoading(handleHoldBill)}
+                onClick={handleHoldBill}
                 className="bg-[#673AB7]"
                 shortcut="F2"
             />
             <DashboardButton
                 label="NOTA DE CRÉDITO"
                 icon={<CreditCard className="h-4 w-4" />}
-                onClick={withLoading(handleCreditNoteClick)}
+                onClick={handleCreditNoteClick}
                 className="bg-[#673AB7]"
                 shortcut="F3"
             />
             <DashboardButton
                 label="VER FACS EN ESPERA"
                 icon={<ListOrdered className="h-4 w-4" />}
-                onClick={() => setIsHeldBillsOpen(true)}
+                onClick={toggleHeldBills}
                 className="bg-[#673AB7]"
                 shortcut="F10"
             />
             <DashboardButton
                 label="CAMBIO USUARIO"
                 icon={<UserIcon className="h-4 w-4" />}
-                onClick={() => setShowQuickSwitch(true)}
+                onClick={toggleQuickSwitch}
                 className="bg-[#2196F3]"
             />
             <DashboardButton
                 label="ABRIR GAVETA"
                 icon={<FolderOpen className="h-4 w-4" />}
-                onClick={withLoading(handleOpenDrawer)}
+                onClick={handleOpenDrawer}
                 className="bg-[#607D8B]"
             />
-
-            {/* Main Payment Button */}
             <DashboardButton
                 label="COBRAR"
                 icon={<CreditCard className="h-5 w-5" />}
-                onClick={withLoading(handlePayment)}
-                className="bg-[#8BC34A] text-lg h-auto" // Making it bigger/prominent
+                onClick={handlePayment}
+                className="bg-[#8BC34A] text-lg h-auto"
                 colSpan="col-span-3"
                 shortcut="F1"
             />

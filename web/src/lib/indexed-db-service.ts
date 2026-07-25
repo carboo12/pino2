@@ -17,10 +17,11 @@ const STORES = {
 
 export interface PendingOperation {
     id: string;
+    operationId: string;
     storeId: string;
-    type: 'sale' | 'inventory' | 'invoice' | 'product' | 'adjustment' | 'create-user' | 'other';
+    type: 'SALE' | 'ORDER' | 'COLLECTION' | 'RETURN' | 'INVENTORY' | 'PRODUCT' | 'CLIENT';
     priority: 'high' | 'medium' | 'low';
-    operation: any; // Serialized operation data
+    operation: any;
     timestamp: number;
     retryCount: number;
     lastError?: string;

@@ -96,6 +96,7 @@ export default function CashWorkspacePage() {
     addToCart,
     removeFromCart,
     clearCart,
+    clearCartAfterSuccess,
     client,
     setClient,
   } = usePos();
@@ -176,9 +177,14 @@ export default function CashWorkspacePage() {
 
   const handlePaymentConfirm = useCallback(async (data: PaymentData) => {
     if (!storeId || cart.length === 0) return;
+    if (!activeShift?.id) {
+      toast.error('Error', 'No hay un turno de caja activo');
+      return;
+    }
     try {
       const payload = {
         storeId,
+        cashShiftId: activeShift.id,
         items: cart.map(item => ({
           productId: item.id,
           quantity: item.quantity,
@@ -192,13 +198,12 @@ export default function CashWorkspacePage() {
       };
       await apiClient.post('/sales/process', payload);
       toast.success('Venta completada', `Total: ${formatCurrency(total)}`);
-      clearCart();
-      setClient(null);
+      clearCartAfterSuccess();
       setShowPayment(false);
     } catch {
       toast.error('Error', 'No se pudo completar la venta');
     }
-  }, [storeId, cart, total, client, clearCart, setClient]);
+  }, [storeId, activeShift?.id, cart, total, client, clearCart, setClient]);
 
   const handleQuantityChange = useCallback((uniqueId: string, delta: number) => {
     const item = cart.find(c => c.uniqueId === uniqueId);
@@ -208,9 +213,9 @@ export default function CashWorkspacePage() {
       removeFromCart(uniqueId);
     } else {
       removeFromCart(uniqueId);
-      addToCart({ ...item, quantity: 1 });
+      addToCart(item);
       for (let i = 1; i < newQty; i++) {
-        addToCart({ ...item, quantity: 1 });
+        addToCart(item);
       }
     }
   }, [cart, removeFromCart, addToCart]);

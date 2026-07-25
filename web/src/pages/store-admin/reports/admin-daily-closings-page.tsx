@@ -176,7 +176,7 @@ export default function AdminDailyClosingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {map((c) => (
+              {closings.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">
                     {c.closingDate
