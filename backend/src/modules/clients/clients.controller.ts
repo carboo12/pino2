@@ -32,7 +32,7 @@ export class ClientsController {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get()
   @ApiOperation({ summary: 'Listar clientes de una tienda' })
   findAll(
@@ -52,14 +52,14 @@ export class ClientsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un cliente por ID' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get(':id/estado-cuenta')
   @ApiOperation({ summary: 'Obtener el estado de cuenta de un cliente' })
   estadoCuenta(@Param('id') id: string) {

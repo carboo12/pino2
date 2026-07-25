@@ -23,14 +23,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class StoreZonesController {
   constructor(private readonly service: StoreZonesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get()
   @ApiOperation({ summary: 'Listar zonas de una tienda' })
   findAll(@Query('storeId') storeId: string) {
     return this.service.findAll(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener una zona por ID' })
   findOne(@Param('id') id: string) {

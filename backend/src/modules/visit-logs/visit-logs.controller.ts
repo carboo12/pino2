@@ -21,14 +21,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class VisitLogsController {
   constructor(private readonly service: VisitLogsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get()
   @ApiOperation({ summary: 'Listar logs de visitas de vendedores' })
   findAll(@Query('storeId') storeId: string, @Query('days') days?: string) {
     return this.service.findAll(storeId, days ? parseInt(days) : undefined);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Post()
   @ApiOperation({ summary: 'Registrar una visita de vendedor' })
   create(
