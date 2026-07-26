@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   BadgeDollarSign,
   CalendarClock,
@@ -12,6 +12,7 @@ import {
   Plus,
   CheckCircle2,
   RotateCcw,
+  HandCoins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -117,6 +118,7 @@ function createDraftItem(): DraftInvoiceItem {
 }
 
 export default function SupplierInvoicesPage() {
+  const navigate = useNavigate();
   const { storeId } = useParams<{ storeId: string }>();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -704,6 +706,14 @@ export default function SupplierInvoicesPage() {
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
             Actualizar
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/store/${storeId}/cxc`)}
+            className="border-emerald-600 text-emerald-700 hover:bg-emerald-50 font-bold"
+          >
+            <HandCoins className="mr-2 h-4 w-4 text-emerald-600" />
+            Cuentas por Cobrar (CxC)
           </Button>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <FilePlus2 className="mr-2 h-4 w-4" />
