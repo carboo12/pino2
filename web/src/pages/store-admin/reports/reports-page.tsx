@@ -6,21 +6,22 @@ import {
   LineChart,
   Loader2,
   TrendingUp,
-  TrendingDown,
   RefreshCw,
-  Package,
   AlertTriangle,
   Clock,
-  DollarSign,
   PieChart,
   Layers,
-  ArrowUpDown,
   Search,
-  Filter,
   Flame,
   Snowflake,
   RotateCcw,
   Boxes,
+  UserCheck,
+  Users,
+  Award,
+  Receipt,
+  ShoppingCart,
+  Filter,
 } from 'lucide-react';
 import { format, startOfDay, endOfDay, startOfMonth, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -33,11 +34,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn, formatCurrency } from '@/lib/utils';
 import apiClient from '@/services/api-client';
 import { exportToExcel } from '@/lib/export-excel';
 import { DepartmentSalesChart } from '@/components/dashboard/department-sales-chart';
 import { ProductSalesChart } from '@/components/dashboard/product-sales-chart';
+import { normalizeUserRole } from '@/lib/user-role';
 
 interface SaleItem {
   id: string;
@@ -49,6 +52,10 @@ interface SaleItem {
 
 interface Sale {
   id: string;
+  cashierId?: string;
+  vendorId?: string;
+  clientId?: string;
+  total: number;
   items: SaleItem[];
   createdAt: string;
   storeId: string;
@@ -68,6 +75,33 @@ interface InventoryItem {
   minStock?: number;
 }
 
+interface StoreUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+function getHumanRoleLabel(role?: string | null): string {
+  const norm = normalizeUserRole(role);
+  switch (norm) {
+    case 'auxiliar':
+      return 'Auxiliar / Cajero';
+    case 'admin':
+      return 'Jefe de Bodega / Admin';
+    case 'gestor':
+      return 'Gestor de Ventas';
+    case 'rutero':
+      return 'Rutero / Repartidor';
+    case 'inventory':
+      return 'Analista de Inventario';
+    case 'super-admin':
+      return 'Super Admin';
+    default:
+      return (role || 'Usuario').replace(/-/g, ' ');
+  }
+}
+
 export default function ReportsPage() {
   const params = useParams();
   const storeId = params.storeId as string;
@@ -80,7 +114,12 @@ export default function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [salesData, setSalesData] = useState<Sale[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [users, setUsers] = useState<StoreUser[]>([]);
+  
+  // Filtros
   const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [userFilter, setUserFilter] = useState<string>('all');
   const [activeTab, setActiveTab] = useState('mas-vendidos');
 
   const loadData = async () => {
@@ -88,7 +127,7 @@ export default function ReportsPage() {
     setLoading(true);
 
     try {
-      const [salesRes, inventoryRes] = await Promise.all([
+      const [salesRes, inventoryRes, usersRes] = await Promise.all([
         apiClient.get('/sales', {
           params: {
             storeId,
@@ -99,10 +138,14 @@ export default function ReportsPage() {
         apiClient.get('/inventory/warehouse', {
           params: { storeId },
         }),
+        apiClient.get('/users', {
+          params: { storeId },
+        }).catch(() => ({ data: [] })),
       ]);
 
       setSalesData(Array.isArray(salesRes.data) ? salesRes.data : salesRes.data?.data || []);
       setInventory(Array.isArray(inventoryRes.data) ? inventoryRes.data : inventoryRes.data?.data || []);
+      setUsers(Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data || []);
     } catch (error) {
       console.error('Error cargando reportes:', error);
     } finally {
@@ -114,18 +157,37 @@ export default function ReportsPage() {
     loadData();
   }, [storeId]);
 
-  // ==========================================
-  // METRICAS Y PROCESAMIENTO DE DATOS
-  // ==========================================
+  // Map de usuarios por ID para cruzamiento de nombres
+  const userMap = useMemo(() => {
+    const map = new Map<string, StoreUser>();
+    users.forEach((u) => map.set(u.id, u));
+    return map;
+  }, [users]);
+
+  // Ventas filtradas por usuario o rol seleccionado
+  const filteredSalesData = useMemo(() => {
+    return salesData.filter((sale) => {
+      const sellerId = sale.cashierId || sale.vendorId;
+      const seller = sellerId ? userMap.get(sellerId) : null;
+      const normRole = seller ? normalizeUserRole(seller.role) : 'unknown';
+
+      if (userFilter !== 'all' && sellerId !== userFilter) {
+        return false;
+      }
+      if (roleFilter !== 'all' && normRole !== roleFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [salesData, userFilter, roleFilter, userMap]);
 
   // Días en el rango seleccionado
   const rangeDays = useMemo(() => {
     if (!date?.from || !date?.to) return 30;
-    const diff = Math.max(1, differenceInDays(date.to, date.from) + 1);
-    return diff;
+    return Math.max(1, differenceInDays(date.to, date.from) + 1);
   }, [date]);
 
-  // Mapeo de ventas acumuladas por producto
+  // Mapeo de ventas acumuladas por producto (filtradas)
   const salesByProduct = useMemo(() => {
     const map = new Map<string, {
       id: string;
@@ -137,7 +199,7 @@ export default function ReportsPage() {
       salesCount: number;
     }>();
 
-    salesData.forEach((sale) => {
+    filteredSalesData.forEach((sale) => {
       (sale.items || []).forEach((item) => {
         const prodId = item.id || item.description;
         const total = (item.quantity || 0) * (item.salePrice || 0);
@@ -162,9 +224,9 @@ export default function ReportsPage() {
     });
 
     return map;
-  }, [salesData]);
+  }, [filteredSalesData]);
 
-  // Total de ingresos por ventas en el periodo
+  // Total de ingresos por ventas en el periodo (filtrado)
   const totalRevenue = useMemo(() => {
     let sum = 0;
     salesByProduct.forEach((p) => { sum += p.totalRevenue; });
@@ -178,7 +240,7 @@ export default function ReportsPage() {
     return list;
   }, [salesByProduct]);
 
-  // 2. ❄️ PRODUCTOS MENOS VENDIDOS / HUESOS (Con inventario pero pocas o 0 ventas)
+  // 2. ❄️ PRODUCTOS MENOS VENDIDOS / HUESOS
   const slowMovers = useMemo(() => {
     return inventory.map((inv) => {
       const sold = salesByProduct.get(inv.id) || salesByProduct.get(inv.description);
@@ -253,7 +315,7 @@ export default function ReportsPage() {
       .sort((a, b) => a.daysLeft - b.daysLeft);
   }, [inventory]);
 
-  // Valor económico en riesgo por vencimiento (<= 30 días o vencidos)
+  // Total en Riesgo de Vencimiento (<= 30 días o vencidos)
   const totalValueAtRisk = useMemo(() => {
     return expiryAnalysis
       .filter((item) => item.daysLeft <= 30)
@@ -307,7 +369,83 @@ export default function ReportsPage() {
     };
   }, [inventory]);
 
-  // Filtrado por búsqueda
+  // 6. 👤 DESEMPEÑO POR ROL Y USUARIO (ANÁLISIS DE VENDEDORES / PERSONAL)
+  const userPerformanceAnalysis = useMemo(() => {
+    const statsMap = new Map<string, {
+      userId: string;
+      userName: string;
+      email: string;
+      role: string;
+      totalRevenue: number;
+      salesCount: number;
+      totalUnitsSold: number;
+      avgTicket: number;
+    }>();
+
+    // Inicializar mapa con usuarios de la tienda
+    users.forEach((u) => {
+      statsMap.set(u.id, {
+        userId: u.id,
+        userName: u.name || u.email,
+        email: u.email,
+        role: u.role,
+        totalRevenue: 0,
+        salesCount: 0,
+        totalUnitsSold: 0,
+        avgTicket: 0,
+      });
+    });
+
+    // Acumular ventas por cashierId o vendorId
+    salesData.forEach((sale) => {
+      const sId = sale.cashierId || sale.vendorId;
+      if (!sId) return;
+
+      let entry = statsMap.get(sId);
+      if (!entry) {
+        entry = {
+          userId: sId,
+          userName: 'Usuario N/A',
+          email: '',
+          role: 'desconocido',
+          totalRevenue: 0,
+          salesCount: 0,
+          totalUnitsSold: 0,
+          avgTicket: 0,
+        };
+        statsMap.set(sId, entry);
+      }
+
+      const saleTotal = Number(sale.total || 0) || (sale.items || []).reduce((a, b) => a + (b.quantity * b.salePrice), 0);
+      const unitsInSale = (sale.items || []).reduce((a, b) => a + Number(b.quantity || 0), 0);
+
+      entry.totalRevenue += saleTotal;
+      entry.salesCount += 1;
+      entry.totalUnitsSold += unitsInSale;
+    });
+
+    // Calcular ticket promedio y ordenar
+    const result = Array.from(statsMap.values()).map((stat) => {
+      const avgTicket = stat.salesCount > 0 ? stat.totalRevenue / stat.salesCount : 0;
+      return {
+        ...stat,
+        avgTicket,
+      };
+    });
+
+    // Aplicar filtros de rol y búsqueda
+    return result.filter((u) => {
+      const normRole = normalizeUserRole(u.role);
+      if (roleFilter !== 'all' && normRole !== roleFilter) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return u.userName.toLowerCase().includes(term) || u.email.toLowerCase().includes(term);
+      }
+      return true;
+    }).sort((a, b) => b.totalRevenue - a.totalRevenue);
+  }, [salesData, users, roleFilter, searchTerm]);
+
+  // Filtrado por búsqueda en otras vistas
   const filteredTopSellers = useMemo(() => {
     if (!searchTerm) return topSellers;
     const term = searchTerm.toLowerCase();
@@ -324,9 +462,22 @@ export default function ReportsPage() {
     );
   }, [slowMovers, searchTerm]);
 
-  // Exportar Excel de la vista actual
+  // Exportar Excel de la vista activa
   const handleExportExcel = () => {
-    if (activeTab === 'mas-vendidos') {
+    if (activeTab === 'desempeno-usuarios') {
+      const headers = ['# Posición', 'Usuario / Vendedor', 'Correo', 'Rol', 'Operaciones', 'Unidades Vendidas', 'Ticket Promedio (C$)', 'Total Facturado (C$)'];
+      const rows = userPerformanceAnalysis.map((u, idx) => [
+        idx + 1,
+        u.userName,
+        u.email,
+        getHumanRoleLabel(u.role),
+        u.salesCount,
+        u.totalUnitsSold,
+        u.avgTicket,
+        u.totalRevenue,
+      ]);
+      exportToExcel(`Desempeno_Usuarios_${format(new Date(), 'dd-MM-yyyy')}`, headers, rows);
+    } else if (activeTab === 'mas-vendidos') {
       const headers = ['# Posición', 'Producto', 'Departamento', 'Unidades Vendidas', 'Total Venta (C$)'];
       const rows = filteredTopSellers.map((item, idx) => [
         idx + 1,
@@ -375,25 +526,58 @@ export default function ReportsPage() {
 
   return (
     <div className="flex flex-col space-y-6 pb-12">
-      {/* HEADER PRINCIPAL Y FILTROS DE FECHA */}
+      {/* HEADER PRINCIPAL Y FILTROS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-foreground flex items-center gap-2.5">
             <LineChart className="h-7 w-7 text-emerald-600" />
-            Reportería Ejecutiva & Inteligencia de Bodega
+            Reportería Ejecutiva & Desempeño por Usuario
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Análisis profundo de rotación, más/menos vendidos, vencimiento de lotes y valorización financiera.
+            Análisis de ventas por rol/vendedor, rotación de productos, vencimiento de lotes y valorización.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Selector de Rol */}
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[180px] rounded-xl font-medium border-[#DDE2E8]">
+              <Filter className="mr-2 h-3.5 w-3.5 text-emerald-600" />
+              <SelectValue placeholder="Filtrar por Rol" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los Roles</SelectItem>
+              <SelectItem value="gestor">Gestores de Venta</SelectItem>
+              <SelectItem value="rutero">Ruteros / Repartidores</SelectItem>
+              <SelectItem value="auxiliar">Auxiliares / Cajeros</SelectItem>
+              <SelectItem value="admin">Administradores</SelectItem>
+              <SelectItem value="inventory">Bodegueros</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Selector de Usuario */}
+          <Select value={userFilter} onValueChange={setUserFilter}>
+            <SelectTrigger className="w-[200px] rounded-xl font-medium border-[#DDE2E8]">
+              <Users className="mr-2 h-3.5 w-3.5 text-blue-600" />
+              <SelectValue placeholder="Filtrar Usuario" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los Usuarios</SelectItem>
+              {users.map((u) => (
+                <SelectItem key={u.id} value={u.id}>
+                  {u.name || u.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Rango de Fechas */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'w-[280px] justify-start text-left font-semibold border-[#DDE2E8] rounded-xl',
+                  'w-[250px] justify-start text-left font-semibold border-[#DDE2E8] rounded-xl',
                   !date && 'text-muted-foreground'
                 )}
               >
@@ -459,7 +643,7 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              <span className="font-bold text-emerald-600">{salesData.length}</span> órdenes facturadas en {rangeDays} días.
+              <span className="font-bold text-emerald-600">{filteredSalesData.length}</span> órdenes facturadas en {rangeDays} días.
             </p>
           </CardContent>
         </Card>
@@ -527,6 +711,10 @@ export default function ReportsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <TabsList className="bg-muted/60 p-1 rounded-xl h-auto flex flex-wrap gap-1">
+            <TabsTrigger value="desempeno-usuarios" className="rounded-lg font-bold text-xs gap-1.5 py-2">
+              <UserCheck className="h-4 w-4 text-blue-600" />
+              Desempeño por Usuario / Rol
+            </TabsTrigger>
             <TabsTrigger value="mas-vendidos" className="rounded-lg font-bold text-xs gap-1.5 py-2">
               <Flame className="h-4 w-4 text-rose-500" />
               Más Vendidos
@@ -559,6 +747,94 @@ export default function ReportsPage() {
             />
           </div>
         </div>
+
+        {/* ========================================================== */}
+        {/* TAB 0: DESEMPEÑO POR ROL Y USUARIO */}
+        {/* ========================================================== */}
+        <TabsContent value="desempeno-usuarios" className="space-y-4">
+          <Card className="rounded-2xl border border-border shadow-sm">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <Award className="h-5 w-5 text-blue-600" />
+                    Ranking y Rendimiento por Usuario / Vendedor
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-0.5">
+                    Evaluación de productividad, total de facturación, volumen vendido y ticket promedio por colaborador.
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="font-bold border-blue-600 text-blue-700">
+                  {userPerformanceAnalysis.length} Colaboradores
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-xl border border-border overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-muted/40">
+                    <TableRow>
+                      <TableHead className="w-12 text-center font-bold">#</TableHead>
+                      <TableHead className="font-bold">Colaborador / Usuario</TableHead>
+                      <TableHead className="font-bold">Rol en Sistema</TableHead>
+                      <TableHead className="text-right font-bold">Operaciones Realizadas</TableHead>
+                      <TableHead className="text-right font-bold">Unidades Vendidas</TableHead>
+                      <TableHead className="text-right font-bold">Ticket Promedio (C$)</TableHead>
+                      <TableHead className="text-right font-bold">Total Facturado (C$)</TableHead>
+                      <TableHead className="text-center font-bold">Nivel Venta</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userPerformanceAnalysis.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          No se encontraron registros de ventas para los filtros seleccionados.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      userPerformanceAnalysis.map((item, idx) => {
+                        const share = totalRevenue > 0 ? ((item.totalRevenue / totalRevenue) * 100).toFixed(1) : '0';
+                        return (
+                          <TableRow key={item.userId}>
+                            <TableCell className="text-center font-bold text-muted-foreground">{idx + 1}</TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-foreground">{item.userName}</span>
+                                <span className="text-[11px] text-muted-foreground">{item.email}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="font-bold text-xs border-slate-300">
+                                {getHumanRoleLabel(item.role)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-bold">{item.salesCount}</TableCell>
+                            <TableCell className="text-right font-semibold">{item.totalUnitsSold}</TableCell>
+                            <TableCell className="text-right font-medium text-slate-700 dark:text-slate-300">
+                              {formatCurrency(item.avgTicket)}
+                            </TableCell>
+                            <TableCell className="text-right font-black text-emerald-700 dark:text-emerald-400 text-base">
+                              {formatCurrency(item.totalRevenue)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {item.totalRevenue > 0 ? (
+                                <Badge className="bg-emerald-600 text-white font-bold text-[10px]">
+                                  {share}% del Total
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-slate-400 text-[10px]">Sin Venta</Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* ========================================================== */}
         {/* TAB 1: PRODUCTOS MÁS VENDIDOS */}
