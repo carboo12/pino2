@@ -26,7 +26,7 @@ import {
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
 
-  @Roles('admin', 'gestor', "rutero")
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: "Listar cuentas por cobrar" })
   findAll(
@@ -36,48 +36,39 @@ export class AccountsReceivableController {
     @Query("limit") limit?: string,
     @Req() req?: any,
   ) {
+    const isRestrictedRole = ['rutero', 'gestor'].includes(req?.user?.role);
     return this.service.findAll(
       storeId,
       pending === "true",
       status,
       limit ? parseInt(limit, 10) : undefined,
       req?.user?.role,
-      req?.user?.sub,
+      isRestrictedRole ? req?.user?.sub : undefined,
     );
   }
 
-  @Roles('admin', 'gestor', "rutero")
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get(":id")
   @ApiOperation({ summary: "Obtener cuenta por cobrar" })
   findOne(@Param("id") id: string, @Req() req: any) {
-    return this.service.findOne(id, req.user?.role, req.user?.sub);
+    const isRestrictedRole = ['rutero', 'gestor'].includes(req?.user?.role);
+    return this.service.findOne(id, req.user?.role, isRestrictedRole ? req.user?.sub : undefined);
   }
 
-  @Roles('admin', "rutero")
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Post()
   @ApiOperation({ summary: "Crear cuenta por cobrar" })
   create(@Body() dto: CreateAccountReceivableDto) {
     return this.service.create(dto);
   }
 
-  @Roles('admin', "rutero")
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Post(":id/payments")
-  @ApiOperation({ summary: "Registrar pago a cuenta" })
-  addPayment(
-    @Param("id") id: string,
-    @Body() dto: AddPaymentDto,
-    @Req() req: any,
-  ) {
-    const isRutero = req.user?.role === "rutero";
+  @ApiOperation({ summary: "Registrar pago de cuenta por cobrar" })
+  addPayment(@Param("id") id: string, @Body() dto: AddPaymentDto, @Req() req: any) {
     return this.service.addPayment(id, {
-      amount: dto.amount,
-      paymentMethod: dto.paymentMethod,
-      notes: dto.notes || dto.vendorName || null,
-      collectedBy: isRutero
-        ? req.user.sub
-        : dto.collectedBy || dto.vendorId,
-      externalId: dto.externalId,
-      requireRuteroAssignment: isRutero,
+      ...dto,
+      collectedBy: dto.collectedBy || req.user?.sub,
     });
   }
 }

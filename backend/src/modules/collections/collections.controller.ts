@@ -22,9 +22,9 @@ import { CreateCollectionDto } from './collections.dto';
 export class CollectionsController {
   constructor(private readonly service: CollectionsService) {}
 
-  @Roles('admin', 'rutero')
+  @Roles('admin', 'rutero', 'gestor', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Post()
-  @ApiOperation({ summary: 'Registrar cobro del rutero' })
+  @ApiOperation({ summary: 'Registrar cobro del rutero/vendedor' })
   create(@Body() dto: CreateCollectionDto, @Req() req: any) {
     const isRutero = req.user?.role === 'rutero';
     return this.service.create({
@@ -34,7 +34,7 @@ export class CollectionsController {
     });
   }
 
-  @Roles('admin', 'rutero')
+  @Roles('admin', 'rutero', 'gestor', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: 'Listar cobros con filtros' })
   findAll(
@@ -52,7 +52,7 @@ export class CollectionsController {
     });
   }
 
-  @Roles('admin', 'rutero')
+  @Roles('admin', 'rutero', 'gestor', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get('summary')
   @ApiOperation({ summary: 'Resumen de cobros por rutero/fecha' })
   getSummary(

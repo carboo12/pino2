@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { InventoryService } from './inventory.service';
@@ -59,7 +60,45 @@ export class InventoryController {
     return this.service.getWarehouseInventory(storeId);
   }
 
-  @Roles('admin', 'inventory')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
+  @Get('counts')
+  @ApiOperation({ summary: 'Listar conteos ciegos de inventario' })
+  listCounts(@Query('storeId') storeId: string) {
+    return this.service.listCounts(storeId);
+  }
+
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
+  @Get('counts/:id')
+  @ApiOperation({ summary: 'Obtener detalle de un conteo ciego' })
+  findCount(@Param('id') id: string) {
+    return this.service.findCount(id);
+  }
+
+  @Roles('admin', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
+  @Post('counts')
+  @ApiOperation({ summary: 'Crear nuevo conteo ciego de inventario por zona' })
+  createCount(@Body() dto: { storeId: string; name: string; zoneLabel?: string; notes?: string }, @Req() req: any) {
+    return this.service.createCount({
+      ...dto,
+      createdBy: req.user?.sub,
+    });
+  }
+
+  @Roles('admin', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
+  @Post('counts/:id/items')
+  @ApiOperation({ summary: 'Registrar o actualizar conteo de producto' })
+  recordCountItem(@Param('id') id: string, @Body() dto: { productId: string; countedUnits: number }) {
+    return this.service.recordCountItem(id, dto);
+  }
+
+  @Roles('admin', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
+  @Post('counts/:id/close')
+  @ApiOperation({ summary: 'Cerrar conteo ciego de inventario' })
+  closeCount(@Param('id') id: string, @Req() req: any) {
+    return this.service.closeCount(id, req.user?.sub);
+  }
+
+  @Roles('admin', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
   @Post('adjust')
   @ApiOperation({ summary: 'Ajustar el stock de un producto' })
   adjustStock(@Body() dto: AdjustStockDto) {
