@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:uuid/uuid.dart';
+
 import '../../../core/database/local_cache_repository.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/connectivity_service.dart';
@@ -108,6 +110,7 @@ class DailyClosingRepository {
     Map<String, dynamic>? denominations,
   }) async {
     final payload = <String, dynamic>{
+      'externalId': const Uuid().v4(),
       'storeId': storeId,
       'ruteroId': ruteroId,
       'totalSales': totalSales,

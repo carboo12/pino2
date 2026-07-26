@@ -115,7 +115,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final role = normalizeRole(session.user.role);
 
-    if (role == AppRole.preventa) {
+    if (role == AppRole.salesManager) {
       return const PreventaHomeScreen();
     }
 

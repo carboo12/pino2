@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/database/local_cache_repository.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/widgets/field/bulk_unit_summary.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../clients/domain/models/client_summary.dart';
 
@@ -278,19 +279,13 @@ class _PreventaOrderScreenState extends ConsumerState<PreventaOrderScreen> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(item['name'], style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                                        Row(
-                                          children: [
-                                            Text('${item['quantity']}x @ C\$${item['price']}', style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                                            if (item['priceLevel'] > 1) ...[
-                                              const SizedBox(width: 6),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                                                decoration: BoxDecoration(color: Colors.amber.shade100, borderRadius: BorderRadius.circular(4)),
-                                                child: Text('N${item['priceLevel']}', style: TextStyle(fontSize: 10, color: Colors.amber.shade900, fontWeight: FontWeight.bold)),
-                                              )
-                                            ]
-                                          ],
-                                        )
+                                        const SizedBox(height: 4),
+                                        BulkUnitSummary(
+                                          bulkCount: item['bulkCount'] ?? 0,
+                                          looseUnitCount: item['quantity'] ?? 1,
+                                          unitsPerBulk: item['unitsPerBulk'] ?? 1,
+                                          compact: true,
+                                        ),
                                       ],
                                     ),
                                   ),

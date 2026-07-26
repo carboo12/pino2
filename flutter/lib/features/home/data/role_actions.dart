@@ -35,12 +35,7 @@ List<RoleAction> actionsForRole(AppRole role) {
         RoleAction(title: 'Catálogo', subtitle: 'Stock, precios y bultos.', icon: Icons.inventory_2_rounded, routeKey: RouteKey.catalog),
         RoleAction(title: 'Entregas', subtitle: 'Estado de pedidos y rutas.', icon: Icons.route_rounded, routeKey: RouteKey.routeBoard),
       ];
-    case AppRole.preventa:
-      return const [
-        RoleAction(title: 'Mis Clientes', subtitle: 'Portafolio y visitas.', icon: Icons.people_alt_rounded, routeKey: RouteKey.preventaClients),
-        RoleAction(title: 'Nueva Orden', subtitle: 'Levantar pedido en campo.', icon: Icons.add_shopping_cart_rounded, routeKey: RouteKey.preventaOrder),
-        RoleAction(title: 'Ruta de Hoy', subtitle: 'Seguimiento de visitas.', icon: Icons.directions_run_rounded, routeKey: RouteKey.preventaRoute),
-      ];
+
     case AppRole.storeAdmin:
       return const [
         RoleAction(title: 'Nuevo pedido', subtitle: 'Capturar pedido de cliente.', icon: Icons.flash_on_rounded, routeKey: RouteKey.quickOrder),

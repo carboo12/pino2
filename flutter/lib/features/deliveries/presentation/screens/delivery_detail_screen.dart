@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../domain/models/delivery_summary.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../warehouse/data/warehouse_repository.dart';
+import '../../../../core/widgets/field/delivery_item_result_editor.dart';
 
 class DeliveryDetailScreen extends ConsumerStatefulWidget {
   const DeliveryDetailScreen({
@@ -110,7 +111,19 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 const SizedBox(height: 24),
                 Text('ITEMS A ENTREGAR:', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, letterSpacing: 1.1)),
                 const SizedBox(height: 12),
-                ...widget.delivery.items.map((item) => _ItemRow(item: item)),
+                ...widget.delivery.items.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DeliveryItemResultEditor(
+                      productName: item.description,
+                      plannedQuantity: item.quantity,
+                      salePrice: item.salePrice,
+                      onChanged: (delivered, rejected, reason) {
+                        // Captures item delivery state
+                      },
+                    ),
+                  ),
+                ),
                 const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -222,27 +235,7 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.item});
-  final DeliveryItemSummary item;
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 18),
-          const SizedBox(width: 12),
-          Expanded(child: Text(item.description, style: const TextStyle(fontWeight: FontWeight.w600))),
-          Text('x${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(width: 24),
-          Text('C\$ ${item.salePrice.toStringAsFixed(0)}', style: const TextStyle(color: Colors.black87)),
-        ],
-      ),
-    );
-  }
-}
 
 class _PaymentCollectionDialog extends StatefulWidget {
   const _PaymentCollectionDialog({required this.total});

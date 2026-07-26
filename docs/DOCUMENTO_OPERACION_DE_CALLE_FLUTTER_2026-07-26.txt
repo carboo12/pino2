@@ -1,0 +1,86 @@
+===============================================================================
+DOCUMENTO DE CUMPLIMIENTO OPERACIÓN DE CALLE (FLUTTER) — PINO / sistema_de_inventario
+===============================================================================
+Versión: 1.0
+Fecha: 2026-07-26
+Aplicación Móvil: Flutter + Drift/SQLite (Android 100% Offline)
+Contrato API: CONTRACT-FREEZE-1 (docs/CONTRACT_FREEZE_1_2026-07-26.txt)
+Plan Referencia: PLAN_FLUTTER_DIFERIDO_2026-07-26.txt
+
+===============================================================================
+1. MATRIZ DE CUMPLIMIENTO POR ROL DE CALLE
+===============================================================================
+
+-------------------------------------------------------------------------------
+ROL 4: GESTOR DE VENTAS (PREVENTISTA) — APP FLUTTER + DRIFT/SQLITE
+-------------------------------------------------------------------------------
+✅ SÍ HACE (Implementado):
+1. Levantar pedidos preventa desglosando Bultos y/o Unidades sueltas con cálculo reactivo (BulkUnitStepper y BulkUnitSummary).
+2. Consultar catálogo local con stock disponible en tiempo real desglosado en Bultos y Unidades.
+3. Consultar cartera de clientes asignada en su ruta del día, saldo pendiente, días de crédito y límite de crédito.
+4. Registrar visitas a clientes con geolocalización (latitud/longitud) y motivo de no venta/visita (POST /api/visit-logs).
+5. Operación 100% offline mediante cola local (Outbox Pattern) con id de idempotencia UUID (externalId) por cada pedido o visita.
+
+❌ NO HACE (Restricciones del Contrato Enforzadas):
+- No maneja inventario físico de bodega ni camión.
+- No confirma facturas ni cobra entregas de reparto.
+- No modifica precios, descuentos globales ni el Factor X (unidades por bulto).
+
+-------------------------------------------------------------------------------
+ROL 5: RUTERO / REPARTIDOR — APP FLUTTER + IMPRESORA BLUETOOTH / PDF
+-------------------------------------------------------------------------------
+✅ SÍ HACE (Implementado):
+1. Recepcionar la carga asignada en el día (Bultos y Unidades) desde CargaCamionScreen e indicadores LoadItemCountCard.
+2. Aceptar carga con externalId idempotente notificando discrepancias al sistema.
+3. Entregar y facturar al cliente desde DeliveryDetailScreen (soporta entrega total y entregas parciales por ítem).
+4. Procesar rechazos parciales o totales generando devolución automática en tránsito (status IN_TRANSIT, motivo obligatorio).
+5. Recaudar cobros en ruta (efectivo CASH, transferencia TRANSFER, cheque CHECK, crédito CREDIT) mediante PaymentMethodSelector.
+6. Imprimir/compartir comprobantes y recibos de pago Bluetooth/PDF desde pdf_receipt_service.dart.
+7. Rendir liquidación diaria de ruta notificando mercancía retornada y efectivo entregado (status SUBMITTED_BY_DRIVER).
+
+❌ NO HACE (Restricciones del Contrato Enforzadas):
+- No levanta pedidos preventa nuevos.
+- No modifica precios de venta ni niveles de precio de catálogo.
+- No realiza ajustes directos al inventario general de bodega (únicamente mueve el stock custodiado en su camión).
+
+===============================================================================
+2. FLUJO COMPLETO DE TAREAS Y ASIGNACIÓN DE RUTAS ("EL FLUJO DE LA CALLE")
+===============================================================================
+
+1. CREACIÓN DE RUTAS EN PLATAFORMA WEB:
+   - Se crean en el módulo Web de Logística/Comercial: Rutas de Ventas (SALES) para Preventa y Rutas de Reparto (DELIVERY) para Ruteros.
+
+2. ASIGNACIÓN DE CLIENTES AL GESTOR:
+   - La administración o supervisor vincula los clientIds a la ruta del Gestor.
+   - En Flutter (preventa_route_screen.dart), el Gestor sincroniza su ruta filtrada estrictamente por session.user.id y la fecha de hoy.
+   - Si no tiene ruta asignada para hoy, la app muestra la vista limpia EmptyRouteState ("No tienes una ruta asignada para hoy") sin mostrar clientes ajenos.
+   - Soporte para Reasignación Express en Web: si un Gestor cambia, el endpoint PATCH /api/routes/{id} actualiza vendorId y al sincronizar, la app del nuevo Gestor recibe la cartera de inmediato.
+
+3. ASIGNACIÓN DE RUTAS Y CARGAS AL RUTERO:
+   - Tras los pedidos capturados por los Gestores, Bodega alista los pedidos y crea la "Carga de Camión" (POST /api/cargas-camion).
+   - En Flutter (carga_camion_screen.dart), el Rutero visualiza únicamente sus cargas asignadas.
+   - Al recibir la carga física, la acepta enviando externalId (PUT /api/cargas-camion/{id}/accept).
+   - En caso de avería o reasignación de emergencia, la Web transfiere la carga a otro Rutero y este la visualiza de inmediato en su dispositivo.
+
+===============================================================================
+3. ARQUITECTURA TÉCNICA FLUTTER Y OUTBOX PATTERN
+===============================================================================
+
+1. BASE DE DATOS LOCAL (DRIFT / SQLITE):
+   - Archivo: flutter/lib/core/database/app_database.dart
+   - Tablas locales de caché para catálogo, clientes, rutas, visitas, cobros y movimientos.
+
+2. COLA DE SINCRONIZACIÓN (OUTBOX PATTERN):
+   - Archivo: flutter/lib/core/network/sync_queue_processor.dart
+   - Cada operación offline (pedido, visita, cobro, entrega, liquidación) genera un UUID local único (externalId).
+   - Si no hay señal, la operación queda guardada con estado pending.
+   - Al recuperar conectividad, SyncQueueProcessor reintenta el envío en segundo plano usando backoff exponencial.
+   - Regla 10 de CONTRACT-FREEZE-1: Los errores 400/409 de negocio no se eliminan de la cola y se notifican mediante CompactErrorBanner.
+
+3. CONTRATOS CANÓNICOS:
+   - Archivo: flutter/lib/core/contracts/field_contracts.dart
+   - Todas las constantes canónicas y fórmulas de descomposión (totalUnits = bulkCount * unitsPerBulk + looseUnitCount) están centralizadas.
+
+===============================================================================
+FIN DEL DOCUMENTO DE CUMPLIMIENTO OPERACIÓN DE CALLE
+===============================================================================

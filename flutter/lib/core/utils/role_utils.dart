@@ -8,7 +8,6 @@ enum AppRole {
   rutero,
   vendor,
   salesManager,
-  preventa,
   auxiliar,
   supervisorCaja,
   supervisorPasillo,
@@ -54,7 +53,7 @@ AppRole normalizeRole(String? value) {
     case 'gestor-de-ventas':
       return AppRole.salesManager;
     case 'preventa':
-      return AppRole.preventa;
+      return AppRole.salesManager;
     case 'auxiliar':
     case 'auxiliar-administrativo':
       return AppRole.auxiliar;
@@ -89,8 +88,6 @@ String roleLabel(AppRole role) {
       return 'Vendedor';
     case AppRole.salesManager:
       return 'Gestor de ventas';
-    case AppRole.preventa:
-      return 'Ejecutivo Preventa';
     case AppRole.auxiliar:
       return 'Auxiliar Administrativo';
     case AppRole.supervisorCaja:

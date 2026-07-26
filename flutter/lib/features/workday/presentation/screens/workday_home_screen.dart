@@ -43,7 +43,7 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
     Widget buildNextAction() {
       switch (role) {
         case AppRole.vendor:
-        case AppRole.preventa:
+        case AppRole.salesManager:
           return _NextClientCard(
             onStart: () => context.push('/workday/route'),
             storeName: storeName,
@@ -76,7 +76,7 @@ class _WorkdayHomeScreenState extends ConsumerState<WorkdayHomeScreen> {
         onTap: () => setState(() => _selectedIndex = 0),
         isSelected: _selectedIndex == 0,
       ),
-      if (role == AppRole.vendor || role == AppRole.preventa) ...[
+      if (role == AppRole.vendor || role == AppRole.salesManager) ...[
         BottomNavItem(
           icon: Icons.route_outlined,
           activeIcon: Icons.route,

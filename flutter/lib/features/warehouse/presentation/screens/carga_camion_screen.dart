@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/warehouse_models.dart';
 import '../../data/warehouse_repository.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../../core/widgets/field/load_item_count_card.dart';
 
 class CargaCamionScreen extends ConsumerStatefulWidget {
   const CargaCamionScreen({
@@ -146,31 +147,15 @@ class _CargaCard extends StatelessWidget {
                 ),
                 const Divider(height: 24),
                 const Text('CONSOLIDADO DE CARGA:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.1)),
-                const SizedBox(height: 8),
-                ...carga.items.where((i) => i.presentation == 'BULTO').map((i) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.inventory_2_rounded, size: 14, color: Colors.brown),
-                      const SizedBox(width: 8),
-                      Text(i.productName, style: const TextStyle(fontSize: 13)),
-                      const Spacer(),
-                      Text('${i.totalBulks} bultos', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                )),
-                const SizedBox(height: 8),
-                const Text('UNIDADES SUELTAS:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.blueGrey)),
-                ...carga.items.where((i) => i.presentation != 'BULTO' || i.totalUnits > 0).map((i) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.shopping_bag_rounded, size: 14, color: Colors.blueGrey),
-                      const SizedBox(width: 8),
-                      Text(i.productName, style: const TextStyle(fontSize: 12, color: Colors.black87)),
-                      const Spacer(),
-                      Text('${i.totalUnits} unids', style: const TextStyle(fontWeight: FontWeight.w600)),
-                    ],
+                const SizedBox(height: 12),
+                ...carga.items.map((i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: LoadItemCountCard(
+                    productName: i.productName,
+                    plannedUnits: i.totalUnits,
+                    loadedUnits: i.totalUnits,
+                    acceptedUnits: i.totalUnits,
+                    handlesBulk: i.presentation == 'BULTO',
                   ),
                 )),
               ],

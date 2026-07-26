@@ -138,7 +138,7 @@ class ClientWorkScreen extends ConsumerWidget {
                 client: client,
                 onTap: () => context.push('/warehouse/${storeId ?? ''}'),
                 actions: [
-                  if (role == AppRole.vendor || role == AppRole.preventa)
+                  if (role == AppRole.vendor || role == AppRole.salesManager)
                     WorkAction(
                       icon: Icons.shopping_cart_outlined,
                       label: 'Nuevo pedido',

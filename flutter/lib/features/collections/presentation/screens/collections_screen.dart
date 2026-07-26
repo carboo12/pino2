@@ -5,6 +5,7 @@ import '../../../../core/documents/pdf_receipt_service.dart';
 import '../../../../core/network/connectivity_service.dart';
 import '../../../../core/network/sync_queue_processor.dart';
 import '../../../../core/utils/role_utils.dart';
+import '../../../../core/widgets/field/payment_method_selector.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/collections_repository.dart';
 import '../../domain/models/receivable_account.dart';
@@ -603,24 +604,10 @@ class _QuickCollectSheetState extends State<_QuickCollectSheet> {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _SheetPaymentButton(
-                    label: 'Efectivo',
-                    selected: _paymentMethod == 'CASH',
-                    onTap: () => setState(() => _paymentMethod = 'CASH'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _SheetPaymentButton(
-                    label: 'Otro',
-                    selected: _paymentMethod != 'CASH',
-                    onTap: () => setState(() => _paymentMethod = 'TRANSFER'),
-                  ),
-                ),
-              ],
+            PaymentMethodSelector(
+              selected: _paymentMethod,
+              onSelected: (method) => setState(() => _paymentMethod = method),
+              label: 'Método de pago',
             ),
             const SizedBox(height: 12),
             TextField(
@@ -658,44 +645,7 @@ class _QuickCollectSheetState extends State<_QuickCollectSheet> {
   }
 }
 
-class _SheetPaymentButton extends StatelessWidget {
-  const _SheetPaymentButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
 
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF166534) : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: selected ? const Color(0xFF166534) : Colors.grey.shade300,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.white : const Color(0xFF166534),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _PaymentDraft {
   const _PaymentDraft({
