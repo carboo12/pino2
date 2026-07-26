@@ -61,8 +61,8 @@ export class PendingDeliveriesService {
     if (filters.status)
       sql += ` AND pd.status = $${params.push(filters.status.trim().toUpperCase())}`;
     if (filters.ruteroId)
-      sql += ` AND pd.rutero_id = $${params.push(filters.ruteroId)}`;
-    if (filters.unassigned) sql += ' AND pd.rutero_id IS NULL';
+      sql += ` AND (pd.rutero_id = $${params.push(filters.ruteroId)} OR pd.rutero_id IS NULL)`;
+    else if (filters.unassigned) sql += ' AND pd.rutero_id IS NULL';
 
     sql += ` GROUP BY pd.id, c.name, c.address, o.client_name, o.total, o.sales_manager_name, o.payment_type
              ORDER BY pd.created_at DESC`;
