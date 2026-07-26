@@ -27,6 +27,21 @@ export class InvoiceItemDto {
   @Min(1)
   quantity!: number;
 
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  inputBulks?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  inputUnits?: number;
+
+  @IsInt()
+  @IsOptional()
+  @Min(1)
+  unitsPerBulk?: number;
+
   @IsNumber()
   @Min(0)
   unitPrice!: number;

@@ -16,9 +16,13 @@ import {
   ChevronsUpDown,
   Check,
   Search,
+  PackagePlus,
+  Sparkles,
+  Box,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Popover,
   PopoverContent,
@@ -75,28 +79,47 @@ interface ProductSearchSelectProps {
   value: string;
   onSelect: (productId: string) => void;
   products: ProductOption[];
+  selectedSupplierId?: string;
+  onOpenQuickProductModal?: () => void;
 }
 
 function ProductSearchSelect({
   value,
   onSelect,
   products,
+  selectedSupplierId,
+  onOpenQuickProductModal,
 }: ProductSearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const selectedProduct = products.find((p) => p.id === value);
 
-  const filteredProducts = useMemo(() => {
-    if (!search.trim()) return products;
-    const query = search.toLowerCase().trim();
-    return products.filter(
-      (p) =>
-        p.description.toLowerCase().includes(query) ||
-        (p.barcode && p.barcode.toLowerCase().includes(query)) ||
-        (p.brand && p.brand.toLowerCase().includes(query)),
+  const { supplierProducts, otherProducts } = useMemo(() => {
+    let filtered = products;
+    if (search.trim()) {
+      const query = search.toLowerCase().trim();
+      filtered = products.filter(
+        (p) =>
+          p.description.toLowerCase().includes(query) ||
+          (p.barcode && p.barcode.toLowerCase().includes(query)) ||
+          (p.brand && p.brand.toLowerCase().includes(query)),
+      );
+    }
+
+    if (!selectedSupplierId) {
+      return { supplierProducts: [], otherProducts: filtered };
+    }
+
+    const supplierProds = filtered.filter(
+      (p) => p.supplierId === selectedSupplierId,
     );
-  }, [products, search]);
+    const others = filtered.filter(
+      (p) => p.supplierId !== selectedSupplierId,
+    );
+
+    return { supplierProducts: supplierProds, otherProducts: others };
+  }, [products, search, selectedSupplierId]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -137,27 +160,36 @@ function ProductSearchSelect({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[340px] sm:w-[420px] p-0" align="start">
-        <div className="p-2 border-b flex items-center gap-2 bg-muted/20">
-          <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
-          <input
-            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-            placeholder="Buscar producto, código o marca..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            autoFocus
-          />
-          {search && (
-            <button
+      <PopoverContent className="w-[340px] sm:w-[440px] p-0" align="start">
+        <div className="p-2 border-b flex items-center justify-between gap-2 bg-muted/20">
+          <div className="flex items-center gap-2 flex-1">
+            <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+            <input
+              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="Buscar producto, SKU, código de barra..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              autoFocus
+            />
+          </div>
+          {onOpenQuickProductModal && (
+            <Button
               type="button"
-              onClick={() => setSearch("")}
-              className="text-xs text-muted-foreground hover:text-foreground mr-1"
+              variant="default"
+              size="sm"
+              className="h-7 text-xs px-2 shrink-0 bg-primary"
+              onClick={() => {
+                setOpen(false);
+                onOpenQuickProductModal();
+              }}
             >
-              Limpiar
-            </button>
+              <PackagePlus className="h-3.5 w-3.5 mr-1" />
+              + Nuevo
+            </Button>
           )}
         </div>
-        <div className="max-h-[280px] overflow-y-auto p-1 space-y-0.5">
+
+        <div className="max-h-[280px] overflow-y-auto p-1 space-y-1">
           <button
             type="button"
             className={cn(
@@ -176,67 +208,366 @@ function ProductSearchSelect({
             {value === "manual" && <Check className="h-4 w-4 text-primary" />}
           </button>
           <div className="my-1 border-t" />
-          {filteredProducts.length === 0 ? (
+
+          {supplierProducts.length > 0 && (
+            <div>
+              <div className="px-2 py-1 text-[11px] font-semibold text-primary uppercase tracking-wider bg-primary/5 rounded mb-1">
+                ⭐ Productos de este Proveedor ({supplierProducts.length})
+              </div>
+              {supplierProducts.map((p) =>
+                renderProductOptionItem(p, value, () => {
+                  onSelect(p.id);
+                  setOpen(false);
+                  setSearch("");
+                }),
+              )}
+            </div>
+          )}
+
+          {otherProducts.length > 0 && (
+            <div>
+              {supplierProducts.length > 0 && (
+                <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">
+                  📦 Otros Productos ({otherProducts.length})
+                </div>
+              )}
+              {otherProducts.map((p) =>
+                renderProductOptionItem(p, value, () => {
+                  onSelect(p.id);
+                  setOpen(false);
+                  setSearch("");
+                }),
+              )}
+            </div>
+          )}
+
+          {supplierProducts.length === 0 && otherProducts.length === 0 && (
             <div className="p-4 text-center text-xs text-muted-foreground">
               No se encontraron productos coincidentes
             </div>
-          ) : (
-            filteredProducts.map((p) => {
-              const isSelected = p.id === value;
-              const handlesBulk =
-                p.handlesBulk || (p.unitsPerBulk && p.unitsPerBulk > 1);
-              const upb = p.unitsPerBulk || 1;
-
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={cn(
-                    "w-full flex items-center justify-between text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors gap-2",
-                    isSelected && "bg-accent/70 font-medium",
-                  )}
-                  onClick={() => {
-                    onSelect(p.id);
-                    setOpen(false);
-                    setSearch("");
-                  }}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate font-medium text-foreground">
-                      {p.description}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                      {p.barcode && <span>Cód: {p.barcode}</span>}
-                      <span>Costo: ${p.costPrice ?? 0}</span>
-                      <span>Stock: {p.currentStock ?? 0}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {handlesBulk ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-amber-100 text-amber-800 text-[11px] font-semibold px-1.5 py-0.5 border border-amber-300"
-                      >
-                        📦 Bulto ({upb} u)
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="bg-slate-100 text-slate-700 text-[11px] font-normal px-1.5 py-0.5"
-                      >
-                        🏷️ Unidad
-                      </Badge>
-                    )}
-                    {isSelected && <Check className="h-4 w-4 text-primary ml-1" />}
-                  </div>
-                </button>
-              );
-            })
           )}
         </div>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function renderProductOptionItem(
+  p: ProductOption,
+  selectedValue: string,
+  onSelect: () => void,
+) {
+  const isSelected = p.id === selectedValue;
+  const handlesBulk = p.handlesBulk || (p.unitsPerBulk && p.unitsPerBulk > 1);
+  const upb = p.unitsPerBulk || 1;
+
+  return (
+    <button
+      key={p.id}
+      type="button"
+      className={cn(
+        "w-full flex items-center justify-between text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors gap-2 my-0.5",
+        isSelected && "bg-accent/70 font-medium",
+      )}
+      onClick={onSelect}
+    >
+      <div className="flex-1 min-w-0">
+        <div className="truncate font-medium text-foreground">{p.description}</div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+          {p.barcode && <span>Cód: {p.barcode}</span>}
+          <span>Costo: ${p.costPrice ?? 0}</span>
+          <span>Stock: {p.currentStock ?? 0}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-1.5 shrink-0">
+        {handlesBulk ? (
+          <Badge
+            variant="secondary"
+            className="bg-amber-100 text-amber-800 text-[11px] font-semibold px-1.5 py-0.5 border border-amber-300"
+          >
+            📦 Bulto ({upb} u)
+          </Badge>
+        ) : (
+          <Badge
+            variant="outline"
+            className="bg-slate-100 text-slate-700 text-[11px] font-normal px-1.5 py-0.5"
+          >
+            🏷️ Unidad
+          </Badge>
+        )}
+        {isSelected && <Check className="h-4 w-4 text-primary ml-1" />}
+      </div>
+    </button>
+  );
+}
+
+function QuickProductModal({
+  open,
+  onOpenChange,
+  storeId,
+  defaultSupplierId,
+  suppliers,
+  onProductCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  storeId?: string;
+  defaultSupplierId?: string;
+  suppliers: SupplierOption[];
+  onProductCreated: (newProduct: ProductOption) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    description: "",
+    code: "",
+    barcode: "",
+    bulkBarcode: "",
+    brand: "",
+    supplierId: defaultSupplierId || "",
+    handlesBulk: false,
+    unitsPerBulk: 12,
+    costPrice: "",
+    salePrice: "",
+    bulkPrice1: "",
+  });
+
+  useEffect(() => {
+    if (defaultSupplierId) {
+      setForm((prev) => ({ ...prev, supplierId: defaultSupplierId }));
+    }
+  }, [defaultSupplierId]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.description.trim()) {
+      toast.error("Descripción requerida", "Ingresa el nombre o descripción del producto.");
+      return;
+    }
+    if (!storeId) {
+      toast.error("Error", "Tienda no especificada.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        storeId,
+        description: form.description.trim(),
+        barcode: form.barcode.trim() || undefined,
+        brand: form.brand.trim() || undefined,
+        supplierId: form.supplierId || undefined,
+        costPrice: Number(form.costPrice) || 0,
+        price1: Number(form.salePrice) || 0,
+        bulkPrice1: form.bulkPrice1 ? Number(form.bulkPrice1) : undefined,
+        handlesBulk: form.handlesBulk,
+        unitsPerBulk: form.handlesBulk ? Math.max(2, Number(form.unitsPerBulk) || 12) : 1,
+      };
+
+      const resp = await apiClient.post("/products", payload);
+      toast.success("Producto Creado", "El producto ha sido registrado exitosamente.");
+
+      const createdObj = resp.data?.product || resp.data;
+      const newProd: ProductOption = {
+        id: createdObj.id,
+        description: createdObj.description || form.description,
+        costPrice: Number(form.costPrice) || 0,
+        currentStock: 0,
+        barcode: form.barcode || undefined,
+        handlesBulk: form.handlesBulk,
+        unitsPerBulk: form.handlesBulk ? Math.max(2, Number(form.unitsPerBulk) || 12) : 1,
+        supplierId: form.supplierId || undefined,
+        brand: form.brand || undefined,
+      };
+
+      onProductCreated(newProd);
+      onOpenChange(false);
+      setForm({
+        description: "",
+        code: "",
+        barcode: "",
+        bulkBarcode: "",
+        brand: "",
+        supplierId: defaultSupplierId || "",
+        handlesBulk: false,
+        unitsPerBulk: 12,
+        costPrice: "",
+        salePrice: "",
+        bulkPrice1: "",
+      });
+    } catch (err: any) {
+      toast.error(
+        "Error al crear producto",
+        err.response?.data?.message || "No se pudo registrar el producto.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <PackagePlus className="h-5 w-5 text-primary" />
+            Crear Nuevo Producto Completo
+          </DialogTitle>
+          <DialogDescription>
+            Registra una nueva mercancía con reglas de Bulto/Unidad, códigos y precios. Se agregará a la factura automáticamente.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2 grid gap-1.5">
+              <Label htmlFor="prodDesc">Nombre / Descripción *</Label>
+              <Input
+                id="prodDesc"
+                placeholder="Ej. ACEITE EL REAL 1 LTS"
+                value={form.description}
+                onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="prodBrand">Marca</Label>
+              <Input
+                id="prodBrand"
+                placeholder="Ej. El Real"
+                value={form.brand}
+                onChange={(e) => setForm((p) => ({ ...p, brand: e.target.value }))}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Proveedor Principal</Label>
+              <Select
+                value={form.supplierId}
+                onValueChange={(val) => setForm((p) => ({ ...p, supplierId: val }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un proveedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {suppliers.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3 bg-muted/20 space-y-3">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Codificación y Barras
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-1.5">
+                <Label htmlFor="unitBarcode">Código de Barra Unitario</Label>
+                <Input
+                  id="unitBarcode"
+                  placeholder="Ej. 741234567890"
+                  value={form.barcode}
+                  onChange={(e) => setForm((p) => ({ ...p, barcode: e.target.value }))}
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="bulkBarcode">Código de Barra de Bulto</Label>
+                <Input
+                  id="bulkBarcode"
+                  placeholder="Ej. 1741234567897"
+                  value={form.bulkBarcode}
+                  onChange={(e) => setForm((p) => ({ ...p, bulkBarcode: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border p-3 bg-amber-500/5 space-y-3 border-amber-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-semibold">¿Maneja control por Bultos / Cajas?</Label>
+                <p className="text-xs text-muted-foreground">
+                  Activa esta opción si el producto se compra o vende por caja/fardo.
+                </p>
+              </div>
+              <Switch
+                checked={form.handlesBulk}
+                onCheckedChange={(chk) => setForm((p) => ({ ...p, handlesBulk: chk }))}
+              />
+            </div>
+
+            {form.handlesBulk && (
+              <div className="grid gap-3 sm:grid-cols-2 pt-2 border-t border-amber-200/60">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="upbInput">Unidades por Bulto (Factor X) *</Label>
+                  <Input
+                    id="upbInput"
+                    type="number"
+                    min="2"
+                    value={form.unitsPerBulk}
+                    onChange={(e) => setForm((p) => ({ ...p, unitsPerBulk: Number(e.target.value) || 2 }))}
+                    placeholder="12"
+                  />
+                  <span className="text-[11px] text-amber-700 font-medium">1 Bulto = {form.unitsPerBulk} Unidades Base</span>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="bulkPrice1">Precio Venta por Bulto (Opcional)</Label>
+                  <Input
+                    id="bulkPrice1"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Ej. 450.00"
+                    value={form.bulkPrice1}
+                    onChange={(e) => setForm((p) => ({ ...p, bulkPrice1: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-1.5">
+              <Label htmlFor="costPrice">Costo de Compra Unitario *</Label>
+              <Input
+                id="costPrice"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ej. 25.50"
+                value={form.costPrice}
+                onChange={(e) => setForm((p) => ({ ...p, costPrice: e.target.value }))}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="salePrice">Precio de Venta Unitario</Label>
+              <Input
+                id="salePrice"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ej. 32.00"
+                value={form.salePrice}
+                onChange={(e) => setForm((p) => ({ ...p, salePrice: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-2">
+            <Button variant="ghost" type="button" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+              Guardar y Seleccionar
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -280,7 +611,10 @@ type DraftInvoiceItem = {
   localId: string;
   selectedProductId: string;
   description: string;
-  quantity: number;
+  bulks: number;
+  units: number;
+  unitsPerBulk: number;
+  handlesBulk: boolean;
   unitPrice: number;
 };
 
@@ -289,9 +623,19 @@ function createDraftItem(): DraftInvoiceItem {
     localId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     selectedProductId: "manual",
     description: "",
-    quantity: 1,
+    bulks: 0,
+    units: 1,
+    unitsPerBulk: 1,
+    handlesBulk: false,
     unitPrice: 0,
   };
+}
+
+function getItemTotalUnits(item: DraftInvoiceItem): number {
+  if (item.handlesBulk && item.unitsPerBulk > 1) {
+    return (Number(item.bulks) || 0) * item.unitsPerBulk + (Number(item.units) || 0);
+  }
+  return Number(item.units) || 0;
 }
 
 export default function SupplierInvoicesPage() {
@@ -487,11 +831,14 @@ export default function SupplierInvoicesPage() {
     () =>
       invoiceDraft.items.reduce(
         (acc, item) =>
-          acc + Number(item.quantity || 0) * Number(item.unitPrice || 0),
+          acc + getItemTotalUnits(item) * Number(item.unitPrice || 0),
         0,
       ),
     [invoiceDraft.items],
   );
+
+  const [quickProductModalOpen, setQuickProductModalOpen] = useState(false);
+  const [targetLineForNewProduct, setTargetLineForNewProduct] = useState<string | null>(null);
 
   const {
     paginatedItems: paginatedInvoices,
@@ -529,6 +876,10 @@ export default function SupplierInvoicesPage() {
       updateDraftItem(localId, {
         selectedProductId: "manual",
         description: "",
+        bulks: 0,
+        units: 1,
+        unitsPerBulk: 1,
+        handlesBulk: false,
         unitPrice: 0,
       });
       return;
@@ -536,9 +887,18 @@ export default function SupplierInvoicesPage() {
     const selectedProduct = products.find(
       (product) => product.id === selectedValue,
     );
+    const handlesBulk =
+      selectedProduct?.handlesBulk === true ||
+      (Number(selectedProduct?.unitsPerBulk) > 1);
+    const unitsPerBulk = Number(selectedProduct?.unitsPerBulk || 1);
+
     updateDraftItem(localId, {
       selectedProductId: selectedValue,
       description: selectedProduct?.description || "",
+      bulks: handlesBulk ? 1 : 0,
+      units: handlesBulk ? 0 : 1,
+      unitsPerBulk: unitsPerBulk,
+      handlesBulk: handlesBulk,
       unitPrice: Number(selectedProduct?.costPrice || 0),
     });
   };
@@ -572,19 +932,36 @@ export default function SupplierInvoicesPage() {
     });
   };
 
+  const handleProductCreated = (newProduct: ProductOption) => {
+    setProducts((prev) => [newProduct, ...prev]);
+    if (targetLineForNewProduct) {
+      handleProductSelection(targetLineForNewProduct, newProduct.id);
+      setTargetLineForNewProduct(null);
+    } else if (invoiceDraft.items.length > 0) {
+      const lastLineId = invoiceDraft.items[invoiceDraft.items.length - 1].localId;
+      handleProductSelection(lastLineId, newProduct.id);
+    }
+  };
+
   const submitInvoice = async () => {
     if (!storeId) return;
 
     const validItems = invoiceDraft.items
-      .map((item) => ({
-        productId:
-          item.selectedProductId === "manual"
-            ? undefined
-            : item.selectedProductId,
-        description: item.description.trim(),
-        quantity: Number(item.quantity),
-        unitPrice: Number(item.unitPrice),
-      }))
+      .map((item) => {
+        const totalUnits = getItemTotalUnits(item);
+        return {
+          productId:
+            item.selectedProductId === "manual"
+              ? undefined
+              : item.selectedProductId,
+          description: item.description.trim(),
+          quantity: totalUnits,
+          inputBulks: item.handlesBulk ? item.bulks : undefined,
+          inputUnits: item.handlesBulk ? item.units : totalUnits,
+          unitsPerBulk: item.handlesBulk ? item.unitsPerBulk : 1,
+          unitPrice: Number(item.unitPrice),
+        };
+      })
       .filter(
         (item) => item.description && item.quantity > 0 && item.unitPrice >= 0,
       );
@@ -1356,9 +1733,24 @@ export default function SupplierInvoicesPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Detalle de compra</h3>
-                  <Button variant="outline" onClick={addDraftItem}>
-                    Agregar línea
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-primary border-primary/30 hover:bg-primary/5"
+                      onClick={() => {
+                        setTargetLineForNewProduct(null);
+                        setQuickProductModalOpen(true);
+                      }}
+                    >
+                      <PackagePlus className="h-4 w-4 mr-1" />
+                      + Nuevo Producto
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={addDraftItem}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Agregar línea
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -1366,9 +1758,12 @@ export default function SupplierInvoicesPage() {
                     const selectedProd = products.find(
                       (p) => p.id === item.selectedProductId,
                     );
+                    const totalUnits = getItemTotalUnits(item);
+                    const lineSubtotal = totalUnits * (item.unitPrice || 0);
+
                     return (
                       <Card key={item.localId} className="bg-muted/30">
-                        <CardContent className="grid gap-3 p-4 md:grid-cols-[1.8fr_2fr_110px_140px_auto]">
+                        <CardContent className="grid gap-3 p-4 md:grid-cols-[1.8fr_2fr_180px_130px_auto]">
                           <div className="grid gap-2">
                             <div className="flex items-center justify-between">
                               <Label>Producto</Label>
@@ -1397,64 +1792,120 @@ export default function SupplierInvoicesPage() {
                                 handleProductSelection(item.localId, val)
                               }
                               products={products}
+                              selectedSupplierId={invoiceDraft.supplierId}
+                              onOpenQuickProductModal={() => {
+                                setTargetLineForNewProduct(item.localId);
+                                setQuickProductModalOpen(true);
+                              }}
                             />
                           </div>
-                      <div className="grid gap-2">
-                        <Label>Descripción</Label>
-                        <Input
-                          value={item.description}
-                          onChange={(event) =>
-                            updateDraftItem(item.localId, {
-                              description: event.target.value,
-                            })
-                          }
-                          placeholder={`Línea ${index + 1}`}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Cantidad</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={item.quantity}
-                          onChange={(event) =>
-                            updateDraftItem(item.localId, {
-                              quantity: Number(event.target.value),
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label>Costo unitario</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.unitPrice}
-                          onChange={(event) =>
-                            updateDraftItem(item.localId, {
-                              unitPrice: Number(event.target.value),
-                            })
-                          }
-                        />
-                      </div>
-                      <div className="flex items-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={invoiceDraft.items.length === 1}
-                          onClick={() => removeDraftItem(item.localId)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+                          <div className="grid gap-2">
+                            <Label>Descripción</Label>
+                            <Input
+                              value={item.description}
+                              onChange={(event) =>
+                                updateDraftItem(item.localId, {
+                                  description: event.target.value,
+                                })
+                              }
+                              placeholder={`Línea ${index + 1}`}
+                            />
+                          </div>
+
+                          {/* Cantidad Dinámica: Bultos vs Unidades */}
+                          {item.handlesBulk && item.unitsPerBulk > 1 ? (
+                            <div className="grid gap-1.5">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs">Bultos & Unidades</Label>
+                                <span className="text-[10px] text-amber-800 font-semibold bg-amber-100 px-1 rounded border border-amber-200">
+                                  1 Bulto = {item.unitsPerBulk} u
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <div>
+                                  <span className="text-[10px] text-muted-foreground block mb-0.5 font-medium">Bultos</span>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={item.bulks}
+                                    onChange={(event) =>
+                                      updateDraftItem(item.localId, {
+                                        bulks: Math.max(0, parseInt(event.target.value) || 0),
+                                      })
+                                    }
+                                  />
+                                </div>
+                                <div>
+                                  <span className="text-[10px] text-muted-foreground block mb-0.5 font-medium font-medium">Sueltas</span>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="1"
+                                    value={item.units}
+                                    onChange={(event) =>
+                                      updateDraftItem(item.localId, {
+                                        units: Math.max(0, parseInt(event.target.value) || 0),
+                                      })
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-[11px] text-muted-foreground font-semibold">
+                                Total: {totalUnits} u. base
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="grid gap-2">
+                              <Label>Cantidad (Uds)</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                step="1"
+                                value={item.units}
+                                onChange={(event) =>
+                                  updateDraftItem(item.localId, {
+                                    units: Math.max(1, parseInt(event.target.value) || 1),
+                                  })
+                                }
+                              />
+                            </div>
+                          )}
+
+                          <div className="grid gap-2">
+                            <Label>Costo unitario</Label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.unitPrice}
+                              onChange={(event) =>
+                                updateDraftItem(item.localId, {
+                                  unitPrice: Number(event.target.value),
+                                })
+                              }
+                            />
+                            <span className="text-[11px] text-muted-foreground font-semibold">
+                              Subtotal: {formatCurrency(lineSubtotal)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-end">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={invoiceDraft.items.length === 1}
+                              onClick={() => removeDraftItem(item.localId)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
 
             <div className="rounded-lg border bg-muted/40 p-4">
               <div className="text-sm text-muted-foreground">
@@ -1732,6 +2183,15 @@ export default function SupplierInvoicesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <QuickProductModal
+        open={quickProductModalOpen}
+        onOpenChange={setQuickProductModalOpen}
+        storeId={storeId}
+        defaultSupplierId={invoiceDraft.supplierId}
+        suppliers={suppliers}
+        onProductCreated={handleProductCreated}
+      />
     </div>
   );
 }

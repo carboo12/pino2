@@ -91,6 +91,9 @@ export interface SupplierInvoiceItem {
   productId?: string;
   description: string;
   quantity: number;
+  inputBulks?: number;
+  inputUnits?: number;
+  unitsPerBulk?: number;
   unitPrice: number;
   subtotal?: number;
 }

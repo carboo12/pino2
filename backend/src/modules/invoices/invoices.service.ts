@@ -24,6 +24,9 @@ export class InvoicesService {
       productId?: string;
       description: string;
       quantity: number;
+      inputBulks?: number;
+      inputUnits?: number;
+      unitsPerBulk?: number;
       unitPrice: number;
     }>;
   }) {
@@ -79,6 +82,9 @@ export class InvoicesService {
           productId: string;
           description: string;
           quantity: number;
+          inputBulks?: number;
+          inputUnits?: number;
+          unitsPerBulk?: number;
           unitPrice: number;
           subtotal: number;
           usesInventory: boolean;
@@ -112,6 +118,9 @@ export class InvoicesService {
             productId: product.id,
             description,
             quantity,
+            inputBulks: item.inputBulks,
+            inputUnits: item.inputUnits,
+            unitsPerBulk: item.unitsPerBulk,
             unitPrice,
             subtotal: this.roundMoney(quantity * unitPrice),
             usesInventory: product.usesInventory,
@@ -176,7 +185,7 @@ export class InvoicesService {
             const product = stockRes.rows[0];
             const unitsPerBulk = Math.max(
               1,
-              Number(product.units_per_bulk || 1),
+              Number(item.unitsPerBulk || product.units_per_bulk || 1),
             );
             const handlesBulk = product.handles_bulk === true;
             const quantitySplit = this.splitStock(
@@ -184,6 +193,15 @@ export class InvoicesService {
               unitsPerBulk,
               handlesBulk,
             );
+            const quantityBulks =
+              item.inputBulks !== undefined && item.inputBulks !== null
+                ? item.inputBulks
+                : quantitySplit.bulks;
+            const quantityUnits =
+              item.inputUnits !== undefined && item.inputUnits !== null
+                ? item.inputUnits
+                : quantitySplit.units;
+
             const balance = Number(product.current_stock);
             const balanceSplit = this.splitStock(
               balance,
@@ -208,8 +226,8 @@ export class InvoicesService {
                 item.quantity,
                 balance,
                 `Factura Proveedor #${invoiceNumber}`,
-                quantitySplit.bulks,
-                quantitySplit.units,
+                quantityBulks,
+                quantityUnits,
                 balanceSplit.bulks,
                 balanceSplit.units,
                 handlesBulk,
