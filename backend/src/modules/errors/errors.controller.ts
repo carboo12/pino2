@@ -21,21 +21,21 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class ErrorsController {
   constructor(private readonly service: ErrorsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get()
   @ApiOperation({ summary: 'Listar errores del sistema' })
   findAll(@Query('limit') limit?: string) {
     return this.service.findAll(limit ? parseInt(limit) : undefined);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Delete('old')
   @ApiOperation({ summary: 'Eliminar errores con más de 24h' })
   deleteOld() {
     return this.service.deleteOld();
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post()
   @ApiOperation({ summary: 'Registrar un error' })
   create(

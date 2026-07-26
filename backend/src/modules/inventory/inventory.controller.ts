@@ -28,7 +28,7 @@ import {
 export class InventoryController {
   constructor(private readonly service: InventoryService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post('adjust')
   @ApiOperation({ summary: 'Ajustar stock de un producto' })
   adjustStock(@Body() dto: AdjustStockDto, @Req() req: any) {
@@ -38,7 +38,7 @@ export class InventoryController {
     } as any);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get('movements')
   @ApiOperation({ summary: 'Obtener historial de movimientos de inventario' })
   getMovements(
@@ -50,21 +50,21 @@ export class InventoryController {
     return this.service.getMovements(storeId, date, type, limit ? parseInt(limit, 10) : undefined);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get('warehouse')
   @ApiOperation({ summary: 'Obtener inventario de bodega por tienda' })
   getWarehouseInventory(@Query('storeId') storeId: string) {
     return this.service.getWarehouseInventory(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get('vendor')
   @ApiOperation({ summary: 'Obtener inventario asignado a un rutero/vendedor' })
   getVendorInventory(@Query('vendorId') vendorId: string) {
     return this.service.getVendorInventory(vendorId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post('transfer')
   @ApiOperation({ summary: 'Trasladar producto entre tiendas/bodegas' })
   transferBetweenStores(
@@ -77,7 +77,7 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post('quick-entry')
   @ApiOperation({
     summary: 'Entrada rápida de producto sin factura ni proveedor',
@@ -93,7 +93,7 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post('merma')
   @ApiOperation({
     summary: 'Registrar merma (producto dañado, vencido o perdido)',
@@ -109,7 +109,7 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post('ajuste')
   @ApiOperation({ summary: 'Ajuste de inventario (positivo o negativo)' })
   registerAjuste(@Body() dto: AjusteDto, @Req() req: any) {
