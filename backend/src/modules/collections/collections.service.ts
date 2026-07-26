@@ -24,6 +24,7 @@ export class CollectionsService {
       paymentMethod?: string;
       notes?: string;
       externalId?: string;
+      requireExternalId?: boolean;
     },
     transactionalClient?: PoolClient,
   ) {
@@ -33,6 +34,11 @@ export class CollectionsService {
     if (!dto.ruteroId) {
       throw new BadRequestException(
         'El rutero es requerido para registrar un cobro',
+      );
+    }
+    if (dto.requireExternalId && !dto.externalId) {
+      throw new BadRequestException(
+        'externalId es obligatorio para cobros creados en ruta',
       );
     }
 
@@ -47,7 +53,10 @@ export class CollectionsService {
         );
         if (existing.rowCount > 0) {
           await client.query(
-            'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
+            `INSERT INTO sync_idempotency_log (
+               store_id, external_id, entity_type
+             ) VALUES ($1, $2, $3)
+             ON CONFLICT (store_id, external_id, entity_type) DO NOTHING`,
             [dto.storeId, dto.externalId, 'COLLECTION'],
           );
           return {

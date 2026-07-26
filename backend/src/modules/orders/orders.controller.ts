@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -30,6 +31,11 @@ export class OrdersController {
   @ApiOkResponse({ type: OrderResponseDto })
   create(@Body() dto: CreateOrderDto, @Req() req: any) {
     const isFieldSeller = ['vendor', 'sales-manager'].includes(req.user?.role);
+    if (isFieldSeller && !dto.externalId) {
+      throw new BadRequestException(
+        'externalId es obligatorio para pedidos creados en ruta',
+      );
+    }
     return this.service.create({
       ...dto,
       vendorId: isFieldSeller ? req.user.sub : dto.vendorId,

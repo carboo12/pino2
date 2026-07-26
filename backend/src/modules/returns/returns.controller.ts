@@ -23,20 +23,23 @@ import { CreateReturnDto } from './returns.dto';
 export class ReturnsController {
   constructor(private readonly service: ReturnsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Post()
   @ApiOperation({
     summary: 'Registrar devolución de rutero o devolución POS basada en venta',
   })
   create(@Body() dto: CreateReturnDto, @Req() req: any) {
+    const isRutero = req.user?.role === 'rutero';
     return this.service.create({
       ...dto,
-      ruteroId: dto.ruteroId || req.user?.sub || undefined,
-      cashierId: dto.cashierId || req.user?.sub || undefined,
+      ruteroId: isRutero ? req.user.sub : dto.ruteroId,
+      cashierId: isRutero
+        ? undefined
+        : dto.cashierId || req.user?.sub || undefined,
     } as any);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar devoluciones con filtros' })
   findAll(
@@ -45,20 +48,31 @@ export class ReturnsController {
     @Query('orderId') orderId?: string,
     @Query('fromDate') fromDate?: string,
     @Query('toDate') toDate?: string,
+    @Req() req?: any,
   ) {
     return this.service.findAll({
       storeId,
-      ruteroId,
+      ruteroId: req?.user?.role === 'rutero' ? req.user.sub : ruteroId,
       orderId,
       fromDate,
       toDate,
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de devolución con items' })
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.service.findOne(
+      id,
+      req.user?.role === 'rutero' ? req.user.sub : undefined,
+    );
+  }
+
+  @Roles('master-admin', 'store-admin', 'inventory')
+  @Post(':id/receive')
+  @ApiOperation({ summary: 'Recibir físicamente devolución de ruta en bodega' })
+  receive(@Param('id') id: string, @Req() req: any) {
+    return this.service.receiveRouteReturn(id, req.user.sub);
   }
 }

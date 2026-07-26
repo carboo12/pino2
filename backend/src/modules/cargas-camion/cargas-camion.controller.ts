@@ -6,10 +6,15 @@ import {
   Param,
   Body,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { CargasCamionService } from './cargas-camion.service';
-import { CreateCargaCamionDto } from './cargas-camion.dto';
+import {
+  AcceptCargaDto,
+  ConfirmCargaDto,
+  CreateCargaCamionDto,
+} from './cargas-camion.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -22,25 +27,68 @@ export class CargasCamionController {
 
   @Roles('master-admin', 'store-admin')
   @Post()
-  create(@Body() dto: CreateCargaCamionDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateCargaCamionDto, @Req() req: any) {
+    return this.service.create({ ...dto, createdBy: req.user.sub });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get()
-  findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string) {
-    return this.service.findAll(storeId, fecha);
+  findAll(
+    @Query('storeId') storeId: string,
+    @Query('fecha') fecha?: string,
+    @Query('ruteroId') ruteroId?: string,
+    @Req() req?: any,
+  ) {
+    return this.service.findAll(
+      storeId,
+      fecha,
+      req?.user?.role === 'rutero' ? req.user.sub : ruteroId,
+    );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    return this.service.findOne(
+      id,
+      req.user?.role === 'rutero' ? req.user.sub : undefined,
+    );
+  }
+
+  @Roles('master-admin', 'store-admin', 'inventory')
+  @Put(':id/confirm-load')
+  confirmLoad(
+    @Param('id') id: string,
+    @Body() dto: ConfirmCargaDto,
+    @Req() req: any,
+  ) {
+    return this.service.confirmLoad(id, req.user.sub, dto.items);
+  }
+
+  @Roles('rutero')
+  @Put(':id/accept')
+  accept(
+    @Param('id') id: string,
+    @Body() dto: AcceptCargaDto,
+    @Req() req: any,
+  ) {
+    return this.service.acceptLoad(
+      id,
+      req.user.sub,
+      dto.externalId,
+      dto.items,
+    );
+  }
+
+  @Roles('master-admin', 'store-admin', 'inventory')
+  @Put(':id/reconcile')
+  reconcile(@Param('id') id: string, @Req() req: any) {
+    return this.service.reconcileAcceptanceDifference(id, req.user.sub);
   }
 
   @Roles('master-admin', 'store-admin')
   @Put(':id/salida')
-  despachar(@Param('id') id: string) {
-    return this.service.despachar(id);
+  despachar(@Param('id') id: string, @Req() req: any) {
+    return this.service.despachar(id, req.user.sub);
   }
 }

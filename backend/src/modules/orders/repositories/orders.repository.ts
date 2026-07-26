@@ -30,7 +30,10 @@ export class OrdersRepository {
     externalId: string,
   ) {
     await client.query(
-      "INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)",
+      `INSERT INTO sync_idempotency_log (
+         store_id, external_id, entity_type
+       ) VALUES ($1, $2, $3)
+       ON CONFLICT (store_id, external_id, entity_type) DO NOTHING`,
       [storeId, externalId, "ORDER"],
     );
   }

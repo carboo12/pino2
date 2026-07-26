@@ -41,6 +41,12 @@ export class ReturnsService {
     },
     transactionalClient?: PoolClient,
   ) {
+    if (dto.ruteroId && !dto.externalId) {
+      throw new BadRequestException(
+        'externalId es obligatorio para devoluciones creadas en ruta',
+      );
+    }
+
     if (dto.saleId) {
       return this.createSaleReturn(
         {
@@ -134,6 +140,14 @@ export class ReturnsService {
         dto.externalId || null,
         client,
       );
+      if (dto.ruteroId) {
+        await client.query(
+          `UPDATE returns
+           SET status = 'IN_TRANSIT', return_type = 'ROUTE', updated_at = NOW()
+           WHERE id = $1`,
+          [returnRecord.id],
+        );
+      }
 
       for (const item of preparedItems) {
         const subtotal = item.totalUnits * item.unitPrice;
@@ -147,6 +161,10 @@ export class ReturnsService {
           subtotal,
           client,
         );
+
+        // Una devolución de ruta permanece bajo custodia del Rutero hasta que
+        // bodega confirma la recepción física. No repone stock en este punto.
+        if (dto.ruteroId) continue;
 
         const product = await this.repository.findProductWithStockForUpdate(
           item.productId,
@@ -227,6 +245,110 @@ export class ReturnsService {
     return result;
   }
 
+  async receiveRouteReturn(id: string, receivedBy: string) {
+    return this.db.withTransaction(async (client) => {
+      const returnRes = await client.query(
+        `SELECT * FROM returns WHERE id = $1 FOR UPDATE`,
+        [id],
+      );
+      if (returnRes.rowCount !== 1) {
+        throw new NotFoundException('Devolución no encontrada');
+      }
+      const record = returnRes.rows[0];
+      if (record.return_type !== 'ROUTE') {
+        throw new BadRequestException(
+          'Sólo las devoluciones de ruta requieren recepción física',
+        );
+      }
+      if (record.status === 'RECEIVED') {
+        return { ...record, isDuplicate: true };
+      }
+      if (record.status !== 'IN_TRANSIT' || !record.rutero_id) {
+        throw new BadRequestException(
+          `La devolución no puede recibirse desde ${record.status}`,
+        );
+      }
+
+      const items = await client.query(
+        `SELECT ri.*, GREATEST(COALESCE(p.units_per_bulk, 1), 1)::int AS upb
+         FROM return_items ri
+         JOIN products p ON p.id = ri.product_id
+         WHERE ri.return_id = $1
+         ORDER BY ri.id
+         FOR UPDATE OF p`,
+        [id],
+      );
+      for (const item of items.rows) {
+        const upb = Number(item.upb);
+        const totalUnits =
+          Number(item.quantity_bulks || 0) * upb +
+          Number(item.quantity_units || 0);
+        const vendor = await client.query(
+          `UPDATE vendor_inventories
+           SET current_quantity = current_quantity - $1,
+               current_bulks = (current_quantity - $1)::int / $2,
+               current_units = (current_quantity - $1)::int % $2,
+               updated_at = NOW()
+           WHERE vendor_id = $3 AND product_id = $4
+             AND current_quantity >= $1
+           RETURNING id`,
+          [totalUnits, upb, record.rutero_id, item.product_id],
+        );
+        if (vendor.rowCount !== 1) {
+          throw new BadRequestException(
+            `Inventario insuficiente del Rutero para ${item.product_id}`,
+          );
+        }
+        const product = await client.query(
+          `UPDATE products
+           SET current_stock = current_stock + $1, updated_at = NOW()
+           WHERE id = $2 AND store_id = $3
+           RETURNING current_stock, handles_bulk`,
+          [totalUnits, item.product_id, record.store_id],
+        );
+        if (product.rowCount !== 1) {
+          throw new NotFoundException('Producto no encontrado en la tienda');
+        }
+        const quantitySplit = splitIntoBulkUnits(totalUnits, upb);
+        const balanceSplit = splitIntoBulkUnits(
+          Number(product.rows[0].current_stock),
+          upb,
+        );
+        await client.query(
+          `INSERT INTO movements (
+             store_id, product_id, user_id, type, quantity,
+             quantity_bulks, quantity_units, balance,
+             balance_bulks, balance_units, reference,
+             handles_bulk_snapshot, units_per_bulk_snapshot
+           ) VALUES ($1,$2,$3,'IN',$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          [
+            record.store_id,
+            item.product_id,
+            receivedBy,
+            totalUnits,
+            quantitySplit.bulks,
+            quantitySplit.units,
+            Number(product.rows[0].current_stock),
+            balanceSplit.bulks,
+            balanceSplit.units,
+            `Recepción física devolución ${id}`,
+            product.rows[0].handles_bulk === true,
+            upb,
+          ],
+        );
+      }
+
+      const updated = await client.query(
+        `UPDATE returns
+         SET status = 'RECEIVED', received_by = $2, received_at = NOW(),
+             updated_at = NOW()
+         WHERE id = $1 RETURNING *`,
+        [id, receivedBy],
+      );
+      return updated.rows[0];
+    });
+  }
+
   async findAll(filters: {
     storeId?: string;
     ruteroId?: string;
@@ -237,10 +359,13 @@ export class ReturnsService {
     return this.repository.findAll(filters);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, ruteroId?: string) {
     const returnRecord = await this.repository.findById(id);
     if (!returnRecord)
       throw new NotFoundException('Devolución no encontrada');
+    if (ruteroId && returnRecord.ruteroId !== ruteroId) {
+      throw new NotFoundException('Devolución no encontrada');
+    }
 
     const items = await this.repository.findItemsByReturnId(id);
     returnRecord.items = items;

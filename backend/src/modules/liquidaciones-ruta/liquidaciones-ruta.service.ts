@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { LiquidacionStatus } from '../../common/constants/enums';
 
@@ -13,8 +17,31 @@ export class LiquidacionesRutaService {
     liquidadoPor: string;
     arqueoId?: string;
     notas?: string;
+    externalId?: string;
+    requireExternalId?: boolean;
   }) {
+    if (dto.requireExternalId && !dto.externalId) {
+      throw new BadRequestException(
+        'externalId es obligatorio para cierres enviados desde ruta',
+      );
+    }
+
     return this.db.withTransaction(async (client) => {
+      if (dto.externalId) {
+        const existing = await client.query(
+          `SELECT * FROM liquidaciones_ruta
+           WHERE store_id = $1 AND external_id = $2
+           FOR UPDATE`,
+          [dto.storeId, dto.externalId],
+        );
+        if (existing.rowCount === 1) {
+          return {
+            ...this.mapRow(existing.rows[0]),
+            isDuplicate: true,
+          };
+        }
+      }
+
       const params = [dto.storeId, dto.ruteroId, dto.fechaRuta];
       await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
         `liquidacion:${dto.storeId}:${dto.ruteroId}:${dto.fechaRuta}`,
@@ -108,10 +135,10 @@ export class LiquidacionesRutaService {
            store_id, rutero_id, fecha_ruta, total_pedidos, total_entregados,
            total_rechazados, total_cobrado_contado, total_cobrado_credito,
            total_devoluciones, efectivo_esperado, efectivo_entregado,
-           diferencia, arqueo_id, status, liquidado_por, notas
+           diferencia, arqueo_id, status, liquidado_por, notas, external_id
          ) VALUES (
            $1, $2, $3, $4, $5, $6, $7, $8,
-           $9, $10, $11, $12, $13, $14, $15, $16
+           $9, $10, $11, $12, $13, $14, $15, $16, $17
          )
          ON CONFLICT (store_id, rutero_id, fecha_ruta)
          DO UPDATE SET
@@ -127,7 +154,11 @@ export class LiquidacionesRutaService {
            arqueo_id = EXCLUDED.arqueo_id,
            status = EXCLUDED.status,
            liquidado_por = EXCLUDED.liquidado_por,
-           notas = EXCLUDED.notas
+           notas = EXCLUDED.notas,
+           external_id = COALESCE(
+             liquidaciones_ruta.external_id,
+             EXCLUDED.external_id
+           )
          RETURNING *`,
         [
           ...params,
@@ -144,6 +175,7 @@ export class LiquidacionesRutaService {
           status,
           dto.liquidadoPor,
           dto.notas || null,
+          dto.externalId || null,
         ],
       );
 
@@ -176,14 +208,15 @@ export class LiquidacionesRutaService {
     return res.rows.map(this.mapRow);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, ruteroId?: string) {
     const res = await this.db.query(
       `SELECT l.*, u1.name as rutero_name, u2.name as liquidador_name 
        FROM liquidaciones_ruta l 
        LEFT JOIN users u1 ON l.rutero_id = u1.id
        LEFT JOIN users u2 ON l.liquidado_por = u2.id
-       WHERE l.id = $1`,
-      [id],
+       WHERE l.id = $1
+         AND ($2::uuid IS NULL OR l.rutero_id = $2)`,
+      [id, ruteroId || null],
     );
     if (res.rowCount === 0)
       throw new NotFoundException('Liquidación no encontrada');
@@ -211,6 +244,7 @@ export class LiquidacionesRutaService {
       liquidadoPor: row.liquidado_por,
       liquidadorName: row.liquidador_name,
       notas: row.notas,
+      externalId: row.external_id,
       createdAt: row.created_at,
     };
   }

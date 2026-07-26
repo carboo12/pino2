@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CreateRouteDto, UpdateRouteDto } from './routes.dto';
 
 @ApiTags('Routes')
 @ApiBearerAuth()
@@ -43,17 +44,7 @@ export class RoutesController {
   @ApiOperation({ summary: 'Crear ruta de vendedor' })
   create(
     @Body()
-    dto: {
-      storeId: string;
-      vendorId: string;
-      clientIds?: string[];
-      date?: string;
-      notes?: string;
-      status?: string;
-      routeType?: 'SALES' | 'DELIVERY';
-      zoneId?: string;
-      validTo?: string;
-    },
+    dto: CreateRouteDto,
     @Req() req: any,
   ) {
     return this.service.create({ ...dto, assignedBy: req.user.sub });
@@ -72,17 +63,7 @@ export class RoutesController {
   update(
     @Param('id') id: string,
     @Body()
-    dto: {
-      status?: string;
-      notes?: string;
-      vendorId?: string;
-      clientIds?: string[];
-      routeType?: 'SALES' | 'DELIVERY';
-      zoneId?: string | null;
-      date?: string;
-      validTo?: string | null;
-      reason?: string;
-    },
+    dto: UpdateRouteDto,
     @Req() req: any,
   ) {
     return this.service.update(id, { ...dto, changedBy: req.user.sub });

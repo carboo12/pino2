@@ -1,0 +1,658 @@
+CONTRACT-FREEZE-1 — PINO / OPERACIÓN DE CALLE
+Versión: 1.0
+Fecha: 2026-07-26
+Estado: LIBERADO
+Base operativa: sistema_de_inventario
+Backend: NestJS, prefijo /api
+Consumidores: React ahora; Flutter se implementará posteriormente en otra máquina.
+
+===============================================================================
+0. REGLAS QUE NO PUEDE CAMBIAR EL AGENTE CONSUMIDOR
+===============================================================================
+
+1. Los estados persistidos se envían y comparan exactamente como están escritos
+   en este documento. La UI puede traducir la etiqueta, pero no el valor.
+2. storeId, clientId, productId, orderId, orderItemId, deliveryId, cargaId y
+   externalId son UUID.
+3. externalId es un UUID generado una sola vez por la aplicación cliente antes
+   de enviar una operación offline. Un reintento conserva el mismo externalId.
+4. El backend toma la identidad de Gestor/Rutero del token. La UI no debe usar
+   vendorId o ruteroId para intentar actuar como otro usuario.
+5. Cantidades operativas se envían como unidades base enteras. Para capturar
+   bultos y unidades:
+
+      totalUnits = bulkCount * unitsPerBulkSnapshot + looseUnitCount
+
+6. Una pantalla no debe descontar inventario local definitivamente hasta recibir
+   éxito o una respuesta idempotente isDuplicate=true.
+7. Un HTTP 400/409 es recuperable: conservar la acción local y mostrar el
+   mensaje; no crear otro externalId automáticamente.
+8. React puede comenzar la integración contra este contrato. Flutter queda
+   diferido, pero deberá consumir exactamente el mismo contrato.
+
+===============================================================================
+1. VOCABULARIO CANÓNICO
+===============================================================================
+
+ROLES DE ESTE FLUJO:
+
+- Gestor de Ventas: sales-manager. vendor sólo queda como compatibilidad.
+- Rutero/Repartidor: rutero.
+- Administración de bodega: store-admin o master-admin.
+- Operación física de inventario: inventory.
+
+TIPOS DE RUTA:
+
+- SALES
+- DELIVERY
+
+ESTADOS DE RUTA:
+
+- PENDING
+- ACTIVE
+- COMPLETED
+- CANCELLED
+
+ESTADOS DE CARGA:
+
+- PLANNED
+- PICKING
+- LOADED
+- PENDING_ACCEPTANCE
+- ACCEPTED
+- EN_ROUTE
+- RETURNED
+- CLOSED
+- CANCELLED
+
+ESTADOS DE ENTREGA:
+
+- PENDING
+- ASSIGNED
+- EN_RUTA
+- ENTREGADO
+- PARCIAL
+- RECHAZADO
+- DEVUELTO
+- CANCELADO
+
+ESTADOS DE DEVOLUCIÓN DE RUTA:
+
+- IN_TRANSIT
+- RECEIVED
+- CANCELLED
+
+ESTADOS DE VISITA:
+
+- PENDING
+- VISITED
+- NO_SALE
+- SALE
+- SKIPPED
+
+ESTADOS DE LIQUIDACIÓN ACTUALES:
+
+- PENDING
+- BALANCED
+- WITH_DIFFERENCE
+- APPROVED
+- CANCELLED
+
+MÉTODOS DE PAGO:
+
+- CASH
+- TRANSFER
+- CHECK
+- CREDIT
+- MIXED
+
+TIPOS DE PAGO DEL PEDIDO:
+
+- CONTADO
+- CREDITO
+
+TRANSICIÓN PRINCIPAL:
+
+Ruta SALES -> pedido RECIBIDO -> ALISTADO -> carga PLANNED -> LOADED
+-> ACCEPTED -> EN_ROUTE -> entrega ENTREGADO/PARCIAL/RECHAZADO
+-> devolución IN_TRANSIT -> RECEIVED -> liquidación.
+
+===============================================================================
+2. RUTAS Y CARTERA DEL GESTOR
+===============================================================================
+
+2.1 Listar rutas
+
+GET /api/routes?storeId={uuid}&vendorId={uuid-opcional}
+
+- Gestor: el backend ignora vendorId y devuelve sólo sus rutas.
+- Admin: puede filtrar por vendorId.
+
+Respuesta:
+
+[
+  {
+    "id": "uuid",
+    "storeId": "uuid",
+    "vendorId": "uuid",
+    "clientIds": ["uuid", "uuid"],
+    "routeDate": "2026-07-27T00:00:00.000Z",
+    "routeType": "SALES",
+    "status": "ACTIVE",
+    "zoneId": "uuid",
+    "validFrom": "2026-07-27",
+    "validTo": "2026-07-27",
+    "version": 2,
+    "notes": "Ruta lunes"
+  }
+]
+
+Sin ruta asignada, el resultado correcto es [].
+
+2.2 Crear ruta
+
+POST /api/routes
+
+Rol: administración.
+
+{
+  "storeId": "uuid",
+  "vendorId": "uuid",
+  "clientIds": ["uuid", "uuid"],
+  "date": "2026-07-27T08:00:00.000Z",
+  "routeType": "SALES",
+  "status": "ACTIVE",
+  "zoneId": "uuid",
+  "validTo": "2026-07-27",
+  "notes": "Ruta Norte"
+}
+
+Obligatorios: storeId, vendorId.
+Opcionales: clientIds, date, routeType, status, zoneId, validTo, notes.
+Defaults: routeType=SALES, status=PENDING, date=fecha actual.
+
+2.3 Reasignar o modificar ruta
+
+PATCH /api/routes/{routeId}
+
+Rol: administración.
+
+{
+  "vendorId": "uuid-nuevo-gestor",
+  "clientIds": ["uuid", "uuid"],
+  "date": "2026-07-28T08:00:00.000Z",
+  "validTo": "2026-07-28",
+  "reason": "Ausencia del gestor original"
+}
+
+Todos los campos son opcionales. Enviar clientIds reemplaza la lista completa.
+La operación incrementa version y registra historial.
+
+2.4 Historial
+
+GET /api/routes/{routeId}/history
+
+Respuesta por evento:
+
+{
+  "id": "uuid",
+  "routeId": "uuid",
+  "eventType": "CREATED|REASSIGNED|CLIENTS_REPLACED|STATUS_CHANGED",
+  "previousVendorId": "uuid|null",
+  "newVendorId": "uuid",
+  "clientIds": ["uuid"],
+  "reason": "texto|null",
+  "changedBy": "uuid",
+  "createdAt": "ISO-8601"
+}
+
+===============================================================================
+3. VISITA Y PEDIDO OFFLINE DEL GESTOR
+===============================================================================
+
+3.1 Registrar visita
+
+POST /api/visit-logs
+
+Rol: Gestor o administración.
+Para Gestor, externalId es obligatorio y vendorId es ignorado.
+
+{
+  "storeId": "uuid",
+  "clientId": "uuid",
+  "status": "NO_SALE",
+  "latitude": 12.136389,
+  "longitude": -86.251389,
+  "notes": "Cliente cerrado",
+  "externalId": "uuid-generado-en-dispositivo"
+}
+
+El cliente debe pertenecer a una ruta vigente del Gestor.
+Reintento: devuelve la misma visita con isDuplicate=true.
+
+3.2 Crear pedido preventa
+
+POST /api/orders
+
+Rol: Gestor o administración.
+Para Gestor, externalId es obligatorio y vendorId es ignorado.
+
+{
+  "storeId": "uuid",
+  "clientId": "uuid",
+  "paymentType": "CREDITO",
+  "priceLevel": 1,
+  "tipoPedido": "VENTA_ESTANDAR",
+  "items": [
+    {
+      "productId": "uuid",
+      "bulkCount": 2,
+      "looseUnitCount": 5,
+      "priceLevel": 1
+    }
+  ],
+  "notes": "Entregar por la mañana",
+  "externalId": "uuid-generado-en-dispositivo"
+}
+
+Cada item puede usar:
+
+- bulkCount + looseUnitCount; o
+- quantity como unidades base.
+
+No combinar ambas representaciones en el mismo item.
+Reintento: devuelve el mismo pedido con isDuplicate=true.
+
+3.3 Listar pedidos del Gestor
+
+GET /api/orders?storeId={uuid}&status={opcional}&createdAt={opcional}
+
+El backend fuerza vendorId al usuario de sesión para roles de campo.
+
+===============================================================================
+4. CARGA DE CAMIÓN Y TRANSFERENCIA DE CUSTODIA
+===============================================================================
+
+4.1 Crear planificación
+
+POST /api/cargas-camion
+
+Rol: administración.
+No descuenta inventario.
+
+{
+  "storeId": "uuid",
+  "ruteroId": "uuid",
+  "camionPlaca": "M123456",
+  "orderIds": ["uuid", "uuid"],
+  "fechaEntrega": "2026-07-27T08:00:00.000Z",
+  "externalId": "uuid-opcional"
+}
+
+Condición: los pedidos deben estar ALISTADO.
+Resultado: carga PLANNED, detalle consolidado por producto y entregas ASSIGNED.
+
+Respuesta resumida:
+
+{
+  "id": "uuid",
+  "storeId": "uuid",
+  "ruteroId": "uuid",
+  "status": "PLANNED",
+  "version": 1,
+  "pedidos": [{"id": "uuid", "status": "ALISTADO"}],
+  "items": [
+    {
+      "id": "uuid",
+      "productId": "uuid",
+      "plannedUnits": 45,
+      "loadedUnits": 0,
+      "acceptedUnits": 0,
+      "discrepancyUnits": 0,
+      "unitsPerBulkSnapshot": 20,
+      "handlesBulkSnapshot": true
+    }
+  ]
+}
+
+4.2 Confirmar carga física
+
+PUT /api/cargas-camion/{cargaId}/confirm-load
+
+Rol: administración o inventory.
+Descuenta bodega una sola vez y deja la carga LOADED.
+
+{
+  "items": [
+    {"productId": "uuid", "totalUnits": 45}
+  ]
+}
+
+items es opcional: si se omite, usa plannedUnits. En esta versión la cantidad
+cargada debe coincidir con la planificada.
+
+4.3 Consultar carga del Rutero
+
+GET /api/cargas-camion?storeId={uuid}&fecha={YYYY-MM-DD-opcional}
+GET /api/cargas-camion/{cargaId}
+
+Para Rutero, el backend devuelve únicamente sus cargas.
+
+4.4 Aceptar carga
+
+PUT /api/cargas-camion/{cargaId}/accept
+
+Rol: Rutero.
+externalId es obligatorio.
+
+{
+  "externalId": "uuid-generado-en-dispositivo",
+  "items": [
+    {"productId": "uuid", "totalUnits": 45}
+  ]
+}
+
+- Coincidencia total: status=ACCEPTED.
+- Diferencia: status=PENDING_ACCEPTANCE y salida bloqueada.
+- Reintento con igual externalId: no duplica vendor_inventories y responde
+  isDuplicate=true.
+
+4.5 Conciliar diferencia de aceptación
+
+PUT /api/cargas-camion/{cargaId}/reconcile
+
+Rol: administración o inventory.
+No recibe body. Devuelve a bodega la diferencia no aceptada, registra movimiento
+IN, ajusta loadedUnits=acceptedUnits y deja status=ACCEPTED.
+
+4.6 Autorizar salida
+
+PUT /api/cargas-camion/{cargaId}/salida
+
+Rol: administración.
+Sólo acepta una carga ACCEPTED. Cambia carga a EN_ROUTE, pedidos y entregas a
+EN_RUTA.
+
+===============================================================================
+5. ENTREGA PARCIAL, FACTURA, CXC Y RECHAZO
+===============================================================================
+
+5.1 Listar entregas del Rutero
+
+GET /api/pending-deliveries?storeId={uuid}&status={opcional}
+
+El backend ignora ruteroId enviado por un Rutero y usa su identidad.
+Cada entrega contiene items con id/orderItemId, productId, quantity y salePrice.
+
+5.2 Completar entrega
+
+POST /api/pending-deliveries/{deliveryId}/complete
+
+Rol: Rutero.
+externalId obligatorio.
+Se debe enviar exactamente una línea por cada item del pedido.
+
+{
+  "externalId": "uuid-generado-en-dispositivo",
+  "items": [
+    {
+      "orderItemId": "uuid",
+      "deliveredUnits": 35,
+      "rejectedUnits": 10,
+      "rejectionReason": "Empaque rechazado"
+    }
+  ],
+  "paymentMethod": "CREDIT",
+  "receiverName": "María Pérez",
+  "latitude": 12.136389,
+  "longitude": -86.251389,
+  "proofUrl": "https://servidor/ruta/comprobante.jpg",
+  "notes": "Entrega parcial"
+}
+
+Reglas atómicas:
+
+- deliveredUnits + rejectedUnits = quantity planificada por item.
+- Un rechazo mayor que cero requiere rejectionReason.
+- Se bloquean entrega, pedido, items e inventario durante la transacción.
+- deliveredUnits crea sales/sale_items y descuenta vendor_inventories.
+- Si paymentMethod=CREDIT, el cliente debe ser CREDITO y se crea CxC.
+- La fecha de vencimiento usa clients.dias_credito; default 8 días.
+- rejectedUnits crea devolución ROUTE/IN_TRANSIT.
+- El rechazo no repone bodega en la calle.
+
+Respuesta:
+
+{
+  "id": "uuid-operacion",
+  "deliveryId": "uuid",
+  "orderId": "uuid",
+  "status": "PARCIAL",
+  "saleId": "uuid|null",
+  "returnId": "uuid|null",
+  "totalDelivered": 1250.00,
+  "totalRejected": 250.00,
+  "isDuplicate": false
+}
+
+Reintento: devuelve la operación existente con isDuplicate=true.
+
+===============================================================================
+6. COBRO DE CUENTAS PENDIENTES
+===============================================================================
+
+POST /api/collections
+
+Rol: Rutero o administración.
+Para Rutero, externalId es obligatorio y ruteroId es ignorado.
+
+{
+  "storeId": "uuid",
+  "accountId": "uuid-cxc",
+  "clientId": "uuid",
+  "amount": 850.00,
+  "paymentMethod": "CASH",
+  "notes": "Abono en ruta",
+  "externalId": "uuid-generado-en-dispositivo"
+}
+
+Reglas:
+
+- amount > 0.
+- No puede superar remaining_amount.
+- Actualiza CxC a PARTIAL o PAID.
+- Crea collections y account_payments en la misma transacción.
+- Reintento no duplica cobro ni saldo.
+
+Consultas:
+
+GET /api/collections?storeId={uuid}&date={YYYY-MM-DD-opcional}
+GET /api/collections/summary?storeId={uuid}&date={YYYY-MM-DD-opcional}
+
+Para Rutero sólo se devuelven sus cobros.
+
+===============================================================================
+7. DEVOLUCIÓN Y RECEPCIÓN FÍSICA
+===============================================================================
+
+7.1 Crear devolución adicional de ruta
+
+POST /api/returns
+
+Rol: Rutero.
+externalId obligatorio; ruteroId se toma de sesión.
+
+{
+  "storeId": "uuid",
+  "orderId": "uuid",
+  "externalId": "uuid-generado-en-dispositivo",
+  "notes": "Producto rechazado en ruta",
+  "items": [
+    {
+      "productId": "uuid",
+      "quantityBulks": 1,
+      "quantityUnits": 2,
+      "unitPrice": 25.00
+    }
+  ]
+}
+
+Resultado: return_type=ROUTE, status=IN_TRANSIT. No aumenta bodega.
+
+7.2 Consultar
+
+GET /api/returns?storeId={uuid}
+GET /api/returns/{returnId}
+
+El Rutero sólo ve sus devoluciones.
+
+7.3 Recibir en bodega
+
+POST /api/returns/{returnId}/receive
+
+Rol: administración o inventory.
+No recibe body.
+
+En una transacción:
+
+- exige ROUTE/IN_TRANSIT;
+- descuenta inventario del Rutero;
+- aumenta inventario de bodega;
+- registra movement IN;
+- cambia a RECEIVED.
+
+Repetir una devolución ya RECEIVED devuelve isDuplicate=true.
+
+===============================================================================
+8. VISIBILIDAD CXC Y CIERRE DE RUTA
+===============================================================================
+
+8.1 CxC
+
+El Gestor/Rutero consume los endpoints de accounts-receivable ya existentes.
+El backend limita clientes a la cartera/ruta asignada. Para mostrar deuda usar:
+
+- totalAmount
+- remainingAmount
+- issuedAt
+- dueDate
+- creditDaysSnapshot
+- status
+
+8.2 Enviar/calcular liquidación
+
+POST /api/liquidaciones-ruta
+
+Rol: Rutero o administración.
+Para Rutero, ruteroId se toma de sesión y externalId es obligatorio.
+
+{
+  "storeId": "uuid",
+  "ruteroId": "uuid-omitible-para-rutero",
+  "fechaRuta": "2026-07-27",
+  "arqueoId": "uuid-opcional",
+  "notas": "Fin de jornada",
+  "externalId": "uuid-generado-en-dispositivo"
+}
+
+Respuesta:
+
+{
+  "id": "uuid",
+  "storeId": "uuid",
+  "ruteroId": "uuid",
+  "fechaRuta": "2026-07-27",
+  "totalPedidos": 20,
+  "totalEntregados": 17,
+  "totalRechazados": 3,
+  "totalCobradoContado": 10000.00,
+  "totalCobradoCredito": 2500.00,
+  "totalDevoluciones": 500.00,
+  "efectivoEsperado": 10850.00,
+  "efectivoEntregado": 10850.00,
+  "diferencia": 0,
+  "status": "BALANCED",
+  "externalId": "uuid",
+  "isDuplicate": false
+}
+
+Reintento con externalId conserva una sola liquidación y responde
+isDuplicate=true. La revisión/aprobación/cierre administrativo completo
+pertenece a FASE N4 y no debe inventarse en React.
+
+Consultas:
+
+GET /api/liquidaciones-ruta?storeId={uuid}&fecha={YYYY-MM-DD-opcional}
+GET /api/liquidaciones-ruta/{liquidacionId}
+
+El Rutero sólo ve sus liquidaciones.
+
+===============================================================================
+9. MATRIZ DE IDEMPOTENCIA
+===============================================================================
+
+Operación                         externalId móvil     Resultado al reintentar
+-------------------------------- --------------------- ------------------------
+Visita                            obligatorio          misma visita
+Pedido preventa                   obligatorio          mismo pedido
+Aceptación de carga               obligatorio          misma aceptación
+Entrega/cobro de pedido           obligatorio          misma operación
+Cobro de CxC                      obligatorio          mismo cobro
+Devolución en ruta                obligatorio          misma devolución
+Liquidación/cierre                obligatorio          misma liquidación
+Crear ruta web                    no aplica             control UI
+Confirmar carga web               no aplica             transición bloqueada
+Conciliar carga web               no aplica             transición bloqueada
+Salida de carga web               no aplica             transición bloqueada
+
+===============================================================================
+10. ERRORES RECUPERABLES PARA LA UI
+===============================================================================
+
+HTTP 400 VALIDACIÓN:
+
+- Campos faltantes o cantidades que no cuadran.
+- Cliente fuera de ruta.
+- Cliente no habilitado para crédito.
+- externalId faltante en operación de campo.
+
+Acción UI: conservar formulario/outbox, resaltar mensaje y permitir corregir.
+
+HTTP 404:
+
+- Recurso no existe o no está asignado al usuario de campo.
+
+Acción UI: sincronizar asignaciones y retirar el elemento local si ya no aplica.
+
+HTTP 409 CONFLICTO:
+
+- Estado cambió.
+- Stock del Rutero insuficiente.
+- Carga no aceptada.
+- Entrega ya no está ASSIGNED/EN_RUTA.
+
+Acción UI: conservar acción, descargar el registro actualizado y pedir decisión.
+
+RESPUESTA IDEMPOTENTE:
+
+- HTTP exitoso con isDuplicate=true.
+
+Acción UI: marcar la acción local como sincronizada usando el id devuelto.
+
+===============================================================================
+11. ORDEN DE INTEGRACIÓN PARA IA-PARALELA
+===============================================================================
+
+1. Integrar lectura de rutas y cartera.
+2. Integrar creación de visita y pedido con externalId estable.
+3. Integrar tablero de cargas: PLANNED -> LOADED -> ACCEPTED -> EN_ROUTE.
+4. Integrar tablero de entregas y formulario completo por item.
+5. Integrar devolución IN_TRANSIT y recepción en bodega.
+6. Integrar cobro CxC.
+7. Integrar liquidación sólo hasta submit/cálculo; no inventar aprobación N4.
+8. En cada página implementar loading, empty, error recuperable y reintento.
+9. No modificar shared/contracts.ts ni backend para adaptar una pantalla.
+10. Si un payload difiere, reportar endpoint, request y respuesta observada antes
+    de cambiar el contrato.
+
+FIN CONTRACT-FREEZE-1

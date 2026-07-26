@@ -33,4 +33,8 @@ export class CreateCollectionDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsUUID('all')
+  @IsOptional()
+  externalId?: string;
 }

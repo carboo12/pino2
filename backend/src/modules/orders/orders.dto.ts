@@ -90,7 +90,7 @@ export class CreateOrderDto {
   @IsOptional()
   notes?: string;
 
-  @IsString()
+  @IsUUID('all')
   @IsOptional()
   externalId?: string;
 

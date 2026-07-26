@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -24,8 +25,17 @@ export class VisitLogsController {
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get()
   @ApiOperation({ summary: 'Listar logs de visitas de vendedores' })
-  findAll(@Query('storeId') storeId: string, @Query('days') days?: string) {
-    return this.service.findAll(storeId, days ? parseInt(days) : undefined);
+  findAll(
+    @Query('storeId') storeId: string,
+    @Query('days') days: string | undefined,
+    @Req() req: any,
+  ) {
+    const fieldRole = ['vendor', 'sales-manager'].includes(req.user?.role);
+    return this.service.findAll(
+      storeId,
+      days ? parseInt(days) : undefined,
+      fieldRole ? req.user.sub : undefined,
+    );
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
@@ -42,12 +52,25 @@ export class VisitLogsController {
       longitude?: number;
       status?: string;
       clientName?: string;
+      externalId?: string;
     },
     @Req() req: any,
   ) {
+    const fieldRole = ['vendor', 'sales-manager'].includes(req.user?.role);
+    if (fieldRole && !dto.externalId) {
+      throw new BadRequestException(
+        'externalId es obligatorio para visitas creadas en ruta',
+      );
+    }
+    if (!fieldRole && !dto.vendorId) {
+      throw new BadRequestException(
+        'vendorId es obligatorio para registrar una visita administrativa',
+      );
+    }
     return this.service.create({
       ...dto,
-      vendorId: dto.vendorId || req.user?.sub,
+      vendorId: fieldRole ? req.user.sub : dto.vendorId!,
+      enforceAssignment: fieldRole,
     });
   }
 }

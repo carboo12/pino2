@@ -5,6 +5,77 @@ Repositorio analizado: /opt/apps/pino2
 Commit base analizado: 82547b0 (main)
 
 ===============================================================================
+ACTUALIZACIÓN IA-NÚCLEO - CONTRACT-FREEZE-1 / 2026-07-26
+===============================================================================
+
+FASE ACTUAL:
+
+- N0: corte de base completado; validaciones financieras manuales N0.2 siguen
+  pendientes y no bloquean la integración del contrato de calle.
+- N1: puente de roles, estados, identidad y liquidación base completado.
+- N2: rutas, cargas, aceptación, entrega parcial y devolución en tránsito
+  implementadas mediante migraciones aditivas.
+- N3: operaciones transaccionales e idempotencia backend completadas para el
+  contrato de integración. El cliente Flutter se implementará posteriormente
+  en otra máquina; no se compila ni modifica Flutter en este VPS.
+- N4: retorno/liquidación administrativa completa, compras e integridad restante
+  continúan pendientes.
+- P1: queda habilitado para IA-PARALELA conforme al documento congelado.
+
+CONTRACT-FREEZE-1: [X] LIBERADO.
+
+Documento obligatorio para el agente integrador:
+
+  docs/CONTRACT_FREEZE_1_2026-07-26.txt
+
+Base operativa confirmada:
+
+  sistema_de_inventario
+
+Base que se mantiene únicamente para rollback/observación:
+
+  multitienda_db
+
+MIGRACIONES NUEVAS APLICADAS EN AMBAS BASES:
+
+[X] 2026-07-26_routes_n2_1.sql
+[X] 2026-07-26_truck_loads_n2_2.sql
+[X] 2026-07-26_deliveries_returns_n2_3_n2_4.sql
+[X] 2026-07-26_visit_logs_n3_4.sql
+[X] 2026-07-26_liquidaciones_idempotency_n3_5.sql
+
+IMPLEMENTACIÓN CRÍTICA CERRADA:
+
+[X] routes + route_clients son la fuente canónica de la cartera diaria.
+[X] Historial de creación, reemplazo de clientes y reasignación de ruta.
+[X] Carga PLANNED no descuenta inventario.
+[X] Confirmación LOADED descuenta bodega y registra movement OUT.
+[X] Aceptación idempotente transfiere custodia a vendor_inventories.
+[X] Diferencia de aceptación bloquea salida y puede conciliarse devolviendo la
+    diferencia no aceptada a bodega mediante movement IN.
+[X] Salida sólo desde ACCEPTED.
+[X] Entrega completa/parcial/rechazada por item en una transacción.
+[X] Venta y sale_items sólo por unidades entregadas.
+[X] Crédito crea CxC con días del cliente y default de 8 días.
+[X] Rechazo crea devolución IN_TRANSIT sin reponer bodega.
+[X] Recepción física descuenta Rutero, repone bodega y marca RECEIVED.
+[X] Visita, pedido, aceptación, entrega, cobro, devolución y liquidación tienen
+    externalId estable para reintentos.
+[X] Identidad de Gestor/Rutero se resuelve desde sesión.
+[X] Build NestJS completado.
+[X] Build React completado.
+
+PENDIENTE DESPUÉS DEL FREEZE:
+
+[ ][A] N4.1 completar aprobación y cierre administrativo de liquidación/carga.
+[ ][A] N4.2 recepción parcial de compras, importación staging y corrección de
+       stocks negativos por movimientos.
+[ ][A] N4.3 implementar Drift/outbox/impresión Flutter en otra máquina.
+[ ][M] IA-PARALELA integrar páginas React usando exclusivamente el contrato
+       congelado.
+[ ][M] Paginación SQL de listas grandes.
+
+===============================================================================
 ACTUALIZACIÓN DE EJECUCIÓN - 2026-07-26 03:30 UTC
 ===============================================================================
 
@@ -384,20 +455,20 @@ Prioridad dominante: CRÍTICO
 
 SUBFASE N1.1 - Estados y vocabulario canónico
 
-[ ][C][IA-NÚCLEO] N1.1.1 Definir estados de routes:
-                         DRAFT, ASSIGNED, ACTIVE, COMPLETED, CANCELLED.
-[ ][C][IA-NÚCLEO] N1.1.2 Definir estados de cargas:
+[X][C][IA-NÚCLEO] N1.1.1 Definir estados de routes:
+                         PENDING, ACTIVE, COMPLETED, CANCELLED.
+[X][C][IA-NÚCLEO] N1.1.2 Definir estados de cargas:
                          PLANNED, PICKING, LOADED, PENDING_ACCEPTANCE,
                          ACCEPTED, EN_ROUTE, RETURNED, CLOSED, CANCELLED.
-[ ][C][IA-NÚCLEO] N1.1.3 Definir estados de entregas:
-                         PENDING, ASSIGNED, EN_ROUTE, ARRIVED,
-                         DELIVERED_FULL, DELIVERED_PARTIAL, REJECTED, SETTLED.
-[ ][C][IA-NÚCLEO] N1.1.4 Definir estados de liquidación:
-                         DRAFT, SUBMITTED_BY_DRIVER, UNDER_REVIEW,
-                         APPROVED, WITH_OBSERVATION, CLOSED.
-[ ][A][IA-NÚCLEO] N1.1.5 Unificar Gestor como sales-manager.
-[ ][A][IA-NÚCLEO] N1.1.6 Mantener preventa sólo como alias normalizado.
-[ ][A][IA-NÚCLEO] N1.1.7 No mezclar vendor con Gestor de Preventa.
+[X][C][IA-NÚCLEO] N1.1.3 Definir estados de entregas:
+                         PENDING, ASSIGNED, EN_RUTA, ENTREGADO, PARCIAL,
+                         RECHAZADO, DEVUELTO, CANCELADO.
+[X][C][IA-NÚCLEO] N1.1.4 Congelar estados de liquidación actuales:
+                         PENDING, BALANCED, WITH_DIFFERENCE, APPROVED,
+                         CANCELLED. La ampliación del workflow queda en N4.
+[X][A][IA-NÚCLEO] N1.1.5 Unificar Gestor como sales-manager.
+[X][A][IA-NÚCLEO] N1.1.6 Mantener preventa sólo como alias normalizado.
+[X][A][IA-NÚCLEO] N1.1.7 No mezclar vendor con Gestor de Preventa.
 
 ENTREGABLE N1.1:
 
@@ -406,17 +477,17 @@ ENTREGABLE N1.1:
 
 SUBFASE N1.2 - Corregir contratos móviles actualmente bloqueados
 
-[ ][C][IA-NÚCLEO] N1.2.1 Gestor puede leer únicamente su ruta del día.
-[ ][C][IA-NÚCLEO] N1.2.2 Gestor puede crear orders con externalId.
-[ ][C][IA-NÚCLEO] N1.2.3 Rutero puede leer únicamente sus entregas.
-[ ][C][IA-NÚCLEO] N1.2.4 Rutero puede leer únicamente su carga/inventario.
-[ ][C][IA-NÚCLEO] N1.2.5 Rutero puede registrar entrega/devolución/cobro.
+[X][C][IA-NÚCLEO] N1.2.1 Gestor puede leer únicamente su ruta del día.
+[X][C][IA-NÚCLEO] N1.2.2 Gestor puede crear orders con externalId.
+[X][C][IA-NÚCLEO] N1.2.3 Rutero puede leer únicamente sus entregas.
+[X][C][IA-NÚCLEO] N1.2.4 Rutero puede leer únicamente su carga/inventario.
+[X][C][IA-NÚCLEO] N1.2.5 Rutero puede registrar entrega/devolución/cobro.
 [ ][C][IA-NÚCLEO] N1.2.6 Flutter deja de enviar IDs de otro usuario como fuente
                          de verdad; el backend resuelve el usuario de sesión.
 [ ][C][IA-NÚCLEO] N1.2.7 Eliminar fallback Flutter que muestra todos los
                          clientes cuando no hay ruta.
-[ ][A][IA-NÚCLEO] N1.2.8 VisitLogs conserva el status enviado.
-[ ][A][IA-NÚCLEO] N1.2.9 VisitLogs usa externalId idempotente.
+[X][A][IA-NÚCLEO] N1.2.8 VisitLogs conserva el status enviado.
+[X][A][IA-NÚCLEO] N1.2.9 VisitLogs usa externalId idempotente.
 
 CRITERIO DE SALIDA N1.2:
 
@@ -427,10 +498,10 @@ CRITERIO DE SALIDA N1.2:
 
 SUBFASE N1.3 - Reparar liquidación inoperable
 
-[ ][C][IA-NÚCLEO] N1.3.1 Eliminar consulta a tabla inexistente payments.
-[ ][C][IA-NÚCLEO] N1.3.2 Usar sales/collections/account_payments reales.
-[ ][C][IA-NÚCLEO] N1.3.3 Separar CASH de TRANSFER/CHECK.
-[ ][C][IA-NÚCLEO] N1.3.4 Conciliar por carga/rutero/fecha operativa.
+[X][C][IA-NÚCLEO] N1.3.1 Eliminar consulta a tabla inexistente payments.
+[X][C][IA-NÚCLEO] N1.3.2 Usar sales/collections/account_payments reales.
+[X][C][IA-NÚCLEO] N1.3.3 Separar CASH de TRANSFER/CHECK.
+[X][C][IA-NÚCLEO] N1.3.4 Conciliar por carga/rutero/fecha operativa.
 [ ][A][IA-NÚCLEO] N1.3.5 Hacer create/submit/approve transaccional.
 
 CRITERIO DE SALIDA N1.3:
@@ -456,28 +527,28 @@ SUBFASE N2.1 - Rutas normalizadas
 
 SUBFASE N2.2 - Carga física y custodia
 
-[ ][C][IA-NÚCLEO] N2.2.1 Crear carga_camion_orders.
-[ ][C][IA-NÚCLEO] N2.2.2 Crear carga_camion_items.
-[ ][C][IA-NÚCLEO] N2.2.3 Congelar units_per_bulk por línea.
-[ ][C][IA-NÚCLEO] N2.2.4 Separar PLANNED de movimiento de stock.
-[ ][C][IA-NÚCLEO] N2.2.5 Modelar stock de carga/en tránsito.
-[ ][A][IA-NÚCLEO] N2.2.6 Guardar responsables y timestamps.
-[ ][A][IA-NÚCLEO] N2.2.7 Modelar discrepancias al aceptar.
+[X][C][IA-NÚCLEO] N2.2.1 Crear carga_camion_orders.
+[X][C][IA-NÚCLEO] N2.2.2 Crear carga_camion_items.
+[X][C][IA-NÚCLEO] N2.2.3 Congelar units_per_bulk por línea.
+[X][C][IA-NÚCLEO] N2.2.4 Separar PLANNED de movimiento de stock.
+[X][C][IA-NÚCLEO] N2.2.5 Modelar stock de carga/en tránsito.
+[X][A][IA-NÚCLEO] N2.2.6 Guardar responsables y timestamps.
+[X][A][IA-NÚCLEO] N2.2.7 Modelar discrepancias y conciliación al aceptar.
 
 SUBFASE N2.3 - Entrega parcial
 
-[ ][C][IA-NÚCLEO] N2.3.1 Crear delivery_item_results.
-[ ][C][IA-NÚCLEO] N2.3.2 Agregar externalId único a entrega.
-[ ][C][IA-NÚCLEO] N2.3.3 Agregar delivered/rejected units por item.
-[ ][A][IA-NÚCLEO] N2.3.4 Agregar ubicación, receptor y prueba.
-[ ][A][IA-NÚCLEO] N2.3.5 Agregar route_id y stop_order.
+[X][C][IA-NÚCLEO] N2.3.1 Crear delivery_item_results.
+[X][C][IA-NÚCLEO] N2.3.2 Agregar externalId único a entrega.
+[X][C][IA-NÚCLEO] N2.3.3 Agregar delivered/rejected units por item.
+[X][A][IA-NÚCLEO] N2.3.4 Agregar ubicación, receptor y prueba.
+[X][A][IA-NÚCLEO] N2.3.5 Vincular carga y stop_order.
 
 SUBFASE N2.4 - Devolución en tránsito
 
-[ ][C][IA-NÚCLEO] N2.4.1 Agregar IN_TRANSIT/RECEIVED a devolución de ruta.
-[ ][C][IA-NÚCLEO] N2.4.2 No aumentar bodega al rechazar en calle.
-[ ][C][IA-NÚCLEO] N2.4.3 Reponer sólo al recibir físicamente.
-[ ][A][IA-NÚCLEO] N2.4.4 Vincular retorno con carga, entrega e item.
+[X][C][IA-NÚCLEO] N2.4.1 Agregar IN_TRANSIT/RECEIVED a devolución de ruta.
+[X][C][IA-NÚCLEO] N2.4.2 No aumentar bodega al rechazar en calle.
+[X][C][IA-NÚCLEO] N2.4.3 Reponer sólo al recibir físicamente.
+[X][A][IA-NÚCLEO] N2.4.4 Vincular retorno con carga, entrega e items.
 
 CRITERIO DE SALIDA FASE N2:
 
@@ -494,41 +565,42 @@ Prioridad dominante: CRÍTICO/ALTO
 
 SUBFASE N3.1 - Ruta comercial y preventa
 
-[ ][A][IA-NÚCLEO] N3.1.1 Crear/editar ruta con route_clients.
-[ ][A][IA-NÚCLEO] N3.1.2 Reasignación masiva/temporal.
+[X][A][IA-NÚCLEO] N3.1.1 Crear/editar ruta con route_clients.
+[X][A][IA-NÚCLEO] N3.1.2 Reasignación masiva/temporal.
 [ ][A][IA-NÚCLEO] N3.1.3 Bootstrap delta del Gestor.
-[ ][A][IA-NÚCLEO] N3.1.4 Pedido offline Bultos/Unidades.
+[X][A][IA-NÚCLEO] N3.1.4 Contrato backend de pedido offline
+                         Bultos/Unidades.
 [ ][A][IA-NÚCLEO] N3.1.5 Conflicto de stock/precio recuperable.
 
 SUBFASE N3.2 - Preparación y aceptación de carga
 
-[ ][C][IA-NÚCLEO] N3.2.1 Crear PLANNED sin descontar stock.
-[ ][C][IA-NÚCLEO] N3.2.2 Confirmar LOADED y mover a carga/en tránsito.
-[ ][C][IA-NÚCLEO] N3.2.3 Aceptar carga y mover a vendor_inventories.
-[ ][C][IA-NÚCLEO] N3.2.4 Evitar doble descuento/reintento.
-[ ][A][IA-NÚCLEO] N3.2.5 Manejar discrepancia/rechazo de aceptación.
-[ ][A][IA-NÚCLEO] N3.2.6 Autorizar salida EN_ROUTE.
+[X][C][IA-NÚCLEO] N3.2.1 Crear PLANNED sin descontar stock.
+[X][C][IA-NÚCLEO] N3.2.2 Confirmar LOADED y mover a carga/en tránsito.
+[X][C][IA-NÚCLEO] N3.2.3 Aceptar carga y mover a vendor_inventories.
+[X][C][IA-NÚCLEO] N3.2.4 Evitar doble descuento/reintento.
+[X][A][IA-NÚCLEO] N3.2.5 Manejar discrepancia/rechazo de aceptación.
+[X][A][IA-NÚCLEO] N3.2.6 Autorizar salida EN_ROUTE.
 
 SUBFASE N3.3 - Entrega, cobro y deuda
 
-[ ][C][IA-NÚCLEO] N3.3.1 Endpoint complete idempotente.
-[ ][C][IA-NÚCLEO] N3.3.2 Bloquear entrega/order/items/inventario FOR UPDATE.
-[ ][C][IA-NÚCLEO] N3.3.3 Validar cantidades planificadas.
-[ ][C][IA-NÚCLEO] N3.3.4 Crear sale/sale_items de cliente.
-[ ][C][IA-NÚCLEO] N3.3.5 CONTADO persiste pago.
-[ ][C][IA-NÚCLEO] N3.3.6 CREDITO crea CxC.
-[ ][C][IA-NÚCLEO] N3.3.7 Rechazo crea devolución IN_TRANSIT.
-[ ][C][IA-NÚCLEO] N3.3.8 Actualizar inventario/estados en un commit.
-[ ][A][IA-NÚCLEO] N3.3.9 Crear snapshot imprimible.
+[X][C][IA-NÚCLEO] N3.3.1 Endpoint complete idempotente.
+[X][C][IA-NÚCLEO] N3.3.2 Bloquear entrega/order/items/inventario FOR UPDATE.
+[X][C][IA-NÚCLEO] N3.3.3 Validar cantidades planificadas.
+[X][C][IA-NÚCLEO] N3.3.4 Crear sale/sale_items de cliente.
+[X][C][IA-NÚCLEO] N3.3.5 CONTADO persiste venta y método de pago.
+[X][C][IA-NÚCLEO] N3.3.6 CREDITO crea CxC.
+[X][C][IA-NÚCLEO] N3.3.7 Rechazo crea devolución IN_TRANSIT.
+[X][C][IA-NÚCLEO] N3.3.8 Actualizar inventario/estados en un commit.
+[X][A][IA-NÚCLEO] N3.3.9 Persistir snapshot de operación imprimible.
 
 SUBFASE N3.4 - Offline e idempotencia
 
-[ ][C][IA-NÚCLEO] N3.4.1 externalId en visita.
-[ ][C][IA-NÚCLEO] N3.4.2 externalId en pedido.
-[ ][C][IA-NÚCLEO] N3.4.3 externalId en aceptación.
-[ ][C][IA-NÚCLEO] N3.4.4 externalId en entrega/cobro.
-[ ][C][IA-NÚCLEO] N3.4.5 externalId en devolución.
-[ ][C][IA-NÚCLEO] N3.4.6 externalId en cierre.
+[X][C][IA-NÚCLEO] N3.4.1 externalId en visita.
+[X][C][IA-NÚCLEO] N3.4.2 externalId en pedido.
+[X][C][IA-NÚCLEO] N3.4.3 externalId en aceptación.
+[X][C][IA-NÚCLEO] N3.4.4 externalId en entrega/cobro.
+[X][C][IA-NÚCLEO] N3.4.5 externalId en devolución.
+[X][C][IA-NÚCLEO] N3.4.6 externalId en cierre.
 [ ][A][IA-NÚCLEO] N3.4.7 Drift conserva error/conflicto sin borrar acción.
 
 CONTRACT-FREEZE-1:
@@ -543,26 +615,28 @@ IA-NÚCLEO debe publicar antes de liberar P1:
 6. Ejemplos JSON.
 7. Regla de error recuperable.
 
-ESTADO CONTRACT-FREEZE-1 AL 2026-07-26 04:35 UTC:
+ESTADO CONTRACT-FREEZE-1 AL 2026-07-26:
 
-[ ] NO LIBERADO.
+[X] LIBERADO.
 
-Motivo:
+Evidencia:
 
-- N1 tiene un puente funcional compilado y migrado, pero todavía no constituye
-  el contrato final de N2/N3.
-- Falta route_clients canónico.
-- Falta modelo de carga y aceptación por custodia.
-- Falta entrega parcial por item e idempotencia de cierre.
-- Falta devolución IN_TRANSIT/RECEIVED.
-- Falta publicar los DTO y ejemplos finales.
+- Contrato final publicado en docs/CONTRACT_FREEZE_1_2026-07-26.txt.
+- route_clients canónico y con historial.
+- Carga, aceptación, discrepancia, conciliación y custodia implementadas.
+- Entrega parcial por item e idempotencia de cierre implementadas.
+- Devolución IN_TRANSIT/RECEIVED implementada.
+- DTO, métodos, estados, ejemplos y errores recuperables publicados.
+- Migraciones aplicadas en sistema_de_inventario y multitienda_db.
+- Builds NestJS y React completados.
 
 Regla para IA-PARALELA:
 
-- Puede continuar P0 con componentes puros.
-- No debe integrar API, estados ni payloads en páginas existentes.
-- El commit ccf1611 avanzó tareas visuales P2.3 antes del freeze; no ampliar
-  esa integración hasta que IA-NÚCLEO publique el contrato final.
+- Puede continuar P0 e iniciar P1.
+- Debe integrar API, estados y payloads exactamente como aparecen en
+  docs/CONTRACT_FREEZE_1_2026-07-26.txt.
+- No debe modificar contratos backend para adaptar una pantalla.
+- Flutter continúa diferido para otra máquina.
 
 -------------------------------------------------------------------------------
 FASE N4 - CIERRE, COMPRAS E INTEGRIDAD RESTANTE

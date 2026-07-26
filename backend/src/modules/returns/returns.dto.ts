@@ -63,4 +63,8 @@ export class CreateReturnDto {
   @ValidateNested({ each: true })
   @Type(() => ReturnItemDto)
   items!: ReturnItemDto[];
+
+  @IsUUID('all')
+  @IsOptional()
+  externalId?: string;
 }

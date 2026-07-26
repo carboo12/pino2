@@ -26,12 +26,11 @@ export class CollectionsController {
   @Post()
   @ApiOperation({ summary: 'Registrar cobro del rutero' })
   create(@Body() dto: CreateCollectionDto, @Req() req: any) {
+    const isRutero = req.user?.role === 'rutero';
     return this.service.create({
       ...dto,
-      ruteroId:
-        req.user?.role === 'rutero'
-          ? req.user.sub
-          : dto.ruteroId || req.user?.sub,
+      ruteroId: isRutero ? req.user.sub : dto.ruteroId,
+      requireExternalId: isRutero,
     });
   }
 

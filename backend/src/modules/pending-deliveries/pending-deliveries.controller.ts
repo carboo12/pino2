@@ -19,6 +19,7 @@ import {
   CreatePendingDeliveryDto,
   UpdatePendingDeliveryDto,
   AssignRouteDto,
+  CompleteDeliveryDto,
 } from './pending-deliveries.dto';
 
 @ApiTags('Pending Deliveries')
@@ -78,5 +79,16 @@ export class PendingDeliveriesController {
   @ApiOperation({ summary: 'Asignar ruta a entregas pendientes' })
   assignRoute(@Body() dto: AssignRouteDto) {
     return this.service.assignRoute(dto);
+  }
+
+  @Roles('rutero')
+  @Post(':id/complete')
+  @ApiOperation({ summary: 'Completar entrega asignada de forma idempotente' })
+  complete(
+    @Param('id') id: string,
+    @Body() dto: CompleteDeliveryDto,
+    @Req() req: any,
+  ) {
+    return this.service.complete(id, req.user.sub, dto);
   }
 }

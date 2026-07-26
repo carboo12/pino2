@@ -49,7 +49,8 @@ export const DELIVERY_STATUSES = [
 export type DeliveryStatus = typeof DELIVERY_STATUSES[number];
 
 export const TRUCK_LOAD_STATUSES = [
-  'PLANNED', 'LOADING', 'READY', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED',
+  'PLANNED', 'PICKING', 'LOADED', 'PENDING_ACCEPTANCE',
+  'ACCEPTED', 'EN_ROUTE', 'RETURNED', 'CLOSED', 'CANCELLED',
 ] as const;
 export type TruckLoadStatus = typeof TRUCK_LOAD_STATUSES[number];
 
