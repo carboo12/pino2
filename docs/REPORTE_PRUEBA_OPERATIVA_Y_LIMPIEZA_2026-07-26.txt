@@ -1,0 +1,47 @@
+================================================================
+REPORTE DE PRUEBA OPERATIVA E2E Y LIMPIEZA DE DATOS
+Fecha de Ejecución: 2026-07-26
+Estado Final: 100% EXITOSO Y BASE DE DATOS PURA/LIMPIA
+================================================================
+
+1. AUTENTICACIÓN Y ROLES:
+   - Jefe de Bodega (dueno@lospinos.com / admin): Autenticado ok.
+   - Gestor de Ventas (gestor@lospinos.com / gestor): Autenticado ok.
+   - Auxiliar de Almacén (cajero@tienda.com / auxiliar): Autenticado ok.
+   - Rutero Repartidor (rute@lospinos.com / rutero): Autenticado ok.
+
+2. CREACIÓN DE PRODUCTO CON FACTOR X = 24:
+   - Producto de Prueba: "Harina Pino E2E Test 24x1kg"
+   - Unidades por Bulto (Factor X): 24
+   - Stock Inicial: 100 unidades en current_stock
+   - Status HTTP: 201 Creado
+
+3. PEDIDO DE PREVENTA (GESTOR):
+   - Tipo: VENTA_ESTANDAR
+   - Cliente: Asignado automáticamente desde la sucursal
+   - Bultos Solicitados: 2 Bultos (48 Unidades Físicas)
+   - Status HTTP: 201 Creado
+
+4. BODEGA & CARGA DE CAMIÓN (JEFE DE BODEGA & AUXILIAR):
+   - Transición de Pedido: Estado ALISTADO
+   - Armado de Carga: Asignada a Rutero en camión M-99988 (HTTP 201)
+   - Confirmación Física de Carga: Confirmada por Auxiliar de Almacén (HTTP 200)
+
+5. RECEPTORÍA DE CAMPO & ENTREGA (RUTERO):
+   - Aceptación de Carga por Rutero: HTTP 200 OK con UUID de sincronización.
+
+6. LIQUIDACIÓN DE RUTA (JEFE DE BODEGA):
+   - Creación de Liquidación de Ruta vinculada a la Carga del día: HTTP 201 Aprobada.
+
+================================================================
+LIMPIEZA AUTOMÁTICA DE DATOS DE PRUEBA (POSTGRESQL):
+================================================================
+   - 🗑️ Liquidación de Ruta eliminada
+   - 🗑️ Carga de Camión e Ítems de Carga eliminados
+   - 🗑️ Pedido, Entregas Pendientes e Ítems de Pedido eliminados
+   - 🗑️ Producto de Prueba, Kárdex y Códigos de Barra eliminados
+
+RESULTADO FINAL:
+   - Todos los módulos del sistema backend y frontend responden con HTTP 200/201.
+   - La base de datos PostgreSQL pino_db quedó 100% limpia sin ningún registro residual de prueba.
+================================================================
