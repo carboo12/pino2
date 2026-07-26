@@ -106,10 +106,28 @@ export default function ProductsPage() {
     isLoading: loading,
     error,
   } = useQuery({
-    queryKey: ["products-page", storeId, page, pageSize],
+    queryKey: [
+      "products-page",
+      storeId,
+      page,
+      pageSize,
+      selectedDepartment?.id,
+      selectedSubDepartment?.id,
+    ],
     queryFn: async () => {
+      const prodParams: Record<string, any> = { storeId, page, pageSize };
+      if (selectedDepartment?.id) {
+        prodParams.departmentId = selectedDepartment.id;
+      }
+      if (
+        selectedSubDepartment?.id &&
+        selectedSubDepartment.id !== "none"
+      ) {
+        prodParams.subDepartmentId = selectedSubDepartment.id;
+      }
+
       const [prodsRes, deptsRes, subDeptsRes] = await Promise.all([
-        apiClient.get("/products", { params: { storeId, page, pageSize } }),
+        apiClient.get("/products", { params: prodParams }),
         apiClient.get("/departments", { params: { storeId, type: "main" } }),
         apiClient
           .get("/departments/sub-departments", { params: { storeId } })
@@ -143,25 +161,9 @@ export default function ProductsPage() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (selectedSubDepartment) {
-      if (selectedSubDepartment.id === "none") {
-        return products.filter(
-          (p) => p.department === selectedDepartment?.name && !p.subDepartment,
-        );
-      }
-      return products.filter(
-        (p) =>
-          p.department === selectedDepartment?.name &&
-          p.subDepartment === selectedSubDepartment.name,
-      );
-    }
-    if (selectedDepartment) {
-      return products.filter(
-        (p) => p.department === selectedDepartment.name && !p.subDepartment,
-      );
-    }
-    return [];
-  }, [products, selectedDepartment, selectedSubDepartment]);
+    if (!selectedDepartment) return [];
+    return products;
+  }, [products, selectedDepartment]);
 
   const filteredSubDepartments = useMemo(() => {
     if (!selectedDepartment) return [];
