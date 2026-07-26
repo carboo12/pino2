@@ -3,14 +3,24 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-} from '@nestjs/common';
-import { PoolClient } from 'pg';
-import { DatabaseService } from '../../../database/database.service';
-import { EventsGateway } from '../../../common/gateways/events.gateway';
-import { OrderStatus } from '../../../common/constants/enums';
-import { bulkUnitsToTotal } from '../../../common/utils/stock-display.util';
-import { OrdersRepository } from '../repositories/orders.repository';
-import { GruposEconomicosService } from '../../grupos-economicos/grupos-economicos.service';
+} from "@nestjs/common";
+import { PoolClient } from "pg";
+import { DatabaseService } from "../../../database/database.service";
+import { EventsGateway } from "../../../common/gateways/events.gateway";
+import { OrderStatus } from "../../../common/constants/enums";
+import { bulkUnitsToTotal } from "../../../common/utils/stock-display.util";
+import { OrdersRepository } from "../repositories/orders.repository";
+import { GruposEconomicosService } from "../../grupos-economicos/grupos-economicos.service";
+
+function toDateOnly(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function addCalendarDays(dateOnly: string, days: number) {
+  const date = new Date(`${dateOnly}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return toDateOnly(date);
+}
 
 @Injectable()
 export class CreateOrderUseCase {
@@ -42,11 +52,11 @@ export class CreateOrderUseCase {
       }[];
       notes?: string;
       externalId?: string;
-      type?: 'pedido' | 'venta_directa';
+      type?: "pedido" | "venta_directa";
       tipoPedido?:
-        | 'VENTA_ESTANDAR'
-        | 'ABASTECIMIENTO_INTERNO'
-        | 'ENTREGA_POR_CUENTA';
+        | "VENTA_ESTANDAR"
+        | "ABASTECIMIENTO_INTERNO"
+        | "ENTREGA_POR_CUENTA";
     },
     transactionalClient?: PoolClient,
   ) {
@@ -66,7 +76,7 @@ export class CreateOrderUseCase {
           );
           return {
             ...existing,
-            message: 'Operación ya procesada anteriormente (Idempotencia)',
+            message: "Operación ya procesada anteriormente (Idempotencia)",
             isDuplicate: true,
           };
         }
@@ -104,10 +114,8 @@ export class CreateOrderUseCase {
         itemDetails.set(item.productId, {
           unitPrice: product.unitPrice,
           bulkPrice: product.bulkPrice,
-          unitsPerBulk:
-            product.unitsPerBulk > 1 ? product.unitsPerBulk : 1,
-          handlesBulk:
-            product.handlesBulk && product.unitsPerBulk > 1,
+          unitsPerBulk: product.unitsPerBulk > 1 ? product.unitsPerBulk : 1,
+          handlesBulk: product.handlesBulk && product.unitsPerBulk > 1,
           usesInventory: product.usesInventory,
         });
       }
@@ -125,31 +133,54 @@ export class CreateOrderUseCase {
           item.quantity,
         );
         const lineTotal = details.handlesBulk
-          ? bulkCount * details.bulkPrice +
-            looseUnitCount * details.unitPrice
+          ? bulkCount * details.bulkPrice + looseUnitCount * details.unitPrice
           : totalUnits * details.unitPrice;
         total += lineTotal;
       }
 
-      const orderType = dto.type || 'pedido';
-      const isDirectSale = orderType === 'venta_directa';
-      const tipoPedido = dto.tipoPedido || 'VENTA_ESTANDAR';
+      const orderType = dto.type || "pedido";
+      const isDirectSale = orderType === "venta_directa";
+      const tipoPedido = dto.tipoPedido || "VENTA_ESTANDAR";
       const requiereAsignacionDirecta = isDirectSale;
       const requiereAutorizacion = priceLevel >= 4;
-      const requiereCobro = tipoPedido !== 'ENTREGA_POR_CUENTA';
+      const requiereCobro = tipoPedido !== "ENTREGA_POR_CUENTA";
+      const isCredit =
+        (dto.paymentType || "CONTADO").toUpperCase() === "CREDITO";
+      let creditClient: {
+        id: string;
+        type: string;
+        creditDays: number;
+      } | null = null;
 
-      if (
-        tipoPedido === 'VENTA_ESTANDAR' &&
-        (dto.paymentType || 'CONTADO').toUpperCase() === 'CREDITO' &&
-        dto.clientId
-      ) {
+      if (isCredit && requiereCobro) {
+        if (!dto.clientId) {
+          throw new BadRequestException(
+            "Un pedido a crédito requiere un cliente",
+          );
+        }
+        creditClient = await this.repo.findClientCreditForOrder(
+          client,
+          dto.storeId,
+          dto.clientId,
+        );
+        if (!creditClient) {
+          throw new NotFoundException("Cliente no encontrado en esta tienda");
+        }
+        if (creditClient.type !== "CREDITO") {
+          throw new BadRequestException(
+            "El cliente no está habilitado para crédito",
+          );
+        }
+      }
+
+      if (tipoPedido === "VENTA_ESTANDAR" && isCredit && dto.clientId) {
         const moraCheck = await this.gruposEconomicos.verificarMoraCruzada(
           dto.clientId,
         );
         if (moraCheck.enMora) {
           throw new BadRequestException(
             moraCheck.detalle ||
-              'El cliente o su grupo económico tiene facturas en mora',
+              "El cliente o su grupo económico tiene facturas en mora",
           );
         }
       }
@@ -170,7 +201,7 @@ export class CreateOrderUseCase {
         total,
         notes: dto.notes,
         status: initialStatus,
-        paymentType: dto.paymentType || 'CONTADO',
+        paymentType: dto.paymentType || "CONTADO",
         priceLevel,
         externalId: dto.externalId,
         tipoPedido,
@@ -186,15 +217,26 @@ export class CreateOrderUseCase {
       );
 
       if (
-        (dto.paymentType || 'CONTADO').toUpperCase() === 'CREDITO' &&
+        isCredit &&
         requiereCobro &&
-        tipoPedido !== 'ABASTECIMIENTO_INTERNO'
+        tipoPedido !== "ABASTECIMIENTO_INTERNO" &&
+        initialStatus === OrderStatus.ENTREGADO &&
+        creditClient
       ) {
+        const creditDays = Number.isInteger(creditClient.creditDays)
+          ? Math.min(Math.max(creditClient.creditDays, 0), 365)
+          : 8;
+        const issuedAt = new Date();
+        const issuedDate = toDateOnly(issuedAt);
         await this.repo.insertAccountReceivable(client, {
           storeId: dto.storeId,
-          clientId: dto.clientId,
+          clientId: creditClient.id,
           orderId: order.id,
+          invoiceNumber: `PED-${order.id.slice(0, 8).toUpperCase()}`,
           totalAmount: total,
+          issuedAt,
+          dueDate: addCalendarDays(issuedDate, creditDays),
+          creditDaysSnapshot: creditDays,
           notes: dto.notes,
         });
       }
@@ -211,8 +253,7 @@ export class CreateOrderUseCase {
           item.quantity,
         );
         const lineTotal = details.handlesBulk
-          ? bulkCount * details.bulkPrice +
-            looseUnitCount * details.unitPrice
+          ? bulkCount * details.bulkPrice + looseUnitCount * details.unitPrice
           : totalUnits * details.unitPrice;
 
         await this.repo.insertOrderItem(client, order.id, {
@@ -223,14 +264,14 @@ export class CreateOrderUseCase {
           unitPrice: details.unitPrice,
           bulkPrice: details.bulkPrice,
           subtotal: lineTotal,
-          presentation: item.presentation || 'UNIT',
+          presentation: item.presentation || "UNIT",
           priceLevel: item.priceLevel || priceLevel,
           handlesBulk: details.handlesBulk,
           unitsPerBulk: details.unitsPerBulk,
         });
       }
 
-      if (orderType === 'venta_directa' && dto.vendorId) {
+      if (orderType === "venta_directa" && dto.vendorId) {
         for (const item of dto.items) {
           const details = itemDetails.get(item.productId)!;
           const totalUnits = bulkUnitsToTotal(
@@ -249,10 +290,10 @@ export class CreateOrderUseCase {
         }
       }
 
-      if (orderType === 'pedido') {
+      if (orderType === "pedido") {
         const address = dto.clientId
           ? await this.repo.getClientAddress(client, dto.clientId)
-          : 'Entrega en tienda / Calle';
+          : "Entrega en tienda / Calle";
         await this.repo.insertPendingDelivery(client, {
           storeId: dto.storeId,
           orderId: order.id,
@@ -262,10 +303,10 @@ export class CreateOrderUseCase {
       }
 
       await this.repo.insertOutboxEvent(client, {
-        aggregateType: 'order',
+        aggregateType: "order",
         aggregateId: order.id,
         storeId: dto.storeId,
-        eventType: 'ORDER_CREATED',
+        eventType: "ORDER_CREATED",
         payload: {
           orderId: order.id,
           storeId: dto.storeId,
@@ -275,7 +316,7 @@ export class CreateOrderUseCase {
       });
 
       wsPayload = {
-        type: 'NEW_ORDER',
+        type: "NEW_ORDER",
         storeId: dto.storeId,
         payload: order,
       };

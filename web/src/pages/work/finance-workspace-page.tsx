@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   WorkspaceShell,
   WorkspaceTopBar,
@@ -7,10 +7,10 @@ import {
   ErrorState,
   LoadingRows,
   StatusChip,
-} from '@/components/workspace';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/workspace";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wallet,
   HandCoins,
@@ -20,21 +20,24 @@ import {
   ArrowRight,
   RefreshCw,
   DollarSign,
-} from 'lucide-react';
-import { useAuth } from '@/contexts/auth-context';
-import { formatCurrency } from '@/lib/utils';
-import apiClient from '@/services/api-client';
-import financeService from '@/services/finance-service';
-import type { AccountReceivable, AccountPayable } from '@/services/finance-service';
-import { MVP_FEATURES } from '@/lib/mvp-features';
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { formatCurrency } from "@/lib/utils";
+import apiClient from "@/services/api-client";
+import financeService from "@/services/finance-service";
+import type {
+  AccountReceivable,
+  AccountPayable,
+} from "@/services/finance-service";
+import { MVP_FEATURES } from "@/lib/mvp-features";
 
 interface ExceptionFinance {
   id: string;
-  type: 'overdue' | 'route_diff' | 'pending_payment';
+  type: "overdue" | "route_diff" | "pending_payment";
   title: string;
   description: string;
   amount: number;
-  severity: 'high' | 'medium';
+  severity: "high" | "medium";
   actionHref?: string;
 }
 
@@ -45,7 +48,7 @@ export default function FinanceWorkspacePage() {
   const [exceptions, setExceptions] = useState<ExceptionFinance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('atencion');
+  const [activeTab, setActiveTab] = useState("atencion");
   const [accounts, setAccounts] = useState<AccountReceivable[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [payables, setPayables] = useState<AccountPayable[]>([]);
@@ -57,7 +60,11 @@ export default function FinanceWorkspacePage() {
     try {
       const data = await financeService.listReceivables(storeId);
       setAccounts(data);
-    } catch { setAccounts([]); } finally { setLoadingAccounts(false); }
+    } catch {
+      setAccounts([]);
+    } finally {
+      setLoadingAccounts(false);
+    }
   }, [storeId]);
 
   const loadPayables = useCallback(async () => {
@@ -66,12 +73,16 @@ export default function FinanceWorkspacePage() {
     try {
       const data = await financeService.listPayables(storeId);
       setPayables(data);
-    } catch { setPayables([]); } finally { setLoadingPayables(false); }
+    } catch {
+      setPayables([]);
+    } finally {
+      setLoadingPayables(false);
+    }
   }, [storeId]);
 
   useEffect(() => {
-    if (activeTab === 'cartera') loadAccounts();
-    if (activeTab === 'pagos' && MVP_FEATURES.payables) loadPayables();
+    if (activeTab === "cartera") loadAccounts();
+    if (activeTab === "pagos" && MVP_FEATURES.payables) loadPayables();
   }, [activeTab, loadAccounts, loadPayables]);
 
   const loadData = useCallback(async () => {
@@ -82,21 +93,23 @@ export default function FinanceWorkspacePage() {
 
     try {
       const [receivablesRes] = await Promise.allSettled([
-        apiClient.get('/accounts-receivable', { params: { storeId, status: 'overdue', limit: 10 } }),
+        apiClient.get("/accounts-receivable", {
+          params: { storeId, status: "overdue", limit: 10 },
+        }),
       ]);
 
-      if (receivablesRes.status === 'fulfilled') {
+      if (receivablesRes.status === "fulfilled") {
         const data = Array.isArray(receivablesRes.value.data)
           ? receivablesRes.value.data
           : receivablesRes.value.data?.data || [];
         data.forEach((r: any) => {
           items.push({
             id: `rec-${r.id}`,
-            type: 'overdue',
-            title: 'Cuenta vencida',
-            description: `${r.clientName || 'Cliente'} — ${r.daysOverdue || 0} días vencido`,
-            amount: r.balance || r.amount || 0,
-            severity: (r.daysOverdue || 0) > 30 ? 'high' : 'medium',
+            type: "overdue",
+            title: "Cuenta vencida",
+            description: `${r.clientName || "Cliente"} — ${r.daysOverdue || 0} días vencido`,
+            amount: r.remainingAmount || r.pendingAmount || 0,
+            severity: (r.daysOverdue || 0) > 30 ? "high" : "medium",
             actionHref: `/store/${storeId}/finance/receivables`,
           });
         });
@@ -104,7 +117,7 @@ export default function FinanceWorkspacePage() {
 
       setExceptions(items);
     } catch {
-      setError('No se pudieron cargar los datos financieros');
+      setError("No se pudieron cargar los datos financieros");
     } finally {
       setLoading(false);
     }
@@ -122,11 +135,22 @@ export default function FinanceWorkspacePage() {
           storeName={user?.storeName}
           actions={
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/expenses`)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate(`/store/${storeId}/finance/expenses`)}
+              >
                 Gastos
               </Button>
-              <Button variant="outline" size="sm" onClick={loadData} disabled={loading}>
-                <RefreshCw className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={loadData}
+                disabled={loading}
+              >
+                <RefreshCw
+                  className={`mr-1.5 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}
+                />
                 Actualizar
               </Button>
             </div>
@@ -134,7 +158,11 @@ export default function FinanceWorkspacePage() {
         />
       }
     >
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="flex h-full flex-col"
+      >
         <TabsList className="w-fit border-b border-[#DDE2E8] bg-transparent p-0">
           <TabsTrigger
             value="atencion"
@@ -180,14 +208,18 @@ export default function FinanceWorkspacePage() {
                   className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-4"
                 >
                   <div className="flex items-start gap-3">
-                    {item.severity === 'high' ? (
+                    {item.severity === "high" ? (
                       <AlertTriangle className="mt-0.5 h-4 w-4 text-[#DC2626]" />
                     ) : (
                       <Clock className="mt-0.5 h-4 w-4 text-[#D97706]" />
                     )}
                     <div>
-                      <p className="text-sm font-medium text-[#17202A]">{item.title}</p>
-                      <p className="text-xs text-[#5B6673]">{item.description}</p>
+                      <p className="text-sm font-medium text-[#17202A]">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-[#5B6673]">
+                        {item.description}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -211,22 +243,68 @@ export default function FinanceWorkspacePage() {
         </TabsContent>
 
         <TabsContent value="cartera" className="mt-0 flex-1 p-4">
-          {loadingAccounts ? <LoadingRows rows={5} /> : accounts.length === 0 ? (
-            <EmptyState title="Sin cuentas por cobrar" icon={HandCoins}
-              action={<Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/receivables`)}>Ir a cartera</Button>} />
+          {loadingAccounts ? (
+            <LoadingRows rows={5} />
+          ) : accounts.length === 0 ? (
+            <EmptyState
+              title="Sin cuentas por cobrar"
+              icon={HandCoins}
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/store/${storeId}/finance/receivables`)
+                  }
+                >
+                  Ir a cartera
+                </Button>
+              }
+            />
           ) : (
             <div className="space-y-2">
               {accounts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3">
+                <div
+                  key={a.id}
+                  className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3"
+                >
                   <div>
-                    <p className="text-sm font-medium text-[#17202A]">{a.clientName}</p>
-                    <p className="text-xs text-[#5B6673]">Vencido • {a.description || ''}</p>
+                    <p className="text-sm font-medium text-[#17202A]">
+                      {a.clientName}
+                    </p>
+                    <p className="text-xs text-[#5B6673]">
+                      Vencido • {a.description || ""}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <StatusChip variant={a.status === 'PENDING' ? 'warning' : a.status === 'PARTIAL' ? 'pending' : 'success'}
-                      label={a.status === 'PENDING' ? 'Pendiente' : a.status === 'PARTIAL' ? 'Parcial' : 'Pagado'} />
-                    <span className="text-sm font-semibold text-[#17202A]">{formatCurrency(a.remainingAmount)}</span>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/receivables?accountId=${a.id}`)}>
+                    <StatusChip
+                      variant={
+                        a.status === "PENDING"
+                          ? "warning"
+                          : a.status === "PARTIAL"
+                            ? "pending"
+                            : "success"
+                      }
+                      label={
+                        a.status === "PENDING"
+                          ? "Pendiente"
+                          : a.status === "PARTIAL"
+                            ? "Parcial"
+                            : "Pagado"
+                      }
+                    />
+                    <span className="text-sm font-semibold text-[#17202A]">
+                      {formatCurrency(a.remainingAmount)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigate(
+                          `/store/${storeId}/finance/receivables?accountId=${a.id}`,
+                        )
+                      }
+                    >
                       Cobrar
                     </Button>
                   </div>
@@ -238,22 +316,70 @@ export default function FinanceWorkspacePage() {
 
         {MVP_FEATURES.payables && (
           <TabsContent value="pagos" className="mt-0 flex-1 p-4">
-            {loadingPayables ? <LoadingRows rows={5} /> : payables.length === 0 ? (
-              <EmptyState title="Sin cuentas por pagar" icon={DollarSign}
-                action={<Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables`)}>Ir a pagos</Button>} />
+            {loadingPayables ? (
+              <LoadingRows rows={5} />
+            ) : payables.length === 0 ? (
+              <EmptyState
+                title="Sin cuentas por pagar"
+                icon={DollarSign}
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/store/${storeId}/finance/payables`)
+                    }
+                  >
+                    Ir a pagos
+                  </Button>
+                }
+              />
             ) : (
               <div className="space-y-2">
                 {payables.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3">
+                  <div
+                    key={p.id}
+                    className="flex items-center justify-between rounded-lg border border-[#DDE2E8] bg-white p-3"
+                  >
                     <div>
-                      <p className="text-sm font-medium text-[#17202A]">{p.supplierName}</p>
-                      <p className="text-xs text-[#5B6673]">{p.dueDate ? `Vence: ${new Date(p.dueDate).toLocaleDateString()}` : ''}</p>
+                      <p className="text-sm font-medium text-[#17202A]">
+                        {p.supplierName}
+                      </p>
+                      <p className="text-xs text-[#5B6673]">
+                        {p.dueDate
+                          ? `Vence: ${new Date(p.dueDate).toLocaleDateString()}`
+                          : ""}
+                      </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <StatusChip variant={p.status === 'PENDING' ? 'warning' : p.status === 'PARTIAL' ? 'pending' : 'success'}
-                        label={p.status === 'PENDING' ? 'Pendiente' : p.status === 'PARTIAL' ? 'Parcial' : 'Pagado'} />
-                      <span className="text-sm font-semibold text-[#17202A]">{formatCurrency(p.remainingAmount)}</span>
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/finance/payables?accountId=${p.id}`)}>
+                      <StatusChip
+                        variant={
+                          p.status === "PENDING"
+                            ? "warning"
+                            : p.status === "PARTIAL"
+                              ? "pending"
+                              : "success"
+                        }
+                        label={
+                          p.status === "PENDING"
+                            ? "Pendiente"
+                            : p.status === "PARTIAL"
+                              ? "Parcial"
+                              : "Pagado"
+                        }
+                      />
+                      <span className="text-sm font-semibold text-[#17202A]">
+                        {formatCurrency(p.remainingAmount)}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          navigate(
+                            `/store/${storeId}/finance/payables?accountId=${p.id}`,
+                          )
+                        }
+                      >
                         Pagar
                       </Button>
                     </div>

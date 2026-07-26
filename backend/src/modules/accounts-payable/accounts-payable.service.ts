@@ -2,8 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { DatabaseService } from '../../database/database.service';
+} from "@nestjs/common";
+import { DatabaseService } from "../../database/database.service";
 
 @Injectable()
 export class AccountsPayableService {
@@ -18,7 +18,7 @@ export class AccountsPayableService {
     dueDate?: string;
   }) {
     if (Number(dto.totalAmount) <= 0) {
-      throw new BadRequestException('El monto total debe ser mayor a 0');
+      throw new BadRequestException("El monto total debe ser mayor a 0");
     }
 
     const res = await this.db.query(
@@ -57,15 +57,15 @@ export class AccountsPayableService {
       sql += ` AND ap.supplier_id = $${idx++}`;
       params.push(filters.supplierId);
     }
-    if (filters.pending === 'true') {
-      sql += ` AND ap.status != 'PAID'`;
+    if (filters.pending === "true") {
+      sql += ` AND ap.remaining_amount > 0`;
     }
 
-    sql += ' ORDER BY ap.due_date ASC NULLS LAST, ap.created_at DESC';
+    sql += " ORDER BY ap.due_date ASC NULLS LAST, ap.created_at DESC";
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => ({
       ...this.mapRow(r),
-      supplierName: r.supplier_name || '',
+      supplierName: r.supplier_name || "",
     }));
   }
 
@@ -85,26 +85,31 @@ export class AccountsPayableService {
     },
   ) {
     if (dto.amount <= 0)
-      throw new BadRequestException('El monto debe ser mayor a 0');
+      throw new BadRequestException("El monto debe ser mayor a 0");
 
     return this.db.withTransaction(async (client) => {
       const accRes = await client.query(
-        'SELECT * FROM accounts_payable WHERE id = $1 FOR UPDATE',
+        "SELECT * FROM accounts_payable WHERE id = $1 FOR UPDATE",
         [accountId],
       );
       if ((accRes.rowCount ?? 0) === 0)
-        throw new NotFoundException('Cuenta por pagar no encontrada');
+        throw new NotFoundException("Cuenta por pagar no encontrada");
 
       const account = accRes.rows[0];
-      const remaining = parseFloat(account.remaining_amount);
-      if (dto.amount > remaining)
-        throw new BadRequestException('El monto excede el saldo pendiente');
+      const amount = Math.round(Number(dto.amount) * 100) / 100;
+      const remaining =
+        Math.round(parseFloat(account.remaining_amount) * 100) / 100;
+      if (amount > remaining)
+        throw new BadRequestException("El monto excede el saldo pendiente");
 
-      const newRemaining = Math.max(0, remaining - dto.amount);
-      const newStatus = newRemaining <= 0 ? 'PAID' : 'PARTIAL';
+      const newRemaining = Math.max(
+        0,
+        Math.round((remaining - amount) * 100) / 100,
+      );
+      const newStatus = newRemaining <= 0 ? "PAID" : "PARTIAL";
 
       await client.query(
-        'UPDATE accounts_payable SET remaining_amount = $1, status = $2, updated_at = NOW() WHERE id = $3',
+        "UPDATE accounts_payable SET remaining_amount = $1, status = $2, updated_at = NOW() WHERE id = $3",
         [newRemaining, newStatus, accountId],
       );
 
@@ -113,12 +118,21 @@ export class AccountsPayableService {
          VALUES ($1, $2, $3, $4, $5)`,
         [
           accountId,
-          dto.amount,
-          dto.paymentMethod || 'TRANSFER',
+          amount,
+          dto.paymentMethod || "TRANSFER",
           dto.notes || null,
           dto.paidBy || null,
         ],
       );
+
+      if (newRemaining <= 0 && account.invoice_id) {
+        await client.query(
+          `UPDATE invoices
+              SET status = 'PAGADA', updated_at = NOW()
+            WHERE id = $1 AND status <> 'ANULADA'`,
+          [account.invoice_id],
+        );
+      }
 
       return this.findOneWithExecutor(accountId, client);
     });
@@ -136,11 +150,11 @@ export class AccountsPayableService {
       [id],
     );
     if ((res.rowCount ?? 0) === 0)
-      throw new NotFoundException('Cuenta por pagar no encontrada');
+      throw new NotFoundException("Cuenta por pagar no encontrada");
 
     const account = {
       ...this.mapRow(res.rows[0]),
-      supplierName: res.rows[0].supplier_name || '',
+      supplierName: res.rows[0].supplier_name || "",
     };
 
     // Get payments history
@@ -157,7 +171,7 @@ export class AccountsPayableService {
       paymentMethod: r.payment_method,
       notes: r.notes,
       paidBy: r.paid_by,
-      paidByName: r.paid_by_name || '',
+      paidByName: r.paid_by_name || "",
       paidAt: r.paid_at,
     }));
 

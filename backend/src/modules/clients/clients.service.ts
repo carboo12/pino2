@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DatabaseService } from '../../database/database.service';
-import { CreateClientDto, UpdateClientDto } from './clients.dto';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { DatabaseService } from "../../database/database.service";
+import { CreateClientDto, UpdateClientDto } from "./clients.dto";
 
 @Injectable()
 export class ClientsService {
@@ -27,7 +27,7 @@ export class ClientsService {
         dto.zona || null,
         dto.limiteCredito || 0,
         dto.diasCredito || 8,
-        dto.frecuenciaVisita || 'semanal',
+        dto.frecuenciaVisita || "semanal",
         dto.diaVisita || null,
         dto.notasEntrega || null,
         dto.lat || null,
@@ -47,7 +47,7 @@ export class ClientsService {
       sinAsignar?: boolean;
     },
   ) {
-    let sql = 'SELECT * FROM clients WHERE store_id = $1 AND is_active = true';
+    let sql = "SELECT * FROM clients WHERE store_id = $1 AND is_active = true";
     const params: any[] = [storeId];
     let pIdx = 2;
 
@@ -71,7 +71,7 @@ export class ClientsService {
       sql += ` AND preventa_id IS NULL`;
     }
 
-    sql += ' ORDER BY name ASC';
+    sql += " ORDER BY name ASC";
 
     if (filters?.limit) {
       sql += ` LIMIT $${pIdx++}`;
@@ -83,32 +83,32 @@ export class ClientsService {
   }
 
   async findOne(id: string) {
-    const res = await this.db.query('SELECT * FROM clients WHERE id = $1', [
+    const res = await this.db.query("SELECT * FROM clients WHERE id = $1", [
       id,
     ]);
     if (res.rowCount === 0)
-      throw new NotFoundException('Cliente no encontrado');
+      throw new NotFoundException("Cliente no encontrado");
     return this.mapRow(res.rows[0]);
   }
 
   async update(id: string, dto: UpdateClientDto) {
     const fieldMap: Record<string, string> = {
-      name: 'name',
-      email: 'email',
-      phone: 'phone',
-      address: 'address',
-      grupoEconomicoId: 'grupo_economico_id',
-      grupoClienteId: 'grupo_cliente_id',
-      preventaId: 'preventa_id',
-      zona: 'zona',
-      limiteCredito: 'limite_credito',
-      diasCredito: 'dias_credito',
-      frecuenciaVisita: 'frecuencia_visita',
-      diaVisita: 'dia_visita',
-      notasEntrega: 'notas_entrega',
-      isActive: 'is_active',
-      lat: 'lat',
-      lng: 'lng',
+      name: "name",
+      email: "email",
+      phone: "phone",
+      address: "address",
+      grupoEconomicoId: "grupo_economico_id",
+      grupoClienteId: "grupo_cliente_id",
+      preventaId: "preventa_id",
+      zona: "zona",
+      limiteCredito: "limite_credito",
+      diasCredito: "dias_credito",
+      frecuenciaVisita: "frecuencia_visita",
+      diaVisita: "dia_visita",
+      notasEntrega: "notas_entrega",
+      isActive: "is_active",
+      lat: "lat",
+      lng: "lng",
     };
 
     const sets: string[] = [];
@@ -126,14 +126,14 @@ export class ClientsService {
     params.push(id);
 
     await this.db.query(
-      `UPDATE clients SET ${sets.join(', ')} WHERE id = $${idx}`,
+      `UPDATE clients SET ${sets.join(", ")} WHERE id = $${idx}`,
       params,
     );
     return this.findOne(id);
   }
 
   async remove(id: string) {
-    await this.db.query('UPDATE clients SET is_active = false WHERE id = $1', [
+    await this.db.query("UPDATE clients SET is_active = false WHERE id = $1", [
       id,
     ]);
     return { success: true };
@@ -150,7 +150,7 @@ export class ClientsService {
 
     await this.db.withTransaction(async (dbClient) => {
       await dbClient.query(
-        'UPDATE clients SET preventa_id = $1 WHERE id = $2',
+        "UPDATE clients SET preventa_id = $1 WHERE id = $2",
         [nuevoPreventaId, clientId],
       );
       if (motivo) {
@@ -174,14 +174,19 @@ export class ClientsService {
 
     if (client.grupoEconomicoId) {
       const gRes = await this.db.query(
-        'SELECT limite_credito_global FROM grupos_economicos WHERE id = $1',
+        "SELECT limite_credito_global FROM grupos_economicos WHERE id = $1",
         [client.grupoEconomicoId],
       );
       if (gRes.rowCount && gRes.rowCount > 0) {
         limiteGrupo = parseFloat(gRes.rows[0].limite_credito_global || 0);
 
         const sRes = await this.db.query(
-          'SELECT SUM(saldo_pendiente) as total FROM clients WHERE grupo_economico_id = $1',
+          `SELECT COALESCE(SUM(ar.remaining_amount), 0) as total
+             FROM accounts_receivable ar
+             JOIN clients c ON c.id = ar.client_id
+            WHERE c.grupo_economico_id = $1
+              AND ar.remaining_amount > 0
+              AND ar.status IN ('PENDING', 'PARTIAL')`,
           [client.grupoEconomicoId],
         );
         saldoGrupo = parseFloat(sRes.rows[0].total || 0);
@@ -190,12 +195,25 @@ export class ClientsService {
     }
 
     const { rows: facturas } = await this.db.query(
-      `SELECT * FROM accounts_receivable WHERE client_id = $1 AND status != 'PAID_IN_FULL' ORDER BY created_at ASC`,
+      `SELECT *,
+              CASE
+                WHEN due_date IS NULL OR due_date >= CURRENT_DATE THEN 0
+                ELSE CURRENT_DATE - due_date
+              END as days_overdue
+         FROM accounts_receivable
+        WHERE client_id = $1
+          AND remaining_amount > 0
+          AND status IN ('PENDING', 'PARTIAL')
+        ORDER BY due_date ASC NULLS LAST, created_at ASC`,
       [clientId],
+    );
+    const saldoIndividual = facturas.reduce(
+      (sum, factura) => sum + Number(factura.remaining_amount || 0),
+      0,
     );
 
     return {
-      saldoIndividual: client.saldoPendiente,
+      saldoIndividual,
       limiteIndividual: client.limiteCredito,
       grupoEconomicoId: client.grupoEconomicoId,
       saldoGrupo,

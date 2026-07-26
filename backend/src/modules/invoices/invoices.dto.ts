@@ -3,13 +3,19 @@ import {
   IsNotEmpty,
   IsOptional,
   IsNumber,
+  IsInt,
+  Min,
   IsArray,
+  ArrayMinSize,
+  IsUUID,
+  IsIn,
+  IsDateString,
   ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { Type } from "class-transformer";
 
 export class InvoiceItemDto {
-  @IsString()
+  @IsUUID("all")
   @IsOptional()
   productId?: string;
 
@@ -17,43 +23,40 @@ export class InvoiceItemDto {
   @IsNotEmpty()
   description!: string;
 
-  @IsNumber()
-  @IsNotEmpty()
+  @IsInt()
+  @Min(1)
   quantity!: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @Min(0)
   unitPrice!: number;
 }
 
 export class CreateInvoiceDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID("all")
   storeId!: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID("all")
   supplierId!: string;
 
   @IsString()
   @IsNotEmpty()
   invoiceNumber!: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsIn(["CONTADO", "CREDITO"])
   paymentType!: string;
 
-  @IsString()
+  @IsDateString()
   @IsOptional()
   dueDate?: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  total!: number;
+  @IsOptional()
+  total?: number;
 
   @IsString()
-  @IsNotEmpty()
-  status!: string;
+  @IsOptional()
+  status?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -64,6 +67,7 @@ export class CreateInvoiceDto {
   userId?: string;
 
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => InvoiceItemDto)
   items!: InvoiceItemDto[];

@@ -4,34 +4,42 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-} from '@nestjs/common';
-import { PoolClient } from 'pg';
-import { DatabaseService } from '../../../database/database.service';
-import { EventsGateway } from '../../../common/gateways/events.gateway';
-import { OrderStatus } from '../../../common/constants/enums';
-import {
-  splitIntoBulkUnits,
-} from '../../../common/utils/stock-display.util';
-import { OrdersRepository } from '../repositories/orders.repository';
-import { NotificationsService } from '../../notifications/notifications.service';
+} from "@nestjs/common";
+import { PoolClient } from "pg";
+import { DatabaseService } from "../../../database/database.service";
+import { EventsGateway } from "../../../common/gateways/events.gateway";
+import { OrderStatus } from "../../../common/constants/enums";
+import { splitIntoBulkUnits } from "../../../common/utils/stock-display.util";
+import { OrdersRepository } from "../repositories/orders.repository";
+import { NotificationsService } from "../../notifications/notifications.service";
 
 const CAN_TRANSITION: Record<string, string[]> = {
   [OrderStatus.PENDIENTE_AUTORIZACION]: [
     OrderStatus.RECIBIDO,
     OrderStatus.CANCELADO,
   ],
-  [OrderStatus.RECIBIDO]: ['EN_PREPARACION', OrderStatus.CANCELADO],
+  [OrderStatus.RECIBIDO]: ["EN_PREPARACION", OrderStatus.CANCELADO],
   EN_PREPARACION: [OrderStatus.ALISTADO, OrderStatus.CANCELADO],
   [OrderStatus.ALISTADO]: [OrderStatus.CARGADO_CAMION],
   [OrderStatus.CARGADO_CAMION]: [OrderStatus.EN_ENTREGA],
   [OrderStatus.EN_ENTREGA]: [
     OrderStatus.ENTREGADO,
-    'DEVUELTO',
-    'RECHAZADO',
-    'RECHAZO_TOTAL',
+    "DEVUELTO",
+    "RECHAZADO",
+    "RECHAZO_TOTAL",
   ],
   PENDING: [OrderStatus.RECIBIDO, OrderStatus.CANCELADO],
 };
+
+function toDateOnly(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function addCalendarDays(dateOnly: string, days: number) {
+  const date = new Date(`${dateOnly}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return toDateOnly(date);
+}
 
 @Injectable()
 export class TransitionOrderUseCase {
@@ -57,7 +65,7 @@ export class TransitionOrderUseCase {
     const updatedOrder = await this.db.withTransaction(async (client) => {
       const orderRow = await this.repo.findByIdForUpdate(client, id);
       if (!orderRow) {
-        throw new NotFoundException('Pedido no encontrado');
+        throw new NotFoundException("Pedido no encontrado");
       }
 
       if (
@@ -86,8 +94,8 @@ export class TransitionOrderUseCase {
       }
 
       if (
-        targetStatus === 'CARGADO_CAMION' &&
-        currentStatus !== 'CARGADO_CAMION'
+        targetStatus === "CARGADO_CAMION" &&
+        currentStatus !== "CARGADO_CAMION"
       ) {
         if (vendorId) {
           await this.repo.updateOrderVendor(client, id, vendorId);
@@ -95,16 +103,17 @@ export class TransitionOrderUseCase {
         }
         if (!effectiveVendorId) {
           throw new NotFoundException(
-            'El pedido requiere un vendor_id para cargar al camión.',
+            "El pedido requiere un vendor_id para cargar al camión.",
           );
         }
         const items = await this.repo.findOrderItemsWithProducts(client, id);
         for (const item of items) {
-          const upb =
-            item.unitsPerBulk > 1 ? item.unitsPerBulk : 1;
+          const upb = item.unitsPerBulk > 1 ? item.unitsPerBulk : 1;
           const totalUnits = item.quantity;
-          const { bulks: qtyBulks, units: qtyUnits } =
-            splitIntoBulkUnits(totalUnits, upb);
+          const { bulks: qtyBulks, units: qtyUnits } = splitIntoBulkUnits(
+            totalUnits,
+            upb,
+          );
 
           const updated = await this.repo.deductProductStock(
             client,
@@ -143,10 +152,7 @@ export class TransitionOrderUseCase {
           }
 
           const curStock = updated.currentStock;
-          const upbAfter =
-            updated.unitsPerBulk > 1
-              ? updated.unitsPerBulk
-              : 1;
+          const upbAfter = updated.unitsPerBulk > 1 ? updated.unitsPerBulk : 1;
           const hbAfter = updated.handlesBulk;
           const balSplit = splitIntoBulkUnits(curStock, upbAfter);
 
@@ -154,7 +160,7 @@ export class TransitionOrderUseCase {
             storeId,
             productId: item.productId,
             userId: updatedBy,
-            type: 'OUT',
+            type: "OUT",
             quantity: totalUnits,
             quantityBulks: qtyBulks,
             quantityUnits: qtyUnits,
@@ -168,19 +174,15 @@ export class TransitionOrderUseCase {
         }
       }
 
-      if (
-        targetStatus === 'ENTREGADO' &&
-        currentStatus !== 'ENTREGADO'
-      ) {
+      if (targetStatus === "ENTREGADO" && currentStatus !== "ENTREGADO") {
         if (!effectiveVendorId) {
           throw new NotFoundException(
-            'El pedido requiere un vendor_id para la entrega.',
+            "El pedido requiere un vendor_id para la entrega.",
           );
         }
         const items = await this.repo.findOrderItemsWithProducts(client, id);
         for (const item of items) {
-          const upb =
-            item.unitsPerBulk > 1 ? item.unitsPerBulk : 1;
+          const upb = item.unitsPerBulk > 1 ? item.unitsPerBulk : 1;
           const totalUnits = item.quantity;
           await this.repo.deductVendorInventoryForDelivery(
             client,
@@ -189,6 +191,50 @@ export class TransitionOrderUseCase {
             totalUnits,
             upb,
           );
+        }
+
+        const isCredit =
+          String(orderRow.paymentType || "").toUpperCase() === "CREDITO";
+        const shouldCreateReceivable =
+          isCredit &&
+          orderRow.requiereCobro &&
+          orderRow.tipoPedido !== "ABASTECIMIENTO_INTERNO";
+
+        if (shouldCreateReceivable) {
+          if (!orderRow.clientId) {
+            throw new BadRequestException(
+              "El pedido a crédito no tiene cliente asociado",
+            );
+          }
+          const creditClient = await this.repo.findClientCreditForOrder(
+            client,
+            storeId,
+            orderRow.clientId,
+          );
+          if (!creditClient) {
+            throw new NotFoundException("Cliente no encontrado en esta tienda");
+          }
+          if (creditClient.type !== "CREDITO") {
+            throw new BadRequestException(
+              "El cliente no está habilitado para crédito",
+            );
+          }
+
+          const creditDays = Number.isInteger(creditClient.creditDays)
+            ? Math.min(Math.max(creditClient.creditDays, 0), 365)
+            : 8;
+          const issuedAt = new Date();
+          await this.repo.insertAccountReceivable(client, {
+            storeId,
+            clientId: creditClient.id,
+            orderId: id,
+            invoiceNumber: `PED-${id.slice(0, 8).toUpperCase()}`,
+            totalAmount: orderRow.total,
+            issuedAt,
+            dueDate: addCalendarDays(toDateOnly(issuedAt), creditDays),
+            creditDaysSnapshot: creditDays,
+            notes: `Cuenta por cobrar generada al entregar pedido ${id}`,
+          });
         }
       }
 
@@ -199,27 +245,21 @@ export class TransitionOrderUseCase {
         updatedBy,
       );
 
-      await this.repo.insertStatusHistory(
-        client,
-        id,
-        targetStatus,
-        updatedBy,
-      );
+      await this.repo.insertStatusHistory(client, id, targetStatus, updatedBy);
 
       if (
         effectiveVendorId &&
-        (targetStatus === 'CARGADO_CAMION' ||
-          targetStatus === 'ENTREGADO')
+        (targetStatus === "CARGADO_CAMION" || targetStatus === "ENTREGADO")
       ) {
         try {
           await this.notifications.create({
             storeId,
             userId: effectiveVendorId,
-            type: 'ORDER_UPDATE',
-            title: `Pedido #${id.substring(0, 8)}: ${targetStatus.replace('_', ' ')}`,
+            type: "ORDER_UPDATE",
+            title: `Pedido #${id.substring(0, 8)}: ${targetStatus.replace("_", " ")}`,
             message: `El pedido ha pasado a estado ${targetStatus.toLowerCase()}`,
             metadata: {
-              type: 'ORDER_UPDATE',
+              type: "ORDER_UPDATE",
               orderId: id,
               status: targetStatus,
             },
@@ -232,30 +272,18 @@ export class TransitionOrderUseCase {
       }
 
       if (targetStatus === OrderStatus.ENTREGADO) {
-        await this.repo.updatePendingDeliveryStatus(
-          client,
-          id,
-          'ENTREGADO',
-        );
+        await this.repo.updatePendingDeliveryStatus(client, id, "ENTREGADO");
       } else if (targetStatus === OrderStatus.CANCELADO) {
-        await this.repo.updatePendingDeliveryStatus(
-          client,
-          id,
-          'CANCELADO',
-        );
-      } else if (targetStatus === 'CARGADO_CAMION') {
-        await this.repo.updatePendingDeliveryStatus(
-          client,
-          id,
-          'EN_RUTA',
-        );
+        await this.repo.updatePendingDeliveryStatus(client, id, "CANCELADO");
+      } else if (targetStatus === "CARGADO_CAMION") {
+        await this.repo.updatePendingDeliveryStatus(client, id, "EN_RUTA");
       }
 
       await this.repo.insertOutboxEvent(client, {
-        aggregateType: 'order',
+        aggregateType: "order",
         aggregateId: id,
         storeId,
-        eventType: 'ORDER_STATUS_CHANGE',
+        eventType: "ORDER_STATUS_CHANGE",
         payload: {
           orderId: id,
           status: targetStatus,
@@ -264,7 +292,7 @@ export class TransitionOrderUseCase {
       });
 
       wsStatusPayload = {
-        type: 'ORDER_STATUS_CHANGE',
+        type: "ORDER_STATUS_CHANGE",
         storeId,
         payload: {
           orderId: id,
@@ -275,11 +303,11 @@ export class TransitionOrderUseCase {
       };
 
       if (
-        targetStatus === 'CARGADO_CAMION' &&
-        currentStatus !== 'CARGADO_CAMION'
+        targetStatus === "CARGADO_CAMION" &&
+        currentStatus !== "CARGADO_CAMION"
       ) {
         wsTransferPayload = {
-          type: 'INVENTORY_TRANSFER',
+          type: "INVENTORY_TRANSFER",
           storeId,
           payload: {
             orderId: id,
@@ -295,8 +323,7 @@ export class TransitionOrderUseCase {
     });
 
     if (wsStatusPayload) this.eventsGateway.emitSyncUpdate(wsStatusPayload);
-    if (wsTransferPayload)
-      this.eventsGateway.emitSyncUpdate(wsTransferPayload);
+    if (wsTransferPayload) this.eventsGateway.emitSyncUpdate(wsTransferPayload);
     return updatedOrder;
   }
 }

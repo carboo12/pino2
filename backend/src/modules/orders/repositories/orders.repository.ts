@@ -1,7 +1,11 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
-import { PoolClient } from 'pg';
-import { DatabaseService } from '../../../database/database.service';
-import { OrderRowMapper } from '../mappers/order-row.mapper';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from "@nestjs/common";
+import { PoolClient } from "pg";
+import { DatabaseService } from "../../../database/database.service";
+import { OrderRowMapper } from "../mappers/order-row.mapper";
 
 @Injectable()
 export class OrdersRepository {
@@ -14,7 +18,7 @@ export class OrdersRepository {
 
   async findExistingOrderByExternalId(client: PoolClient, externalId: string) {
     const res = await client.query(
-      'SELECT * FROM orders WHERE external_id = $1',
+      "SELECT * FROM orders WHERE external_id = $1",
       [externalId],
     );
     return res.rows[0] ?? null;
@@ -26,8 +30,8 @@ export class OrdersRepository {
     externalId: string,
   ) {
     await client.query(
-      'INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)',
-      [storeId, externalId, 'ORDER'],
+      "INSERT INTO sync_idempotency_log (store_id, external_id, entity_type) VALUES ($1, $2, $3)",
+      [storeId, externalId, "ORDER"],
     );
   }
 
@@ -59,7 +63,8 @@ export class OrdersRepository {
       usesInventory: row.uses_inventory === true,
       currentStock: parseInt(row.current_stock || 0, 10),
       unitsPerBulk: parseInt(row.units_per_bulk || 1, 10),
-      handlesBulk: row.handles_bulk === true && parseInt(row.units_per_bulk || 1, 10) > 1,
+      handlesBulk:
+        row.handles_bulk === true && parseInt(row.units_per_bulk || 1, 10) > 1,
     };
   }
 
@@ -108,17 +113,18 @@ export class OrdersRepository {
   }
 
   async findById(id: string) {
-    const res = await this.db.query(
-      'SELECT * FROM orders WHERE id = $1',
-      [id],
-    );
+    const res = await this.db.query("SELECT * FROM orders WHERE id = $1", [id]);
     if (res.rowCount === 0) return null;
     return this.mapper.toOrder(res.rows[0]);
   }
 
   async findByIdForUpdate(client: PoolClient, id: string) {
     const res = await client.query(
-      'SELECT store_id, status, vendor_id, version FROM orders WHERE id = $1 FOR UPDATE',
+      `SELECT store_id, status, vendor_id, version, client_id,
+              payment_type, total, requiere_cobro, tipo_pedido
+         FROM orders
+        WHERE id = $1
+        FOR UPDATE`,
       [id],
     );
     if (res.rowCount === 0) return null;
@@ -127,6 +133,11 @@ export class OrdersRepository {
       status: res.rows[0].status,
       vendorId: res.rows[0].vendor_id,
       version: res.rows[0].version,
+      clientId: res.rows[0].client_id,
+      paymentType: res.rows[0].payment_type,
+      total: Number(res.rows[0].total || 0),
+      requiereCobro: res.rows[0].requiere_cobro === true,
+      tipoPedido: res.rows[0].tipo_pedido,
     };
   }
 
@@ -142,7 +153,7 @@ export class OrdersRepository {
       createdAt?: string;
     },
   ) {
-    let sql = 'SELECT * FROM orders WHERE store_id = $1';
+    let sql = "SELECT * FROM orders WHERE store_id = $1";
     const params: any[] = [storeId];
     let idx = 2;
 
@@ -167,13 +178,20 @@ export class OrdersRepository {
       params.push(new Date(filters.toDate));
     }
     if (filters.createdAt) {
-      if (filters.createdAt.startsWith('>')) {
+      if (filters.createdAt.startsWith(">")) {
         const match = filters.createdAt.match(/^>(\d+)([smhd])$/);
         if (match) {
           const num = parseInt(match[1], 10);
           const unit = match[2];
-          const secondsMap: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
-          const cutoff = new Date(Date.now() - num * secondsMap[unit] * 1000).toISOString();
+          const secondsMap: Record<string, number> = {
+            s: 1,
+            m: 60,
+            h: 3600,
+            d: 86400,
+          };
+          const cutoff = new Date(
+            Date.now() - num * secondsMap[unit] * 1000,
+          ).toISOString();
           sql += ` AND created_at < $${idx++}`;
           params.push(cutoff);
         }
@@ -183,7 +201,7 @@ export class OrdersRepository {
       }
     }
 
-    sql += ' ORDER BY created_at DESC';
+    sql += " ORDER BY created_at DESC";
 
     if (filters.limit) {
       sql += ` LIMIT $${idx++}`;
@@ -207,13 +225,9 @@ export class OrdersRepository {
     return this.mapper.toOrder(res.rows[0]);
   }
 
-  async updateOrderVendor(
-    client: PoolClient,
-    id: string,
-    vendorId: string,
-  ) {
+  async updateOrderVendor(client: PoolClient, id: string, vendorId: string) {
     await client.query(
-      'UPDATE orders SET vendor_id = $1, updated_at = NOW() WHERE id = $2',
+      "UPDATE orders SET vendor_id = $1, updated_at = NOW() WHERE id = $2",
       [vendorId, id],
     );
   }
@@ -324,24 +338,60 @@ export class OrdersRepository {
 
   // ── Accounts Receivable ──────────────────────────────────────
 
+  async findClientCreditForOrder(
+    client: PoolClient,
+    storeId: string,
+    clientId: string,
+  ) {
+    const res = await client.query(
+      `SELECT id, type, dias_credito
+         FROM clients
+        WHERE id = $1
+          AND store_id = $2
+          AND deleted_at IS NULL
+        FOR SHARE`,
+      [clientId, storeId],
+    );
+    if (res.rowCount !== 1) return null;
+    return {
+      id: res.rows[0].id,
+      type: String(res.rows[0].type || "NORMAL").toUpperCase(),
+      creditDays: Number(res.rows[0].dias_credito ?? 8),
+    };
+  }
+
   async insertAccountReceivable(
     client: PoolClient,
     data: {
       storeId: string;
-      clientId?: string;
+      clientId: string;
       orderId: string;
       totalAmount: number;
+      invoiceNumber: string;
+      issuedAt: Date;
+      dueDate: string;
+      creditDaysSnapshot: number;
       notes?: string;
     },
   ) {
     await client.query(
-      `INSERT INTO accounts_receivable (store_id, client_id, order_id, total_amount, remaining_amount, description, status)
-       VALUES ($1, $2, $3, $4, $4, $5, 'PENDING')`,
+      `INSERT INTO accounts_receivable (
+         store_id, client_id, order_id, invoice_number,
+         total_amount, remaining_amount, issued_at, due_date,
+         credit_days_snapshot, description, status
+       )
+       VALUES ($1, $2, $3, $4, $5, $5, $6, $7, $8, $9, 'PENDING')
+       ON CONFLICT (order_id) WHERE order_id IS NOT NULL
+       DO NOTHING`,
       [
         data.storeId,
-        data.clientId || null,
+        data.clientId,
         data.orderId,
+        data.invoiceNumber,
         data.totalAmount,
+        data.issuedAt,
+        data.dueDate,
+        data.creditDaysSnapshot,
         data.notes || `Cuenta por cobrar generada por pedido ${data.orderId}`,
       ],
     );
@@ -377,7 +427,7 @@ export class OrdersRepository {
     productId: string,
   ) {
     const res = await client.query(
-      'SELECT id FROM vendor_inventories WHERE vendor_id = $1 AND product_id = $2 FOR UPDATE',
+      "SELECT id FROM vendor_inventories WHERE vendor_id = $1 AND product_id = $2 FOR UPDATE",
       [vendorId, productId],
     );
     return res.rows[0] ?? null;
@@ -484,10 +534,10 @@ export class OrdersRepository {
 
   async getClientAddress(client: PoolClient, clientId: string) {
     const res = await client.query(
-      'SELECT address FROM clients WHERE id = $1',
+      "SELECT address FROM clients WHERE id = $1",
       [clientId],
     );
-    return res.rows[0]?.address || 'Entrega en tienda / Calle';
+    return res.rows[0]?.address || "Entrega en tienda / Calle";
   }
 
   // ── Pending Deliveries ───────────────────────────────────────
@@ -527,7 +577,7 @@ export class OrdersRepository {
       storeId: string;
       productId: string;
       userId?: string;
-      type: 'IN' | 'OUT';
+      type: "IN" | "OUT";
       quantity: number;
       quantityBulks: number;
       quantityUnits: number;

@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { PoolClient } from 'pg';
-import { DatabaseService } from '../../../database/database.service';
-import { SaleRowMapper } from '../mappers/sale-row.mapper';
+import { Injectable } from "@nestjs/common";
+import { PoolClient } from "pg";
+import { DatabaseService } from "../../../database/database.service";
+import { SaleRowMapper } from "../mappers/sale-row.mapper";
 
 @Injectable()
 export class SalesRepository {
@@ -39,9 +39,13 @@ export class SalesRepository {
     );
   }
 
-  async findExistingOperation(client: PoolClient, storeId: string, operationId: string) {
+  async findExistingOperation(
+    client: PoolClient,
+    storeId: string,
+    operationId: string,
+  ) {
     const res = await client.query(
-      'SELECT result FROM sync_inbox WHERE store_id = $1 AND operation_id = $2',
+      "SELECT result FROM sync_inbox WHERE store_id = $1 AND operation_id = $2",
       [storeId, operationId],
     );
     return res.rows[0] ?? null;
@@ -65,23 +69,31 @@ export class SalesRepository {
 
   async findActiveShift(client: PoolClient, shiftId: string, storeId: string) {
     const res = await client.query(
-      'SELECT status, actual_cash, starting_cash FROM cash_shifts WHERE id = $1 AND store_id = $2 FOR UPDATE',
+      "SELECT status, actual_cash, starting_cash FROM cash_shifts WHERE id = $1 AND store_id = $2 FOR UPDATE",
       [shiftId, storeId],
     );
     if (res.rowCount === 0) return null;
     return this.mapper.toShift(res.rows[0]);
   }
 
-  async updateCashShiftAmount(client: PoolClient, shiftId: string, newAmount: number) {
-    return client.query('UPDATE cash_shifts SET actual_cash = $1 WHERE id = $2', [
-      newAmount,
-      shiftId,
-    ]);
+  async updateCashShiftAmount(
+    client: PoolClient,
+    shiftId: string,
+    newAmount: number,
+  ) {
+    return client.query(
+      "UPDATE cash_shifts SET actual_cash = $1 WHERE id = $2",
+      [newAmount, shiftId],
+    );
   }
 
   // ── Products ─────────────────────────────────────────────────
 
-  async findProductForUpdate(client: PoolClient, productId: string, storeId: string) {
+  async findProductForUpdate(
+    client: PoolClient,
+    productId: string,
+    storeId: string,
+  ) {
     const res = await client.query(
       `SELECT id, store_id, current_stock, uses_inventory, units_per_bulk, handles_bulk, is_active,
               price1, price2, price3, price4, price5,
@@ -95,7 +107,12 @@ export class SalesRepository {
     return this.mapper.toProduct(res.rows[0]);
   }
 
-  async deductProductStock(client: PoolClient, productId: string, storeId: string, totalUnits: number) {
+  async deductProductStock(
+    client: PoolClient,
+    productId: string,
+    storeId: string,
+    totalUnits: number,
+  ) {
     const res = await client.query(
       `UPDATE products
           SET current_stock = current_stock - $1,
@@ -112,7 +129,7 @@ export class SalesRepository {
 
   async findProductForReturnUpdate(client: PoolClient, productId: string) {
     const res = await client.query(
-      'SELECT current_stock, units_per_bulk, handles_bulk FROM products WHERE id = $1 FOR UPDATE',
+      "SELECT current_stock, units_per_bulk, handles_bulk FROM products WHERE id = $1 FOR UPDATE",
       [productId],
     );
     if (res.rowCount === 0) return null;
@@ -123,14 +140,42 @@ export class SalesRepository {
     };
   }
 
-  async restoreProductStock(client: PoolClient, productId: string, newBalance: number) {
+  async restoreProductStock(
+    client: PoolClient,
+    productId: string,
+    newBalance: number,
+  ) {
     return client.query(
-      'UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2',
+      "UPDATE products SET current_stock = $1, updated_at = NOW() WHERE id = $2",
       [newBalance, productId],
     );
   }
 
   // ── Sales ────────────────────────────────────────────────────
+
+  async findClientForSale(
+    client: PoolClient,
+    storeId: string,
+    clientId: string,
+  ) {
+    const res = await client.query(
+      `SELECT id, store_id, name, type, dias_credito, limite_credito
+         FROM clients
+        WHERE id = $1
+          AND store_id = $2
+          AND deleted_at IS NULL
+        FOR SHARE`,
+      [clientId, storeId],
+    );
+    if (res.rowCount !== 1) return null;
+    return {
+      id: res.rows[0].id,
+      name: res.rows[0].name,
+      type: String(res.rows[0].type || "NORMAL").toUpperCase(),
+      creditDays: Number(res.rows[0].dias_credito ?? 8),
+      creditLimit: Number(res.rows[0].limite_credito ?? 0),
+    };
+  }
 
   async insertSale(
     client: PoolClient,
@@ -145,11 +190,18 @@ export class SalesRepository {
       total: number;
       paymentMethod: string;
       externalId?: string;
+      clientId?: string;
+      clientName?: string;
     },
   ) {
     const res = await client.query(
-      `INSERT INTO sales (store_id, cash_shift_id, cashier_id, ticket_number, subtotal, discount, tax, total, payment_method, external_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      `INSERT INTO sales (
+         store_id, cash_shift_id, cashier_id, ticket_number,
+         subtotal, discount, tax, total, payment_method, external_id,
+         client_id, client_name
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       RETURNING *`,
       [
         data.storeId,
         data.cashShiftId,
@@ -161,6 +213,8 @@ export class SalesRepository {
         data.total,
         data.paymentMethod,
         data.externalId ?? null,
+        data.clientId ?? null,
+        data.clientName ?? null,
       ],
     );
     return this.mapper.toSale(res.rows[0]);
@@ -168,19 +222,21 @@ export class SalesRepository {
 
   async findSaleById(id: string, storeId?: string) {
     const params: any[] = [id];
-    let sql = 'SELECT * FROM sales WHERE (id::text = $1 OR ticket_number = $1)';
+    let sql = "SELECT * FROM sales WHERE (id::text = $1 OR ticket_number = $1)";
     if (storeId) {
-      sql += ' AND store_id = $2';
+      sql += " AND store_id = $2";
       params.push(storeId);
     }
-    sql += ' ORDER BY created_at DESC LIMIT 1';
+    sql += " ORDER BY created_at DESC LIMIT 1";
     const res = await this.db.query(sql, params);
     if (res.rowCount === 0) return null;
     return this.mapper.toSale(res.rows[0]);
   }
 
   async findSaleByIdForReturn(client: PoolClient, saleId: string) {
-    const res = await client.query('SELECT * FROM sales WHERE id = $1', [saleId]);
+    const res = await client.query("SELECT * FROM sales WHERE id = $1", [
+      saleId,
+    ]);
     if (res.rowCount === 0) return null;
     return this.mapper.toSale(res.rows[0]);
   }
@@ -244,9 +300,13 @@ export class SalesRepository {
     );
   }
 
-  async findSaleItemPrice(client: PoolClient, saleId: string, productId: string) {
+  async findSaleItemPrice(
+    client: PoolClient,
+    saleId: string,
+    productId: string,
+  ) {
     const res = await client.query(
-      'SELECT product_id, unit_price FROM sale_items WHERE sale_id = $1 AND (product_id = $2 OR id = $2)',
+      "SELECT product_id, unit_price FROM sale_items WHERE sale_id = $1 AND (product_id = $2 OR id = $2)",
       [saleId, productId],
     );
     if (res.rowCount === 0) return null;
@@ -264,7 +324,7 @@ export class SalesRepository {
       storeId: string;
       productId: string;
       userId: string;
-      type: 'IN' | 'OUT';
+      type: "IN" | "OUT";
       quantity: number;
       quantityBulks: number;
       quantityUnits: number;
@@ -330,30 +390,44 @@ export class SalesRepository {
       storeId: string;
       clientId: string;
       saleId: string;
+      invoiceNumber: string;
       totalAmount: number;
-      balance: number;
+      remainingAmount: number;
+      issuedAt: Date | string;
       dueDate: string;
+      creditDaysSnapshot: number;
     },
   ) {
-    return client.query(
-      `INSERT INTO accounts_receivable (store_id, client_id, sale_id, total_amount, balance, due_date)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
+    const res = await client.query(
+      `INSERT INTO accounts_receivable (
+         store_id, client_id, sale_id, invoice_number,
+         total_amount, remaining_amount, issued_at, due_date,
+         credit_days_snapshot, status
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'PENDING')
+       ON CONFLICT (sale_id) WHERE sale_id IS NOT NULL
+       DO UPDATE SET sale_id = EXCLUDED.sale_id
+       RETURNING id`,
       [
         data.storeId,
         data.clientId,
         data.saleId,
+        data.invoiceNumber,
         data.totalAmount,
-        data.balance,
+        data.remainingAmount,
+        data.issuedAt,
         data.dueDate,
+        data.creditDaysSnapshot,
       ],
     );
+    return res.rows[0];
   }
 
   // ── Promotions ───────────────────────────────────────────────
 
   async incrementPromotionUses(client: PoolClient, promoId: string) {
     return client.query(
-      'UPDATE promotions SET current_uses = current_uses + 1 WHERE id = $1',
+      "UPDATE promotions SET current_uses = current_uses + 1 WHERE id = $1",
       [promoId],
     );
   }
@@ -369,62 +443,77 @@ export class SalesRepository {
     limit?: number,
     vendorId?: string,
   ) {
-    let sql = 'SELECT * FROM sales WHERE 1=1';
+    let sql = "SELECT * FROM sales WHERE 1=1";
     const params: any[] = [];
     if (storeId) {
       params.push(storeId);
-      sql += ' AND store_id = $' + params.length;
+      sql += " AND store_id = $" + params.length;
     }
     if (storeIds) {
       const ids = storeIds
-        .split(',')
+        .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
       if (ids.length > 0) {
         const placeholders = ids
           .map((_, i) => `$${params.length + i + 1}`)
-          .join(',');
+          .join(",");
         sql += ` AND store_id IN (${placeholders})`;
         params.push(...ids);
       }
     }
-    if (shiftId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shiftId)) {
+    if (
+      shiftId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        shiftId,
+      )
+    ) {
       params.push(shiftId);
-      sql += ' AND cash_shift_id = $' + params.length;
+      sql += " AND cash_shift_id = $" + params.length;
     }
     if (vendorId) {
       params.push(vendorId);
-      sql += ' AND cashier_id = $' + params.length;
+      sql += " AND cashier_id = $" + params.length;
     }
     if (startDate) {
       params.push(startDate);
-      sql += ' AND created_at >= $' + params.length;
+      sql += " AND created_at >= $" + params.length;
     }
     if (endDate) {
       params.push(endDate);
-      sql += ' AND created_at <= $' + params.length;
+      sql += " AND created_at <= $" + params.length;
     }
-    sql += ' ORDER BY created_at DESC';
+    sql += " ORDER BY created_at DESC";
     if (limit) {
       params.push(limit);
-      sql += ' LIMIT $' + params.length;
+      sql += " LIMIT $" + params.length;
     }
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => this.mapper.toSale(r));
   }
 
-  async getSalesReportTopProducts(storeId: string, startDate: string, endDate: string, shiftId?: string) {
+  async getSalesReportTopProducts(
+    storeId: string,
+    startDate: string,
+    endDate: string,
+    shiftId?: string,
+  ) {
     let sql = `SELECT p.description as name, SUM(si.quantity) as count, SUM(si.subtotal) as total
        FROM sale_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN products p ON si.product_id = p.id
        WHERE s.store_id = $1 AND s.created_at BETWEEN $2 AND $3`;
     const params: any[] = [storeId, startDate, endDate];
-    if (shiftId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shiftId)) {
+    if (
+      shiftId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        shiftId,
+      )
+    ) {
       params.push(shiftId);
-      sql += ' AND s.cash_shift_id = $' + params.length;
+      sql += " AND s.cash_shift_id = $" + params.length;
     }
-    sql += ' GROUP BY p.description ORDER BY total DESC LIMIT 10';
+    sql += " GROUP BY p.description ORDER BY total DESC LIMIT 10";
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => ({
       name: r.name,
@@ -433,16 +522,26 @@ export class SalesRepository {
     }));
   }
 
-  async getSalesReportByMethod(storeId: string, startDate: string, endDate: string, shiftId?: string) {
+  async getSalesReportByMethod(
+    storeId: string,
+    startDate: string,
+    endDate: string,
+    shiftId?: string,
+  ) {
     let sql = `SELECT payment_method, SUM(total) as total, COUNT(*) as count
        FROM sales
        WHERE store_id = $1 AND created_at BETWEEN $2 AND $3`;
     const params: any[] = [storeId, startDate, endDate];
-    if (shiftId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shiftId)) {
+    if (
+      shiftId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        shiftId,
+      )
+    ) {
       params.push(shiftId);
-      sql += ' AND cash_shift_id = $' + params.length;
+      sql += " AND cash_shift_id = $" + params.length;
     }
-    sql += ' GROUP BY payment_method';
+    sql += " GROUP BY payment_method";
     const res = await this.db.query(sql, params);
     return res.rows.map((r) => ({
       method: r.payment_method,

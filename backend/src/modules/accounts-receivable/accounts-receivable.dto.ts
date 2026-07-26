@@ -1,21 +1,47 @@
 import {
+  IsDateString,
+  IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
   IsUUID,
-} from 'class-validator';
+  Max,
+  Min,
+} from "class-validator";
 
 export class CreateAccountReceivableDto {
-  @IsUUID('all')
+  @IsUUID("all")
   storeId!: string;
 
-  @IsUUID('all')
+  @IsUUID("all")
   clientId!: string;
 
-  @IsUUID('all')
+  @IsUUID("all")
   @IsOptional()
   orderId?: string;
+
+  @IsUUID("all")
+  @IsOptional()
+  saleId?: string;
+
+  @IsString()
+  @IsOptional()
+  invoiceNumber?: string;
+
+  @IsDateString()
+  @IsOptional()
+  issuedAt?: string;
+
+  @IsDateString()
+  @IsOptional()
+  dueDate?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(365)
+  @IsOptional()
+  creditDays?: number;
 
   @IsNumber()
   @IsPositive()
@@ -50,4 +76,8 @@ export class AddPaymentDto {
   @IsString()
   @IsOptional()
   vendorName?: string;
+
+  @IsUUID("all")
+  @IsOptional()
+  externalId?: string;
 }

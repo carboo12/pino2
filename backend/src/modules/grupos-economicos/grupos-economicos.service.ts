@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { DatabaseService } from '../../database/database.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { DatabaseService } from "../../database/database.service";
 
 @Injectable()
 export class GruposEconomicosService {
@@ -51,11 +51,11 @@ export class GruposEconomicosService {
 
   async findOne(id: string) {
     const res = await this.db.query(
-      'SELECT * FROM grupos_economicos WHERE id = $1',
+      "SELECT * FROM grupos_economicos WHERE id = $1",
       [id],
     );
     if ((res.rowCount ?? 0) === 0)
-      throw new NotFoundException('Grupo económico no encontrado');
+      throw new NotFoundException("Grupo económico no encontrado");
 
     const grupo = this.mapRow(res.rows[0]);
 
@@ -109,11 +109,11 @@ export class GruposEconomicosService {
     }
 
     if (sets.length === 0) return this.findOne(id);
-    sets.push('updated_at = NOW()');
+    sets.push("updated_at = NOW()");
     params.push(id);
 
     await this.db.query(
-      `UPDATE grupos_economicos SET ${sets.join(', ')} WHERE id = $${idx}`,
+      `UPDATE grupos_economicos SET ${sets.join(", ")} WHERE id = $${idx}`,
       params,
     );
     return this.findOne(id);
@@ -121,7 +121,7 @@ export class GruposEconomicosService {
 
   async remove(id: string) {
     await this.db.query(
-      'UPDATE grupos_economicos SET is_active = false, updated_at = NOW() WHERE id = $1',
+      "UPDATE grupos_economicos SET is_active = false, updated_at = NOW() WHERE id = $1",
       [id],
     );
     return { success: true };
@@ -135,28 +135,30 @@ export class GruposEconomicosService {
     clientId: string,
   ): Promise<{ enMora: boolean; detalle?: string }> {
     const clientRes = await this.db.query(
-      'SELECT grupo_economico_id FROM clients WHERE id = $1',
+      "SELECT grupo_economico_id FROM clients WHERE id = $1",
       [clientId],
     );
-    if (
-      (clientRes.rowCount ?? 0) === 0 ||
-      !clientRes.rows[0].grupo_economico_id
-    ) {
+    if ((clientRes.rowCount ?? 0) === 0) {
       return { enMora: false };
     }
 
-    const grupoId = clientRes.rows[0].grupo_economico_id;
+    const grupoId = clientRes.rows[0].grupo_economico_id || null;
 
     // Check if any client in the group has overdue receivables
     const moraRes = await this.db.query(
-      `SELECT c.name, ar.total_amount, ar.remaining_amount, ar.created_at
+      `SELECT c.name, ar.total_amount, ar.remaining_amount,
+              ar.issued_at, ar.due_date
        FROM accounts_receivable ar
        JOIN clients c ON c.id = ar.client_id
-       WHERE c.grupo_economico_id = $1
-         AND ar.status = 'PENDING'
-         AND ar.created_at < NOW() - INTERVAL '8 days'
+       WHERE (
+         c.id = $1
+         OR ($2::uuid IS NOT NULL AND c.grupo_economico_id = $2::uuid)
+       )
+         AND ar.status IN ('PENDING', 'PARTIAL')
+         AND ar.remaining_amount > 0
+         AND ar.due_date < CURRENT_DATE
        LIMIT 1`,
-      [grupoId],
+      [clientId, grupoId],
     );
 
     if ((moraRes.rowCount ?? 0) > 0) {

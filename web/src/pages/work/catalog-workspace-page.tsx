@@ -26,6 +26,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
+import { normalizeUserRole } from '@/lib/user-role';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
@@ -145,8 +146,8 @@ export default function CatalogWorkspacePage() {
               <Button size="sm" onClick={() => navigate(`/store/${storeId}/products/add`)}>
                 <Plus className="mr-1 h-4 w-4" /> Nuevo
               </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/promotions`)}>
-                Promociones
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/warehouse`)}>
+                <Boxes className="mr-1 h-4 w-4" /> Bodega
               </Button>
               <ScanInput onScan={handleScan} placeholder="Escanear código..." />
             </div>

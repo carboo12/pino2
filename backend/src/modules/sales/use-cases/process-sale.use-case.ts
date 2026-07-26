@@ -4,16 +4,29 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-} from '@nestjs/common';
-import { PoolClient } from 'pg';
-import * as crypto from 'crypto';
-import { DatabaseService } from '../../../database/database.service';
-import { EventsGateway } from '../../../common/gateways/events.gateway';
-import { bulkUnitsToTotal, splitIntoBulkUnits } from '../../../common/utils/stock-display.util';
-import { PromotionsService } from '../../promotions/promotions.service';
-import { SalesRepository } from '../repositories/sales.repository';
+} from "@nestjs/common";
+import { PoolClient } from "pg";
+import * as crypto from "crypto";
+import { DatabaseService } from "../../../database/database.service";
+import { EventsGateway } from "../../../common/gateways/events.gateway";
+import {
+  bulkUnitsToTotal,
+  splitIntoBulkUnits,
+} from "../../../common/utils/stock-display.util";
+import { PromotionsService } from "../../promotions/promotions.service";
+import { SalesRepository } from "../repositories/sales.repository";
 
-const SOURCE_NODE_ID = '00000000-0000-4000-8000-000000000000';
+const SOURCE_NODE_ID = "00000000-0000-4000-8000-000000000000";
+
+function toDateOnly(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function addCalendarDays(dateOnly: string, days: number) {
+  const date = new Date(`${dateOnly}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return toDateOnly(date);
+}
 
 @Injectable()
 export class ProcessSaleUseCase {
@@ -44,6 +57,8 @@ export class ProcessSaleUseCase {
       amountReceived?: number;
       change?: number;
       externalId?: string;
+      creditDaysOverride?: number;
+      dueDateOverride?: string;
     },
     userId: string,
     transactionalClient?: PoolClient,
@@ -53,13 +68,14 @@ export class ProcessSaleUseCase {
     const ticketNumber = dto.ticketNumber || `T-${Date.now()}`;
 
     const executeInTransaction = async (client: PoolClient) => {
-      const operationId = context?.operationId || dto.externalId || crypto.randomUUID();
+      const operationId =
+        context?.operationId || dto.externalId || crypto.randomUUID();
 
       if (!context?.skipInboxClaim) {
         const payloadHash = crypto
-          .createHash('sha256')
+          .createHash("sha256")
           .update(JSON.stringify(dto))
-          .digest('hex')
+          .digest("hex")
           .substring(0, 64);
 
         const claim = await this.salesRepo.claimOperation(
@@ -67,8 +83,8 @@ export class ProcessSaleUseCase {
           dto.storeId,
           operationId,
           SOURCE_NODE_ID,
-          'SALE',
-          'sale',
+          "SALE",
+          "sale",
           dto,
           payloadHash,
         );
@@ -80,15 +96,51 @@ export class ProcessSaleUseCase {
             operationId,
           );
           if (existing && existing.result) {
-            return { ...existing.result, isDuplicate: true, message: 'Operación ya procesada (idempotencia)' };
+            return {
+              ...existing.result,
+              isDuplicate: true,
+              message: "Operación ya procesada (idempotencia)",
+            };
           }
-          return { isDuplicate: true, message: 'OperationId ya registrado' };
+          return { isDuplicate: true, message: "OperationId ya registrado" };
         }
       }
 
-      const shift = await this.salesRepo.findActiveShift(client, cashShiftId, dto.storeId);
-      if (!shift || shift.status !== 'OPEN') {
-        throw new BadRequestException('La caja está inactiva o cerrada');
+      const shift = await this.salesRepo.findActiveShift(
+        client,
+        cashShiftId,
+        dto.storeId,
+      );
+      if (!shift || shift.status !== "OPEN") {
+        throw new BadRequestException("La caja está inactiva o cerrada");
+      }
+
+      const normalizedPaymentMethod = String(dto.paymentMethod || "")
+        .trim()
+        .toUpperCase();
+      const isCredit = normalizedPaymentMethod === "CREDITO";
+
+      if (isCredit && !dto.clientId) {
+        throw new BadRequestException(
+          "Una venta a crédito requiere un cliente",
+        );
+      }
+
+      const saleClient = dto.clientId
+        ? await this.salesRepo.findClientForSale(
+            client,
+            dto.storeId,
+            dto.clientId,
+          )
+        : null;
+
+      if (dto.clientId && !saleClient) {
+        throw new NotFoundException("Cliente no encontrado en esta tienda");
+      }
+      if (isCredit && saleClient?.type !== "CREDITO") {
+        throw new BadRequestException(
+          "El cliente seleccionado no está habilitado para crédito",
+        );
       }
 
       let subtotal = 0;
@@ -108,27 +160,32 @@ export class ProcessSaleUseCase {
       for (const item of dto.items) {
         const productId = item.productId || item.id;
 
-        const product = await this.salesRepo.findProductForUpdate(client, productId, dto.storeId);
+        const product = await this.salesRepo.findProductForUpdate(
+          client,
+          productId,
+          dto.storeId,
+        );
         if (!product) {
-          throw new NotFoundException('Producto no encontrado en la tienda');
+          throw new NotFoundException("Producto no encontrado en la tienda");
         }
 
         const level = 1;
         const unitPrice = Number(product.price1);
         const bulkPrice = Number(product.bulkPrice1);
         if (!Number.isFinite(unitPrice) || unitPrice < 0) {
-          throw new BadRequestException('Precio no configurado');
+          throw new BadRequestException("Precio no configurado");
         }
 
-        const unitsPerBulk = product.unitsPerBulk > 1 ? product.unitsPerBulk : 1;
+        const unitsPerBulk =
+          product.unitsPerBulk > 1 ? product.unitsPerBulk : 1;
         const handlesBulk = product.handlesBulk === true && unitsPerBulk > 1;
 
         const hasBulkUnit =
           item.bulkCount !== undefined || item.looseUnitCount !== undefined;
-        const bulkCount = hasBulkUnit ? item.bulkCount ?? 0 : 0;
+        const bulkCount = hasBulkUnit ? (item.bulkCount ?? 0) : 0;
         const looseUnitCount = hasBulkUnit
-          ? item.looseUnitCount ?? 0
-          : item.quantity ?? 0;
+          ? (item.looseUnitCount ?? 0)
+          : (item.quantity ?? 0);
         const totalUnits = bulkUnitsToTotal(
           bulkCount,
           looseUnitCount,
@@ -152,7 +209,7 @@ export class ProcessSaleUseCase {
             totalUnits,
           );
           if (!updated) {
-            throw new ConflictException('Stock insuficiente');
+            throw new ConflictException("Stock insuficiente");
           }
           currentStock = updated.currentStock;
         }
@@ -174,18 +231,24 @@ export class ProcessSaleUseCase {
       let discount = 0;
       let activePromos: any[] = [];
       if (this.promotionsService) {
-        activePromos = await this.promotionsService.findActivePromotions(dto.storeId);
+        activePromos = await this.promotionsService.findActivePromotions(
+          dto.storeId,
+        );
         for (const promo of activePromos) {
           const promoProductIds: string[] = promo.product_ids || [];
           for (const item of processedItems) {
-            if (promoProductIds.length === 0 || promoProductIds.includes(item.productId)) {
+            if (
+              promoProductIds.length === 0 ||
+              promoProductIds.includes(item.productId)
+            ) {
               const lineSubtotal = item.handlesBulk
-                ? item.bulkCount * item.bulkPrice + item.looseUnitCount * item.unitPrice
+                ? item.bulkCount * item.bulkPrice +
+                  item.looseUnitCount * item.unitPrice
                 : item.quantity * item.unitPrice;
 
-              if (promo.discount_type === 'PERCENTAGE') {
+              if (promo.discount_type === "PERCENTAGE") {
                 discount += lineSubtotal * (Number(promo.discount_value) / 100);
-              } else if (promo.discount_type === 'FIXED_AMOUNT') {
+              } else if (promo.discount_type === "FIXED_AMOUNT") {
                 discount += Number(promo.discount_value);
               }
             }
@@ -208,13 +271,57 @@ export class ProcessSaleUseCase {
         discount,
         tax,
         total,
-        paymentMethod: dto.paymentMethod,
+        paymentMethod: normalizedPaymentMethod,
         externalId: dto.externalId,
+        clientId: saleClient?.id,
+        clientName: saleClient?.name,
       });
+
+      let accountReceivableId: string | null = null;
+      if (isCredit && saleClient) {
+        const configuredDays = Number.isInteger(saleClient.creditDays)
+          ? saleClient.creditDays
+          : 8;
+        const creditDays = Number.isInteger(dto.creditDaysOverride)
+          ? Number(dto.creditDaysOverride)
+          : configuredDays;
+
+        if (creditDays < 0 || creditDays > 365) {
+          throw new BadRequestException(
+            "Los días de crédito deben estar entre 0 y 365",
+          );
+        }
+
+        const issuedAt = sale.createdAt ? new Date(sale.createdAt) : new Date();
+        const issuedDate = toDateOnly(issuedAt);
+        const dueDate = dto.dueDateOverride
+          ? dto.dueDateOverride.slice(0, 10)
+          : addCalendarDays(issuedDate, creditDays);
+
+        if (dueDate < issuedDate) {
+          throw new BadRequestException(
+            "La fecha de vencimiento no puede ser anterior a la venta",
+          );
+        }
+
+        const account = await this.salesRepo.insertAccountReceivable(client, {
+          storeId: dto.storeId,
+          clientId: saleClient.id,
+          saleId: sale.id,
+          invoiceNumber: sale.ticketNumber || ticketNumber,
+          totalAmount: total,
+          remainingAmount: total,
+          issuedAt,
+          dueDate,
+          creditDaysSnapshot: creditDays,
+        });
+        accountReceivableId = account.id;
+      }
 
       for (const item of processedItems) {
         const lineTotal = item.handlesBulk
-          ? item.bulkCount * item.bulkPrice + item.looseUnitCount * item.unitPrice
+          ? item.bulkCount * item.bulkPrice +
+            item.looseUnitCount * item.unitPrice
           : item.quantity * item.unitPrice;
 
         await this.salesRepo.insertSaleItem(client, {
@@ -232,13 +339,16 @@ export class ProcessSaleUseCase {
 
         if (item.usesInventory) {
           const qtySplit = splitIntoBulkUnits(item.quantity, item.unitsPerBulk);
-          const balSplit = splitIntoBulkUnits(item.currentStock, item.unitsPerBulk);
+          const balSplit = splitIntoBulkUnits(
+            item.currentStock,
+            item.unitsPerBulk,
+          );
 
           await this.salesRepo.insertMovement(client, {
             storeId: dto.storeId,
             productId: item.productId,
             userId,
-            type: 'OUT',
+            type: "OUT",
             quantity: item.quantity,
             quantityBulks: qtySplit.bulks,
             quantityUnits: qtySplit.units,
@@ -252,26 +362,33 @@ export class ProcessSaleUseCase {
         }
       }
 
-      if (dto.paymentMethod === 'CASH' || dto.paymentMethod === 'Efectivo') {
+      if (
+        normalizedPaymentMethod === "CASH" ||
+        normalizedPaymentMethod === "EFECTIVO"
+      ) {
         const currentCash = Number.isFinite(shift.actualCash)
           ? shift.actualCash
           : Number.isFinite(shift.startingCash)
             ? shift.startingCash
             : 0;
         const newCash = currentCash + total;
-        await this.salesRepo.updateCashShiftAmount(client, cashShiftId, newCash);
+        await this.salesRepo.updateCashShiftAmount(
+          client,
+          cashShiftId,
+          newCash,
+        );
       }
 
       await this.salesRepo.insertOutboxEvent(client, {
-        aggregateType: 'sale',
+        aggregateType: "sale",
         aggregateId: sale.id,
         storeId: dto.storeId,
-        eventType: 'SALE_COMPLETED',
+        eventType: "SALE_COMPLETED",
         payload: {
           saleId: sale.id,
           ticketNumber: sale.ticketNumber || ticketNumber,
           total,
-          paymentMethod: dto.paymentMethod,
+          paymentMethod: normalizedPaymentMethod,
         },
       });
 
@@ -280,7 +397,7 @@ export class ProcessSaleUseCase {
           client,
           dto.storeId,
           operationId,
-          'PROCESSED',
+          "PROCESSED",
           { saleId: sale.id, total, success: true },
         );
       }
@@ -293,7 +410,9 @@ export class ProcessSaleUseCase {
         total,
         subtotal,
         tax,
-        paymentMethod: dto.paymentMethod,
+        paymentMethod: normalizedPaymentMethod,
+        clientId: saleClient?.id || null,
+        accountReceivableId,
         items: processedItems.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
@@ -303,9 +422,9 @@ export class ProcessSaleUseCase {
           bulkPrice: i.bulkPrice,
           handlesBulk: i.handlesBulk,
         })),
-        clientName: dto.clientName || null,
+        clientName: saleClient?.name || null,
         createdAt: sale.createdAt,
-        message: 'Venta Procesada Satisfactoriamente',
+        message: "Venta Procesada Satisfactoriamente",
       };
     };
 
