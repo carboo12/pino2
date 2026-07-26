@@ -59,31 +59,32 @@ export default function InventoryValuationPage() {
   }, [inventoryProducts, rate]);
 
   const handleExport = () => {
-    const rows = inventoryProducts.map(p => ({
-      'Código': p.barcode || '',
-      'Producto': p.description,
-      'Departamento': p.departmentName || p.department || 'General',
-      'Stock': p.currentStock,
-      'Costo Unit.': p.costPrice.toFixed(2),
-      'Precio Venta': p.salePrice.toFixed(2),
-      'Valor Costo C$': (p.currentStock * p.costPrice).toFixed(2),
-      'Valor Venta C$': (p.currentStock * p.salePrice).toFixed(2),
-      'Valor Costo US$': (p.currentStock * p.costPrice / rate).toFixed(2),
-      'Valor Venta US$': (p.currentStock * p.salePrice / rate).toFixed(2),
-    }));
-    rows.push({
-      'Código': '',
-      'Producto': '── TOTALES ──',
-      'Departamento': '',
-      'Stock': String(totals.totalUnits) as any,
-      'Costo Unit.': '',
-      'Precio Venta': '',
-      'Valor Costo C$': totals.totalCost.toFixed(2),
-      'Valor Venta C$': totals.totalSale.toFixed(2),
-      'Valor Costo US$': totals.totalCostUSD.toFixed(2),
-      'Valor Venta US$': totals.totalSaleUSD.toFixed(2),
-    });
-    exportToExcel(rows, `Inventario_Valorizado_${new Date().toISOString().substring(0,10)}`, 'Valorizado');
+    const headers = ['Código', 'Producto', 'Departamento', 'Stock', 'Costo Unit.', 'Precio Venta', 'Valor Costo C$', 'Valor Venta C$', 'Valor Costo US$', 'Valor Venta US$'];
+    const rows = inventoryProducts.map(p => ([
+      p.barcode || '',
+      p.description,
+      p.departmentName || p.department || 'General',
+      p.currentStock,
+      p.costPrice.toFixed(2),
+      p.salePrice.toFixed(2),
+      (p.currentStock * p.costPrice).toFixed(2),
+      (p.currentStock * p.salePrice).toFixed(2),
+      (p.currentStock * p.costPrice / rate).toFixed(2),
+      (p.currentStock * p.salePrice / rate).toFixed(2),
+    ]));
+    rows.push([
+      '',
+      '── TOTALES ──',
+      '',
+      String(totals.totalUnits) as any,
+      '',
+      '',
+      totals.totalCost.toFixed(2),
+      totals.totalSale.toFixed(2),
+      totals.totalCostUSD.toFixed(2),
+      totals.totalSaleUSD.toFixed(2),
+    ]);
+    exportToExcel(`Inventario_Valorizado_${new Date().toISOString().substring(0,10)}`, headers, rows);
   };
 
   return (

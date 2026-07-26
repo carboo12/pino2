@@ -305,19 +305,18 @@ export default function ReceivablesPage() {
             variant="outline"
             disabled={accounts.length === 0}
             onClick={() => {
-              const rows = accounts.map((a) => ({
-                Cliente: a.clientName || "Sin nombre",
-                Factura: a.invoiceNumber || a.orderId || "N/A",
-                Descripción: a.description || "",
-                Emitida: formatDate(a.issuedAt || a.createdAt),
-                Vence: formatDate(a.dueDate),
-                "Días vencida": a.daysOverdue,
-                Estado: a.status,
-                "Saldo Pendiente": Number(
-                  a.pendingAmount || a.remainingAmount || 0,
-                ).toFixed(2),
-              }));
-              exportToExcel(rows, `Cartera_${selectedDate}`, "Cartera");
+              const headers = ['Cliente', 'Factura', 'Descripción', 'Emitida', 'Vence', 'Días vencida', 'Estado', 'Saldo Pendiente'];
+              const rows = accounts.map((a) => ([
+                a.clientName || "Sin nombre",
+                a.invoiceNumber || a.orderId || "N/A",
+                a.description || "",
+                formatDate(a.issuedAt || a.createdAt),
+                formatDate(a.dueDate),
+                a.daysOverdue,
+                a.status,
+                Number(a.pendingAmount || a.remainingAmount || 0).toFixed(2),
+              ]));
+              exportToExcel(`Cartera_${selectedDate}`, headers, rows);
             }}
           >
             <Download className="mr-2 h-4 w-4" />

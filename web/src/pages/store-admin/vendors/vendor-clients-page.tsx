@@ -404,7 +404,7 @@ export default function VendorClientsPage() {
 
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            <ClientHistoryDialog client={client} storeId={storeId!} />
+                            <ClientHistoryDialog clientId={client.id} clientName={client.name} storeId={storeId!} />
                             <Button
                               size="sm"
                               variant="outline"

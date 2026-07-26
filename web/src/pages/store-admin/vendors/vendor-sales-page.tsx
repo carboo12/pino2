@@ -294,14 +294,15 @@ export default function VendorSalesPage() {
           size="sm"
           disabled={orders.length === 0}
           onClick={() => {
-            const rows = orders.filter(o => o.status !== 'CANCELADO').map(o => ({
-              'Cliente': o.clientName || 'Genérico',
-              'Fecha': format(new Date(o.createdAt), 'dd/MM/yyyy HH:mm'),
-              'Estado': statusLabel[o.status] || o.status,
-              'Pago': o.paymentType || '—',
-              'Total (C$)': Number(o.total).toFixed(2),
-            }));
-            exportToExcel(rows, `Mis_Ventas_${format(new Date(), 'dd-MM-yyyy')}`, 'Ventas');
+            const headers = ['Cliente', 'Fecha', 'Estado', 'Pago', 'Total (C$)'];
+            const rows = orders.filter(o => o.status !== 'CANCELADO').map(o => ([
+              o.clientName || 'Genérico',
+              format(new Date(o.createdAt), 'dd/MM/yyyy HH:mm'),
+              statusLabel[o.status] || o.status,
+              o.paymentType || '—',
+              Number(o.total).toFixed(2),
+            ]));
+            exportToExcel(`Mis_Ventas_${format(new Date(), 'dd-MM-yyyy')}`, headers, rows);
           }}
         >
           <Download className="h-4 w-4 mr-1" />

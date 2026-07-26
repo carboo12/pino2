@@ -177,20 +177,21 @@ export default function ReportsPage() {
               <Button
                 variant="outline"
                 onClick={() => {
+                  const headers = ['Fecha', 'Producto', 'Departamento', 'Cantidad', 'Precio Unit.', 'Total'];
                   const rows = salesData.flatMap(sale =>
-                    sale.items.map(item => ({
-                      'Fecha': format(new Date(sale.createdAt), 'dd/MM/yyyy HH:mm'),
-                      'Producto': item.description,
-                      'Departamento': item.department || 'General',
-                      'Cantidad': item.quantity,
-                      'Precio Unit.': item.salePrice,
-                      'Total': item.quantity * item.salePrice,
-                    }))
+                    sale.items.map(item => ([
+                      format(new Date(sale.createdAt), 'dd/MM/yyyy HH:mm'),
+                      item.description,
+                      item.department || 'General',
+                      item.quantity,
+                      item.salePrice,
+                      item.quantity * item.salePrice,
+                    ]))
                   );
                   const rangeLabel = date?.from && date?.to
                     ? `${format(date.from, 'dd-MM-yyyy')}_${format(date.to, 'dd-MM-yyyy')}`
                     : 'reporte';
-                  exportToExcel(rows, `Ventas_${rangeLabel}`, 'Ventas');
+                  exportToExcel(`Ventas_${rangeLabel}`, headers, rows);
                 }}
               >
                 <Download className="mr-2 h-4 w-4" />
