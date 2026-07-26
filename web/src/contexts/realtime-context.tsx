@@ -29,12 +29,12 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     const namespaceUrl = `${SOCKET_URL}/events`.replace(/\/\//g, '/').replace(':/', '://');
 
     const socket = io(namespaceUrl, {
-      transports: ['websocket'],
+      transports: ['polling', 'websocket'],
       autoConnect: true,
       path: SOCKET_PATH,
       auth: { token },
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
     });
 
     socket.on('connect', () => setConnected(true));
@@ -45,7 +45,11 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     socketRef.current = socket;
 
     return () => {
-      socket.close();
+      if (socket.connected) {
+        socket.disconnect();
+      } else {
+        socket.off();
+      }
       socketRef.current = null;
     };
   }, []);

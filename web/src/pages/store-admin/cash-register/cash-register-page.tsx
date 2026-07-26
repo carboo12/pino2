@@ -161,9 +161,15 @@ export default function CashRegisterPage() {
   const { data: activeShift = null, isLoading: loadingShift } = useQuery({
     queryKey: ['cash-shifts', 'active', storeId, user?.id],
     queryFn: async () => {
-      const response = await apiClient.get(`/cash-shifts/active?storeId=${storeId}&userId=${user?.id}`);
-      return response.data as CashShift | null;
+      try {
+        const response = await apiClient.get(`/cash-shifts/active?storeId=${storeId}&userId=${user?.id}`);
+        return response.data as CashShift | null;
+      } catch (err: any) {
+        if (err?.response?.status === 404) return null;
+        throw err;
+      }
     },
+    retry: false,
     enabled: !!storeId && !!user?.id,
   });
 
