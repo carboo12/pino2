@@ -139,6 +139,7 @@ export interface ProductOption {
   unitsPerBulk?: number;
   unitType?: string;
   brand?: string;
+  supplierId?: string;
 }
 
 function cleanParams(
