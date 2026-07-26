@@ -401,7 +401,7 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
     );
   }
 
-  Widget _buildRecentOrderRow(String client, String ammount, String time, bool synced) {
+  Widget _buildRecentOrderRow(String client, String amount, String time, bool synced) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -445,7 +445,7 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                ammount,
+                amount,
                 style: const TextStyle(
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF047857),
