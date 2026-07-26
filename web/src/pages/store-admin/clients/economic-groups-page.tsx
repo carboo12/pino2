@@ -19,7 +19,7 @@ export default function EconomicGroupsPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const res = await apiClient.get(`/grupos-economicos`);
+      const res = await apiClient.get('/grupos-economicos', { params: { storeId } });
       setGroups(res.data);
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
@@ -34,7 +34,17 @@ export default function EconomicGroupsPage() {
 
   const handleSubmit = async () => {
     try {
-      await apiClient.post('/grupos-economicos', formData);
+      await apiClient.post('/grupos-economicos', {
+        storeId,
+        nombre: formData.name,
+        limiteCreditoGlobal: formData.limiteCreditoGlobal,
+        notas: [
+          formData.nit ? `NIT: ${formData.nit}` : '',
+          formData.representanteLegal
+            ? `Representante legal: ${formData.representanteLegal}`
+            : '',
+        ].filter(Boolean).join(' · ') || undefined,
+      });
       toast({ title: 'Grupo económico creado' });
       setIsOpen(false);
       setFormData({ name: '', nit: '', representanteLegal: '', limiteCreditoGlobal: 0 });

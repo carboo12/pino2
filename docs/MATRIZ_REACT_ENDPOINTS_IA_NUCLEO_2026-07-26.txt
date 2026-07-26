@@ -1,21 +1,23 @@
 MATRIZ REACT <-> ENDPOINTS NESTJS - IA-NUCLEO
-Generado: 2026-07-26T06:19:57.991Z
+Generado: 2026-07-26T06:45:11.458Z
 Alcance: inventario estático completo; no ejecuta operaciones ni modifica datos.
 
 RESUMEN
-- Rutas React detectadas: 84
-- Archivos de página detectados: 94
+- Rutas React detectadas: 85
+- Archivos de página detectados: 95
 - Páginas sin ruta directa: 15
 - Endpoints NestJS detectados: 229
-- Llamadas API literales/dinámicas detectadas: 307
+- Llamadas API literales/dinámicas detectadas: 310
 - Llamadas con endpoint inexistente: 0
 - Llamadas con método incompatible: 0
-- Llamadas dinámicas a revisar: 3
+- Wrappers genéricos revisados: 3
+- Llamadas dinámicas a revisar: 0
 
 REGLA DE LECTURA
 - OK: método y ruta compatibles con un controlador NestJS.
 - ENDPOINT_NO_EXISTE: no hay ruta estructural equivalente.
 - METODO_INCOMPATIBLE: existe la ruta, pero no el verbo HTTP usado.
+- GENERICO_REVISADO: wrapper intencional cuya URL la define el consumidor.
 - REVISAR_DINAMICO: la URL no es literal y requiere inspección manual.
 - SIN_LLAMADAS: la página puede ser visual, usar contexto o depender de un hijo no resuelto.
 
@@ -70,12 +72,18 @@ Página: web/src/pages/store-admin/products/add-product-page.tsx
   [OK] GET /suppliers <- web/src/hooks/queries.ts:80
   [OK] GET /cash-shifts/active <- web/src/hooks/queries.ts:88
   [OK] GET /departments <- web/src/hooks/queries.ts:96
-  [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
+  [GENERICO_REVISADO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.7 /store/:storeId/products/edit/:productId
+A.7 /store/:storeId/products/import
+Componente: ImportProductsPage
+Página: web/src/pages/store-admin/products/import-products-page.tsx
+  [OK] POST /products/import/preview <- web/src/pages/store-admin/products/import-products-page.tsx:65
+  [OK] POST /products/import <- web/src/pages/store-admin/products/import-products-page.tsx:102
+
+A.8 /store/:storeId/products/edit/:productId
 Componente: EditProductPage
 Página: web/src/pages/store-admin/products/edit-product-page.tsx
   [OK] GET /products/:param <- web/src/pages/store-admin/products/edit-product-page.tsx:170
@@ -92,13 +100,13 @@ Página: web/src/pages/store-admin/products/edit-product-page.tsx
   [OK] GET /suppliers <- web/src/hooks/queries.ts:80
   [OK] GET /cash-shifts/active <- web/src/hooks/queries.ts:88
   [OK] GET /departments <- web/src/hooks/queries.ts:96
-  [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
+  [GENERICO_REVISADO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
   [OK] GET /products/:param/barcodes <- web/src/pages/store-admin/products/alternative-barcodes.tsx:31
   [OK] POST /products/:param/barcodes <- web/src/pages/store-admin/products/alternative-barcodes.tsx:52
   [OK] DELETE /products/barcodes/:param <- web/src/pages/store-admin/products/alternative-barcodes.tsx:69
   [OK] PATCH /products/barcodes/:param/primary <- web/src/pages/store-admin/products/alternative-barcodes.tsx:79
 
-A.8 /store/:storeId/products/departments
+A.9 /store/:storeId/products/departments
 Componente: DepartmentsPage
 Página: web/src/pages/store-admin/products/departments-page.tsx
   [OK] GET /departments <- web/src/pages/store-admin/products/departments-page.tsx:63
@@ -107,7 +115,7 @@ Página: web/src/pages/store-admin/products/departments-page.tsx
   [OK] PATCH /departments/:param <- web/src/pages/store-admin/products/departments-page.tsx:131
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
 
-A.9 /store/:storeId/products/sub-departments
+A.10 /store/:storeId/products/sub-departments
 Componente: SubDepartmentsPage
 Página: web/src/pages/store-admin/products/sub-departments-page.tsx
   [OK] GET /departments <- web/src/pages/store-admin/products/sub-departments-page.tsx:82
@@ -117,31 +125,31 @@ Página: web/src/pages/store-admin/products/sub-departments-page.tsx
   [OK] DELETE /departments/:param <- web/src/pages/store-admin/products/sub-departments-page.tsx:150
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
 
-A.10 /store/:storeId/users
+A.11 /store/:storeId/users
 Componente: UsersPage
 Página: web/src/pages/store-admin/users/users-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/users/users-page.tsx:36
   [OK] DELETE /users/:param <- web/src/pages/store-admin/users/users-page.tsx:110
 
-A.11 /store/:storeId/users/add
+A.12 /store/:storeId/users/add
 Componente: AddUserPage
 Página: web/src/pages/store-admin/users/add-user-page.tsx
   [OK] GET /stores <- web/src/pages/store-admin/users/add-user-page.tsx:98
   [OK] POST /auth/register <- web/src/pages/store-admin/users/add-user-page.tsx:118
 
-A.12 /store/:storeId/users/edit/:userId
+A.13 /store/:storeId/users/edit/:userId
 Componente: EditUserPage
 Página: web/src/pages/store-admin/users/edit-user-page.tsx
   [OK] GET /users/:param <- web/src/pages/store-admin/users/edit-user-page.tsx:100
   [OK] PATCH /users/:param <- web/src/pages/store-admin/users/edit-user-page.tsx:126
 
-A.13 /store/:storeId/inventory/movements
+A.14 /store/:storeId/inventory/movements
 Componente: InventoryMovementsPage
 Página: web/src/pages/store-admin/inventory/inventory-movements-page.tsx
   [OK] GET /inventory/movements <- web/src/pages/store-admin/inventory/inventory-movements-page.tsx:79
   [OK] GET /stores/:param <- web/src/components/printable-ticket.tsx:38
 
-A.14 /store/:storeId/inventory/adjustments
+A.15 /store/:storeId/inventory/adjustments
 Componente: InventoryAdjustmentsPage
 Página: web/src/pages/store-admin/inventory/inventory-adjustments-page.tsx
   [OK] GET /products <- web/src/pages/store-admin/inventory/inventory-adjustments-page.tsx:68
@@ -155,12 +163,12 @@ Página: web/src/pages/store-admin/inventory/inventory-adjustments-page.tsx
   [OK] GET /suppliers <- web/src/hooks/queries.ts:80
   [OK] GET /cash-shifts/active <- web/src/hooks/queries.ts:88
   [OK] GET /departments <- web/src/hooks/queries.ts:96
-  [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
+  [GENERICO_REVISADO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.15 /store/:storeId/inventory/entry
+A.16 /store/:storeId/inventory/entry
 Componente: InventoryEntryPage
 Página: web/src/pages/store-admin/inventory/inventory-entry-page.tsx
   [OK] GET /stores <- web/src/pages/store-admin/inventory/inventory-entry-page.tsx:79
@@ -174,24 +182,24 @@ Página: web/src/pages/store-admin/inventory/inventory-entry-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.16 /store/:storeId/suppliers
+A.17 /store/:storeId/suppliers
 Componente: SuppliersPage
 Página: web/src/pages/store-admin/suppliers/suppliers-page.tsx
   [OK] GET /suppliers <- web/src/pages/store-admin/suppliers/suppliers-page.tsx:46
   [OK] DELETE /suppliers/:param <- web/src/pages/store-admin/suppliers/suppliers-page.tsx:56
 
-A.17 /store/:storeId/suppliers/add
+A.18 /store/:storeId/suppliers/add
 Componente: AddSupplierPage
 Página: web/src/pages/store-admin/suppliers/add-supplier-page.tsx
   [OK] POST /suppliers <- web/src/pages/store-admin/suppliers/add-supplier-page.tsx:46
 
-A.18 /store/:storeId/suppliers/edit/:supplierId
+A.19 /store/:storeId/suppliers/edit/:supplierId
 Componente: EditSupplierPage
 Página: web/src/pages/store-admin/suppliers/edit-supplier-page.tsx
   [OK] GET /suppliers/:param <- web/src/pages/store-admin/suppliers/edit-supplier-page.tsx:46
   [OK] PATCH /suppliers/:param <- web/src/pages/store-admin/suppliers/edit-supplier-page.tsx:68
 
-A.19 /store/:storeId/suppliers/invoice
+A.20 /store/:storeId/suppliers/invoice
 Componente: SupplierInvoicesPage
 Página: web/src/pages/store-admin/suppliers/supplier-invoices-page.tsx
   [OK] POST /suppliers <- web/src/pages/store-admin/suppliers/supplier-invoices-page.tsx:187
@@ -214,39 +222,39 @@ Página: web/src/pages/store-admin/suppliers/supplier-invoices-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.20 /store/:storeId/routes
+A.21 /store/:storeId/routes
 Componente: RoutesListPage
 Página: web/src/pages/store-admin/routes/routes-list-page.tsx
   [OK] GET /routes <- web/src/pages/store-admin/routes/routes-list-page.tsx:52
 
-A.21 /store/:storeId/routes/create
+A.22 /store/:storeId/routes/create
 Componente: RouteFormPage
 Página: web/src/pages/store-admin/routes/route-form-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/routes/route-form-page.tsx:32
   [OK] GET /clients <- web/src/pages/store-admin/routes/route-form-page.tsx:33
   [OK] POST /routes <- web/src/pages/store-admin/routes/route-form-page.tsx:62
 
-A.22 /store/:storeId/routes/:routeId
+A.23 /store/:storeId/routes/:routeId
 Componente: RouteDetailPage
 Página: web/src/pages/store-admin/routes/route-detail-page.tsx
   [OK] GET /routes/:param <- web/src/pages/store-admin/routes/route-detail-page.tsx:44
   [OK] GET /users <- web/src/pages/store-admin/routes/route-detail-page.tsx:45
   [OK] PATCH /routes/:param <- web/src/pages/store-admin/routes/route-detail-page.tsx:65
 
-A.23 /store/:storeId/cargas
+A.24 /store/:storeId/cargas
 Componente: CargasPage
 Página: web/src/pages/store-admin/routes/cargas-page.tsx
   [OK] GET /cargas-camion <- web/src/pages/store-admin/routes/cargas-page.tsx:49
   [OK] PUT /cargas-camion/:param/confirm-load <- web/src/pages/store-admin/routes/cargas-page.tsx:59
   [OK] PUT /cargas-camion/:param/salida <- web/src/pages/store-admin/routes/cargas-page.tsx:69
 
-A.24 /store/:storeId/liquidaciones
+A.25 /store/:storeId/liquidaciones
 Componente: SettlementPage
 Página: web/src/pages/store-admin/routes/settlement-page.tsx
   [OK] GET /liquidaciones-ruta <- web/src/pages/store-admin/routes/settlement-page.tsx:56
   [OK] POST /liquidaciones-ruta/:param/:param <- web/src/pages/store-admin/routes/settlement-page.tsx:86
 
-A.25 /store/:storeId/cash-register
+A.26 /store/:storeId/cash-register
 Componente: CashRegisterPage
 Página: web/src/pages/store-admin/cash-register/cash-register-page.tsx
   [OK] GET /sales/report <- web/src/pages/store-admin/cash-register/cash-register-page.tsx:123
@@ -266,21 +274,21 @@ Página: web/src/pages/store-admin/cash-register/cash-register-page.tsx
   [OK] GET /suppliers <- web/src/hooks/queries.ts:80
   [OK] GET /cash-shifts/active <- web/src/hooks/queries.ts:88
   [OK] GET /departments <- web/src/hooks/queries.ts:96
-  [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
+  [GENERICO_REVISADO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
 
-A.26 /store/:storeId/authorizations
+A.27 /store/:storeId/authorizations
 Componente: AuthorizationsPage
 Página: web/src/pages/store-admin/authorizations/authorizations-page.tsx
   [OK] GET /authorizations <- web/src/pages/store-admin/authorizations/authorizations-page.tsx:37
   [OK] PATCH /authorizations/:param/status <- web/src/pages/store-admin/authorizations/authorizations-page.tsx:58
 
-A.27 /store/:storeId/pending-orders
+A.28 /store/:storeId/pending-orders
 Componente: PendingOrdersPage
 Página: web/src/pages/store-admin/pending-orders/pending-orders-page.tsx
   [OK] GET /pending-orders <- web/src/pages/store-admin/pending-orders/pending-orders-page.tsx:53
   [OK] PATCH /pending-orders/:param/status <- web/src/pages/store-admin/pending-orders/pending-orders-page.tsx:65
 
-A.28 /store/:storeId/dispatcher
+A.29 /store/:storeId/dispatcher
 Componente: DispatcherPage
 Página: web/src/pages/store-admin/dispatcher/dispatcher-page.tsx
   [OK] GET /stores/:param <- web/src/pages/store-admin/dispatcher/dispatcher-page.tsx:42
@@ -293,7 +301,7 @@ Página: web/src/pages/store-admin/dispatcher/dispatcher-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.29 /store/:storeId/warehouse
+A.30 /store/:storeId/warehouse
 Componente: WarehouseDashboardPage
 Página: web/src/pages/store-admin/warehouse/warehouse-dashboard-page.tsx
   [OK] GET /orders <- web/src/pages/store-admin/warehouse/warehouse-dashboard-page.tsx:77
@@ -303,7 +311,7 @@ Página: web/src/pages/store-admin/warehouse/warehouse-dashboard-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.30 /store/:storeId/control-tower
+A.31 /store/:storeId/control-tower
 Componente: ControlTowerPage
 Página: web/src/pages/store-admin/control-tower/control-tower-page.tsx
   [OK] GET /pending-orders <- web/src/pages/store-admin/control-tower/control-tower-page.tsx:39
@@ -314,7 +322,7 @@ Página: web/src/pages/store-admin/control-tower/control-tower-page.tsx
   [OK] GET /sync/idempotency-logs <- web/src/pages/store-admin/control-tower/control-tower-page.tsx:44
   [OK] GET /orders <- web/src/pages/store-admin/control-tower/control-tower-page.tsx:45
 
-A.31 /store/:storeId/delivery-route
+A.32 /store/:storeId/delivery-route
 Componente: DeliveryRoutePage
 Página: web/src/pages/store-admin/delivery-route/delivery-route-page.tsx
   [OK] GET /pending-deliveries <- web/src/pages/store-admin/delivery-route/delivery-route-page.tsx:30
@@ -322,7 +330,7 @@ Página: web/src/pages/store-admin/delivery-route/delivery-route-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.32 /store/:storeId/finance/receivables
+A.33 /store/:storeId/finance/receivables
 Componente: ReceivablesPage
 Página: web/src/pages/store-admin/finance/receivables-page.tsx
   [OK] GET /accounts-receivable <- web/src/services/finance-service.ts:149
@@ -342,12 +350,12 @@ Página: web/src/pages/store-admin/finance/receivables-page.tsx
   [OK] GET /suppliers <- web/src/services/finance-service.ts:290
   [OK] GET /products <- web/src/services/finance-service.ts:297
 
-A.33 /store/:storeId/finance/aging
+A.34 /store/:storeId/finance/aging
 Componente: AgingReportPage
 Página: web/src/pages/store-admin/finance/aging-report-page.tsx
   [OK] GET /accounts-receivable <- web/src/pages/store-admin/finance/aging-report-page.tsx:62
 
-A.34 /store/:storeId/finance/payables
+A.35 /store/:storeId/finance/payables
 Componente: PayablesPage
 Página: web/src/pages/store-admin/finance/payables-page.tsx
   [OK] GET /accounts-receivable <- web/src/services/finance-service.ts:149
@@ -369,17 +377,17 @@ Página: web/src/pages/store-admin/finance/payables-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.35 /store/:storeId/vendors
+A.36 /store/:storeId/vendors
 Componente: VendorsPage
 Página: web/src/pages/store-admin/vendors/vendors-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/vendors/vendors-page.tsx:25
 
-A.36 /store/:storeId/vendors/add
+A.37 /store/:storeId/vendors/add
 Componente: AddVendorPage
 Página: web/src/pages/store-admin/vendors/add-vendor-page.tsx
   [OK] POST /users <- web/src/pages/store-admin/vendors/add-vendor-page.tsx:34
 
-A.37 /store/:storeId/vendors/dashboard
+A.38 /store/:storeId/vendors/dashboard
 Componente: VendorDashboardPage
 Página: web/src/pages/store-admin/vendors/vendor-dashboard-page.tsx
   [OK] GET /stores/:param <- web/src/pages/store-admin/vendors/vendor-dashboard-page.tsx:45
@@ -389,7 +397,7 @@ Página: web/src/pages/store-admin/vendors/vendor-dashboard-page.tsx
   [OK] POST /visit-logs <- web/src/pages/store-admin/vendors/vendor-dashboard-page.tsx:90
   [OK] GET /visit-logs <- web/src/pages/store-admin/vendors/vendor-dashboard-page.tsx:93
 
-A.38 /store/:storeId/vendors/zones
+A.39 /store/:storeId/vendors/zones
 Componente: VendorZonesPage
 Página: web/src/pages/store-admin/vendors/vendor-zones-page.tsx
   [OK] GET /store-zones <- web/src/pages/store-admin/vendors/vendor-zones-page.tsx:28
@@ -397,7 +405,7 @@ Página: web/src/pages/store-admin/vendors/vendor-zones-page.tsx
   [OK] POST /store-zones <- web/src/pages/store-admin/vendors/vendor-zones-page.tsx:37
   [OK] DELETE /store-zones/:param <- web/src/pages/store-admin/vendors/vendor-zones-page.tsx:43
 
-A.39 /store/:storeId/vendors/clients
+A.40 /store/:storeId/vendors/clients
 Componente: VendorClientsPage
 Página: web/src/pages/store-admin/vendors/vendor-clients-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/vendors/vendor-clients-page.tsx:46
@@ -409,7 +417,7 @@ Página: web/src/pages/store-admin/vendors/vendor-clients-page.tsx
   [OK] POST /clients <- web/src/components/pos/add-client-dialog.tsx:60
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
 
-A.40 /store/:storeId/vendors/collections
+A.41 /store/:storeId/vendors/collections
 Componente: VendorCollectionsPage
 Página: web/src/pages/store-admin/vendors/vendor-collections-page.tsx
   [OK] GET /accounts-receivable <- web/src/pages/store-admin/vendors/vendor-collections-page.tsx:66
@@ -417,7 +425,7 @@ Página: web/src/pages/store-admin/vendors/vendor-collections-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.41 /store/:storeId/vendors/inventory
+A.42 /store/:storeId/vendors/inventory
 Componente: VendorInventoryPage
 Página: web/src/pages/store-admin/vendors/vendor-inventory-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/vendors/vendor-inventory-page.tsx:38
@@ -427,7 +435,7 @@ Página: web/src/pages/store-admin/vendors/vendor-inventory-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.42 /store/:storeId/vendors/quick-sale
+A.43 /store/:storeId/vendors/quick-sale
 Componente: VendorQuickSalePage
 Página: web/src/pages/store-admin/vendors/vendor-quick-sale-page.tsx
   [OK] GET /stores/:param <- web/src/pages/store-admin/vendors/vendor-quick-sale-page.tsx:54
@@ -441,7 +449,7 @@ Página: web/src/pages/store-admin/vendors/vendor-quick-sale-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.43 /store/:storeId/vendors/sales
+A.44 /store/:storeId/vendors/sales
 Componente: VendorSalesPage
 Página: web/src/pages/store-admin/vendors/vendor-sales-page.tsx
   [OK] GET /orders <- web/src/pages/store-admin/vendors/vendor-sales-page.tsx:113
@@ -453,18 +461,18 @@ Página: web/src/pages/store-admin/vendors/vendor-sales-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.44 /store/:storeId/vendors/assign-route
+A.45 /store/:storeId/vendors/assign-route
 Componente: AssignRoutePage
 Página: web/src/pages/store-admin/vendors/assign-route-page.tsx
   [OK] GET /pending-deliveries <- web/src/pages/store-admin/vendors/assign-route-page.tsx:39
   [OK] GET /users <- web/src/pages/store-admin/vendors/assign-route-page.tsx:40
   [OK] POST /pending-deliveries/assign-route <- web/src/pages/store-admin/vendors/assign-route-page.tsx:66
-  [OK] GET /pending-deliveries <- web/src/pages/store-admin/vendors/assign-route-page.tsx:77
+  [OK] GET /pending-deliveries <- web/src/pages/store-admin/vendors/assign-route-page.tsx:74
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
 
-A.45 /store/:storeId/vendors/routes
+A.46 /store/:storeId/vendors/routes
 Componente: VendorRoutesPage
 Página: web/src/pages/store-admin/vendors/vendor-routes-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/vendors/vendor-routes-page.tsx:70
@@ -476,7 +484,7 @@ Página: web/src/pages/store-admin/vendors/vendor-routes-page.tsx
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
   [OK] POST /errors <- web/src/lib/error-logger.ts:24
 
-A.46 /store/:storeId/vendors/returns
+A.47 /store/:storeId/vendors/returns
 Componente: VendorReturnsPage
 Página: web/src/pages/store-admin/vendors/vendor-returns-page.tsx
   [OK] GET /vendor-inventories/:param <- web/src/pages/store-admin/vendors/vendor-returns-page.tsx:81
@@ -484,7 +492,7 @@ Página: web/src/pages/store-admin/vendors/vendor-returns-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.47 /store/:storeId/daily-closing
+A.48 /store/:storeId/daily-closing
 Componente: RuteroDailyClosingPage
 Página: web/src/pages/store-admin/delivery-route/rutero-daily-closing-page.tsx
   [OK] GET /pending-deliveries <- web/src/pages/store-admin/delivery-route/rutero-daily-closing-page.tsx:73
@@ -495,23 +503,23 @@ Página: web/src/pages/store-admin/delivery-route/rutero-daily-closing-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.48 /store/:storeId/daily-closings
+A.49 /store/:storeId/daily-closings
 Componente: AdminDailyClosingsPage
 Página: web/src/pages/store-admin/reports/admin-daily-closings-page.tsx
   [OK] GET /daily-closings <- web/src/pages/store-admin/reports/admin-daily-closings-page.tsx:66
 
-A.49 /store/:storeId/orders-pipeline
+A.50 /store/:storeId/orders-pipeline
 Componente: OrdersPipelinePage
 Página: web/src/pages/store-admin/pending-orders/orders-pipeline-page.tsx
   [OK] GET /orders <- web/src/pages/store-admin/pending-orders/orders-pipeline-page.tsx:82
 
-A.50 /store/:storeId/work
+A.51 /store/:storeId/work
 Componente: WorkHomePage
 Página: web/src/pages/work/work-home-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.51 /store/:storeId/work/cash
+A.52 /store/:storeId/work/cash
 Componente: CashWorkspacePage
 Página: web/src/pages/work/cash-workspace-page.tsx
   [OK] GET /cash-shifts/active <- web/src/pages/work/cash-workspace-page.tsx:66
@@ -527,7 +535,7 @@ Página: web/src/pages/work/cash-workspace-page.tsx
   [OK] GET /clients <- web/src/components/pos/client-selection-dialog.tsx:50
   [OK] GET /products <- web/src/components/pos/product-search.tsx:50
 
-A.52 /store/:storeId/work/warehouse
+A.53 /store/:storeId/work/warehouse
 Componente: WarehouseWorkspacePage
 Página: web/src/pages/work/warehouse-workspace-page.tsx
   [OK] GET /orders <- web/src/pages/work/warehouse-workspace-page.tsx:105
@@ -537,12 +545,12 @@ Página: web/src/pages/work/warehouse-workspace-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.53 /store/:storeId/work/sales
+A.54 /store/:storeId/work/sales
 Componente: SalesWorkspacePage
 Página: web/src/pages/work/sales-workspace-page.tsx
   [OK] GET /clients <- web/src/pages/work/sales-workspace-page.tsx:51
 
-A.54 /store/:storeId/work/finance
+A.55 /store/:storeId/work/finance
 Componente: FinanceWorkspacePage
 Página: web/src/pages/work/finance-workspace-page.tsx
   [OK] GET /accounts-receivable <- web/src/pages/work/finance-workspace-page.tsx:96
@@ -565,7 +573,7 @@ Página: web/src/pages/work/finance-workspace-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.55 /store/:storeId/work/catalog
+A.56 /store/:storeId/work/catalog
 Componente: CatalogWorkspacePage
 Página: web/src/pages/work/catalog-workspace-page.tsx
   [OK] GET /products <- web/src/pages/work/catalog-workspace-page.tsx:69
@@ -576,7 +584,7 @@ Página: web/src/pages/work/catalog-workspace-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.56 /store/:storeId/work/admin
+A.57 /store/:storeId/work/admin
 Componente: AdminControlCenterPage
 Página: web/src/pages/work/admin-control-center-page.tsx
   [OK] GET /authorizations <- web/src/pages/work/admin-control-center-page.tsx:59
@@ -586,101 +594,101 @@ Página: web/src/pages/work/admin-control-center-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.57 /store/:storeId/dispatch
+A.58 /store/:storeId/dispatch
 Componente: DispatchPage
 Página: web/src/pages/store-admin/dispatch/dispatch-page.tsx
   [OK] GET /orders <- web/src/pages/store-admin/dispatch/dispatch-page.tsx:38
   [OK] GET /users <- web/src/pages/store-admin/dispatch/dispatch-page.tsx:39
   [OK] POST /cargas-camion <- web/src/pages/store-admin/dispatch/dispatch-page.tsx:68
 
-A.58 /store/:storeId/dispatch/cargas
+A.59 /store/:storeId/dispatch/cargas
 Componente: DispatchCargasPage
 Página: web/src/pages/store-admin/dispatch/dispatch-cargas-page.tsx
   [OK] GET /cargas-camion <- web/src/pages/store-admin/dispatch/dispatch-cargas-page.tsx:32
   [OK] GET /cargas-camion/:param <- web/src/pages/store-admin/dispatch/dispatch-cargas-page.tsx:47
   [OK] PUT /cargas-camion/:param/salida <- web/src/pages/store-admin/dispatch/dispatch-cargas-page.tsx:57
 
-A.59 /store/:storeId/authorizations/prices
+A.60 /store/:storeId/authorizations/prices
 Componente: PriceAuthPage
 Página: web/src/pages/store-admin/authorizations/price-auth-page.tsx
   [OK] GET /orders <- web/src/pages/store-admin/authorizations/price-auth-page.tsx:28
   [OK] GET /orders/:param <- web/src/pages/store-admin/authorizations/price-auth-page.tsx:32
   [OK] POST /orders/:param/autorizar <- web/src/pages/store-admin/authorizations/price-auth-page.tsx:55
 
-A.60 /store/:storeId/clients/groups
+A.61 /store/:storeId/clients/groups
 Componente: ClientGroupsPage
 Página: web/src/pages/store-admin/clients/client-groups-page.tsx
   [OK] GET /grupos-clientes <- web/src/pages/store-admin/clients/client-groups-page.tsx:21
   [OK] DELETE /grupos-clientes/:param <- web/src/pages/store-admin/clients/client-groups-page.tsx:32
   [OK] POST /grupos-clientes <- web/src/pages/store-admin/clients/client-groups-page.tsx:42
 
-A.61 /store/:storeId/clients/economic-groups
+A.62 /store/:storeId/clients/economic-groups
 Componente: EconomicGroupsPage
 Página: web/src/pages/store-admin/clients/economic-groups-page.tsx
   [OK] GET /grupos-economicos <- web/src/pages/store-admin/clients/economic-groups-page.tsx:22
   [OK] POST /grupos-economicos <- web/src/pages/store-admin/clients/economic-groups-page.tsx:37
 
-A.62 /store/:storeId/clients/reassign
+A.63 /store/:storeId/clients/reassign
 Componente: ClientReassignPage
 Página: web/src/pages/store-admin/clients/client-reassign-page.tsx
   [OK] GET /users <- web/src/pages/store-admin/clients/client-reassign-page.tsx:22
   [OK] GET /clients <- web/src/pages/store-admin/clients/client-reassign-page.tsx:36
   [OK] POST /clients/:param/reasignar <- web/src/pages/store-admin/clients/client-reassign-page.tsx:62
 
-A.63 /store/:storeId/finance/arqueo
+A.64 /store/:storeId/finance/arqueo
 Componente: ArqueosPage
 Página: web/src/pages/store-admin/finance/arqueos-page.tsx
-  [OK] GET /users <- web/src/pages/store-admin/finance/arqueos-page.tsx:37
-  [OK] GET /daily-closings/summary <- web/src/pages/store-admin/finance/arqueos-page.tsx:56
-  [OK] GET /sales <- web/src/pages/store-admin/finance/arqueos-page.tsx:63
-  [OK] POST /arqueos <- web/src/pages/store-admin/finance/arqueos-page.tsx:86
+  [OK] GET /users <- web/src/pages/store-admin/finance/arqueos-page.tsx:38
+  [OK] GET /daily-closings/summary <- web/src/pages/store-admin/finance/arqueos-page.tsx:57
+  [OK] GET /sales <- web/src/pages/store-admin/finance/arqueos-page.tsx:64
+  [OK] POST /arqueos <- web/src/pages/store-admin/finance/arqueos-page.tsx:87
 
-A.64 /store/:storeId/finance/liquidation-route
+A.65 /store/:storeId/finance/liquidation-route
 Componente: LiquidationRoutePage
 Página: web/src/pages/store-admin/finance/liquidation-route-page.tsx
   [OK] GET /liquidaciones-ruta <- web/src/pages/store-admin/routes/settlement-page.tsx:56
   [OK] POST /liquidaciones-ruta/:param/:param <- web/src/pages/store-admin/routes/settlement-page.tsx:86
 
-A.65 /store/:storeId/reports/valuation
+A.66 /store/:storeId/reports/valuation
 Componente: InventoryValuationPage
 Página: web/src/pages/store-admin/reports/inventory-valuation-page.tsx
   [OK] GET /products <- web/src/pages/store-admin/reports/inventory-valuation-page.tsx:34
 
-A.66 /store/:storeId/purchase-orders
+A.67 /store/:storeId/purchase-orders
 Componente: PurchaseOrdersPage
 Página: web/src/pages/store-admin/purchase-orders/purchase-orders-page.tsx
   [OK] GET /purchase-orders <- web/src/pages/store-admin/purchase-orders/purchase-orders-page.tsx:31
   [OK] PATCH /purchase-orders/:param/status <- web/src/pages/store-admin/purchase-orders/purchase-orders-page.tsx:39
 
-A.67 /store/:storeId/promotions
+A.68 /store/:storeId/promotions
 Componente: PromotionsPage
 Página: web/src/pages/store-admin/promotions/promotions-page.tsx
   [OK] GET /promotions <- web/src/pages/store-admin/promotions/promotions-page.tsx:38
   [OK] POST /promotions <- web/src/pages/store-admin/promotions/promotions-page.tsx:47
 
-A.68 /store/:storeId/finance/expenses
+A.69 /store/:storeId/finance/expenses
 Componente: ExpensesPage
 Página: web/src/pages/store-admin/finance/expenses-page.tsx
   [OK] GET /expenses <- web/src/pages/store-admin/finance/expenses-page.tsx:33
   [OK] POST /expenses <- web/src/pages/store-admin/finance/expenses-page.tsx:42
 
-A.69 /store/:storeId/vehicles
+A.70 /store/:storeId/vehicles
 Componente: VehiclesPage
 Página: web/src/pages/store-admin/vehicles/vehicles-page.tsx
   [OK] GET /vehicles <- web/src/pages/store-admin/vehicles/vehicles-page.tsx:36
   [OK] POST /vehicles <- web/src/pages/store-admin/vehicles/vehicles-page.tsx:45
 
-A.70 /store/:storeId/clients/contracts
+A.71 /store/:storeId/clients/contracts
 Componente: ContractsPage
 Página: web/src/pages/store-admin/clients/contracts-page.tsx
   [OK] GET /contracts <- web/src/pages/store-admin/clients/contracts-page.tsx:31
 
-A.71 /store/:storeId/reports/inventory-valuation
+A.72 /store/:storeId/reports/inventory-valuation
 Componente: InventoryValuationPage
 Página: web/src/pages/store-admin/reports/inventory-valuation-page.tsx
   [OK] GET /products <- web/src/pages/store-admin/reports/inventory-valuation-page.tsx:34
 
-A.72 /master-admin/dashboard
+A.73 /master-admin/dashboard
 Componente: MasterDashboardPage
 Página: web/src/pages/master-admin/master-dashboard-page.tsx
   [OK] GET /users <- web/src/pages/master-admin/master-dashboard-page.tsx:66
@@ -688,76 +696,77 @@ Página: web/src/pages/master-admin/master-dashboard-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
   [OK] POST /auth/login <- web/src/contexts/auth-context.tsx:56
 
-A.73 /master-admin/stores
+A.74 /master-admin/stores
 Componente: MasterStoresPage
 Página: web/src/pages/master-admin/master-stores-page.tsx
   [OK] GET /stores <- web/src/pages/master-admin/master-stores-page.tsx:32
   [OK] DELETE /stores/:param <- web/src/pages/master-admin/master-stores-page.tsx:38
 
-A.74 /master-admin/users
+A.75 /master-admin/users
 Componente: MasterUsersPage
 Página: web/src/pages/master-admin/master-users-page.tsx
   [OK] GET /users <- web/src/pages/master-admin/master-users-page.tsx:43
   [OK] GET /stores <- web/src/pages/master-admin/master-users-page.tsx:44
   [OK] POST /auth/impersonate/:param <- web/src/pages/master-admin/master-users-page.tsx:156
 
-A.75 /master-admin/stores/add
+A.76 /master-admin/stores/add
 Componente: AddStorePage
 Página: web/src/pages/master-admin/add-store-page.tsx
-  [OK] POST /stores <- web/src/pages/master-admin/add-store-page.tsx:25
+  [OK] GET /chains <- web/src/pages/master-admin/add-store-page.tsx:23
+  [OK] POST /stores <- web/src/pages/master-admin/add-store-page.tsx:37
 
-A.76 /master-admin/stores/edit/:storeId
+A.77 /master-admin/stores/edit/:storeId
 Componente: EditStorePage
 Página: web/src/pages/master-admin/edit-store-page.tsx
   [OK] GET /stores/:param <- web/src/pages/master-admin/edit-store-page.tsx:25
   [OK] PATCH /stores/:param <- web/src/pages/master-admin/edit-store-page.tsx:46
 
-A.77 /master-admin/users/add
+A.78 /master-admin/users/add
 Componente: AddUserPage
 Página: web/src/pages/store-admin/users/add-user-page.tsx
   [OK] GET /stores <- web/src/pages/store-admin/users/add-user-page.tsx:98
   [OK] POST /auth/register <- web/src/pages/store-admin/users/add-user-page.tsx:118
 
-A.78 /master-admin/users/edit/:userId
+A.79 /master-admin/users/edit/:userId
 Componente: EditUserPage
 Página: web/src/pages/store-admin/users/edit-user-page.tsx
   [OK] GET /users/:param <- web/src/pages/store-admin/users/edit-user-page.tsx:100
   [OK] PATCH /users/:param <- web/src/pages/store-admin/users/edit-user-page.tsx:126
 
-A.79 /master-admin/licenses
+A.80 /master-admin/licenses
 Componente: MasterLicensesPage
 Página: web/src/pages/master-admin/master-licenses-page.tsx
   [OK] GET /stores <- web/src/pages/master-admin/master-licenses-page.tsx:43
   [OK] GET /licenses <- web/src/pages/master-admin/master-licenses-page.tsx:44
   [OK] POST /licenses <- web/src/pages/master-admin/master-licenses-page.tsx:67
 
-A.80 /master-admin/monitor
+A.81 /master-admin/monitor
 Componente: MasterMonitorPage
 Página: web/src/pages/master-admin/master-monitor-page.tsx
   [OK] GET /errors <- web/src/pages/master-admin/master-monitor-page.tsx:23
   [OK] DELETE /errors/old <- web/src/pages/master-admin/master-monitor-page.tsx:40
 
-A.81 /master-admin/config
+A.82 /master-admin/config
 Componente: MasterConfigPage
 Página: web/src/pages/master-admin/master-config-page.tsx
   [OK] GET /config/general <- web/src/pages/master-admin/master-config-page.tsx:29
   [OK] PUT /config/general <- web/src/pages/master-admin/master-config-page.tsx:58
 
-A.82 /master-admin/sync-monitor
+A.83 /master-admin/sync-monitor
 Componente: MasterSyncMonitorPage
 Página: web/src/pages/master-admin/master-sync-monitor-page.tsx
   [OK] GET /stores <- web/src/pages/master-admin/master-sync-monitor-page.tsx:22
   [OK] GET /sync/statuses <- web/src/pages/master-admin/master-sync-monitor-page.tsx:26
   [OK] POST /sync/force/:param <- web/src/pages/master-admin/master-sync-monitor-page.tsx:36
 
-A.83 /master-admin/comparison
+A.84 /master-admin/comparison
 Componente: MultiStoreComparisonPage
 Página: web/src/pages/master-admin/multi-store-comparison-page.tsx
   [OK] GET /stores <- web/src/pages/master-admin/multi-store-comparison-page.tsx:48
   [OK] GET /sales <- web/src/pages/master-admin/multi-store-comparison-page.tsx:55
   [OK] GET /orders <- web/src/pages/master-admin/multi-store-comparison-page.tsx:56
 
-A.84 *
+A.85 *
 Componente: NotFoundPage
 Página: web/src/pages/not-found-page.tsx
   [SIN_LLAMADAS]
@@ -839,7 +848,7 @@ B.9 web/src/pages/store-admin/cash-register/cash-register-page.test.tsx
   [OK] GET /suppliers <- web/src/hooks/queries.ts:80
   [OK] GET /cash-shifts/active <- web/src/hooks/queries.ts:88
   [OK] GET /departments <- web/src/hooks/queries.ts:96
-  [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
+  [GENERICO_REVISADO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
 
 B.10 web/src/pages/store-admin/dashboard/dashboard-page.tsx
   [OK] GET /auth/profile <- web/src/contexts/auth-context.tsx:40
@@ -861,7 +870,7 @@ B.10 web/src/pages/store-admin/dashboard/dashboard-page.tsx
   [OK] GET /suppliers <- web/src/hooks/queries.ts:80
   [OK] GET /cash-shifts/active <- web/src/hooks/queries.ts:88
   [OK] GET /departments <- web/src/hooks/queries.ts:96
-  [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
+  [GENERICO_REVISADO] NO_RESUELTO ARGUMENTO_DINAMICO <- web/src/hooks/queries.ts:?
 
 B.11 web/src/pages/store-admin/help/help-page.tsx
   [SIN_LLAMADAS]
@@ -926,15 +935,7 @@ B.15 web/src/pages/work/index.ts
   [OK] GET /products <- web/src/components/pos/product-search.tsx:50
 
 C. HALLAZGOS FRONTEND QUE REQUIEREN ACCIÓN
-C.1 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
-  Fuente: web/src/hooks/queries.ts:?
-  Alternativas backend: ninguna
-C.2 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
-  Fuente: web/src/services/api-client-validated.ts:?
-  Alternativas backend: ninguna
-C.3 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
-  Fuente: web/src/services/api-client-validated.ts:?
-  Alternativas backend: ninguna
+Sin hallazgos estáticos.
 
 D. TODOS LOS ENDPOINTS NESTJS Y CONSUMIDORES REACT
 
@@ -987,7 +988,7 @@ D.9 GET /arqueos
 D.10 POST /arqueos
   Backend: backend/src/modules/arqueos/arqueos.controller.ts#create
   Consumidores React: 1
-    - web/src/pages/store-admin/finance/arqueos-page.tsx:86 (/arqueos)
+    - web/src/pages/store-admin/finance/arqueos-page.tsx:87 (/arqueos)
 
 D.11 GET /arqueos/:id
   Backend: backend/src/modules/arqueos/arqueos.controller.ts#findOne
@@ -1132,7 +1133,8 @@ D.36 GET /cash-shifts/stats/:id
 
 D.37 GET /chains
   Backend: backend/src/modules/chains/chains.controller.ts#findAll
-  Consumidores React: 1
+  Consumidores React: 2
+    - web/src/pages/master-admin/add-store-page.tsx:23 (/chains)
     - web/src/pages/master-admin/master-chains-page.tsx:20 (/chains)
 
 D.38 POST /chains
@@ -1253,12 +1255,12 @@ D.60 POST /daily-closings
 D.61 GET /daily-closings/:id
   Backend: backend/src/modules/daily-closings/daily-closings.controller.ts#findOne
   Consumidores React: 1
-    - web/src/pages/store-admin/finance/arqueos-page.tsx:56 (/daily-closings/summary)
+    - web/src/pages/store-admin/finance/arqueos-page.tsx:57 (/daily-closings/summary)
 
 D.62 GET /daily-closings/summary
   Backend: backend/src/modules/daily-closings/daily-closings.controller.ts#getSummary
   Consumidores React: 1
-    - web/src/pages/store-admin/finance/arqueos-page.tsx:56 (/daily-closings/summary)
+    - web/src/pages/store-admin/finance/arqueos-page.tsx:57 (/daily-closings/summary)
 
 D.63 GET /departments
   Backend: backend/src/modules/departments/departments.controller.ts#findAll
@@ -1609,7 +1611,7 @@ D.131 GET /pending-deliveries
     - web/src/pages/store-admin/delivery-route/delivery-route-page.tsx:30 (/pending-deliveries)
     - web/src/pages/store-admin/delivery-route/rutero-daily-closing-page.tsx:73 (/pending-deliveries)
     - web/src/pages/store-admin/vendors/assign-route-page.tsx:39 (/pending-deliveries)
-    - web/src/pages/store-admin/vendors/assign-route-page.tsx:77 (/pending-deliveries)
+    - web/src/pages/store-admin/vendors/assign-route-page.tsx:74 (/pending-deliveries)
     - web/src/pages/store-admin/vendors/vendor-routes-page.tsx:93 (/pending-deliveries)
 
 D.132 POST /pending-deliveries
@@ -1737,8 +1739,9 @@ D.151 PATCH /products/barcodes/:barcodeId/primary
 
 D.152 POST /products/import
   Backend: backend/src/modules/products/products.controller.ts#n
-  Consumidores React: 1
+  Consumidores React: 2
     - web/src/components/products/import-products-dialog.tsx:232 (/products/import)
+    - web/src/pages/store-admin/products/import-products-page.tsx:102 (/products/import)
 
 D.153 POST /products/import/:batchId/apply
   Backend: backend/src/modules/products/products.controller.ts#applyImport
@@ -1746,7 +1749,8 @@ D.153 POST /products/import/:batchId/apply
 
 D.154 POST /products/import/preview
   Backend: backend/src/modules/products/products.controller.ts#previewImport
-  Consumidores React: 0
+  Consumidores React: 1
+    - web/src/pages/store-admin/products/import-products-page.tsx:65 (/products/import/preview)
 
 D.155 GET /promotions
   Backend: backend/src/modules/promotions/promotions.controller.ts#findAll
@@ -1844,7 +1848,7 @@ D.174 GET /sales
     - web/src/hooks/queries.ts:72 (/sales)
     - web/src/pages/master-admin/multi-store-comparison-page.tsx:55 (/sales)
     - web/src/pages/store-admin/cash-register/cash-register-page.tsx:150 (/sales)
-    - web/src/pages/store-admin/finance/arqueos-page.tsx:63 (/sales)
+    - web/src/pages/store-admin/finance/arqueos-page.tsx:64 (/sales)
     - web/src/pages/store-admin/reports/reports-page.tsx:65 (/sales)
     - web/src/pages/work/cash-workspace-page.tsx:148 (/sales)
 
@@ -1925,7 +1929,7 @@ D.185 GET /stores
 D.186 POST /stores
   Backend: backend/src/modules/stores/stores.controller.ts#n
   Consumidores React: 1
-    - web/src/pages/master-admin/add-store-page.tsx:25 (/stores)
+    - web/src/pages/master-admin/add-store-page.tsx:37 (/stores)
 
 D.187 DELETE /stores/:id
   Backend: backend/src/modules/stores/stores.controller.ts#n
@@ -2064,7 +2068,7 @@ D.209 GET /users
     - web/src/pages/master-admin/master-users-page.tsx:43 (/users)
     - web/src/pages/store-admin/clients/client-reassign-page.tsx:22 (/users)
     - web/src/pages/store-admin/dispatch/dispatch-page.tsx:39 (/users)
-    - web/src/pages/store-admin/finance/arqueos-page.tsx:37 (/users)
+    - web/src/pages/store-admin/finance/arqueos-page.tsx:38 (/users)
     - web/src/pages/store-admin/routes/route-detail-page.tsx:45 (/users)
     - web/src/pages/store-admin/routes/route-form-page.tsx:32 (/users)
     - web/src/pages/store-admin/users/users-page.tsx:36 (/users)

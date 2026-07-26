@@ -115,6 +115,7 @@ export class OrdersController {
       dto.updatedBy,
       dto.vendorId,
       dto.expectedVersion,
+      dto.notes,
     );
   }
 

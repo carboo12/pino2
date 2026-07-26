@@ -1,0 +1,911 @@
+MATRIZ DE PAYLOADS REACT <-> @Body NESTJS
+Generado: 2026-07-26T06:42:55.734Z
+
+RESUMEN
+- Operaciones React de escritura detectadas: 106
+- Contratos backend de escritura detectados: 132
+- Compatibles por análisis estático: 87
+- Falta campo requerido: 0
+- Campos extra: 0
+- Revisión manual: 19
+
+NOTA: CAMPOS_EXTRA puede ser válido si ValidationPipe usa whitelist; se revisa
+porque suele revelar nombres antiguos o payloads dirigidos a otro contrato.
+
+A. OPERACIONES REACT
+
+A.1 [OK] POST /auth/login
+  React: web/src/components/auth/admin-auth-dialog.tsx:49
+  Claves enviadas: email, password
+  Backend: backend/src/modules/auth/auth.controller.ts#login
+  Tipo body: LoginDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.2 [OK] PATCH /authorizations/:param/status
+  React: web/src/components/global-alert-provider.tsx:87
+  Claves enviadas: status
+  Backend: backend/src/modules/authorizations/authorizations.controller.ts#updateStatus
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.3 [OK] POST /clients
+  React: web/src/components/pos/add-client-dialog.tsx:60
+  Claves enviadas: name, phone, address, storeId
+  Backend: backend/src/modules/clients/clients.controller.ts#create
+  Tipo body: CreateClientDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.4 [OK] PATCH /pending-orders/:param/status
+  React: web/src/components/pos/cashier-billing-view.tsx:506
+  Claves enviadas: status
+  Backend: backend/src/modules/pending-orders/pending-orders.controller.ts#updateStatus
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.5 [OK] POST /sales/process
+  React: web/src/components/pos/payment-grid.tsx:47
+  Claves enviadas: storeId, cashShiftId, ticketNumber, items, paymentMethod
+  Backend: backend/src/modules/sales/sales.controller.ts#processSale
+  Tipo body: ProcessSaleDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.6 [OK] PATCH /pending-orders/:param/status
+  React: web/src/components/pos/pending-tickets-dialog.tsx:48
+  Claves enviadas: status
+  Backend: backend/src/modules/pending-orders/pending-orders.controller.ts#updateStatus
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.7 [OK] POST /returns
+  React: web/src/components/pos/returns-dialog.tsx:110
+  Claves enviadas: storeId, saleId, items, cashierId
+  Backend: backend/src/modules/returns/returns.controller.ts#create
+  Tipo body: CreateReturnDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.8 [OK] POST /products/import
+  React: web/src/components/products/import-products-dialog.tsx:232
+  Claves enviadas: storeId, products, cashierName
+  Backend: backend/src/modules/products/products.controller.ts#importBulk
+  Tipo body: ImportBulkProductsDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.9 [OK] POST /auth/login
+  React: web/src/contexts/auth-context.tsx:56
+  Claves enviadas: email, password
+  Backend: backend/src/modules/auth/auth.controller.ts#login
+  Tipo body: LoginDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.10 [OK] POST /errors
+  React: web/src/lib/error-logger.ts:24
+  Claves enviadas: message, stack, location, userId, storeId, additionalInfo
+  Backend: backend/src/modules/errors/errors.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.11 [OK] POST /sync/batch
+  React: web/src/lib/sync-service.ts:101
+  Claves enviadas: storeId, operations
+  Backend: backend/src/modules/sync/sync.controller.ts#processBatch
+  Tipo body: BatchSyncDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.12 [OK] POST /auth/forgot-password
+  React: web/src/pages/forgot-password-page.tsx:30
+  Claves enviadas: email
+  Backend: backend/src/modules/auth/auth.controller.ts#requestPasswordReset
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.13 [REVISAR_MANUAL] POST /chains
+  React: web/src/pages/master-admin/add-chain-page.tsx:24
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/chains/chains.controller.ts#create
+  Tipo body: CreateChainDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.14 [REVISAR_MANUAL] POST /stores
+  React: web/src/pages/master-admin/add-store-page.tsx:37
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/stores/stores.controller.ts#create
+  Tipo body: CreateStoreDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.15 [REVISAR_MANUAL] PATCH /stores/:param
+  React: web/src/pages/master-admin/edit-store-page.tsx:46
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/stores/stores.controller.ts#update
+  Tipo body: UpdateStoreDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.16 [OK] DELETE /chains/:param
+  React: web/src/pages/master-admin/master-chains-page.tsx:24
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/chains/chains.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.17 [OK] PUT /config/general
+  React: web/src/pages/master-admin/master-config-page.tsx:58
+  Claves enviadas: value
+  Backend: backend/src/modules/config/config.controller.ts#upsert
+  Tipo body: UpsertConfigDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.18 [OK] POST /licenses
+  React: web/src/pages/master-admin/master-licenses-page.tsx:67
+  Claves enviadas: storeId, type, maxUsers, endDate
+  Backend: backend/src/modules/licenses/licenses.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.19 [OK] DELETE /errors/old
+  React: web/src/pages/master-admin/master-monitor-page.tsx:40
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/errors/errors.controller.ts#deleteOld
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.20 [OK] DELETE /stores/:param
+  React: web/src/pages/master-admin/master-stores-page.tsx:38
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/stores/stores.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.21 [OK] PATCH /sub-zones/:param
+  React: web/src/pages/master-admin/master-sub-zones-page.tsx:70
+  Claves enviadas: name, zoneId, description
+  Backend: backend/src/modules/zones/zones.controller.ts#update
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.22 [OK] POST /sub-zones
+  React: web/src/pages/master-admin/master-sub-zones-page.tsx:73
+  Claves enviadas: name, zoneId, description
+  Backend: backend/src/modules/zones/zones.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.23 [OK] DELETE /sub-zones/:param
+  React: web/src/pages/master-admin/master-sub-zones-page.tsx:88
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/zones/zones.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.24 [OK] POST /sync/force/:param
+  React: web/src/pages/master-admin/master-sync-monitor-page.tsx:36
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/sync/sync.controller.ts#forceSync
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.25 [OK] POST /auth/impersonate/:param
+  React: web/src/pages/master-admin/master-users-page.tsx:156
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/auth/auth.controller.ts#impersonate
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.26 [OK] PATCH /zones/:param
+  React: web/src/pages/master-admin/master-zones-page.tsx:51
+  Claves enviadas: name, description
+  Backend: backend/src/modules/zones/zones.controller.ts#update
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.27 [OK] POST /zones
+  React: web/src/pages/master-admin/master-zones-page.tsx:57
+  Claves enviadas: name, description
+  Backend: backend/src/modules/zones/zones.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.28 [OK] DELETE /zones/:param
+  React: web/src/pages/master-admin/master-zones-page.tsx:75
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/zones/zones.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.29 [OK] PATCH /authorizations/:param/status
+  React: web/src/pages/store-admin/authorizations/authorizations-page.tsx:58
+  Claves enviadas: status
+  Backend: backend/src/modules/authorizations/authorizations.controller.ts#updateStatus
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.30 [OK] POST /orders/:param/autorizar
+  React: web/src/pages/store-admin/authorizations/price-auth-page.tsx:55
+  Claves enviadas: decision, motivo
+  Backend: backend/src/modules/orders/orders.controller.ts#autorizar
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.31 [OK] POST /sales/process
+  React: web/src/pages/store-admin/billing/billing-page.tsx:318
+  Claves enviadas: storeId, cashShiftId, clientId, items, paymentMethod
+  Backend: backend/src/modules/sales/sales.controller.ts#processSale
+  Tipo body: ProcessSaleDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.32 [REVISAR_MANUAL] POST /cash-shifts
+  React: web/src/pages/store-admin/cash-register/cash-register-page.tsx:180
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/cash-shifts/cash-shifts.controller.ts#openShift
+  Tipo body: OpenShiftDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.33 [REVISAR_MANUAL] POST /cash-shifts/close
+  React: web/src/pages/store-admin/cash-register/cash-register-page.tsx:185
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/cash-shifts/cash-shifts.controller.ts#closeShift
+  Tipo body: CloseShiftDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.34 [OK] DELETE /grupos-clientes/:param
+  React: web/src/pages/store-admin/clients/client-groups-page.tsx:32
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/grupos-clientes/grupos-clientes.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.35 [OK] POST /grupos-clientes
+  React: web/src/pages/store-admin/clients/client-groups-page.tsx:42
+  Claves enviadas: storeId, nombre, descripcion
+  Backend: backend/src/modules/grupos-clientes/grupos-clientes.controller.ts#create
+  Tipo body: CreateGrupoClienteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.36 [OK] POST /clients/:param/reasignar
+  React: web/src/pages/store-admin/clients/client-reassign-page.tsx:62
+  Claves enviadas: preventaId, motivo
+  Backend: backend/src/modules/clients/clients.controller.ts#reasignar
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.37 [OK] POST /grupos-economicos
+  React: web/src/pages/store-admin/clients/economic-groups-page.tsx:37
+  Claves enviadas: storeId, nombre, limiteCreditoGlobal, notas
+  Backend: backend/src/modules/grupos-economicos/grupos-economicos.controller.ts#create
+  Tipo body: CreateGrupoEconomicoDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.38 [OK] PATCH /pending-deliveries/:param
+  React: web/src/pages/store-admin/delivery-route/delivery-route-page.tsx:48
+  Claves enviadas: status
+  Backend: backend/src/modules/pending-deliveries/pending-deliveries.controller.ts#update
+  Tipo body: UpdatePendingDeliveryDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.39 [OK] POST /daily-closings
+  React: web/src/pages/store-admin/delivery-route/rutero-daily-closing-page.tsx:117
+  Claves enviadas: storeId, ruteroId, totalSales, totalCollections, totalReturns, cashTotal, closingDate, notes
+  Backend: backend/src/modules/daily-closings/daily-closings.controller.ts#create
+  Tipo body: CreateDailyClosingDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.40 [OK] PUT /cargas-camion/:param/salida
+  React: web/src/pages/store-admin/dispatch/dispatch-cargas-page.tsx:57
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/cargas-camion/cargas-camion.controller.ts#despachar
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.41 [OK] POST /cargas-camion
+  React: web/src/pages/store-admin/dispatch/dispatch-page.tsx:68
+  Claves enviadas: storeId, ruteroId, camionPlaca, orderIds, fechaEntrega
+  Backend: backend/src/modules/cargas-camion/cargas-camion.controller.ts#create
+  Tipo body: CreateCargaCamionDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.42 [OK] POST /pending-orders
+  React: web/src/pages/store-admin/dispatcher/dispatcher-page.tsx:107
+  Claves enviadas: storeId, dispatcherId, dispatcherName, clientId, clientName, items, subtotal, tax, total, status
+  Backend: backend/src/modules/pending-orders/pending-orders.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.43 [OK] POST /arqueos
+  React: web/src/pages/store-admin/finance/arqueos-page.tsx:87
+  Claves enviadas: storeId, ruteroId, fecha, efectivoContado, cheques, notas
+  Backend: backend/src/modules/arqueos/arqueos.controller.ts#create
+  Tipo body: CreateArqueoDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.44 [OK] POST /expenses
+  React: web/src/pages/store-admin/finance/expenses-page.tsx:42
+  Claves enviadas: storeId, category, amount, description, paymentMethod
+  Backend: backend/src/modules/expenses/expenses.controller.ts#create
+  Tipo body: CreateExpenseDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.45 [REVISAR_MANUAL] POST /inventory/adjust
+  React: web/src/pages/store-admin/inventory/inventory-adjustments-page.tsx:75
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/inventory/inventory.controller.ts#adjustStock
+  Tipo body: AdjustStockDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.46 [OK] POST /inventory/quick-entry
+  React: web/src/pages/store-admin/inventory/inventory-entry-page.tsx:141
+  Claves enviadas: storeId, productId, quantity, reference
+  Backend: backend/src/modules/inventory/inventory.controller.ts#quickEntry
+  Tipo body: QuickEntryDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.47 [OK] POST /inventory/transfer
+  React: web/src/pages/store-admin/inventory/inventory-entry-page.tsx:169
+  Claves enviadas: fromStoreId, toStoreId, productId, quantity, reference
+  Backend: backend/src/modules/inventory/inventory.controller.ts#transferBetweenStores
+  Tipo body: TransferBetweenStoresDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.48 [OK] POST /inventory/merma
+  React: web/src/pages/store-admin/inventory/inventory-entry-page.tsx:192
+  Claves enviadas: storeId, productId, quantity, reason
+  Backend: backend/src/modules/inventory/inventory.controller.ts#registerMerma
+  Tipo body: MermaDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.49 [OK] POST /inventory/ajuste
+  React: web/src/pages/store-admin/inventory/inventory-entry-page.tsx:214
+  Claves enviadas: storeId, productId, quantity, direction, reference
+  Backend: backend/src/modules/inventory/inventory.controller.ts#registerAjuste
+  Tipo body: AjusteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.50 [OK] PATCH /pending-orders/:param/status
+  React: web/src/pages/store-admin/pending-orders/pending-orders-page.tsx:65
+  Claves enviadas: status
+  Backend: backend/src/modules/pending-orders/pending-orders.controller.ts#updateStatus
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.51 [OK] POST /products
+  React: web/src/pages/store-admin/products/add-product-page.tsx:136
+  Claves enviadas: storeId, barcode, brand, description, handlesBulk, unitsPerBulk, costPrice, salePrice, price1, price2, price3, price4, price5, bulkPrice1, bulkPrice2, bulkPrice3, bulkPrice4, bulkPrice5, usesInventory, minStock, departmentId, department, subDepartment, supplierId, initialStock
+  Backend: backend/src/modules/products/products.controller.ts#create
+  Tipo body: CreateProductDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.52 [OK] POST /products/:param/barcodes
+  React: web/src/pages/store-admin/products/alternative-barcodes.tsx:52
+  Claves enviadas: barcode, label
+  Backend: backend/src/modules/product-barcodes/product-barcodes.controller.ts#addBarcode
+  Tipo body: CreateProductBarcodeDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.53 [OK] DELETE /products/barcodes/:param
+  React: web/src/pages/store-admin/products/alternative-barcodes.tsx:69
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/product-barcodes/product-barcodes.controller.ts#removeBarcode
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.54 [OK] PATCH /products/barcodes/:param/primary
+  React: web/src/pages/store-admin/products/alternative-barcodes.tsx:79
+  Claves enviadas: productId
+  Backend: backend/src/modules/product-barcodes/product-barcodes.controller.ts#setPrimary
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.55 [OK] DELETE /departments/:param
+  React: web/src/pages/store-admin/products/departments-page.tsx:75
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/departments/departments.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.56 [OK] POST /departments
+  React: web/src/pages/store-admin/products/departments-page.tsx:113
+  Claves enviadas: name, storeId
+  Backend: backend/src/modules/departments/departments.controller.ts#create
+  Tipo body: CreateDepartmentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.57 [OK] PATCH /departments/:param
+  React: web/src/pages/store-admin/products/departments-page.tsx:131
+  Claves enviadas: name
+  Backend: backend/src/modules/departments/departments.controller.ts#update
+  Tipo body: UpdateDepartmentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.58 [REVISAR_MANUAL] PATCH /products/:param
+  React: web/src/pages/store-admin/products/edit-product-page.tsx:230
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/products/products.controller.ts#update
+  Tipo body: UpdateProductDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.59 [OK] POST /products/import/preview
+  React: web/src/pages/store-admin/products/import-products-page.tsx:65
+  Claves enviadas: storeId, products, cashierName, externalId
+  Backend: backend/src/modules/products/products.controller.ts#previewImport
+  Tipo body: PreviewProductImportDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.60 [OK] POST /products/import
+  React: web/src/pages/store-admin/products/import-products-page.tsx:102
+  Claves enviadas: storeId, products, cashierName
+  Backend: backend/src/modules/products/products.controller.ts#importBulk
+  Tipo body: ImportBulkProductsDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.61 [OK] POST /departments
+  React: web/src/pages/store-admin/products/sub-departments-page.tsx:111
+  Claves enviadas: name, storeId, parentId
+  Backend: backend/src/modules/departments/departments.controller.ts#create
+  Tipo body: CreateDepartmentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.62 [OK] PATCH /departments/:param
+  React: web/src/pages/store-admin/products/sub-departments-page.tsx:134
+  Claves enviadas: name
+  Backend: backend/src/modules/departments/departments.controller.ts#update
+  Tipo body: UpdateDepartmentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.63 [OK] DELETE /departments/:param
+  React: web/src/pages/store-admin/products/sub-departments-page.tsx:150
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/departments/departments.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.64 [OK] POST /promotions
+  React: web/src/pages/store-admin/promotions/promotions-page.tsx:47
+  Claves enviadas: storeId, name, discountType, discountValue, startDate, endDate
+  Backend: backend/src/modules/promotions/promotions.controller.ts#create
+  Tipo body: CreatePromotionDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.65 [OK] PATCH /purchase-orders/:param/status
+  React: web/src/pages/store-admin/purchase-orders/purchase-orders-page.tsx:39
+  Claves enviadas: status
+  Backend: backend/src/modules/purchase-orders/purchase-orders.controller.ts#updateStatus
+  Tipo body: UpdatePurchaseOrderStatusDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.66 [OK] PUT /cargas-camion/:param/confirm-load
+  React: web/src/pages/store-admin/routes/cargas-page.tsx:59
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/cargas-camion/cargas-camion.controller.ts#confirmLoad
+  Tipo body: ConfirmCargaDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.67 [OK] PUT /cargas-camion/:param/salida
+  React: web/src/pages/store-admin/routes/cargas-page.tsx:69
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/cargas-camion/cargas-camion.controller.ts#despachar
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.68 [OK] PATCH /routes/:param
+  React: web/src/pages/store-admin/routes/route-detail-page.tsx:65
+  Claves enviadas: vendorId, clientIds, validTo, reason
+  Backend: backend/src/modules/routes/routes.controller.ts#update
+  Tipo body: UpdateRouteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.69 [OK] POST /routes
+  React: web/src/pages/store-admin/routes/route-form-page.tsx:62
+  Claves enviadas: storeId, vendorId, clientIds, date, routeType, status, validTo, notes
+  Backend: backend/src/modules/routes/routes.controller.ts#create
+  Tipo body: CreateRouteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.70 [REVISAR_MANUAL] POST /liquidaciones-ruta/:param/:param
+  React: web/src/pages/store-admin/routes/settlement-page.tsx:86
+  Claves enviadas: (no resueltas/vacío)
+  Backend: 3 coincidencias
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.71 [REVISAR_MANUAL] PATCH /stores/:param/settings
+  React: web/src/pages/store-admin/settings/settings-page.tsx:90
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/stores/stores.controller.ts#updateSettings
+  Tipo body: Record
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.72 [REVISAR_MANUAL] POST /suppliers
+  React: web/src/pages/store-admin/suppliers/add-supplier-page.tsx:46
+  Claves enviadas: storeId
+  Backend: backend/src/modules/suppliers/suppliers.controller.ts#create
+  Tipo body: CreateSupplierDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.73 [REVISAR_MANUAL] PATCH /suppliers/:param
+  React: web/src/pages/store-admin/suppliers/edit-supplier-page.tsx:68
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/suppliers/suppliers.controller.ts#update
+  Tipo body: UpdateSupplierDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.74 [REVISAR_MANUAL] POST /suppliers
+  React: web/src/pages/store-admin/suppliers/supplier-invoices-page.tsx:187
+  Claves enviadas: storeId
+  Backend: backend/src/modules/suppliers/suppliers.controller.ts#create
+  Tipo body: CreateSupplierDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.75 [OK] DELETE /suppliers/:param
+  React: web/src/pages/store-admin/suppliers/suppliers-page.tsx:56
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/suppliers/suppliers.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.76 [OK] POST /auth/register
+  React: web/src/pages/store-admin/users/add-user-page.tsx:118
+  Claves enviadas: name, email, password, role, storeIds
+  Backend: backend/src/modules/auth/auth.controller.ts#register
+  Tipo body: RegisterDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.77 [OK] PATCH /users/:param
+  React: web/src/pages/store-admin/users/edit-user-page.tsx:126
+  Claves enviadas: name, role
+  Backend: backend/src/modules/users/users.controller.ts#update
+  Tipo body: UpdateUserDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.78 [OK] DELETE /users/:param
+  React: web/src/pages/store-admin/users/users-page.tsx:110
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/users/users.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.79 [OK] POST /vehicles
+  React: web/src/pages/store-admin/vehicles/vehicles-page.tsx:45
+  Claves enviadas: storeId, plate, brand, model, type, capacityKg
+  Backend: backend/src/modules/vehicles/vehicles.controller.ts#create
+  Tipo body: CreateVehicleDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.80 [OK] POST /users
+  React: web/src/pages/store-admin/vendors/add-vendor-page.tsx:34
+  Claves enviadas: name, email, password, role, storeId
+  Backend: backend/src/modules/users/users.controller.ts#create
+  Tipo body: CreateUserDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.81 [OK] POST /pending-deliveries/assign-route
+  React: web/src/pages/store-admin/vendors/assign-route-page.tsx:66
+  Claves enviadas: deliveryIds, ruteroId
+  Backend: backend/src/modules/pending-deliveries/pending-deliveries.controller.ts#assignRoute
+  Tipo body: AssignRouteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.82 [OK] PATCH /clients/:param
+  React: web/src/pages/store-admin/vendors/vendor-clients-page.tsx:106
+  Claves enviadas: limiteCredito, diasCredito, frecuenciaVisita, diaVisita, notasEntrega
+  Backend: backend/src/modules/clients/clients.controller.ts#update
+  Tipo body: UpdateClientDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.83 [OK] POST /accounts-receivable/:param/payments
+  React: web/src/pages/store-admin/vendors/vendor-collections-page.tsx:146
+  Claves enviadas: amount, paymentMethod, vendorId, vendorName
+  Backend: backend/src/modules/accounts-receivable/accounts-receivable.controller.ts#addPayment
+  Tipo body: AddPaymentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.84 [OK] POST /visit-logs
+  React: web/src/pages/store-admin/vendors/vendor-dashboard-page.tsx:90
+  Claves enviadas: clientId, clientName, storeId, status, notes
+  Backend: backend/src/modules/visit-logs/visit-logs.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.85 [OK] POST /vendor-inventories/transaction
+  React: web/src/pages/store-admin/vendors/vendor-inventory-page.tsx:67
+  Claves enviadas: type, quantity, storeId, vendorId, productId
+  Backend: backend/src/modules/vendor-inventories/vendor-inventories.controller.ts#processTransaction
+  Tipo body: ProcessTransactionDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.86 [OK] POST /orders
+  React: web/src/pages/store-admin/vendors/vendor-quick-sale-page.tsx:169
+  Claves enviadas: storeId, vendorId, clientId, clientName, items, paymentType, tipoPedido
+  Backend: backend/src/modules/orders/orders.controller.ts#create
+  Tipo body: CreateOrderDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.87 [OK] POST /returns
+  React: web/src/pages/store-admin/vendors/vendor-returns-page.tsx:165
+  Claves enviadas: storeId, ruteroId, notes, items
+  Backend: backend/src/modules/returns/returns.controller.ts#create
+  Tipo body: CreateReturnDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.88 [OK] POST /routes
+  React: web/src/pages/store-admin/vendors/vendor-routes-page.tsx:110
+  Claves enviadas: vendorId, date, clientIds, storeId, status
+  Backend: backend/src/modules/routes/routes.controller.ts#create
+  Tipo body: CreateRouteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.89 [OK] POST /pending-deliveries/assign-route
+  React: web/src/pages/store-admin/vendors/vendor-routes-page.tsx:133
+  Claves enviadas: deliveryIds, ruteroId
+  Backend: backend/src/modules/pending-deliveries/pending-deliveries.controller.ts#assignRoute
+  Tipo body: AssignRouteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.90 [OK] PATCH /orders/:param/status
+  React: web/src/pages/store-admin/vendors/vendor-sales-page.tsx:152
+  Claves enviadas: status, updatedBy
+  Backend: backend/src/modules/orders/orders.controller.ts#updateStatus
+  Tipo body: UpdateOrderStatusBodyDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.91 [OK] PATCH /orders/:param/status
+  React: web/src/pages/store-admin/vendors/vendor-sales-page.tsx:217
+  Claves enviadas: status, updatedBy
+  Backend: backend/src/modules/orders/orders.controller.ts#updateStatus
+  Tipo body: UpdateOrderStatusBodyDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.92 [OK] POST /orders
+  React: web/src/pages/store-admin/vendors/vendor-sales-page.tsx:224
+  Claves enviadas: storeId, vendorId, clientId, clientName, items, paymentType, tipoPedido
+  Backend: backend/src/modules/orders/orders.controller.ts#create
+  Tipo body: CreateOrderDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.93 [OK] PATCH /store-zones/:param
+  React: web/src/pages/store-admin/vendors/vendor-zones-page.tsx:36
+  Claves enviadas: name, description, visitDay
+  Backend: backend/src/modules/store-zones/store-zones.controller.ts#update
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.94 [OK] POST /store-zones
+  React: web/src/pages/store-admin/vendors/vendor-zones-page.tsx:37
+  Claves enviadas: name, description, visitDay, storeId
+  Backend: backend/src/modules/store-zones/store-zones.controller.ts#create
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.95 [OK] DELETE /store-zones/:param
+  React: web/src/pages/store-admin/vendors/vendor-zones-page.tsx:43
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/store-zones/store-zones.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.96 [REVISAR_MANUAL] PATCH /orders/:param/status
+  React: web/src/pages/store-admin/warehouse/warehouse-dashboard-page.tsx:103
+  Claves enviadas: status
+  Backend: backend/src/modules/orders/orders.controller.ts#updateStatus
+  Tipo body: UpdateOrderStatusBodyDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.97 [OK] POST /cash-shifts
+  React: web/src/pages/work/cash-workspace-page.tsx:81
+  Claves enviadas: storeId, userId, startingCash
+  Backend: backend/src/modules/cash-shifts/cash-shifts.controller.ts#openShift
+  Tipo body: OpenShiftDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.98 [OK] POST /sales/process
+  React: web/src/pages/work/cash-workspace-page.tsx:201
+  Claves enviadas: storeId, cashShiftId, items, paymentMethod, clientId
+  Backend: backend/src/modules/sales/sales.controller.ts#processSale
+  Tipo body: ProcessSaleDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.99 [REVISAR_MANUAL] PATCH /orders/:param/status
+  React: web/src/pages/work/warehouse-workspace-page.tsx:176
+  Claves enviadas: status
+  Backend: backend/src/modules/orders/orders.controller.ts#updateStatus
+  Tipo body: UpdateOrderStatusBodyDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.100 [REVISAR_MANUAL] POST ARGUMENTO_DINAMICO
+  React: web/src/services/api-client-validated.ts:21
+  Claves enviadas: (no resueltas/vacío)
+  Backend: 0 coincidencias
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.101 [REVISAR_MANUAL] POST /accounts-receivable/:param/payments
+  React: web/src/services/finance-service.ts:165
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/accounts-receivable/accounts-receivable.controller.ts#addPayment
+  Tipo body: AddPaymentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.102 [REVISAR_MANUAL] POST /accounts-payable/:param/payment
+  React: web/src/services/finance-service.ts:221
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/accounts-payable/accounts-payable.controller.ts#addPayment
+  Tipo body: AddPayablePaymentDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.103 [REVISAR_MANUAL] POST /invoices
+  React: web/src/services/finance-service.ts:251
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/invoices/invoices.controller.ts#create
+  Tipo body: CreateInvoiceDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.104 [OK] PATCH /invoices/:param
+  React: web/src/services/finance-service.ts:256
+  Claves enviadas: status
+  Backend: backend/src/modules/invoices/invoices.controller.ts#update
+  Tipo body: inline
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.105 [OK] DELETE /invoices/:param
+  React: web/src/services/finance-service.ts:261
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/invoices/invoices.controller.ts#remove
+  Tipo body: no resuelto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+A.106 [REVISAR_MANUAL] POST /supplier-credit-notes
+  React: web/src/services/finance-service.ts:285
+  Claves enviadas: (no resueltas/vacío)
+  Backend: backend/src/modules/supplier-credit-notes/supplier-credit-notes.controller.ts#create
+  Tipo body: CreateSupplierCreditNoteDto
+  Requeridos faltantes: ninguno
+  Campos extra: ninguno
+
+B. CONTRATOS BACKEND SIN CONSUMIDOR REACT DIRECTO
+B.1 POST /accounts-payable -> backend/src/modules/accounts-payable/accounts-payable.controller.ts#create
+B.2 POST /accounts-receivable -> backend/src/modules/accounts-receivable/accounts-receivable.controller.ts#create
+B.3 POST /auth/refresh -> backend/src/modules/auth/auth.controller.ts#refresh
+B.4 POST /auth/logout -> backend/src/modules/auth/auth.controller.ts#logout
+B.5 POST /authorizations -> backend/src/modules/authorizations/authorizations.controller.ts#create
+B.6 PUT /cargas-camion/:id/accept -> backend/src/modules/cargas-camion/cargas-camion.controller.ts#accept
+B.7 PUT /cargas-camion/:id/reconcile -> backend/src/modules/cargas-camion/cargas-camion.controller.ts#reconcile
+B.8 POST /cash-shifts/:id/close -> backend/src/modules/cash-shifts/cash-shifts.controller.ts#closeShiftById
+B.9 PATCH /chains/:id -> backend/src/modules/chains/chains.controller.ts#update
+B.10 DELETE /clients/:id -> backend/src/modules/clients/clients.controller.ts#remove
+B.11 POST /collections -> backend/src/modules/collections/collections.controller.ts#create
+B.12 POST /contracts -> backend/src/modules/contracts/contracts.controller.ts#create
+B.13 PATCH /contracts/:id -> backend/src/modules/contracts/contracts.controller.ts#update
+B.14 PUT /grupos-clientes/:id -> backend/src/modules/grupos-clientes/grupos-clientes.controller.ts#update
+B.15 POST /grupos-clientes/:id/asignar -> backend/src/modules/grupos-clientes/grupos-clientes.controller.ts#asignarClientes
+B.16 POST /grupos-clientes/:id/remover -> backend/src/modules/grupos-clientes/grupos-clientes.controller.ts#removerClientes
+B.17 PUT /grupos-economicos/:id -> backend/src/modules/grupos-economicos/grupos-economicos.controller.ts#update
+B.18 DELETE /grupos-economicos/:id -> backend/src/modules/grupos-economicos/grupos-economicos.controller.ts#remove
+B.19 PATCH /licenses/:id -> backend/src/modules/licenses/licenses.controller.ts#update
+B.20 DELETE /licenses/:id -> backend/src/modules/licenses/licenses.controller.ts#remove
+B.21 POST /liquidaciones-ruta -> backend/src/modules/liquidaciones-ruta/liquidaciones-ruta.controller.ts#create
+B.22 POST /notifications -> backend/src/modules/notifications/notifications.controller.ts#create
+B.23 PATCH /notifications/:id/read -> backend/src/modules/notifications/notifications.controller.ts#markAsRead
+B.24 PATCH /notifications/read-all -> backend/src/modules/notifications/notifications.controller.ts#markAllAsRead
+B.25 POST /notifications/device-token -> backend/src/modules/notifications/notifications.controller.ts#registerToken
+B.26 POST /notifications/unregister-token -> backend/src/modules/notifications/notifications.controller.ts#unregisterToken
+B.27 PATCH /orders/:id/prepare -> backend/src/modules/orders/orders.controller.ts#prepare
+B.28 PATCH /orders/:id/stage -> backend/src/modules/orders/orders.controller.ts#stage
+B.29 PATCH /orders/:id/load-truck -> backend/src/modules/orders/orders.controller.ts#loadTruck
+B.30 PATCH /orders/:id/dispatch -> backend/src/modules/orders/orders.controller.ts#dispatch
+B.31 PATCH /orders/:id/deliver -> backend/src/modules/orders/orders.controller.ts#deliver
+B.32 POST /pending-deliveries -> backend/src/modules/pending-deliveries/pending-deliveries.controller.ts#create
+B.33 POST /pending-deliveries/:id/complete -> backend/src/modules/pending-deliveries/pending-deliveries.controller.ts#complete
+B.34 POST /pending-orders/dispatch -> backend/src/modules/pending-orders/pending-orders.controller.ts#dispatch
+B.35 POST /products/import/:batchId/apply -> backend/src/modules/products/products.controller.ts#applyImport
+B.36 DELETE /products/:id -> backend/src/modules/products/products.controller.ts#remove
+B.37 PATCH /promotions/:id -> backend/src/modules/promotions/promotions.controller.ts#update
+B.38 POST /purchase-orders -> backend/src/modules/purchase-orders/purchase-orders.controller.ts#create
+B.39 POST /purchase-orders/:id/receipts -> backend/src/modules/purchase-orders/purchase-orders.controller.ts#receive
+B.40 POST /returns/:id/receive -> backend/src/modules/returns/returns.controller.ts#receive
+B.41 POST /sales/:id/return -> backend/src/modules/sales/sales.controller.ts#processReturn
+B.42 POST /edge/sync/push -> backend/src/modules/sync-engine/sync-engine.controller.ts#push
+B.43 POST /edge/sync/ack -> backend/src/modules/sync-engine/sync-engine.controller.ts#ack
+B.44 POST /users/:id/assign/:storeId -> backend/src/modules/users/users.controller.ts#assignToStore
+B.45 POST /vehicles/maintenance -> backend/src/modules/vehicles/vehicles.controller.ts#addMaintenance
+B.46 POST /vehicles/fuel -> backend/src/modules/vehicles/vehicles.controller.ts#addFuelLog

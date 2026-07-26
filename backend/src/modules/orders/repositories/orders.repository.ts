@@ -220,10 +220,18 @@ export class OrdersRepository {
     id: string,
     status: string,
     updatedBy?: string,
+    notes?: string,
   ) {
     const res = await client.query(
-      `UPDATE orders SET status = $1, updated_by = $2, version = version + 1, updated_at = NOW() WHERE id = $3 RETURNING *`,
-      [status, updatedBy || null, id],
+      `UPDATE orders
+          SET status = $1,
+              updated_by = $2,
+              notes = COALESCE($3, notes),
+              version = version + 1,
+              updated_at = NOW()
+        WHERE id = $4
+        RETURNING *`,
+      [status, updatedBy || null, notes || null, id],
     );
     return this.mapper.toOrder(res.rows[0]);
   }

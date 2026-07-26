@@ -47,12 +47,10 @@ export function PaymentGrid() {
             await apiClient.post('/sales/process', {
                 storeId,
                 cashShiftId: activeShift.id,
-                cashierId: user.id,
                 ticketNumber: `TKT-${Date.now().toString().slice(-8)}`,
-                items: cart.map(({ id, quantity, salePrice }) => ({ 
+                items: cart.map(({ id, quantity }) => ({
                     productId: id, 
-                    quantity, 
-                    unitPrice: salePrice 
+                    quantity,
                 })),
                 paymentMethod: method
             });

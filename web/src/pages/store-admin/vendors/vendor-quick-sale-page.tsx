@@ -169,15 +169,14 @@ export default function VendorQuickSalePage() {
       await apiClient.post('/orders', {
         storeId,
         vendorId: user.id,
-        cashierName: user.name,
         clientId: selectedClient?.id ?? undefined,
         clientName: selectedClient?.name ?? 'VENTA MOSTRADOR',
-        items: cart.map(({ id, description, quantity, salePrice, costPrice }) => ({
-          productId: id, description, quantity, unitPrice: salePrice, costPrice: costPrice || 0,
+        items: cart.map(({ id, quantity }) => ({
+          productId: id,
+          quantity,
         })),
-        subtotal, tax, total, paymentType,
-        status: paymentType === 'Crédito' ? 'Pendiente de Pago' : 'Pagada',
-        type: 'venta_directa',
+        paymentType: paymentType === 'Crédito' ? 'CREDITO' : 'CONTADO',
+        tipoPedido: 'VENTA_ESTANDAR',
       });
 
       toast({ title: 'Venta registrada', description: `C$ ${total.toFixed(2)} — ${selectedClient?.name ?? 'VENTA MOSTRADOR'}` });

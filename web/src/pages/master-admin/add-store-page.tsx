@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,15 +11,27 @@ import apiClient from '@/services/api-client';
 export default function AddStorePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [chains, setChains] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
     phone: '',
-    chainId: '', // In a real app, this would be a select from chains
+    chainId: '',
   });
+
+  useEffect(() => {
+    apiClient
+      .get('/chains')
+      .then((response) => setChains(Array.isArray(response.data) ? response.data : []))
+      .catch(() => toast.error('Error', 'No se pudieron cargar las cadenas.'));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.chainId) {
+      toast.error('Cadena requerida', 'Seleccione la cadena a la que pertenece la tienda.');
+      return;
+    }
     setLoading(true);
     try {
       await apiClient.post('/stores', formData);
@@ -65,6 +77,23 @@ export default function AddStorePage() {
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-black uppercase text-xs text-slate-500">Cadena</Label>
+              <select
+                required
+                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold"
+                value={formData.chainId}
+                onChange={(event) =>
+                  setFormData({ ...formData, chainId: event.target.value })
+                }
+              >
+                <option value="">Seleccione una cadena...</option>
+                {chains.map((chain) => (
+                  <option key={chain.id} value={chain.id}>{chain.name}</option>
+                ))}
+              </select>
             </div>
             
             <div className="space-y-2">

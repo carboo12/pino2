@@ -126,7 +126,6 @@ export default function EditUserPage() {
       await apiClient.patch(`/users/${userId}`, {
         name: values.name,
         role: values.role,
-        permissions: values.permissions || [],
       });
       
       toast.success('Usuario Actualizado', 'La información ha sido guardada.');

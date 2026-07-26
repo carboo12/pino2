@@ -32,9 +32,9 @@ export default function VendorZonesPage() {
         if (!currentZone.name) { toast({ title: "El nombre es obligatorio", variant: "destructive" }); return; }
         setIsSaving(true);
         try {
-            const payload = { name: currentZone.name, description: currentZone.description || '', visitDay: currentZone.visitDay || 'Ninguno', storeId };
+            const payload = { name: currentZone.name, description: currentZone.description || '', visitDay: currentZone.visitDay || 'Ninguno' };
             if (currentZone.id) { await apiClient.patch(`/store-zones/${currentZone.id}`, payload); toast({ title: "Zona actualizada" }); }
-            else { await apiClient.post('/store-zones', payload); toast({ title: "Zona creada" }); }
+            else { await apiClient.post('/store-zones', { ...payload, storeId }); toast({ title: "Zona creada" }); }
             setIsDialogOpen(false); setCurrentZone({}); fetchZones();
         } catch { toast({ title: "Error al guardar", variant: "destructive" }); }
         finally { setIsSaving(false); }

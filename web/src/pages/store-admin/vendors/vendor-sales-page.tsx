@@ -224,22 +224,17 @@ export default function VendorSalesPage() {
       await apiClient.post('/orders', {
         storeId,
         vendorId: user?.id,
-        cashierName: user?.name,
         clientId: (detailOrder as any).clientId || undefined,
         clientName: detailOrder.clientName,
         items: editItems.map((i) => ({
           productId: i.productId,
-          description: i.productName,
           quantity: i.quantity,
-          unitPrice: i.unitPrice,
-          costPrice: 0,
         })),
-        subtotal: newTotal,
-        tax: 0,
-        total: newTotal,
-        paymentType: detailOrder.paymentType || 'CONTADO',
-        status: 'RECIBIDO',
-        type: 'venta_directa',
+        paymentType:
+          String(detailOrder.paymentType || 'CONTADO').toUpperCase() === 'CREDITO'
+            ? 'CREDITO'
+            : 'CONTADO',
+        tipoPedido: 'VENTA_ESTANDAR',
       });
 
       toast({ title: 'Pedido actualizado' });

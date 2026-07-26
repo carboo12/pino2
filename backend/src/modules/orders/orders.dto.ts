@@ -119,6 +119,10 @@ export class UpdateOrderStatusBodyDto {
   @IsOptional()
   vendorId?: string;
 
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
   @IsInt()
   @IsOptional()
   expectedVersion?: number;

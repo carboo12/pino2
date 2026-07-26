@@ -69,7 +69,6 @@ export default function MasterLicensesPage() {
                 type: licenseType,
                 maxUsers: parseInt(maxUsers),
                 endDate: expiryDate,
-                status: 'Activa',
             });
             toast.success('Licencia agregada', 'La licencia se creó correctamente.');
             setShowDialog(false);

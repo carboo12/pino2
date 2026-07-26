@@ -66,9 +66,6 @@ export default function AssignRoutePage() {
       await apiClient.post('/pending-deliveries/assign-route', {
         deliveryIds,
         ruteroId: selectedRutero,
-        ruteroName: ruteroData?.name,
-        assignedBy: user.name,
-        storeId,
       });
       toast.success('Ruta Asignada', `${selectedCount} pedidos han sido asignados a ${ruteroData?.name}.`);
       setSelectedDeliveries({});

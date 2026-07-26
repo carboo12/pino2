@@ -207,17 +207,11 @@ export default function CashRegisterPage() {
 
   const handleCloseShift = async () => {
     if (!activeShift || !storeId || !user) return;
-    const expectedCash = activeShift.startingCash + stats.cashSales;
-    const actualCash = closeDenom.total;
-    const difference = actualCash - expectedCash;
 
     try {
       await closeShiftMutation.mutateAsync({
         shiftId: activeShift.id,
         storeId,
-        expectedCash,
-        actualCash,
-        difference,
         userId: user.id,
         closingDenominations: closeDenom.counts,
       });

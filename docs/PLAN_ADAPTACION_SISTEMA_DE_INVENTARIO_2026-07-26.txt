@@ -736,9 +736,9 @@ Prioridad dominante: CRÍTICO/ALTO
 [X][A][IA-NÚCLEO] N5.3 Añadir GET /routes/:id requerido por detalle de ruta.
 [X][C][IA-NÚCLEO] N5.4 Sustituir liquidación contra daily-closings por el
                     contrato canónico liquidaciones-ruta.
-[ ][A][IA-NÚCLEO] N5.5 Revisar payload, query y forma de respuesta de cada
+[X][A][IA-NÚCLEO] N5.5 Revisar payload, query y forma de respuesta de cada
                     llamada de escritura y cada página operativa.
-[ ][A][IA-NÚCLEO] N5.6 Clasificar y corregir llamadas dinámicas justificadas.
+[X][A][IA-NÚCLEO] N5.6 Clasificar y corregir llamadas dinámicas justificadas.
 [ ][A][IA-NÚCLEO] N5.7 Actualizar matriz después de integrar todos los cambios
                     pendientes de IA-PARALELA.
 
@@ -748,8 +748,8 @@ EVIDENCIA N5.1-N5.4:
   backend/scripts/audit_react_endpoint_contracts.js.
 - Matriz:
   docs/MATRIZ_REACT_ENDPOINTS_IA_NUCLEO_2026-07-26.txt.
-- Cobertura estática actual: 84 rutas React, 94 archivos de página, 229
-  endpoints NestJS y más de 300 llamadas API directas/transitivas.
+- Cobertura estática actual: 85 rutas React, 95 archivos de página, 229
+  endpoints NestJS y 310 llamadas API directas/transitivas.
 - La matriz contiene todas las rutas, páginas sin ruta directa, hallazgos,
   endpoints backend y consumidores React conocidos.
 - Resultado después de las correcciones: 0 rutas inexistentes y 0 verbos HTTP
@@ -759,6 +759,36 @@ EVIDENCIA N5.1-N5.4:
 - La pantalla usa GET /liquidaciones-ruta y las operaciones POST review,
   receive-merchandise y approve; ya no intenta PATCH /daily-closings/:id.
 - Build NestJS y build React completados.
+
+EVIDENCIA N5.5-N5.6:
+
+- Script reproducible de cuerpos:
+  backend/scripts/audit_react_payload_contracts.js.
+- Matriz:
+  docs/MATRIZ_PAYLOADS_REACT_NESTJS_2026-07-26.txt.
+- Resultado automático actual sobre 106 escrituras React:
+  87 compatibles por análisis estático, 0 campos requeridos faltantes,
+  0 campos extra detectados y 19 construcciones dinámicas revisadas
+  manualmente contra sus DTO/controladores.
+- Se corrigieron payloads rechazados por ValidationPipe en venta POS,
+  edición de usuario, licencias, asignación de entregas, inventario de
+  vendedor, venta rápida, reemplazo de pedido, zonas, arqueos, alta de tienda,
+  configuración general, cierre de caja, grupos de clientes, grupos
+  económicos y productos.
+- Alta de producto ya no envía campos exclusivos de interfaz
+  packagingType/subDepartmentId/supplierName/currentStock; transforma la
+  existencia inicial al contrato initialStock {bulkCount, looseUnitCount}.
+- Edición de producto ya no envía stockBulks/stockUnits calculados.
+- PATCH /orders/:id/status acepta y persiste notes; esto evita rechazar la
+  observación de alistado parcial enviada por Bodega.
+- Los tres usos dinámicos restantes pertenecen exclusivamente a wrappers
+  genéricos revisados (hooks/queries.ts y api-client-validated.ts). La matriz
+  los clasifica como GENERICO_REVISADO: 3; dinámicos sin revisar: 0.
+- Resultado final de endpoints: 0 endpoints inexistentes, 0 verbos
+  incompatibles y 0 llamadas dinámicas pendientes.
+- Build NestJS y build React completados después de estas correcciones.
+- PM2 pino-api-dev reiniciado y quedó online. No se repitió health por
+  instrucción expresa del usuario.
 
 -------------------------------------------------------------------------------
 FASE P0 - COMPONENTES PARALELOS SIN DEPENDENCIA DE API
@@ -3554,13 +3584,78 @@ AVANCE N2.1 POSTERIOR AL CORTE:
 
 SIGUIENTE TRABAJO IA-NÚCLEO:
 
-1. N2.2 tablas detalle de carga y custodia.
-2. N2.3 resultados de entrega por item.
-3. N2.4 devolución IN_TRANSIT/RECEIVED.
-4. N3.2 aceptación de carga idempotente.
-5. N3.3 complete de entrega transaccional.
-6. N3.4 idempotencia transversal.
-7. Publicar endpoints/DTO/JSON y liberar CONTRACT-FREEZE-1.
+Esta lista pertenecía al corte 04:35 UTC y queda reemplazada por la sección
+21 siguiente.
+
+===============================================================================
+21. ESTADO VIGENTE IA-NÚCLEO - 2026-07-26
+===============================================================================
+
+Esta sección reemplaza cualquier “siguiente trabajo” histórico anterior.
+
+FASES IA-NÚCLEO:
+
+[X] N0 - Estabilización del corte.
+[X] N1 - Desbloqueo del flujo de calle, excepto cambios Flutter diferidos.
+[X] N2 - Modelo de ruta, carga, entrega y devolución.
+[X] N3 - Operaciones transaccionales e idempotencia del flujo de calle,
+         excepto persistencia Drift diferida.
+[X] CONTRACT-FREEZE-1 - LIBERADO.
+[X] N4.1 - Retorno y liquidación.
+[X] N4.2 - Compras, importación, integridad y paginación backend.
+[P] N5 - Auditoría React ↔ NestJS: N5.1 a N5.6 terminadas; N5.7 espera el
+         último corte de IA-PARALELA para regenerar la matriz una vez más.
+[D] N4.3 y todo cambio Flutter - otra máquina.
+
+SUBFASE ACTUAL N5:
+
+[X][C] Inventario completo de rutas/páginas/endpoints.
+[X][C] Cero endpoint inexistente.
+[X][C] Cero verbo HTTP incompatible.
+[X][A] Cero campo requerido faltante detectado en escrituras analizables.
+[X][A] Cero campo extra detectado en escrituras analizables.
+[X][A] Formularios y servicios dinámicos revisados manualmente contra DTO.
+[X][A] Wrappers genéricos identificados; cero dinámicos sin clasificación.
+[X][A] Build backend correcto.
+[X][A] Build web correcto.
+[X][A] Backend reiniciado y online sin health repetitivo.
+[ ]     N5.7 regenerar ambas matrices después del commit final de IA-PARALELA.
+
+CORRECCIONES CRÍTICAS/ALTAS CERRADAS EN N5:
+
+[X] Venta POS usa ProcessSaleDto sin cashierId ni unitPrice interno inválido.
+[X] Alta de tienda exige y envía chainId.
+[X] PUT config/general envía {value}.
+[X] Cierre de caja no envía totales que CloseShiftDto rechaza.
+[X] Grupos de clientes/económicos usan nombres de campo backend.
+[X] Arqueo envía efectivoContado, cheques y notas canónicos.
+[X] Productos crean initialStock canónico y no envían campos de interfaz.
+[X] Productos editan sólo campos admitidos por UpdateProductDto.
+[X] Pedidos preservan notes de alistado parcial.
+[X] Departamentos aceptan parentId.
+[X] Subzonas permiten actualizar zoneId.
+[X] Asignaciones de ruta/entrega no envían campos obsoletos.
+[X] Venta rápida/reemplazo no envían totales, estados o líneas obsoletas.
+
+ARTEFACTOS DE CONTROL:
+
+- docs/MATRIZ_REACT_ENDPOINTS_IA_NUCLEO_2026-07-26.txt
+- docs/MATRIZ_PAYLOADS_REACT_NESTJS_2026-07-26.txt
+- backend/scripts/audit_react_endpoint_contracts.js
+- backend/scripts/audit_react_payload_contracts.js
+
+SIGUIENTE TRABAJO IA-NÚCLEO:
+
+1. Esperar únicamente el corte final de archivos React de IA-PARALELA.
+2. Ejecutar otra vez las dos auditorías reproducibles.
+3. Corregir cualquier regresión nueva crítica/alta.
+4. Marcar N5.7 sólo si mantiene:
+   missing endpoint = 0;
+   wrong HTTP method = 0;
+   dynamic pending = 0;
+   missing required payload field = 0;
+   extra payload field = 0.
+5. Crear commit de cierre IA-NÚCLEO sin incluir cambios ajenos no revisados.
 
 ===============================================================================
 FIN DEL PLAN.

@@ -64,7 +64,13 @@ export default function VendorInventoryPage() {
         if (!selectedProduct || !selectedVendor || !user || quantity <= 0) { toast({ variant: 'destructive', title: 'Datos incompletos' }); return; }
         setIsProcessing(true);
         try {
-            await apiClient.post('/vendor-inventories/transaction', { type, quantity, storeId, vendorId: selectedVendor.uid, vendorName: selectedVendor.name, productId: selectedProduct.id, productDescription: selectedProduct.description, cashierName: user.name });
+            await apiClient.post('/vendor-inventories/transaction', {
+                type,
+                quantity,
+                storeId,
+                vendorId: selectedVendor.uid,
+                productId: selectedProduct.id,
+            });
             toast({ title: 'Transacción completada' }); setSelectedProduct(null); setAssignQty(0); setReturnQty(0);
         } catch { toast({ variant: 'destructive', title: 'Error' }); }
         finally { setIsProcessing(false); }

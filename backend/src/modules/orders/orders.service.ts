@@ -128,6 +128,7 @@ export class OrdersService {
     updatedBy?: string,
     vendorId?: string,
     expectedVersion?: number,
+    notes?: string,
   ) {
     return this.transitionUseCase.execute(
       id,
@@ -135,6 +136,7 @@ export class OrdersService {
       updatedBy,
       vendorId,
       expectedVersion,
+      notes,
     );
   }
 

@@ -184,24 +184,41 @@ export default function AddProductPage() {
       const selectedDept = departments.find(d => d.id === values.department);
       const selectedSub = subDepartments.find(s => s.id === values.subDepartment);
       const selectedSup = suppliers.find(s => s.id === values.supplierId);
+      const unitsPerBulk = values.packagingType === 'BULTO'
+        ? Math.max(2, values.unitsPerBulk || 2)
+        : 1;
+      const initialUnits = Math.max(0, Math.trunc(values.currentStock || 0));
 
       const productData = {
-        ...values,
-        packagingType: values.packagingType,
+        storeId,
+        barcode: values.barcode || undefined,
+        brand: values.brand || undefined,
+        description: values.description,
         handlesBulk: values.packagingType === 'BULTO',
-        unitsPerBulk: values.packagingType === 'BULTO' ? Math.max(2, values.unitsPerBulk || 2) : 1,
+        unitsPerBulk,
+        costPrice: values.costPrice,
         salePrice: values.price1,
+        price1: values.price1,
+        price2: values.price2,
+        price3: values.price3,
+        price4: values.price4,
+        price5: values.price5,
+        bulkPrice1: values.bulkPrice1,
+        bulkPrice2: values.bulkPrice2,
+        bulkPrice3: values.bulkPrice3,
+        bulkPrice4: values.bulkPrice4,
+        bulkPrice5: values.bulkPrice5,
+        usesInventory: values.usesInventory,
+        minStock: values.minStock,
         departmentId: values.department,
         department: selectedDept?.name || '',
-        subDepartmentId: values.subDepartment === 'none' ? '' : values.subDepartment,
         subDepartment: selectedSub?.name || '',
-        supplierId: values.supplierId === 'none' ? '' : (selectedSup?.id || ''),
-        supplierName: selectedSup?.name || '',
-        storeId,
+        supplierId: values.supplierId === 'none' ? undefined : selectedSup?.id,
+        initialStock: {
+          bulkCount: Math.floor(initialUnits / unitsPerBulk),
+          looseUnitCount: initialUnits % unitsPerBulk,
+        },
       };
-
-      if (productData.subDepartmentId === 'none') productData.subDepartmentId = '';
-      if (productData.supplierId === 'none') productData.supplierId = '';
 
       await createProductMutation.mutateAsync(productData);
 
@@ -639,4 +656,3 @@ export default function AddProductPage() {
     </div>
   );
 }
-

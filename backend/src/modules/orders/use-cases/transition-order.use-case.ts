@@ -67,6 +67,7 @@ export class TransitionOrderUseCase {
     updatedBy?: string,
     vendorId?: string,
     expectedVersion?: number,
+    notes?: string,
   ) {
     let wsStatusPayload: any = null;
     let wsTransferPayload: any = null;
@@ -255,6 +256,7 @@ export class TransitionOrderUseCase {
         id,
         targetStatus,
         updatedBy,
+        notes,
       );
 
       await this.repo.insertStatusHistory(client, id, targetStatus, updatedBy);

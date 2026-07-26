@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
+import { CreateDepartmentDto, UpdateDepartmentDto } from './departments.dto';
 
 @ApiTags('Departments')
 @ApiBearerAuth()
@@ -26,7 +27,7 @@ export class DepartmentsController {
   @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo departamento en la tienda' })
-  create(@Body() dto: { name: string; storeId: string }) {
+  create(@Body() dto: CreateDepartmentDto) {
     return this.service.create(dto);
   }
 
@@ -56,7 +57,7 @@ export class DepartmentsController {
   @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar departamento' })
-  update(@Param('id') id: string, @Body() dto: { name: string }) {
+  update(@Param('id') id: string, @Body() dto: UpdateDepartmentDto) {
     return this.service.update(id, dto);
   }
 }

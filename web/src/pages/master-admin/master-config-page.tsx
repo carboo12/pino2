@@ -55,7 +55,7 @@ export default function MasterConfigPage() {
 
     const handleSave = async () => {
         try {
-            await apiClient.put('/config/general', config);
+            await apiClient.put('/config/general', { value: config });
             toast({ title: 'Configuración guardada correctamente' });
         } catch (error) {
             console.error('Error saving config:', error);

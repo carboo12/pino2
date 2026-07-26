@@ -94,7 +94,7 @@ export class ZonesService {
 
   async updateSubZone(
     id: string,
-    dto: { name?: string; description?: string },
+    dto: { name?: string; zoneId?: string; description?: string },
   ) {
     const sets: string[] = [];
     const params: any[] = [];
@@ -106,6 +106,10 @@ export class ZonesService {
     if (dto.description !== undefined) {
       sets.push(`description = $${idx++}`);
       params.push(dto.description);
+    }
+    if (dto.zoneId) {
+      sets.push(`zone_id = $${idx++}`);
+      params.push(dto.zoneId);
     }
     if (sets.length === 0) throw new NotFoundException('Nada que actualizar');
     sets.push(`updated_at = NOW()`);

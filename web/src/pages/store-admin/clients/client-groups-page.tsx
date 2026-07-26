@@ -39,7 +39,11 @@ export default function ClientGroupsPage() {
 
   const handleSubmit = async () => {
     try {
-      await apiClient.post('/grupos-clientes', { ...formData, storeId });
+      await apiClient.post('/grupos-clientes', {
+        storeId,
+        nombre: formData.name,
+        descripcion: formData.description || undefined,
+      });
       toast({ title: 'Grupo creado exitosamente' });
       setIsOpen(false);
       setFormData({ name: '', description: '' });

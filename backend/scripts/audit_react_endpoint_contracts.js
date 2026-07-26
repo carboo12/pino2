@@ -21,6 +21,13 @@ const outputPath = path.resolve(
     path.join(root, 'docs/MATRIZ_REACT_ENDPOINTS_IA_NUCLEO_2026-07-26.txt'),
 );
 
+// Wrappers revisados manualmente: reciben la URL desde un consumidor y no
+// representan por sí mismos un endpoint incompleto.
+const REVIEWED_GENERIC_API_WRAPPERS = new Set([
+  'web/src/hooks/queries.ts',
+  'web/src/services/api-client-validated.ts',
+]);
+
 function walk(dir, predicate) {
   const result = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -255,7 +262,14 @@ function transitiveCalls(startFile, fileData) {
 }
 
 function statusForCall(call, backendEndpoints) {
-  if (!call.resolvable) return { status: 'REVISAR_DINAMICO', matches: [] };
+  if (!call.resolvable) {
+    return {
+      status: REVIEWED_GENERIC_API_WRAPPERS.has(call.file)
+        ? 'GENERICO_REVISADO'
+        : 'REVISAR_DINAMICO',
+      matches: [],
+    };
+  }
   const pathMatches = backendEndpoints.filter((endpoint) =>
     endpointMatches(call.path, endpoint.path),
   );
@@ -294,12 +308,14 @@ function render() {
     `- Llamadas API literales/dinámicas detectadas: ${allCalls.length}`,
     `- Llamadas con endpoint inexistente: ${callResults.filter((item) => item.result.status === 'ENDPOINT_NO_EXISTE').length}`,
     `- Llamadas con método incompatible: ${callResults.filter((item) => item.result.status === 'METODO_INCOMPATIBLE').length}`,
+    `- Wrappers genéricos revisados: ${callResults.filter((item) => item.result.status === 'GENERICO_REVISADO').length}`,
     `- Llamadas dinámicas a revisar: ${callResults.filter((item) => item.result.status === 'REVISAR_DINAMICO').length}`,
     '',
     'REGLA DE LECTURA',
     '- OK: método y ruta compatibles con un controlador NestJS.',
     '- ENDPOINT_NO_EXISTE: no hay ruta estructural equivalente.',
     '- METODO_INCOMPATIBLE: existe la ruta, pero no el verbo HTTP usado.',
+    '- GENERICO_REVISADO: wrapper intencional cuya URL la define el consumidor.',
     '- REVISAR_DINAMICO: la URL no es literal y requiere inspección manual.',
     '- SIN_LLAMADAS: la página puede ser visual, usar contexto o depender de un hijo no resuelto.',
     '',
@@ -342,7 +358,10 @@ function render() {
     });
 
   push('', 'C. HALLAZGOS FRONTEND QUE REQUIEREN ACCIÓN');
-  const actionable = callResults.filter((item) => item.result.status !== 'OK');
+  const actionable = callResults.filter(
+    (item) =>
+      !['OK', 'GENERICO_REVISADO'].includes(item.result.status),
+  );
   actionable.forEach(({ call, result }, index) => {
     const alternatives = result.matches
       .map((endpoint) => `${endpoint.method} ${endpoint.path}`)
@@ -389,6 +408,9 @@ function render() {
         ).length,
         wrongMethod: callResults.filter(
           (item) => item.result.status === 'METODO_INCOMPATIBLE',
+        ).length,
+        reviewedGeneric: callResults.filter(
+          (item) => item.result.status === 'GENERICO_REVISADO',
         ).length,
         dynamic: callResults.filter(
           (item) => item.result.status === 'REVISAR_DINAMICO',

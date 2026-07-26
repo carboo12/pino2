@@ -26,9 +26,10 @@ export default function ArqueosPage() {
   const [monedas, setMonedas] = useState(0);
   const [cheques, setCheques] = useState(0);
   
-  const totalContado = (billetes1000 * 1000) + (billetes500 * 500) + (billetes200 * 200) + (billetes100 * 100) + (billetes50 * 50) + monedas + cheques;
+  const efectivoContado = (billetes1000 * 1000) + (billetes500 * 500) + (billetes200 * 200) + (billetes100 * 100) + (billetes50 * 50) + monedas;
+  const totalValores = efectivoContado + cheques;
   const totalEsperado = arqueoData?.monto_esperado || 0;
-  const diferencia = totalContado - totalEsperado;
+  const diferencia = efectivoContado - totalEsperado;
 
   const [observaciones, setObservaciones] = useState('');
 
@@ -86,12 +87,10 @@ export default function ArqueosPage() {
       await apiClient.post('/arqueos', {
         storeId,
         ruteroId: selectedRutero,
-        montoEsperado: totalEsperado,
-        montoReal: totalContado,
-        metadata: {
-           billetes1000, billetes500, billetes200, billetes100, billetes50, monedas, cheques
-        },
-        observaciones
+        fecha: new Date().toISOString().substring(0, 10),
+        efectivoContado,
+        cheques,
+        notas: observaciones || undefined,
       });
       toast({ title: 'Arqueo Guardado con éxito' });
       setSelectedRutero('');
@@ -179,7 +178,12 @@ export default function ArqueosPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                <div className="bg-primary/10 p-4 rounded-xl text-center border border-primary/20">
                  <p className="text-xs font-bold text-primary mb-1 uppercase">Total Físico (Contado)</p>
-                 <p className="text-2xl font-black">C$ {totalContado.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                 <p className="text-2xl font-black">C$ {efectivoContado.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+                 {cheques > 0 ? (
+                   <p className="text-xs text-muted-foreground mt-1">
+                     Cheques: C$ {cheques.toLocaleString(undefined, { minimumFractionDigits: 2 })} · Total valores: C$ {totalValores.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                   </p>
+                 ) : null}
                </div>
                <div className={`p-4 rounded-xl text-center border ${diferencia === 0 ? 'bg-green-100 border-green-200 text-green-800' : (diferencia < 0 ? 'bg-red-100 border-red-200 text-red-800' : 'bg-blue-100 border-blue-200 text-blue-800')}`}>
                  <p className="text-xs font-bold mb-1 uppercase">Diferencia</p>

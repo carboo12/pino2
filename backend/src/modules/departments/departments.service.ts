@@ -8,9 +8,9 @@ export class DepartmentsService {
 
   async create(dto: CreateDepartmentDto) {
     const res = await this.db.query(
-      `INSERT INTO departments (store_id, name, description) 
-       VALUES ($1, $2, $3) RETURNING *`,
-      [dto.storeId, dto.name, dto.description],
+      `INSERT INTO departments (store_id, name, description, parent_id)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [dto.storeId, dto.name, dto.description || null, dto.parentId || null],
     );
     return res.rows[0];
   }

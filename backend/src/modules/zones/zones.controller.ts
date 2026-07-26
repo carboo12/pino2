@@ -83,7 +83,7 @@ export class SubZonesController {
   @ApiOperation({ summary: 'Actualizar sub-zona' })
   update(
     @Param('id') id: string,
-    @Body() dto: { name?: string; description?: string },
+    @Body() dto: { name?: string; zoneId?: string; description?: string },
   ) {
     return this.service.updateSubZone(id, dto);
   }

@@ -297,8 +297,6 @@ export default function EditProductPage() {
         currentStock: Number(formData.currentStock || 0),
         minStock: Number(formData.minStock || 0),
         unitsPerBulk: formData.handlesBulk ? Math.max(2, Number(formData.unitsPerBulk || 2)) : 1,
-        stockBulks: Number(formData.stockBulks || 0),
-        stockUnits: Number(formData.stockUnits || 0),
       });
 
       toast.success(
