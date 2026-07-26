@@ -442,6 +442,7 @@ export class SalesRepository {
     storeIds?: string,
     limit?: number,
     vendorId?: string,
+    clientId?: string,
   ) {
     let sql = "SELECT * FROM sales WHERE 1=1";
     const params: any[] = [];
@@ -475,6 +476,10 @@ export class SalesRepository {
       params.push(vendorId);
       sql += " AND cashier_id = $" + params.length;
     }
+    if (clientId) {
+      params.push(clientId);
+      sql += " AND client_id = $" + params.length;
+    }
     if (startDate) {
       params.push(startDate);
       sql += " AND created_at >= $" + params.length;
@@ -501,6 +506,7 @@ export class SalesRepository {
     page: number,
     pageSize: number,
     vendorId?: string,
+    clientId?: string,
   ) {
     let whereSql = ' WHERE 1=1';
     const params: any[] = [];
@@ -533,6 +539,9 @@ export class SalesRepository {
     }
     if (vendorId) {
       whereSql += ` AND cashier_id = $${params.push(vendorId)}`;
+    }
+    if (clientId) {
+      whereSql += ` AND client_id = $${params.push(clientId)}`;
     }
     if (startDate) {
       whereSql += ` AND created_at >= $${params.push(startDate)}`;

@@ -98,6 +98,7 @@ export class SalesService {
     vendorId?: string,
     page?: number,
     pageSize?: number,
+    clientId?: string,
   ) {
     if (page !== undefined) {
       const safePage = Math.max(1, Number.isFinite(page) ? page : 1);
@@ -115,6 +116,7 @@ export class SalesService {
         safePage,
         safePageSize,
         vendorId,
+        clientId,
       );
     }
     return this.salesRepo.findAllSales(
@@ -125,6 +127,7 @@ export class SalesService {
       storeIds,
       limit,
       vendorId,
+      clientId,
     );
   }
 

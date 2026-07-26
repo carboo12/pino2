@@ -46,6 +46,7 @@ export class SalesController {
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
     @Query('vendorId') vendorId?: string,
+    @Query('clientId') clientId?: string,
   ) {
     return this.service.findAll(
       storeId,
@@ -57,6 +58,7 @@ export class SalesController {
       vendorId,
       page ? parseInt(page, 10) : undefined,
       pageSize ? parseInt(pageSize, 10) : undefined,
+      clientId,
     );
   }
 
