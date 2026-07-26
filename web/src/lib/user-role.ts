@@ -30,7 +30,7 @@ export const normalizeUserRole = (value?: string | null): NormalizedUserRole => 
     'despachador-de-ruta': 'rutero',
     'despacho': 'auxiliar',
     'despachador': 'auxiliar',
-    'cajero': 'admin',
+    'cajero': 'cajero',
     'supervisor-de-caja': 'admin',
     'supervisor-caja': 'admin',
     'supervisor-de-pasillo': 'admin',
