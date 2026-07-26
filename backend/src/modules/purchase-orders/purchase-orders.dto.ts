@@ -1,4 +1,16 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray, ValidateNested, IsInt, Min, IsNumber } from 'class-validator';
+import {
+  ArrayUnique,
+  IsArray,
+  IsDateString,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PurchaseOrderItemDto {
@@ -46,6 +58,49 @@ export class UpdatePurchaseOrderStatusDto {
   @IsString()
   @IsNotEmpty()
   status: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
+}
+
+export class ReceivePurchaseOrderItemDto {
+  @IsUUID('all')
+  purchaseOrderItemId!: string;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  receivedQuantity?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  receivedBulks?: number;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  receivedUnits?: number;
+}
+
+export class ReceivePurchaseOrderDto {
+  @IsUUID('all')
+  externalId!: string;
+
+  @IsArray()
+  @ArrayUnique((item: ReceivePurchaseOrderItemDto) => item.purchaseOrderItemId)
+  @ValidateNested({ each: true })
+  @Type(() => ReceivePurchaseOrderItemDto)
+  items!: ReceivePurchaseOrderItemDto[];
+
+  @IsString()
+  @IsOptional()
+  invoiceNumber?: string;
+
+  @IsDateString()
+  @IsOptional()
+  invoiceDate?: string;
 
   @IsString()
   @IsOptional()

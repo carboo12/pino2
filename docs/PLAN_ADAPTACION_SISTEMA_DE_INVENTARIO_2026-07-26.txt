@@ -668,11 +668,22 @@ EVIDENCIA N4.1:
 
 SUBFASE N4.2 - Entradas de inventario pendientes
 
-[ ][A][IA-NÚCLEO] N4.2.1 Recepción parcial de orden de compra.
+[X][A][IA-NÚCLEO] N4.2.1 Recepción parcial de orden de compra.
 [ ][A][IA-NÚCLEO] N4.2.2 Importación con staging y validación por fila.
 [ ][A][IA-NÚCLEO] N4.2.3 Idempotencia de importación por clave/barcode.
 [ ][A][IA-NÚCLEO] N4.2.4 Ajustar stock negativo mediante movements.
 [ ][A][IA-NÚCLEO] N4.2.5 Paginación SQL de clients/products/sales/movements.
+
+EVIDENCIA N4.2.1:
+
+- Migración: backend/migrations/2026-07-26_purchase_receipts_n4_2_1.sql.
+- Cabecera idempotente purchase_order_receipts.
+- Detalle auditable purchase_order_receipt_items.
+- POST /purchase-orders/:id/receipts acepta unidades base o
+  Bultos/Unidades, pero no ambas representaciones en una línea.
+- Bloquea orden, líneas y productos; impide recibir más de lo pendiente.
+- Cada recepción incrementa stock y crea movement IN en la misma transacción.
+- Estado automático PARTIALLY_RECEIVED o COMPLETED.
 
 SUBFASE N4.3 - Flutter financiero/campo
 
