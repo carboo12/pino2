@@ -1,0 +1,844 @@
+===============================================================================
+DIAGNÓSTICO Y PLAN DE CIERRE — 6 ROLES CANÓNICOS SEGÚN TRELLO
+===============================================================================
+
+Fecha: 2026-07-26
+Repositorio: /opt/apps/pino2
+Commit analizado: f1f5e9e
+Commit funcional de roles: 5f5af97
+Base activa analizada: sistema_de_inventario
+Documento de entrada: docs/2026-07-26_CAMBIO_ROLES.txt
+
+ALCANCE DE ESTE ARCHIVO
+-------------------------------------------------------------------------------
+
+Este documento es exclusivamente diagnóstico y plan. No implementa cambios.
+La siguiente IA debe corregir NestJS, React, Flutter y la asignación de usuarios
+sin volver a crear roles adicionales.
+
+FUENTE DE VERDAD OBLIGATORIA
+-------------------------------------------------------------------------------
+
+Los únicos roles persistibles son:
+
+1. admin        = JEFE / ENCARGADO DE BODEGA
+2. super-admin  = ADMINISTRADOR GENERAL
+3. auxiliar     = AUXILIAR DE RECEPCIÓN Y DESPACHO
+4. inventory    = ANALISTA / AUDITOR DE INVENTARIO
+5. gestor       = GESTOR DE VENTAS / PREVENTISTA
+6. rutero       = RUTERO / REPARTIDOR
+
+No se debe reintroducir cashier, dispatcher, vendor, sales-manager,
+store-admin, master-admin, owner, chain-admin, supervisor-caja ni
+supervisor-pasillo como roles persistidos.
+
+===============================================================================
+1. VEREDICTO DIRECTO
+===============================================================================
+
+¿EL CAMBIO 5f5af97 CUMPLE COMPLETAMENTE LA LEY TRELLO?
+
+NO.
+
+El cambio consolidó correctamente los nombres principales en shared, NestJS,
+React y PostgreSQL, pero la consolidación es nominal, no funcional de punta a
+punta. Existen bloqueantes que impiden trabajar a cinco de los seis usuarios
+activos y contradicciones que mezclan al Jefe de Bodega con el Administrador
+General.
+
+PUNTAJE DEL CAMBIO DE ROLES:
+
+- Consolidación nominal de nombres:                       7.0 / 10
+- Cumplimiento operativo real de la ley Trello:           4.0 / 10
+- Puntaje objetivo después de este plan:                  9.5 / 10
+
+El sistema no debe declararse listo por roles mientras exista un punto crítico
+abierto de las fases C0, C1, C2 o C3.
+
+RESUMEN DE EVIDENCIA:
+
+- 6 roles canónicos definidos en shared/contracts.ts: SÍ.
+- 6 roles canónicos definidos en backend: SÍ.
+- 6 roles presentes en usuarios activos PostgreSQL: SÍ.
+- Super-admin autorizado realmente en backend: NO.
+- Jefe admin limitado a su bodega: NO.
+- Formularios React muestran únicamente 6 roles: NO.
+- Flutter reconoce gestor y super-admin: NO.
+- Gestor conserva sólo funciones de preventa: NO.
+- Usuarios operativos tienen tienda asignada: NO, salvo Rutero.
+- Servicios SQL internos usan todos los roles nuevos: NO.
+- Flujo de ruta puede asignarse al usuario gestor nuevo: NO.
+
+===============================================================================
+2. HALLAZGOS CRÍTICOS
+===============================================================================
+
+C0.1 [CRÍTICO] SUPER-ADMIN BLOQUEADO EN NESTJS
+-------------------------------------------------------------------------------
+
+Evidencia:
+
+- Se analizaron 224 decoradores @Roles en controllers.
+- Cero decoradores contienen super-admin.
+- RolesGuard compara igualdad estricta.
+- RolesGuard no tiene bypass para super-admin.
+
+Consecuencia:
+
+El usuario admin@multitienda.com con role=super-admin recibe 403 en todos los
+endpoints protegidos con @Roles('admin'), incluyendo usuarios, tiendas,
+configuración y módulos globales.
+
+Corrección obligatoria:
+
+1. RolesGuard debe permitir super-admin como bypass global.
+2. Los endpoints exclusivos globales deben declarar super-admin, no admin.
+3. No convertir super-admin a admin para evitar el 403.
+
+Código objetivo:
+
+  const normalizedRole = normalizeUserRole(user.role);
+  if (normalizedRole === 'super-admin') return true;
+  return requiredRoles.includes(normalizedRole);
+
+Criterio:
+
+- super-admin abre panel global y cualquier tienda.
+- super-admin puede crear/editar usuarios.
+- super-admin no depende de user_stores.
+
+
+C0.2 [CRÍTICO] ADMIN FUE CONVERTIDO EN GLOBAL
+-------------------------------------------------------------------------------
+
+Evidencia:
+
+StoreAccessGuard permite acceso global cuando role es admin o super-admin.
+React MASTER_ROLES contiene ['admin', 'super-admin'].
+getRedirectPath envía admin a /master-admin/dashboard.
+AppLayout permite admin consultar todas las tiendas.
+
+Esto contradice el modelo acordado:
+
+- admin = Jefe de una bodega.
+- super-admin = Administrador General global.
+
+Corrección obligatoria:
+
+Backend:
+
+  if (normalizedRole === 'super-admin') return true;
+
+  // admin también debe validar user.storeIds.
+
+React:
+
+  MASTER_ROLES = ['super-admin'];
+  STORE_ADMIN_ROLES = ['admin'];
+
+Redirect:
+
+  super-admin -> /master-admin/dashboard
+  admin       -> /store/{primerStoreId}/work/admin
+
+AppLayout:
+
+- Sólo super-admin carga todas las tiendas.
+- admin carga únicamente user.storeIds.
+- Logo de admin vuelve a su tienda, no al panel global.
+
+Criterio:
+
+El Jefe controla todos los módulos de Los Pinos - Central, pero no puede abrir,
+editar ni comparar otra tienda. El Administrador General sí puede hacerlo.
+
+
+C0.3 [CRÍTICO] CINCO USUARIOS ACTIVOS NO TIENEN TIENDA
+-------------------------------------------------------------------------------
+
+Estado real consultado en sistema_de_inventario:
+
+Rol          Usuario                     Tienda
+------------ --------------------------- ------------------------
+admin        dueno@lospinos.com           SIN_TIENDA
+super-admin  admin@multitienda.com        SIN_TIENDA (correcto)
+inventory    bodeg@lospinos.com           SIN_TIENDA
+auxiliar     cajero@tienda.com            SIN_TIENDA
+gestor       gestor@lospinos.com          SIN_TIENDA
+rutero       rute@lospinos.com            Los Pinos - Central
+
+Consecuencia:
+
+Después de corregir el bypass incorrecto de admin, admin, auxiliar, inventory y
+gestor seguirán bloqueados o serán enviados a /login?error=no-store.
+
+Corrección obligatoria mediante migración versionada:
+
+  BEGIN;
+
+  INSERT INTO user_stores (user_id, store_id)
+  SELECT u.id, s.id
+    FROM users u
+    CROSS JOIN stores s
+   WHERE s.id = '9321856d-19ba-42b8-ba47-cf35c0d133dd'
+     AND u.is_active = true
+     AND u.role IN ('admin', 'auxiliar', 'inventory', 'gestor', 'rutero')
+  ON CONFLICT DO NOTHING;
+
+  COMMIT;
+
+No asignar tienda a super-admin salvo que exista un requisito explícito.
+
+Criterio:
+
+Cada rol operativo inicia sesión y su JWT contiene exactamente el UUID de
+Los Pinos - Central en storeIds.
+
+
+C0.4 [CRÍTICO] FLUTTER NO FUE MIGRADO A LOS 6 ROLES
+-------------------------------------------------------------------------------
+
+Evidencia:
+
+flutter/lib/core/utils/role_utils.dart conserva 12 roles legacy.
+No reconoce el valor canónico gestor.
+No reconoce super-admin.
+El usuario role=gestor se convierte en AppRole.unknown.
+
+Consecuencia:
+
+El Gestor activo no recibe las acciones de preventa. La App le ofrece el
+fallback de rol desconocido y no puede ejecutar el flujo obligatorio.
+
+Además, el antiguo bloque vendor/salesManager muestra Cobros, Devoluciones,
+Stock de carga y Cierre de Caja, acciones expresamente prohibidas al Gestor.
+
+Corrección obligatoria:
+
+  enum AppRole {
+    admin,
+    superAdmin,
+    auxiliar,
+    inventory,
+    gestor,
+    rutero,
+    unknown,
+  }
+
+normalizeRole debe aceptar primero los 6 valores canónicos. Los aliases sólo se
+usan durante transición y nunca se persisten.
+
+Acciones permitidas al Gestor:
+
+- Ruta/visitas asignadas.
+- Clientes asignados.
+- Preventa por bultos/unidades.
+- Catálogo y stock de bodega de sólo lectura.
+- CxC y límite de crédito de sólo lectura.
+- Sincronización y conflictos de outbox.
+
+Acciones prohibidas al Gestor:
+
+- Cobrar.
+- Emitir factura final de entrega.
+- Registrar devolución de entrega.
+- Ver/administrar inventario de camión.
+- Cierre de caja o liquidación.
+- Elegir clientes o pedidos fuera de su ruta.
+
+Rutero conserva:
+
+- Carga propia.
+- Aceptación de custodia.
+- Entrega total/parcial.
+- Cobro.
+- Rechazo/devolución.
+- Impresión.
+- Retorno y liquidación.
+
+Criterio:
+
+Login gestor abre la pantalla Preventa. Login rutero abre Ruta de Entrega.
+Ninguno recibe acciones del otro.
+
+
+C0.5 [CRÍTICO] VALIDADORES SQL TODAVÍA EXIGEN ROLES ELIMINADOS
+-------------------------------------------------------------------------------
+
+Se detectaron 12 literales legacy funcionales en backend fuera de pruebas.
+
+Casos bloqueantes confirmados:
+
+- ClientsService.reasignarMany valida sales-manager/vendor.
+- RoutesService.validateVendor valida sales-manager/vendor/rutero.
+- AccountsReceivableService filtra sólo actorRole=sales-manager.
+- SyncService reconoce sólo actorRole=sales-manager.
+
+Consecuencias:
+
+- No se puede asignar/reasignar una ruta al usuario role=gestor.
+- No se puede ejecutar Reasignación Express hacia el Gestor nuevo.
+- El Gestor puede recibir una CxC sin filtro de cartera porque el servicio no
+  reconoce actorRole=gestor.
+- El delta sync puede descargar datos fuera de la cartera o no descargar la
+  cartera correcta.
+
+Correcciones mínimas:
+
+  u.role = 'gestor'
+
+  actorRole === 'gestor'
+
+  u.role IN ('gestor', 'rutero') // sólo donde el responsable puede ser ambos.
+
+No realizar reemplazo ciego de la palabra vendor cuando sea nombre de columna,
+vendor_id, DTO o concepto de inventario; sólo cambiar comparaciones de rol.
+
+Criterio:
+
+- Crear ruta SALES con gestor activo funciona.
+- Reasignar clientes a gestor activo funciona.
+- CxC del Gestor contiene sólo clientes de route_clients.
+- Delta sync del Gestor contiene sólo su cartera.
+
+===============================================================================
+3. HALLAZGOS ALTOS
+===============================================================================
+
+A1 [ALTO] FORMULARIOS REACT SIGUEN MOSTRANDO ROLES ELIMINADOS
+-------------------------------------------------------------------------------
+
+add-user-page.tsx y edit-user-page.tsx aún ofrecen:
+
+- cashier
+- store-admin
+- vendor
+- sales-manager
+- supervisor-caja
+- supervisor-pasillo
+- master-admin
+- chain-admin
+
+El backend los normaliza, pero el usuario final sigue viendo nueve roles
+antiguos. Esto incumple directamente “sólo quiero estos seis roles”.
+
+Corrección:
+
+Selector de tienda:
+
+  admin       — JEFE / ENCARGADO DE BODEGA
+  auxiliar    — AUXILIAR DE RECEPCIÓN Y DESPACHO
+  inventory   — ANALISTA / AUDITOR DE INVENTARIO
+  gestor      — GESTOR DE VENTAS
+  rutero      — RUTERO / REPARTIDOR
+
+Selector global:
+
+  super-admin — ADMINISTRADOR GENERAL
+
+Reglas:
+
+- Sólo super-admin puede crear otro super-admin.
+- admin sólo crea personal de su propia bodega.
+- Todos salvo super-admin requieren assignedStoreId.
+- Valores y defaultValue deben ser canónicos.
+
+
+A2 [ALTO] PÁGINAS REACT COMPARAN ROL NORMALIZADO CONTRA NOMBRES VIEJOS
+-------------------------------------------------------------------------------
+
+Errores confirmados:
+
+- catalog-workspace-page.tsx:
+  canManageCatalog compara admin contra master-admin/owner/store-admin.
+- products-page.tsx: mismo problema.
+- cargas-page.tsx: admin no puede ver Reasignar por comparación vieja.
+- client-reassign-page.tsx: no encuentra gestores.
+- vendor-inventory-page.tsx: no encuentra gestores.
+- vendor-routes-page.tsx: no encuentra gestores.
+- warehouse-dashboard-page.tsx: filtros y isManager usan roles viejos.
+
+Corrección:
+
+Toda comparación posterior a normalizeUserRole debe usar exclusivamente:
+
+  admin | super-admin | auxiliar | inventory | gestor | rutero
+
+Nunca:
+
+  normalizeUserRole(role) === 'store-admin'
+  ['vendor', 'sales-manager'].includes(normalizeUserRole(role))
+
+Criterio:
+
+- admin puede editar catálogo y reasignar cargas.
+- Reasignación Express lista al usuario gestor.
+- Pantallas de rutas listan gestor y rutero según el proceso.
+
+
+A3 [ALTO] SUPER-ADMIN Y ADMIN COMPARTEN RUTAS MASTER EN REACT
+-------------------------------------------------------------------------------
+
+MASTER_ROLES = ['admin', 'super-admin'] da al Jefe pantallas globales:
+
+- tiendas
+- comparación multi-tienda
+- configuración global
+- usuarios globales
+- monitor global
+
+Corrección:
+
+MASTER_ROLES = ['super-admin'].
+
+Las pantallas /store/:storeId permanecen con admin y, mediante bypass explícito
+de React, super-admin.
+
+
+A4 [ALTO] GESTOR HEREDÓ FUNCIONES DE VENDEDOR AMBULANTE
+-------------------------------------------------------------------------------
+
+El cambio vendor + sales-manager -> gestor fusionó dos perfiles que antes
+tenían capacidades distintas. La ley Trello define Gestor como preventista sin
+mercancía y sin cobro.
+
+React actualmente permite gestor en:
+
+- delivery-route
+- collections
+- returns
+- vendor inventory
+- quick-sale
+- daily-closing
+- alta/administración de vendedores
+- asignación de rutas
+
+Esto no cumple.
+
+Matriz React obligatoria:
+
+GESTOR SÍ:
+
+- /vendors/dashboard o nueva /preventa
+- /vendors/clients
+- /vendors/routes (sólo propias, lectura)
+- /work/sales adaptado a preventa
+- catálogo de sólo lectura
+- CxC de sólo lectura
+
+GESTOR NO:
+
+- /delivery-route
+- /vendors/collections
+- /vendors/returns
+- /vendors/inventory
+- /vendors/add
+- /vendors/assign-route
+- /daily-closing
+- quick-sale que facture/cobre
+
+Backend ya limita Collections y Returns a rutero, pero React debe coincidir.
+
+
+A5 [ALTO] INVENTORY ENTRA A BODEGA OPERATIVA
+-------------------------------------------------------------------------------
+
+La ley Trello define inventory como Analista/Auditor, no como Auxiliar físico.
+
+React getBodegueroNav abre Bodega y el WAREHOUSE_ROLES incluye inventory.
+Flutter también le muestra recepción, carga y ajuste directo.
+
+Inventory debe ver:
+
+- Kárdex/movements.
+- Conteos ciegos.
+- Discrepancias.
+- Solicitudes de ajuste.
+- Reporte despachado vs liquidado.
+- Catálogo de sólo lectura.
+
+Inventory no debe:
+
+- Recibir compras físicamente.
+- Preparar carga.
+- Confirmar carga.
+- Ajustar stock directamente.
+- Modificar catálogo.
+
+Crear un workspace de Auditoría o reutilizar las páginas existentes sin
+acciones físicas.
+
+
+A6 [ALTO] AUXILIAR TIENE PERMISOS DEMASIADO AMPLIOS EN ALGUNOS MÓDULOS
+-------------------------------------------------------------------------------
+
+Revisar método por método, no sólo controller por controller:
+
+- DepartmentsController permite auxiliar en operaciones de escritura.
+- SuppliersController permite auxiliar en operaciones de escritura.
+- VehiclesController permite auxiliar en varias escrituras.
+- PurchaseOrdersController permite auxiliar en operaciones anteriores a la
+  recepción física.
+
+Objetivo:
+
+Auxiliar puede leer catálogo/barcodes/proveedor/orden, registrar cantidad
+recibida, confirmar carga y recibir devolución. No puede cambiar catálogo,
+factor X, costos, proveedor maestro, vehículo maestro ni autorizar ajustes.
+
+
+A7 [ALTO] ADMINISTRADOR GENERAL NO ESTÁ DEFINIDO EN TRELLO
+-------------------------------------------------------------------------------
+
+La tarjeta “Administrador Genera” estaba vacía. El código asumió acceso máximo.
+Antes de cerrar se debe confirmar y registrar:
+
+- Puede administrar múltiples tiendas.
+- Puede crear super-admin o sólo admin.
+- Puede impersonar.
+- Puede modificar configuración global.
+- Puede entrar temporalmente a una bodega.
+
+Suposición recomendada para MVP:
+
+super-admin es global, no realiza operación diaria y puede inspeccionar o
+sobrescribir cualquier tienda.
+
+===============================================================================
+4. HALLAZGOS MEDIOS Y DOCUMENTALES
+===============================================================================
+
+M1 [MEDIO] INCONSISTENCIA EN ALIASES
+-------------------------------------------------------------------------------
+
+shared/contracts.ts mapea cashier -> admin.
+backend user-role.util.ts mapea cajero -> auxiliar.
+
+Dos textos equivalentes producen permisos diferentes.
+
+No elevar aliases ambiguos automáticamente. Después de migrar todos los
+usuarios a valores canónicos:
+
+- Rechazar roles desconocidos en nuevas escrituras.
+- Mantener aliases sólo durante una ventana de transición claramente fechada.
+- No convertir cashier/supervisor a admin en login indefinidamente.
+
+
+M2 [MEDIO] LA MIGRACIÓN NO ESTÁ VERSIONADA EN EL COMMIT
+-------------------------------------------------------------------------------
+
+El commit 5f5af97 modificó 58 archivos, pero no agregó una migración SQL.
+La base fue alterada directamente.
+
+Crear:
+
+  backend/migrations/2026-07-26_consolidate_six_roles.sql
+
+Debe incluir:
+
+- Actualización explícita y auditable de roles.
+- Asignación de user_stores.
+- Reconciliación de rutas asignadas a usuarios desactivados.
+- Constraint de users.role con los seis valores.
+- Consultas de verificación al final.
+
+No incluir cambios de contraseña en una migración de roles.
+
+
+M3 [MEDIO] EL DOCUMENTO DICE “ROLES ELIMINADOS (7)” PERO ENUMERA 10
+-------------------------------------------------------------------------------
+
+El sistema pasó de 13 valores a 6, por eso disminuyó en siete; sin embargo, la
+lista “Roles eliminados” enumera diez nombres antiguos. Renombrar la sección:
+
+  “MAPEO DE LOS 13 ROLES LEGACY A 6 CANÓNICOS”
+
+Luego mostrar los 13 valores origen una sola vez.
+
+
+M4 [MEDIO] EFECTO LATERAL AJENO AL CAMBIO DE ROLES
+-------------------------------------------------------------------------------
+
+El documento indica que todos los password_hash fueron reemplazados por la
+clave temporal 123. Esto no forma parte de una consolidación de roles.
+
+No repetirlo en la migración versionada. Registrar separadamente cualquier
+proceso operativo de alta de usuarios.
+
+
+M5 [MEDIO] RUTA LEGACY PENDIENTE ASIGNADA A USUARIO INACTIVO
+-------------------------------------------------------------------------------
+
+La base contiene:
+
+- 1 ruta SALES PENDING.
+- Responsable role=admin.
+- Responsable is_active=false.
+- 0 rutas ACTIVE.
+- 0 clientes en rutas ACTIVE.
+
+La ausencia de cartera activa no es pérdida de datos, pero antes de probar al
+Gestor se debe cancelar esa ruta obsoleta o reasignarla al gestor activo y
+vincular clientes expresamente desde React.
+
+===============================================================================
+5. MATRIZ CANÓNICA DE PERMISOS
+===============================================================================
+
+ÁREA / OPERACIÓN                  SUPER   ADMIN  AUX  INV  GESTOR RUTERO
+-------------------------------- ------- ------ ---- ---- ------ ------
+Panel global / todas tiendas        SÍ     NO    NO   NO    NO     NO
+Administrar tienda asignada         SÍ     SÍ    NO   NO    NO     NO
+Usuarios de tienda                  SÍ     SÍ    NO   NO    NO     NO
+Catálogo editar/precios/factor X    SÍ     SÍ    NO   NO    NO     NO
+Catálogo/stock lectura              SÍ     SÍ    SÍ   SÍ    SÍ     SÍ
+Costos y valorización               SÍ     SÍ    NO   NO    NO     NO
+Recepción física                    SÍ*    NO*   SÍ   NO    NO     NO
+Preparar/confirmar carga            SÍ*    NO*   SÍ   NO    NO     NO
+Conteo ciego                        SÍ     SÍ    NO   SÍ    NO     NO
+Solicitar ajuste                    SÍ     SÍ    NO   SÍ    NO     NO
+Aprobar ajuste propio               NO     NO    NO   NO    NO     NO
+Aprobar ajuste de otro              SÍ     SÍ    NO   NO    NO     NO
+Crear/asignar rutas                 SÍ     SÍ    NO   NO    NO     NO
+Reasignar clientes/cargas           SÍ     SÍ    NO   NO    NO     NO
+Ver clientes asignados              SÍ     SÍ    NO   NO    SÍ     SÍ**
+Crear preventa                      SÍ     SÍ    NO   NO    SÍ     NO
+Aceptar carga propia                NO     NO    NO   NO    NO     SÍ
+Entrega/factura final               NO     NO    NO   NO    NO     SÍ
+Cobro en calle                      NO     NO    NO   NO    NO     SÍ
+Devolución en tránsito              NO     NO    NO   NO    NO     SÍ
+Recepción de devolución             SÍ*    NO*   SÍ   NO    NO     NO
+Liquidación: rendir                 NO     NO    NO   NO    NO     SÍ
+Liquidación: aprobar/cerrar          SÍ     SÍ    NO   NO    NO     NO
+CxC lectura cartera                 SÍ     SÍ    NO   NO    SÍ     SÍ**
+CxP administrar                     SÍ     SÍ    NO   NO    NO     NO
+
+* Super/admin pueden supervisar o sobrescribir, pero no son el actor físico
+  normal. El registro debe conservar quién ejecutó realmente la operación.
+** Rutero sólo para clientes/entregas asignados a su carga.
+
+===============================================================================
+6. PLAN DE EJECUCIÓN PARA OTRA IA
+===============================================================================
+
+FASE C0 — RECUPERAR ACCESO Y ALCANCE CORRECTO [CRÍTICO]
+-------------------------------------------------------------------------------
+
+C0.1 Corregir RolesGuard con bypass super-admin.
+C0.2 Quitar admin del bypass global de StoreAccessGuard.
+C0.3 Cambiar MASTER_ROLES React a sólo super-admin.
+C0.4 Corregir redirects y logo admin/super-admin.
+C0.5 Asignar tienda a admin, auxiliar, inventory, gestor y rutero.
+C0.6 Hacer que Auth register/impersonate use guards y roles correctos.
+C0.7 Corregir cualquier endpoint global para super-admin.
+
+Salida C0:
+
+[ ] Los seis usuarios pueden iniciar y llegar a su pantalla.
+[ ] Admin sólo accede a Los Pinos - Central.
+[ ] Super-admin accede al panel global.
+
+
+FASE C1 — CERRAR CONTRATO CANÓNICO EN TODO EL CÓDIGO [CRÍTICO]
+-------------------------------------------------------------------------------
+
+C1.1 Sustituir comparaciones funcionales legacy en Services.
+C1.2 Corregir validación de Gestor en RoutesService y ClientsService.
+C1.3 Corregir filtro CxC actorRole=gestor.
+C1.4 Corregir filtro Sync actorRole=gestor.
+C1.5 Revisar los 224 @Roles con la matriz de la sección 5.
+C1.6 Corregir aliases inconsistentes cashier/cajero.
+C1.7 Añadir constraint DB de seis roles.
+
+Salida C1:
+
+[ ] rg de roles legacy sólo encuentra LEGACY_ROLE_MAP y nombres de dominio
+    como vendor_id/cashierName, nunca comparaciones de rol.
+[ ] Crear ruta y Reasignación Express aceptan al Gestor activo.
+[ ] CxC/sync del Gestor quedan filtrados por identidad.
+
+
+FASE C2 — REACT SEGÚN TRABAJO REAL [CRÍTICO/ALTO]
+-------------------------------------------------------------------------------
+
+C2.1 Selector Crear/Editar Usuario con sólo seis opciones.
+C2.2 Super-admin sólo en modo global.
+C2.3 Admin abre su Admin Control Center de tienda.
+C2.4 Corregir comparaciones viejas en catálogo, cargas, clientes y bodega.
+C2.5 Quitar delivery/cobros/devoluciones/inventario-camión al Gestor.
+C2.6 Quitar Bodega operativa al Analista.
+C2.7 Limitar Auxiliar a recepción/despacho/devolución física.
+C2.8 Revisar loading, empty y error de cada menú por rol.
+
+Salida C2:
+
+[ ] Cada rol ve sólo las tareas de la matriz.
+[ ] Ningún selector o etiqueta muestra roles eliminados.
+[ ] Una ruta React visible siempre tiene endpoint backend permitido.
+
+
+FASE C3 — FLUTTER GESTOR/RUTERO [CRÍTICO]
+-------------------------------------------------------------------------------
+
+C3.1 Reducir AppRole a seis canónicos.
+C3.2 Reconocer gestor y rutero desde JWT.
+C3.3 Gestor sólo Preventa/Ruta/Catálogo/CxC lectura/Visitas.
+C3.4 Rutero sólo Carga/Entrega/Cobro/Devolución/Liquidación.
+C3.5 Quitar fallback permisivo de AppRole.unknown.
+C3.6 Para unknown mostrar acceso bloqueado y mensaje de soporte.
+C3.7 Revisar outbox para que role nuevo no altere identidad enviada.
+
+Salida C3:
+
+[ ] Gestor completa pedido offline sin ver funciones de Rutero.
+[ ] Rutero completa entrega sin poder levantar preventa.
+[ ] Rol desconocido no abre datos ni operaciones.
+
+
+FASE C4 — MIGRACIÓN REPRODUCIBLE Y RECONCILIACIÓN [ALTO]
+-------------------------------------------------------------------------------
+
+C4.1 Crear migración SQL versionada.
+C4.2 Ejecutarla primero en copia de sistema_de_inventario.
+C4.3 Verificar seis roles y user_stores.
+C4.4 Reasignar/cancelar ruta pendiente del usuario inactivo.
+C4.5 No tocar productos, clientes, ventas, pedidos ni saldos.
+C4.6 No cambiar password_hash dentro de esta migración.
+
+Consultas de aceptación:
+
+  SELECT role, count(*)
+    FROM users
+   WHERE is_active = true
+   GROUP BY role
+   ORDER BY role;
+
+  SELECT u.email, u.role, count(us.store_id)
+    FROM users u
+    LEFT JOIN user_stores us ON us.user_id = u.id
+   WHERE u.is_active = true
+   GROUP BY u.id, u.email, u.role;
+
+  SELECT r.id, r.status, u.email, u.role, u.is_active
+    FROM routes r
+    LEFT JOIN users u ON u.id = r.vendor_id
+   WHERE r.status IN ('PENDING', 'ACTIVE');
+
+Salida C4:
+
+[ ] Exactamente seis valores canónicos en usuarios activos.
+[ ] Todo rol operativo tiene tienda.
+[ ] No hay ruta activa/pending asignada a usuario inactivo.
+
+
+FASE C5 — CIERRE FUNCIONAL [ALTO]
+-------------------------------------------------------------------------------
+
+Ejecutar un recorrido por rol:
+
+SUPER-ADMIN:
+
+[ ] Panel global.
+[ ] Lista tiendas.
+[ ] Entra a Los Pinos - Central.
+[ ] Administra usuarios.
+
+ADMIN:
+
+[ ] Entra directamente a Los Pinos - Central.
+[ ] Catálogo/factor X.
+[ ] Crea ruta y asigna Gestor.
+[ ] Consolida carga y asigna Rutero.
+[ ] Aprueba ajuste y liquidación.
+[ ] No puede cambiar a otra tienda no asignada.
+
+AUXILIAR:
+
+[ ] Recibe compra por bultos/unidades.
+[ ] Escanea bulto/unidad.
+[ ] Confirma carga.
+[ ] Recibe devolución.
+[ ] No ve costo/dinero.
+[ ] No edita factor X ni aprueba ajuste.
+
+INVENTORY:
+
+[ ] Ve Kárdex.
+[ ] Crea conteo ciego.
+[ ] No ve stock lógico hasta cerrar.
+[ ] Solicita ajuste.
+[ ] No autoaprueba.
+[ ] No cobra ni edita catálogo.
+
+GESTOR:
+
+[ ] Ve sólo ruta/clientes asignados.
+[ ] Registra visita GPS.
+[ ] Crea preventa offline.
+[ ] Consulta CxC/límite.
+[ ] No cobra, entrega, devuelve ni liquida.
+
+RUTERO:
+
+[ ] Ve sólo carga propia.
+[ ] Acepta custodia.
+[ ] Entrega total/parcial.
+[ ] Cobra e imprime.
+[ ] Registra rechazo/devolución.
+[ ] Rinde liquidación.
+[ ] No crea preventa ni modifica precio.
+
+===============================================================================
+7. ORDEN ESTRICTO Y REGLAS PARA LA IA IMPLEMENTADORA
+===============================================================================
+
+Orden:
+
+1. C0 acceso/alcance.
+2. C1 backend y contrato.
+3. C2 React.
+4. C3 Flutter.
+5. C4 migración/reconciliación.
+6. C5 recorrido funcional.
+
+Reglas:
+
+- No crear un séptimo rol.
+- No restaurar cashier/vendor/dispatcher como roles.
+- No hacer reemplazo textual ciego de vendor_id, cashierName o nombres de
+  módulos; no son necesariamente roles.
+- No borrar datos legacy.
+- No desactivar más usuarios sin una lista aprobada.
+- No volver a cambiar contraseñas como parte de roles.
+- No dar bypass global a admin.
+- No permitir fallback de rol desconocido.
+- No declarar terminado sólo porque compila.
+- Actualizar docs/2026-07-26_CAMBIO_ROLES.txt con evidencia real al cerrar.
+
+===============================================================================
+8. DEFINICIÓN DE TERMINADO
+===============================================================================
+
+El cambio de seis roles queda terminado únicamente cuando:
+
+[ ] PostgreSQL sólo persiste los seis roles.
+[ ] Cada usuario operativo tiene tienda.
+[ ] super-admin funciona globalmente.
+[ ] admin queda limitado a su bodega.
+[ ] React sólo ofrece seis roles.
+[ ] Flutter reconoce gestor/rutero canónicos.
+[ ] Gestor no tiene funciones de Rutero.
+[ ] Inventory no tiene funciones de Auxiliar.
+[ ] Auxiliar no ve costos ni autoriza ajustes.
+[ ] No quedan comparaciones funcionales con roles eliminados.
+[ ] Ruta, reasignación, CxC y sync aceptan/filtran role=gestor.
+[ ] La matriz Trello coincide en backend, React y Flutter.
+
+PUNTAJE AL CORTE: 4.0 / 10.
+
+No cumple todavía. La estructura de seis nombres es aprovechable, pero requiere
+cerrar C0-C3 antes de usar estos usuarios en operación.
+
+===============================================================================
+FIN DEL DIAGNÓSTICO
+===============================================================================
