@@ -1713,6 +1713,7 @@ export default function SupplierInvoicesPage() {
                   ))}
                 </div>
               </div>
+              </div>
             ) : null}
           </div>
 
