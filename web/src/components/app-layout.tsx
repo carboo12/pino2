@@ -92,9 +92,9 @@ const getMasterAdminNav = (activeStoreId = '9321856d-19ba-42b8-ba47-cf35c0d133dd
   { type: 'link', name: 'Catálogo', href: `/store/${activeStoreId}/work/catalog`, icon: Package },
   { type: 'separator' },
   { type: 'group', name: 'Monitor Global', icon: AreaChart, children: [
-    { type: 'link', name: 'Sync Monitor', href: '/master-admin/sync-monitor', icon: RefreshCw, section: 'ops' },
-    { type: 'link', name: 'Comparar', href: '/master-admin/comparison', icon: AreaChart, section: 'ops' },
-    { type: 'link', name: 'Activity Log', href: '/master-admin/monitor', icon: FileText, section: 'ops' },
+    { type: 'link', name: 'Monitor de Sincronización', href: '/master-admin/sync-monitor', icon: RefreshCw, section: 'ops' },
+    { type: 'link', name: 'Comparar Tiendas', href: '/master-admin/comparison', icon: AreaChart, section: 'ops' },
+    { type: 'link', name: 'Bitácora de Actividades', href: '/master-admin/monitor', icon: FileText, section: 'ops' },
   ]},
   { type: 'separator' },
   { type: 'link', name: 'Configuración', href: '/master-admin/config', icon: Settings },
