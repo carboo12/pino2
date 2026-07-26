@@ -28,6 +28,8 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
+  FileText,
+  User,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { normalizeUserRole } from '@/lib/user-role';
@@ -54,14 +56,15 @@ interface Product {
 }
 
 const movementLabels: Record<string, { label: string; badgeClass: string; icon: any }> = {
-  ENTRADA: { label: 'Entrada de Stock', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300', icon: TrendingUp },
-  IN: { label: 'Entrada de Stock', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300', icon: TrendingUp },
-  RECEIPT: { label: 'Recepción de Compra', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300', icon: TrendingUp },
-  SALIDA: { label: 'Salida por Venta', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300', icon: TrendingDown },
-  OUT: { label: 'Salida de Bodega', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300', icon: TrendingDown },
-  SALE: { label: 'Venta Facturada', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300', icon: TrendingDown },
-  ADJUSTMENT: { label: 'Ajuste de Inventario', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300', icon: RefreshCw },
-  AJUSTE: { label: 'Ajuste de Inventario', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300', icon: RefreshCw },
+  ENTRADA: { label: '🟢 Entrada de Stock', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold', icon: TrendingUp },
+  IN: { label: '🟢 Entrada de Stock', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold', icon: TrendingUp },
+  RECEIPT: { label: '📥 Recepción de Compra', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold', icon: TrendingUp },
+  SALIDA: { label: '🔴 Salida por Venta', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold', icon: TrendingDown },
+  OUT: { label: '🔴 Salida de Bodega', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold', icon: TrendingDown },
+  SALE: { label: '🛒 Venta Facturada', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold', icon: TrendingDown },
+  ADJUSTMENT: { label: '🟡 Ajuste Kárdex', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-bold', icon: RefreshCw },
+  AJUSTE: { label: '🟡 Ajuste Kárdex', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-bold', icon: RefreshCw },
+  INITIAL_STOCK: { label: '📦 Stock Inicial', badgeClass: 'bg-blue-100 text-blue-800 border-blue-300 font-bold', icon: Package },
 };
 
 export default function CatalogWorkspacePage() {
@@ -70,18 +73,22 @@ export default function CatalogWorkspacePage() {
   const { user } = useAuth();
   const role = normalizeUserRole(user?.role);
   const canManageCatalog = ['master-admin', 'owner', 'store-admin'].includes(role);
+
   const [searchTerm, setSearchTerm] = useState('');
+  const [movementSearch, setMovementSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('productos');
+
   const [criticalStock, setCriticalStock] = useState<Product[]>([]);
   const [loadingStock, setLoadingStock] = useState(false);
+
   const [movements, setMovements] = useState<any[]>([]);
   const [loadingMovements, setLoadingMovements] = useState(false);
 
-  // Map product names by ID for human readable history log display
+  // Cache names
   const productNamesMap = useMemo(() => {
     const map: Record<string, string> = {};
     products.forEach((p) => {
@@ -110,7 +117,7 @@ export default function CatalogWorkspacePage() {
     if (!storeId) return;
     setLoadingMovements(true);
     try {
-      const res = await apiClient.get('/movements', { params: { storeId, limit: 50 } });
+      const res = await apiClient.get('/movements', { params: { storeId, limit: 100 } });
       setMovements(extractData(res.data));
     } catch {
       setMovements([]);
@@ -126,9 +133,7 @@ export default function CatalogWorkspacePage() {
 
   const searchProducts = useCallback(async (q: string) => {
     if (!storeId) return;
-    if (q.length < 2) {
-      return;
-    }
+    if (q.length < 2) return;
     setLoading(true);
     setError(null);
     try {
@@ -177,6 +182,21 @@ export default function CatalogWorkspacePage() {
     }
   }, [storeId]);
 
+  const filteredMovements = useMemo(() => {
+    if (!movementSearch) return movements;
+    const q = movementSearch.toLowerCase();
+    return movements.filter((m) => {
+      const name = m.productDescription || m.productName || m.product?.description || productNamesMap[m.productId] || '';
+      const ref = m.reference || m.reason || m.notes || '';
+      const user = m.userName || '';
+      return (
+        name.toLowerCase().includes(q) ||
+        ref.toLowerCase().includes(q) ||
+        user.toLowerCase().includes(q)
+      );
+    });
+  }, [movements, movementSearch, productNamesMap]);
+
   return (
     <WorkspaceShell
       topbar={
@@ -213,17 +233,18 @@ export default function CatalogWorkspacePage() {
             className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-bold data-[state=active]:border-primary data-[state=active]:text-primary"
           >
             <AlertTriangle className="mr-1.5 h-4 w-4 text-amber-500" />
-            Stock Crítico
+            Stock Crítico ({criticalStock.length})
           </TabsTrigger>
           <TabsTrigger
             value="movimientos"
             className="rounded-none border-b-2 border-transparent px-4 py-2.5 text-xs font-bold data-[state=active]:border-primary data-[state=active]:text-primary"
           >
             <History className="mr-1.5 h-4 w-4 text-blue-500" />
-            Historial de Kárdex
+            Historial de Kárdex ({movements.length})
           </TabsTrigger>
         </TabsList>
 
+        {/* TAB 1: PRODUCTOS */}
         <TabsContent value="productos" className="mt-0 flex-1 p-0">
           <div className="border-b border-[#DDE2E8] bg-card p-3">
             <div className="relative">
@@ -316,7 +337,8 @@ export default function CatalogWorkspacePage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="stock" className="mt-0 flex-1 p-4">
+        {/* TAB 2: STOCK CRITICO */}
+        <TabsContent value="stock" className="mt-0 flex-1 p-4 space-y-3">
           {loadingStock ? <LoadingRows rows={5} /> : criticalStock.length === 0 ? (
             <EmptyState title="Sin productos en stock crítico" description="Todos los productos tienen inventario suficiente en bodega" icon={CheckCircle2} />
           ) : (
@@ -343,25 +365,125 @@ export default function CatalogWorkspacePage() {
           )}
         </TabsContent>
 
-        <TabsContent value="movimientos" className="mt-0 flex-1 p-4">
-          {loadingMovements ? <LoadingRows rows={5} /> : movements.length === 0 ? (
-            <EmptyState title="Sin movimientos de Kárdex recientes" icon={History} />
-          ) : (
-            <>
-              <div className="hidden md:block overflow-hidden rounded-xl border border-[#DDE2E8] bg-card shadow-xs">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-[#DDE2E8] bg-muted/40">
-                      <th className="px-4 py-3 text-left font-bold text-muted-foreground">Producto Afectado</th>
-                      <th className="px-4 py-3 text-center font-bold text-muted-foreground">Tipo de Movimiento</th>
-                      <th className="px-4 py-3 text-right font-bold text-muted-foreground">Unidades / Cantidad</th>
-                      <th className="px-4 py-3 text-left font-bold text-muted-foreground">Motivo / Documento</th>
-                      <th className="px-4 py-3 text-right font-bold text-muted-foreground">Fecha y Hora</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2E8]">
-                    {movements.map((m: any) => {
+        {/* TAB 3: HISTORIAL DE KARDEX Y MOVIMIENTOS */}
+        <TabsContent value="movimientos" className="mt-0 flex-1 p-0 flex flex-col">
+          <div className="border-b border-[#DDE2E8] bg-card p-3 flex items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Filtrar historial por nombre de producto, usuario o número de factura/documento..."
+                value={movementSearch}
+                onChange={(e) => setMovementSearch(e.target.value)}
+                className="pl-9 text-xs h-10 rounded-xl"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadMovements}
+              className="h-10 font-bold rounded-xl shrink-0"
+            >
+              <RefreshCw className="mr-2 h-4 w-4" /> Recargar Kárdex
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-auto p-4">
+            {loadingMovements ? (
+              <LoadingRows rows={6} />
+            ) : filteredMovements.length === 0 ? (
+              <EmptyState
+                title="Sin movimientos de Kárdex registrados"
+                description={movementSearch ? "No se encontraron movimientos que coincidan con la búsqueda." : "Los registros de inventario (entradas, salidas y ajustes) aparecerán aquí."}
+                icon={History}
+              />
+            ) : (
+              <>
+                <div className="hidden md:block overflow-hidden rounded-xl border border-[#DDE2E8] bg-card shadow-xs">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-[#DDE2E8] bg-muted/40">
+                        <th className="px-4 py-3 text-left font-bold text-muted-foreground">Producto Afectado</th>
+                        <th className="px-4 py-3 text-center font-bold text-muted-foreground">Tipo de Movimiento</th>
+                        <th className="px-4 py-3 text-right font-bold text-muted-foreground">Cantidad Cambiada</th>
+                        <th className="px-4 py-3 text-right font-bold text-muted-foreground">Saldo Kárdex Resultante</th>
+                        <th className="px-4 py-3 text-left font-bold text-muted-foreground">Motivo / Documento Referencia</th>
+                        <th className="px-4 py-3 text-right font-bold text-muted-foreground">Fecha y Hora</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2E8]">
+                      {filteredMovements.map((m: any) => {
+                        const productName =
+                          m.productDescription ||
+                          m.productName ||
+                          m.product?.description ||
+                          productNamesMap[m.productId] ||
+                          `Producto (ID: ${m.productId ? m.productId.slice(0, 8) : 'General'})`;
+
+                        const config = movementLabels[m.type] || {
+                          label: m.type || 'Movimiento',
+                          badgeClass: 'bg-slate-100 text-slate-800 border-slate-300 font-bold',
+                          icon: History,
+                        };
+
+                        const qty = Number(m.quantity || 0);
+                        const isPositive = qty > 0;
+
+                        return (
+                          <tr key={m.id} className="hover:bg-muted/30">
+                            <td className="px-4 py-3">
+                              <p className="font-bold text-foreground">{productName}</p>
+                              {m.userName && (
+                                <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                  <User className="h-3 w-3 text-primary" /> Usuario: {m.userName}
+                                </p>
+                              )}
+                            </td>
+
+                            <td className="px-4 py-3 text-center">
+                              <Badge className={`${config.badgeClass} font-bold text-[10px] py-0.5 px-2`}>
+                                {config.label}
+                              </Badge>
+                            </td>
+
+                            <td className="px-4 py-3 text-right font-mono font-extrabold text-xs">
+                              <span
+                                className={
+                                  isPositive
+                                    ? 'text-emerald-600 font-extrabold'
+                                    : 'text-rose-600 font-extrabold'
+                                }
+                              >
+                                {isPositive ? `+${qty}` : qty} unid.
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-3 text-right font-mono font-bold text-muted-foreground">
+                              {m.balance !== undefined && m.balance !== null ? `${m.balance} unid.` : '-'}
+                            </td>
+
+                            <td className="px-4 py-3 text-left">
+                              <span className="font-medium text-foreground">
+                                {m.reference || m.reason || m.notes || 'Movimiento Kárdex'}
+                              </span>
+                            </td>
+
+                            <td className="px-4 py-3 text-right text-muted-foreground font-mono text-[11px]">
+                              {m.createdAt
+                                ? format(new Date(m.createdAt), "d 'de' MMM yyyy, hh:mm a", { locale: es })
+                                : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="md:hidden">
+                  <MobileCardList>
+                    {filteredMovements.map((m: any) => {
                       const productName =
+                        m.productDescription ||
                         m.productName ||
                         m.product?.description ||
                         productNamesMap[m.productId] ||
@@ -369,71 +491,27 @@ export default function CatalogWorkspacePage() {
 
                       const config = movementLabels[m.type] || {
                         label: m.type || 'Movimiento',
-                        badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
+                        badgeClass: 'bg-slate-100 text-slate-800 border-slate-300 font-bold',
                         icon: History,
                       };
 
+                      const qty = Number(m.quantity || 0);
+
                       return (
-                        <tr key={m.id} className="hover:bg-muted/30">
-                          <td className="px-4 py-3">
-                            <p className="font-bold text-foreground">{productName}</p>
-                            {m.productId && (
-                              <p className="text-[10px] text-muted-foreground font-mono">
-                                ID: {m.productId.slice(0, 8)}
-                              </p>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Badge className={`${config.badgeClass} font-bold text-[10px]`}>
-                              {config.label}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 text-right font-mono font-extrabold text-foreground">
-                            {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
-                          </td>
-                          <td className="px-4 py-3 text-left text-muted-foreground">
-                            {m.reason || m.reference || m.notes || 'Operación de inventario'}
-                          </td>
-                          <td className="px-4 py-3 text-right text-muted-foreground font-mono">
-                            {m.createdAt
-                              ? format(new Date(m.createdAt), "d 'de' MMM, hh:mm a", { locale: es })
-                              : '-'}
-                          </td>
-                        </tr>
+                        <MobileCard key={m.id}>
+                          <MobileCardRow label="Producto" value={<span className="font-bold text-foreground">{productName}</span>} />
+                          <MobileCardRow label="Tipo" value={<Badge className={`${config.badgeClass} font-bold text-[10px]`}>{config.label}</Badge>} />
+                          <MobileCardRow label="Cantidad" value={<span className="font-mono font-extrabold">{qty > 0 ? `+${qty}` : qty}</span>} />
+                          <MobileCardRow label="Referencia" value={<span className="text-xs">{m.reference || m.reason || 'Kárdex'}</span>} />
+                          <MobileCardRow label="Fecha" value={<span className="text-xs text-muted-foreground">{m.createdAt ? format(new Date(m.createdAt), "d MMM yyyy, hh:mm a", { locale: es }) : '-'}</span>} />
+                        </MobileCard>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="md:hidden">
-                <MobileCardList>
-                  {movements.map((m: any) => {
-                    const productName =
-                      m.productName ||
-                      m.product?.description ||
-                      productNamesMap[m.productId] ||
-                      `Producto (ID: ${m.productId ? m.productId.slice(0, 8) : 'General'})`;
-
-                    const config = movementLabels[m.type] || {
-                      label: m.type || 'Movimiento',
-                      badgeClass: 'bg-slate-100 text-slate-800 border-slate-300',
-                      icon: History,
-                    };
-
-                    return (
-                      <MobileCard key={m.id}>
-                        <MobileCardRow label="Producto" value={<span className="font-bold text-foreground">{productName}</span>} />
-                        <MobileCardRow label="Tipo" value={<Badge className={`${config.badgeClass} font-bold text-[10px]`}>{config.label}</Badge>} />
-                        <MobileCardRow label="Cantidad" value={<span className="font-mono font-extrabold">{m.quantity}</span>} />
-                        <MobileCardRow label="Fecha" value={<span className="text-xs text-muted-foreground">{m.createdAt ? format(new Date(m.createdAt), "d MMM, hh:mm a", { locale: es }) : '-'}</span>} />
-                      </MobileCard>
-                    );
-                  })}
-                </MobileCardList>
-              </div>
-            </>
-          )}
+                  </MobileCardList>
+                </div>
+              </>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
     </WorkspaceShell>
