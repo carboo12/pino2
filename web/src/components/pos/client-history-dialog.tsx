@@ -16,19 +16,37 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Loader2, ListOrdered, Eye, ArrowLeft, Package, Search } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Loader2,
+  ListOrdered,
+  Eye,
+  ArrowLeft,
+  Package,
+  CreditCard,
+  Receipt,
+  ShoppingBag,
+  DollarSign,
+  Calendar,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react';
 import apiClient from '@/services/api-client';
 import { format } from 'date-fns';
-import { Separator } from '@/components/ui/separator';
+import { es } from 'date-fns/locale';
+import { formatCurrency } from '@/lib/utils';
 
 interface OrderItem {
   id?: string;
   productId: string;
-  productName: string;
+  productName?: string;
+  description?: string;
   quantity: number;
-  unitPrice: number;
-  subtotal: number;
+  unitPrice?: number;
+  salePrice?: number;
+  subtotal?: number;
 }
 
 interface Order {
@@ -39,6 +57,24 @@ interface Order {
   createdAt: string;
   items?: OrderItem[];
   history?: { status: string; userName: string; createdAt: string }[];
+}
+
+interface AccountReceivable {
+  id: string;
+  invoiceNumber?: string;
+  totalAmount: number;
+  currentBalance: number;
+  dueDate?: string;
+  createdAt: string;
+  status: string;
+}
+
+interface EstadoCuentaData {
+  saldoIndividual: number;
+  limiteIndividual: number;
+  diasCredito?: number;
+  disponibleIndividual?: number;
+  facturas?: AccountReceivable[];
 }
 
 const statusColor: Record<string, string> = {
@@ -52,6 +88,8 @@ const statusColor: Record<string, string> = {
   Pagada: 'bg-emerald-100 text-emerald-800',
   'Pendiente de Pago': 'bg-amber-100 text-amber-800',
   PENDING: 'bg-amber-100 text-amber-800',
+  ACTIVA: 'bg-amber-100 text-amber-800',
+  PAGADA: 'bg-emerald-100 text-emerald-800',
 };
 
 const statusLabel: Record<string, string> = {
@@ -65,6 +103,8 @@ const statusLabel: Record<string, string> = {
   Pagada: 'Pagada',
   'Pendiente de Pago': 'Pendiente',
   PENDING: 'Pendiente',
+  ACTIVA: 'Saldo Pendiente',
+  PAGADA: 'Pagada 100%',
 };
 
 export function ClientHistoryDialog({
@@ -77,9 +117,11 @@ export function ClientHistoryDialog({
   storeId: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'estado' | 'compras' | 'cxc'>('estado');
   const [orders, setOrders] = useState<Order[]>([]);
+  const [receivables, setReceivables] = useState<AccountReceivable[]>([]);
+  const [estadoCuenta, setEstadoCuenta] = useState<EstadoCuentaData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [headerFilters, setHeaderFilters] = useState({ dateFrom: '', dateTo: '', status: '', payment: '' });
 
   // Detail view state
   const [detailOrder, setDetailOrder] = useState<Order | null>(null);
@@ -89,12 +131,33 @@ export function ClientHistoryDialog({
     if (open && clientId && storeId) {
       setLoading(true);
       setDetailOrder(null);
-      apiClient
-        .get('/orders', { params: { storeId, clientId, limit: 50 } })
-        .then((res) => {
-          setOrders(Array.isArray(res.data) ? res.data : []);
+
+      Promise.allSettled([
+        apiClient.get('/orders', { params: { storeId, clientId, limit: 50 } }),
+        apiClient.get(`/clients/${clientId}/estado-cuenta`),
+        apiClient.get('/accounts-receivable', { params: { storeId, clientId } }),
+      ])
+        .then(([ordersRes, estadoRes, cxcRes]) => {
+          if (ordersRes.status === 'fulfilled') {
+            setOrders(Array.isArray(ordersRes.value.data) ? ordersRes.value.data : []);
+          } else {
+            setOrders([]);
+          }
+
+          if (estadoRes.status === 'fulfilled') {
+            setEstadoCuenta(estadoRes.value.data);
+          } else {
+            setEstadoCuenta(null);
+          }
+
+          if (cxcRes.status === 'fulfilled') {
+            setReceivables(
+              Array.isArray(cxcRes.value.data) ? cxcRes.value.data : cxcRes.value.data?.data || [],
+            );
+          } else {
+            setReceivables([]);
+          }
         })
-        .catch(() => setOrders([]))
         .finally(() => setLoading(false));
     }
   }, [open, clientId, storeId]);
@@ -112,68 +175,87 @@ export function ClientHistoryDialog({
     }
   };
 
-  const filteredOrders = orders.filter((o) => {
-    const fStatus = headerFilters.status.toLowerCase();
-    const fPayment = headerFilters.payment.toLowerCase();
-    const createdStr = format(new Date(o.createdAt), 'yyyy-MM-dd');
-    const matchesFrom = headerFilters.dateFrom ? createdStr >= headerFilters.dateFrom : true;
-    const matchesTo = headerFilters.dateTo ? createdStr <= headerFilters.dateTo : true;
-
-    return (
-      (statusLabel[o.status] || o.status).toLowerCase().includes(fStatus) &&
-      (o.paymentType?.toLowerCase() || '').includes(fPayment) &&
-      matchesFrom && matchesTo
-    );
-  });
+  const pendingBalance = estadoCuenta?.saldoIndividual ?? receivables.reduce((sum, r) => sum + Number(r.currentBalance || 0), 0);
+  const creditLimit = estadoCuenta?.limiteIndividual ?? 0;
+  const availableCredit = Math.max(0, creditLimit - pendingBalance);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 text-primary hover:text-primary hover:bg-primary/10">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1.5 text-primary hover:text-primary hover:bg-primary/10 font-bold"
+        >
           <ListOrdered className="h-4 w-4" /> Historial
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           {detailOrder ? (
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setDetailOrder(null)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDetailOrder(null)}
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <DialogTitle>Detalle del Pedido</DialogTitle>
-              <Badge className={statusColor[detailOrder.status] || 'bg-slate-100 text-slate-800'}>
+              <DialogTitle className="text-lg font-bold">
+                Detalle del Pedido #{detailOrder.id?.substring(0, 8)}
+              </DialogTitle>
+              <Badge
+                className={
+                  statusColor[detailOrder.status] || 'bg-slate-100 text-slate-800'
+                }
+              >
                 {statusLabel[detailOrder.status] || detailOrder.status}
               </Badge>
             </div>
           ) : (
-            <DialogTitle>Historial de Compras — {clientName}</DialogTitle>
+            <DialogTitle className="text-xl font-extrabold flex items-center gap-2">
+              Expediente e Historial — {clientName}
+            </DialogTitle>
           )}
         </DialogHeader>
 
         {loading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground">
-            Este cliente no tiene pedidos registrados.
+          <div className="flex flex-col items-center justify-center py-12 space-y-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">
+              Cargando historial de compras y estado de cuenta...
+            </p>
           </div>
         ) : detailOrder ? (
-          // --- DETAIL VIEW ---
+          /* VISTA DE DETALLE DE PEDIDO */
           detailLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-y-auto p-1">
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground border-b pb-4">
-                <p><strong>Fecha:</strong> {format(new Date(detailOrder.createdAt), 'dd/MM/yyyy HH:mm')}</p>
-                <p><strong>Tipo de Pago:</strong> <span className={detailOrder.paymentType === 'Crédito' ? 'text-amber-600 font-bold' : ''}>{detailOrder.paymentType || 'CONTADO'}</span></p>
+                <p>
+                  <strong>Fecha:</strong>{' '}
+                  {format(new Date(detailOrder.createdAt), 'dd/MM/yyyy HH:mm')}
+                </p>
+                <p>
+                  <strong>Tipo de Pago:</strong>{' '}
+                  <span
+                    className={
+                      detailOrder.paymentType === 'Crédito'
+                        ? 'text-amber-600 font-bold'
+                        : ''
+                    }
+                  >
+                    {detailOrder.paymentType || 'CONTADO'}
+                  </span>
+                </p>
               </div>
 
-              {/* PRODUCTS */}
+              {/* PRODUCTOS */}
               {detailOrder.items && detailOrder.items.length > 0 ? (
-                <div className="border rounded-md max-h-[30vh] overflow-y-auto">
+                <div className="border rounded-xl max-h-[30vh] overflow-y-auto">
                   <Table>
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
@@ -186,10 +268,22 @@ export function ClientHistoryDialog({
                     <TableBody>
                       {detailOrder.items.map((item, idx) => (
                         <TableRow key={item.id || idx}>
-                          <TableCell className="text-sm font-medium">{item.productName}</TableCell>
-                          <TableCell className="text-right text-muted-foreground">C$ {Number(item.unitPrice).toFixed(2)}</TableCell>
-                          <TableCell className="text-center">{item.quantity}</TableCell>
-                          <TableCell className="text-right">C$ {Number(item.subtotal || (item.unitPrice * item.quantity)).toFixed(2)}</TableCell>
+                          <TableCell className="text-sm font-bold">
+                            {item.productName || item.description || 'Producto'}
+                          </TableCell>
+                          <TableCell className="text-right text-muted-foreground font-mono">
+                            C$ {Number(item.unitPrice || item.salePrice || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-center font-bold">
+                            {item.quantity}
+                          </TableCell>
+                          <TableCell className="text-right font-bold font-mono">
+                            C${' '}
+                            {Number(
+                              item.subtotal ||
+                                (item.unitPrice || item.salePrice || 0) * item.quantity,
+                            ).toFixed(2)}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -201,83 +295,255 @@ export function ClientHistoryDialog({
                   <p>Sin detalle de productos.</p>
                 </div>
               )}
-              
-              <div className="flex justify-between font-bold text-lg pt-2 pb-4">
-                <span>Total del pedido</span>
-                <span>C$ {Number(detailOrder.total).toFixed(2)}</span>
-              </div>
 
-              {/* HISTORY */}
-              {detailOrder.history && detailOrder.history.length > 0 && (
-                <div className="border-t pt-4">
-                  <h3 className="font-semibold text-sm mb-3">Historial de Estados</h3>
-                  <div className="space-y-3">
-                    {detailOrder.history.map((h, i) => (
-                      <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm bg-muted/30 p-2 rounded-md">
-                        <span className="font-medium min-w-[120px]">{format(new Date(h.createdAt), 'dd/MM/yyyy HH:mm')}</span>
-                        <Badge className={`${statusColor[h.status] || 'bg-slate-100 text-slate-800'} text-[10px] w-fit`}>
-                          {statusLabel[h.status] || h.status}
-                        </Badge>
-                        <span className="text-muted-foreground ml-auto pr-2 text-xs">por {h.userName}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="flex justify-between font-bold text-lg pt-2 pb-4">
+                <span>Total del Pedido:</span>
+                <span className="text-emerald-600 font-mono">
+                  C$ {Number(detailOrder.total || 0).toFixed(2)}
+                </span>
+              </div>
             </div>
           )
         ) : (
-          // --- LIST VIEW ---
-          <div className="overflow-y-auto max-h-[60vh] border rounded-md">
-            <Table>
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow>
-                  <TableHead>
-                    Fecha
-                    <div className="flex flex-col gap-1 mt-1">
-                      <Input type="date" className="h-6 text-xs p-1 font-normal w-full" value={headerFilters.dateFrom} onChange={e => setHeaderFilters({...headerFilters, dateFrom: e.target.value})} title="Desde" />
-                      <Input type="date" className="h-6 text-xs p-1 font-normal w-full" value={headerFilters.dateTo} onChange={e => setHeaderFilters({...headerFilters, dateTo: e.target.value})} title="Hasta" />
+          /* VISTA DE PESTAÑAS 360° */
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as any)}
+            className="flex-1 flex flex-col overflow-hidden"
+          >
+            <TabsList className="grid grid-cols-3 p-1 bg-muted rounded-xl">
+              <TabsTrigger value="estado" className="font-bold gap-2 text-xs">
+                <CreditCard className="h-4 w-4" /> Estado de Cuenta
+              </TabsTrigger>
+              <TabsTrigger value="compras" className="font-bold gap-2 text-xs">
+                <ShoppingBag className="h-4 w-4" /> Compras & Pedidos ({orders.length})
+              </TabsTrigger>
+              <TabsTrigger value="cxc" className="font-bold gap-2 text-xs">
+                <Receipt className="h-4 w-4" /> Cuentas Pendientes ({receivables.length})
+              </TabsTrigger>
+            </TabsList>
+
+            {/* PESTAÑA 1: ESTADO DE CUENTA Y RESUMEN DE CRÉDITO */}
+            <TabsContent value="estado" className="mt-4 space-y-4 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Card className="border-destructive/30 bg-destructive/5">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground">Saldo Pendiente (CxC)</p>
+                      <p className="text-xl font-extrabold text-destructive mt-1">
+                        {formatCurrency(pendingBalance)}
+                      </p>
                     </div>
-                  </TableHead>
-                  <TableHead>
-                    Estado
-                    <Input placeholder="Filtrar..." className="h-6 mt-1 text-xs font-normal" value={headerFilters.status} onChange={e => setHeaderFilters({...headerFilters, status: e.target.value})} />
-                  </TableHead>
-                  <TableHead>
-                    Pago
-                    <Input placeholder="Filtrar..." className="h-6 mt-1 text-xs font-normal" value={headerFilters.payment} onChange={e => setHeaderFilters({...headerFilters, payment: e.target.value})} />
-                  </TableHead>
-                  <TableHead className="text-right align-top pt-4">Total</TableHead>
-                  <TableHead className="w-12 align-top pt-4"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((o) => (
-                  <TableRow key={o.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleViewDetail(o)}>
-                    <TableCell className="text-sm">
-                      {format(new Date(o.createdAt), 'dd/MM/yyyy HH:mm')}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={statusColor[o.status] || 'bg-slate-100 text-slate-800'}>
-                        {statusLabel[o.status] || o.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      <span className={o.paymentType === 'Crédito' ? 'text-amber-600 font-semibold' : 'text-muted-foreground'}>
-                        {o.paymentType}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      C$ {Number(o.total).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    <AlertCircle className="h-6 w-6 text-destructive opacity-80" />
+                  </CardContent>
+                </Card>
+
+                <Card className="border-emerald-600/30 bg-emerald-50/50 dark:bg-emerald-950/20">
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground">Límite de Crédito</p>
+                      <p className="text-xl font-extrabold text-emerald-600 mt-1">
+                        {creditLimit > 0 ? formatCurrency(creditLimit) : 'Sin límite asignado'}
+                      </p>
+                    </div>
+                    <DollarSign className="h-6 w-6 text-emerald-600 opacity-80" />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground">Crédito Disponible</p>
+                      <p className="text-xl font-extrabold text-primary mt-1">
+                        {creditLimit > 0 ? formatCurrency(availableCredit) : 'Ilimitado'}
+                      </p>
+                    </div>
+                    <CheckCircle2 className="h-6 w-6 text-primary opacity-80" />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {receivables.length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-bold flex items-center gap-2">
+                    <Receipt className="h-4 w-4 text-amber-600" />
+                    Cuentas por Cobrar Pendientes ({receivables.length})
+                  </h4>
+                  <div className="border rounded-xl overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Factura / Ref</TableHead>
+                          <TableHead>Fecha Emisión</TableHead>
+                          <TableHead>Vencimiento</TableHead>
+                          <TableHead className="text-right">Monto Total</TableHead>
+                          <TableHead className="text-right">Saldo Pendiente</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {receivables.map((r) => (
+                          <TableRow key={r.id}>
+                            <TableCell className="font-bold">
+                              {r.invoiceNumber || `#${r.id.substring(0, 8)}`}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {r.createdAt ? format(new Date(r.createdAt), 'dd/MM/yyyy') : '—'}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {r.dueDate ? (
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  {format(new Date(r.dueDate), 'dd/MM/yyyy')}
+                                </span>
+                              ) : (
+                                'Contado'
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-sm">
+                              C$ {Number(r.totalAmount || 0).toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-bold text-destructive">
+                              C$ {Number(r.currentBalance || 0).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 border rounded-xl bg-muted/20">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
+                  <p className="font-bold text-sm">Este cliente está al día</p>
+                  <p className="text-xs text-muted-foreground">
+                    No tiene saldo vencido ni facturas pendientes por pagar.
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* PESTAÑA 2: HISTORIAL DE COMPRAS & PEDIDOS */}
+            <TabsContent value="compras" className="mt-4 flex-1 overflow-y-auto">
+              {orders.length === 0 ? (
+                <div className="text-center py-10 border rounded-xl bg-muted/20">
+                  <ShoppingBag className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="font-bold text-sm">Sin historial de pedidos registrados</p>
+                  <p className="text-xs text-muted-foreground">
+                    No hay pedidos o preventas registrados para este cliente.
+                  </p>
+                </div>
+              ) : (
+                <div className="border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>Tipo Pago</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="w-12 text-center">Acción</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((o) => (
+                        <TableRow
+                          key={o.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleViewDetail(o)}
+                        >
+                          <TableCell className="text-sm font-medium">
+                            {format(new Date(o.createdAt), 'dd/MM/yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                statusColor[o.status] || 'bg-slate-100 text-slate-800'
+                              }
+                            >
+                              {statusLabel[o.status] || o.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <span
+                              className={
+                                o.paymentType === 'Crédito'
+                                  ? 'text-amber-600 font-semibold'
+                                  : 'text-muted-foreground'
+                              }
+                            >
+                              {o.paymentType || 'CONTADO'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right font-bold font-mono">
+                            C$ {Number(o.total || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* PESTAÑA 3: CUENTAS POR COBRAR Y CRÉDITOS */}
+            <TabsContent value="cxc" className="mt-4 flex-1 overflow-y-auto">
+              {receivables.length === 0 ? (
+                <div className="text-center py-10 border rounded-xl bg-muted/20">
+                  <Receipt className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+                  <p className="font-bold text-sm">Sin facturas pendientes de cobro</p>
+                  <p className="text-xs text-muted-foreground">
+                    Este cliente no posee saldos ni cuotas vencidas.
+                  </p>
+                </div>
+              ) : (
+                <div className="border rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead>Nº Documento</TableHead>
+                        <TableHead>Fecha Emisión</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Monto Original</TableHead>
+                        <TableHead className="text-right">Saldo Actual</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {receivables.map((r) => (
+                        <TableRow key={r.id}>
+                          <TableCell className="font-bold">
+                            {r.invoiceNumber || `#${r.id.substring(0, 8)}`}
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            {r.createdAt ? format(new Date(r.createdAt), 'dd/MM/yyyy') : '—'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                statusColor[r.status] || 'bg-amber-100 text-amber-800'
+                              }
+                            >
+                              {statusLabel[r.status] || r.status || 'Pendiente'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-sm">
+                            C$ {Number(r.totalAmount || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono font-bold text-destructive">
+                            C$ {Number(r.currentBalance || 0).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>
