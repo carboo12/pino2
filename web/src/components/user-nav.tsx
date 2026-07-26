@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Moon, Sun } from 'lucide-react';
+import { LogOut, Moon, Sun, Store, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from 'next-themes';
 
@@ -33,6 +33,29 @@ function getInitials(name?: string | null) {
   return name.substring(0, 2).toUpperCase();
 }
 
+function getHumanRoleLabel(role?: string | null): string {
+  if (!role) return 'Usuario';
+  const norm = role.toLowerCase();
+  switch (norm) {
+    case 'auxiliar':
+      return 'Auxiliar de Bodega / Cajero';
+    case 'admin':
+      return 'Administrador de Sucursal';
+    case 'gestor':
+      return 'Gestor / Vendedor de Campo';
+    case 'rutero':
+      return 'Rutero / Repartidor';
+    case 'inventory':
+      return 'Encargado de Inventario';
+    case 'super-admin':
+      return 'Super Administrador (SaaS)';
+    case 'chain-admin':
+      return 'Administrador de Cadena';
+    default:
+      return role.replace(/-/g, ' ');
+  }
+}
+
 export function UserNav() {
   const { logout, user } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -48,7 +71,7 @@ export function UserNav() {
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="end" forceMount>
+      <DropdownMenuContent className="w-72" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
@@ -57,33 +80,37 @@ export function UserNav() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-semibold leading-none">{user?.name || 'Usuario'}</p>
+              <p className="text-sm font-extrabold leading-none text-foreground">{user?.name || 'Usuario'}</p>
               <p className="text-xs leading-none text-muted-foreground">{user?.email || ''}</p>
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <div className="px-2 py-1.5">
-          <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-            <span className="text-xs capitalize font-medium">{user?.role?.replace(/-/g, ' ') || ''}</span>
-            {user?.storeIds?.length ? (
-              <span className="text-xs text-muted-foreground">Tienda: {user.storeIds[0]}</span>
-            ) : null}
+        <div className="px-2 py-2 space-y-1.5">
+          <div className="rounded-xl bg-muted/60 p-2.5 space-y-1 border border-[#DDE2E8]">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span>{getHumanRoleLabel(user?.role)}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Store className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+              <span className="truncate">{user?.storeName || 'Los Pinos - Central'}</span>
+            </div>
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+        <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="rounded-xl">
           {theme === 'dark' ? (
             <Sun className="mr-2 h-4 w-4" />
           ) : (
             <Moon className="mr-2 h-4 w-4" />
           )}
-          <span>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+          <span className="font-medium text-xs">{theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout} className="text-destructive focus:text-destructive">
+        <DropdownMenuItem onClick={logout} className="text-rose-600 focus:text-rose-600 font-bold rounded-xl">
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Cerrar sesión</span>
+          <span className="text-xs">Cerrar Sesión</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

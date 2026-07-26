@@ -23,7 +23,7 @@ import { ProcessTransactionDto } from './vendor-inventories.dto';
 export class VendorInventoriesController {
   constructor(private readonly service: VendorInventoriesService) {}
 
-  @Roles('admin', 'rutero', 'gestor', 'inventory')
+  @Roles('admin', 'rutero', 'gestor', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
   @Get(':vendorId/:productId')
   @ApiOperation({
     summary: 'Obtener inventario de un producto asignado a un vendedor',
@@ -33,25 +33,22 @@ export class VendorInventoriesController {
     @Param('productId', ParseUUIDPipe) productId: string,
     @Req() req: any,
   ) {
-    return this.service.getInventory(
-      req.user?.role === 'rutero' ? req.user.sub : vendorId,
-      productId,
-    );
+    const targetVendor = ['rutero'].includes(req.user?.role) ? req.user.sub : vendorId;
+    return this.service.getInventory(targetVendor, productId);
   }
 
-  @Roles('admin', 'rutero', 'gestor', 'inventory')
+  @Roles('admin', 'rutero', 'gestor', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
   @Get(':vendorId')
   @ApiOperation({ summary: 'Listar productos asignados a un vendedor' })
   getVendorProducts(
     @Param('vendorId', ParseUUIDPipe) vendorId: string,
     @Req() req: any,
   ) {
-    return this.service.getVendorProducts(
-      req.user?.role === 'rutero' ? req.user.sub : vendorId,
-    );
+    const targetVendor = ['rutero'].includes(req.user?.role) ? req.user.sub : vendorId;
+    return this.service.getVendorProducts(targetVendor);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'rutero', 'gestor', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
   @Post('transaction')
   @ApiOperation({
     summary:
@@ -60,7 +57,8 @@ export class VendorInventoriesController {
   processTransaction(@Body() dto: ProcessTransactionDto, @Req() req: any) {
     return this.service.processTransaction({
       ...dto,
-      userId: req.user?.sub || null,
-    } as any);
+      type: dto.type as any,
+      userId: req.user?.sub,
+    });
   }
 }
