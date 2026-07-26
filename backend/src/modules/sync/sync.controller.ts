@@ -14,7 +14,6 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-
 import { BatchSyncDto } from './sync.dto';
 
 @ApiTags('Sync')
@@ -24,7 +23,7 @@ import { BatchSyncDto } from './sync.dto';
 export class SyncController {
   constructor(private readonly service: SyncService) {}
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get('statuses')
   @ApiOperation({
     summary: 'Obtener el estado de sincronización de todas las tiendas',
@@ -33,21 +32,21 @@ export class SyncController {
     return this.service.getStatuses();
   }
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get('idempotency-logs')
   @ApiOperation({ summary: 'Obtener logs de idempotencia para auditoría' })
   getIdempotencyLogs(@Query('storeId') storeId?: string) {
     return this.service.getIdempotencyLogs(storeId);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Post('batch')
   @ApiOperation({ summary: 'Recibir una carga batch de operaciones offline' })
   processBatch(@Body() dto: BatchSyncDto) {
     return this.service.processBatchSync(dto.storeId, dto.operations);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Post('force/:storeId')
   @ApiOperation({
     summary: 'Forzar un nuevo ciclo de sincronización para una tienda',
@@ -56,11 +55,11 @@ export class SyncController {
     return this.service.forceSync(storeId);
   }
 
-  @Roles('admin', 'gestor')
+  @Roles('admin', 'gestor', 'rutero', 'auxiliar', 'inventory', 'chain-admin', 'super-admin')
   @Get('data')
   @ApiOperation({
     summary:
-      'Obtener bootstrap/delta; el Gestor recibe sólo sus rutas y clientes',
+      'Obtener bootstrap/delta de datos para sincronización offline',
   })
   getDeltaData(
     @Query('storeId') storeId: string,

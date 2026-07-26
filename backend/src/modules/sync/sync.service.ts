@@ -251,11 +251,11 @@ export class SyncService {
     const scopedParams = isSalesManager ? [actorId] : [];
 
     const [products, productBarcodes, clients, routes] = await Promise.all([
-      fetchPage('products', 'AND (is_active = true OR deleted_at IS NOT NULL)'),
+      fetchPage('products', 'AND (is_active = true)'),
       fetchPage('product_barcodes'),
       fetchPage(
         'clients',
-        `AND (is_active = true OR deleted_at IS NOT NULL) ${clientScope}`,
+        `${clientScope}`,
         'created_at',
         'created_at',
         scopedParams,
