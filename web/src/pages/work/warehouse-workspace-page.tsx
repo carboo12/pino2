@@ -217,11 +217,14 @@ export default function WarehouseWorkspacePage() {
           storeName={user?.storeName}
           actions={
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/purchase-orders`)}>
-                Órdenes Compra
+              <Button size="sm" onClick={() => navigate(`/store/${storeId}/supplier-invoices`)} className="rounded-xl font-bold bg-emerald-700 hover:bg-emerald-800 text-white text-xs">
+                📥 Recepción Compras
               </Button>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/vehicles`)}>
-                Flota
+              <Button size="sm" variant="outline" onClick={() => navigate(`/store/${storeId}/routes`)} className="rounded-xl font-bold text-xs">
+                🚚 Armado Carga Camión
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/purchase-orders`)} className="rounded-xl font-bold text-xs">
+                📋 Órdenes Compra
               </Button>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#5B6673]" />

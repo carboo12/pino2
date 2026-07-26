@@ -596,7 +596,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={STORE_ADMIN_ROLES}
+                            allowedRoles={WAREHOUSE_ROLES}
                           >
                             <RoutesListPage />
                           </ProtectedRoute>
@@ -607,7 +607,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={STORE_ADMIN_ROLES}
+                            allowedRoles={WAREHOUSE_ROLES}
                           >
                             <RouteFormPage />
                           </ProtectedRoute>
@@ -618,7 +618,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={STORE_ADMIN_ROLES}
+                            allowedRoles={WAREHOUSE_ROLES}
                           >
                             <RouteDetailPage />
                           </ProtectedRoute>
@@ -909,6 +909,63 @@ function App() {
                             allowedRoles={[...SALES_TEAM_ROLES, "rutero"]}
                           >
                             <VendorReturnsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* PROVEEDORES, RECEPCIÓN DE COMPRAS Y CUENTAS POR PAGAR (CxP) */}
+                      <Route
+                        path="/store/:storeId/suppliers"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <SuppliersPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/suppliers/create"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <AddSupplierPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/suppliers/:supplierId/edit"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <EditSupplierPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/supplier-invoices"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={WAREHOUSE_ROLES}
+                          >
+                            <SupplierInvoicesPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/cxp"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={WAREHOUSE_ROLES}
+                          >
+                            <SupplierInvoicesPage />
                           </ProtectedRoute>
                         }
                       />
