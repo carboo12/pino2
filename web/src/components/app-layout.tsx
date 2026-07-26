@@ -79,13 +79,18 @@ const getChainAdminNav = (): NavItem[] => [
   { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
 ];
 
-const getMasterAdminNav = (): NavItem[] => [
+const getMasterAdminNav = (activeStoreId = '9321856d-19ba-42b8-ba47-cf35c0d133dd'): NavItem[] => [
   { type: 'link', name: 'Panel', href: '/master-admin/dashboard', icon: LayoutDashboard },
   { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
   { type: 'link', name: 'Usuarios', href: '/master-admin/users', icon: Users },
-  // { type: 'link', name: 'Licencias', href: '/master-admin/licenses', icon: WalletCards },
   { type: 'separator' },
-  { type: 'group', name: 'Operaciones', icon: AreaChart, children: [
+  { type: 'link', name: 'Bodega', href: `/store/${activeStoreId}/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Rutas', href: `/store/${activeStoreId}/routes`, icon: Map },
+  { type: 'link', name: 'Ventas', href: `/store/${activeStoreId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Finanzas', href: `/store/${activeStoreId}/work/finance`, icon: Wallet },
+  { type: 'link', name: 'Catálogo', href: `/store/${activeStoreId}/work/catalog`, icon: Package },
+  { type: 'separator' },
+  { type: 'group', name: 'Monitor Global', icon: AreaChart, children: [
     { type: 'link', name: 'Sync Monitor', href: '/master-admin/sync-monitor', icon: RefreshCw, section: 'ops' },
     { type: 'link', name: 'Comparar', href: '/master-admin/comparison', icon: AreaChart, section: 'ops' },
     { type: 'link', name: 'Activity Log', href: '/master-admin/monitor', icon: FileText, section: 'ops' },
@@ -492,25 +497,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = useMemo(() => {
     const roleId = normalizeUserRole(user?.role);
+    const activeStore = storeId || user?.storeIds?.[0] || allStores?.[0]?.id || '9321856d-19ba-42b8-ba47-cf35c0d133dd';
+
     switch (roleId) {
       case 'admin':
+        // JEFE / ENCARGADO DE BODEGA: Acceso completo a módulos operativos de su bodega
+        return getStoreAdminNav(activeStore);
       case 'super-admin':
+        // ADMINISTRADOR GENERAL: Acceso global maestro + operaciones directas de tienda activa
         if (storeId) {
           return getStoreAdminNav(storeId);
         }
-        return getMasterAdminNav();
+        return getMasterAdminNav(activeStore);
       case 'inventory':
-        return getBodegueroNav(storeId || '');
+        return getBodegueroNav(activeStore);
       case 'rutero':
-        return getRuteroNav(storeId || '');
+        return getRuteroNav(activeStore);
       case 'gestor':
-        return getGestorVentasNav(storeId || '');
+        return getGestorVentasNav(activeStore);
       case 'auxiliar':
-        return getAuxiliarNav(storeId || '');
+        return getAuxiliarNav(activeStore);
       default:
-        return storeId ? getStoreAdminNav(storeId) : [];
+        return getStoreAdminNav(activeStore);
     }
-  }, [user, storeId]);
+  }, [user, storeId, allStores]);
 
   // Flatten for AppHeader (mobile hamburger menu still uses flat list)
   const flatNav = useMemo(() => flattenNavItems(navItems), [navItems]);
