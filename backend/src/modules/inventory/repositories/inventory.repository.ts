@@ -145,7 +145,9 @@ export class InventoryRepository {
     const params: any[] = [storeId];
 
     if (date) {
-      sql += ' AND m.created_at::date = $' + (params.push(date));
+      const dateParam = params.push(date);
+      sql += ` AND m.created_at >= $${dateParam}::date
+               AND m.created_at < $${dateParam}::date + INTERVAL '1 day'`;
     }
 
     if (type && type !== 'all') {
@@ -174,7 +176,9 @@ export class InventoryRepository {
     const params: any[] = [storeId];
 
     if (date) {
-      whereSql += ' AND m.created_at::date = $' + params.push(date);
+      const dateParam = params.push(date);
+      whereSql += ` AND m.created_at >= $${dateParam}::date
+                    AND m.created_at < $${dateParam}::date + INTERVAL '1 day'`;
     }
     if (type && type !== 'all') {
       whereSql += ' AND m.type = $' + params.push(type.toUpperCase());

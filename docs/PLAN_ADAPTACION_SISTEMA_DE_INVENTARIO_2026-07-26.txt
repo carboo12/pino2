@@ -70,12 +70,12 @@ IMPLEMENTACIÓN CRÍTICA CERRADA:
 PENDIENTE DESPUÉS DEL FREEZE:
 
 [X][A] N4.1 retorno, recepción física, revisión, aprobación y cierre de carga.
-[ ][A] N4.2 recepción parcial de compras, importación staging y corrección de
+[X][A] N4.2 recepción parcial de compras, importación staging y corrección de
        stocks negativos por movimientos.
 [ ][A] N4.3 implementar Drift/outbox/impresión Flutter en otra máquina.
 [ ][M] IA-PARALELA integrar páginas React usando exclusivamente el contrato
        congelado.
-[ ][M] Paginación SQL de listas grandes.
+[X][M] Paginación SQL de clients/products/sales/movements.
 
 ===============================================================================
 ACTUALIZACIÓN DE EJECUCIÓN - 2026-07-26 03:30 UTC
@@ -87,9 +87,12 @@ FASE DE DATOS ACTUAL: P3 - CORTE REALIZADO / ESTABILIZACIÓN Y CIERRE.
 
 FASE IA-NÚCLEO ACTUAL:
 
-- N0.1: congelar el estado operativo y crear baseline controlado.
-- Siguiente: N1, desbloquear contratos Gestor/Rutero.
-- Prioridades asignadas: CRÍTICO y ALTO.
+- N0, N1, N2, N3, N4.1 y N4.2: TERMINADAS.
+- CONTRACT-FREEZE-1: LIBERADO.
+- N4.3 Flutter: DIFERIDA y trasladada a
+  PLAN_FLUTTER_DIFERIDO_2026-07-26.txt para ejecutarse en otra máquina.
+- Siguiente en este VPS: auditoría integral página React ↔ endpoint y cierre de
+  incompatibilidades críticas/altas con IA-PARALELA.
 
 FASE IA-PARALELA ACTUAL:
 
@@ -103,29 +106,28 @@ ni modificar destructivamente la base anterior. P0 está cerrada. La parte
 crítica de P1 está implementada. Quedan trabajos funcionales de P1/P2 que no
 deben confundirse con el corte de base ya completado.
 
-PUNTUACIÓN DEL CORTE DE DATOS Y FINANZAS: 7.5 / 10.
+PUNTUACIÓN DEL CORTE DE DATOS Y FINANZAS: 8.5 / 10.
 
-PUNTUACIÓN MVP GLOBAL INCLUYENDO OPERACIÓN EN CALLE: 5.5 / 10.
+PUNTUACIÓN MVP GLOBAL INCLUYENDO OPERACIÓN EN CALLE: 6.5 / 10.
 
 Comparación:
 
 - Diagnóstico inicial antes de ejecutar el plan:       3.5 / 10.
-- Base, fusión y finanzas después del corte:            7.5 / 10.
-- MVP global con Gestor/Rutero exigido por Trello:      5.5 / 10.
+- Base, fusión y finanzas después de N4.2:              8.5 / 10.
+- MVP global con Gestor/Rutero exigido por Trello:      6.5 / 10.
 - Meta después de cerrar pendientes P1/P2:              8.5 / 10.
 
 Por qué todavía no es 8.5/10:
 
-1. Falta completar recepción parcial de órdenes de compra.
-2. Falta cerrar importación Excel/CSV con preview y errores por fila.
-3. Falta corregir mediante movimientos los stocks negativos identificados.
-4. Falta paginación real de servidor en todas las listas grandes.
-5. Falta ampliar el contrato offline de CxC en Flutter.
-6. Falta una validación funcional autenticada de todos los flujos de escritura
+1. Falta ampliar el contrato offline de CxC y campo en Flutter.
+2. Falta integrar la paginación nueva en las pantallas React de listas grandes.
+3. Falta corregir las incompatibilidades página React ↔ endpoint detectadas por
+   la matriz integral.
+4. Falta una validación funcional autenticada de todos los flujos de escritura
    con usuarios reales de cada rol.
-7. Falta período de observación del corte antes de retirar multitienda_db.
-8. El flujo obligatorio Gestor de Ventas -> Carga -> Rutero -> Liquidación
-   todavía tiene bloqueantes funcionales detallados en la sección 17.
+5. Falta período de observación del corte antes de retirar multitienda_db.
+6. Falta completar y validar la interfaz operativa Gestor -> Carga -> Rutero ->
+   Liquidación contra CONTRACT-FREEZE-1.
 
 RESULTADO DEL CORTE DE BASE:
 
@@ -661,7 +663,7 @@ SUBFASE N4.2 - Entradas de inventario pendientes
 [X][A][IA-NÚCLEO] N4.2.2 Importación con staging y validación por fila.
 [X][A][IA-NÚCLEO] N4.2.3 Idempotencia de importación por lote/barcode.
 [X][A][IA-NÚCLEO] N4.2.4 Ajustar stock negativo mediante movements.
-[ ][A][IA-NÚCLEO] N4.2.5 Paginación SQL de clients/products/sales/movements.
+[X][A][IA-NÚCLEO] N4.2.5 Paginación SQL de clients/products/sales/movements.
 
 EVIDENCIA N4.2.1:
 
@@ -698,6 +700,24 @@ EVIDENCIA N4.2.4:
 - Verificación posterior: 0 productos activos con current_stock negativo.
 - stock_bulks y stock_units no se escriben directamente porque PostgreSQL las
   recalcula como columnas generadas desde current_stock y units_per_bulk.
+
+EVIDENCIA N4.2.5:
+
+- GET /clients, GET /products, GET /sales y GET /inventory/movements aceptan
+  page y pageSize; limit se mantiene como alias compatible.
+- Con page presente responden data, total, page, pageSize, limit y totalPages.
+- Sin page conservan la respuesta array anterior para no romper consumidores
+  React existentes durante la transición.
+- Límites normalizados: mínimo 1, máximo 500 en listados nuevos.
+- Los cuatro listados ejecutan LIMIT/OFFSET en PostgreSQL; count usa los mismos
+  filtros que la consulta de datos.
+- La fecha de movements usa rango indexable y no un cast sobre created_at.
+- Migración: backend/migrations/2026-07-26_pagination_indexes_n4_2_5.sql.
+- Índices de página aplicados en sistema_de_inventario y multitienda_db para
+  clients, products, sales por tienda/turno/cajero y movements por tienda/tipo.
+- Volumen validado en la base activa: 4,298 clientes, 3,730 productos,
+  86,964 ventas y 553,729 movimientos.
+- Build NestJS completado después de los cambios.
 
 SUBFASE N4.3 - Flutter financiero/campo (DIFERIDO)
 
