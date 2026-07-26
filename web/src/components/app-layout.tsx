@@ -111,22 +111,16 @@ const getStoreAdminNav = (storeId: string): NavItem[] => [
 
 // --- Simple role navs (already compact) ---
 const getBodegueroNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-  { type: 'link', name: 'Conteo ciego', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
+  { type: 'link', name: 'Kárdex & Movimientos', href: `/store/${storeId}/inventory/movements`, icon: Boxes },
+  { type: 'link', name: 'Arqueos (Conteo Ciego)', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
+  { type: 'link', name: 'Solicitud Ajustes', href: `/store/${storeId}/inventory/adjustments`, icon: FileText },
   { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
 ];
 
-const getCashierNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Vender', href: `/store/${storeId}/work/cash`, icon: ShoppingCart },
-  { type: 'link', name: 'Caja', href: `/store/${storeId}/cash-register`, icon: WalletCards },
-];
-
-const getDespachoNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-];
-
 const getAuxiliarNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Recepción Compras', href: `/store/${storeId}/supplier-invoices`, icon: ArrowDownRight },
+  { type: 'link', name: 'Armado Carga Camión', href: `/store/${storeId}/routes`, icon: Truck },
+  { type: 'link', name: 'Devoluciones Campo', href: `/store/${storeId}/warehouse`, icon: Undo2 },
 ];
 
 const getSupervisorCajaNav = (storeId: string): NavItem[] => [

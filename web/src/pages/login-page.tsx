@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { Navigate } from 'react-router-dom';
 import { toast } from '@/lib/swalert';
 import { normalizeUserRole } from '@/lib/user-role';
+import { getRedirectPath } from '@/lib/redirect-logic';
 
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -33,17 +34,7 @@ export default function LoginPage() {
   const { login, user } = useAuth();
 
   if (user) {
-    const role = normalizeUserRole(user.role);
-    const storeId = user.storeIds?.[0];
-    const rolePathMap: Record<string, string> = {
-      admin: '/master-admin/dashboard',
-      'super-admin': '/master-admin/dashboard',
-      inventory: `/store/${storeId}/warehouse`,
-      gestor: `/store/${storeId}/vendors/dashboard`,
-      rutero: `/store/${storeId}/delivery-route`,
-      auxiliar: `/store/${storeId}/warehouse`,
-    };
-    const redirectPath = rolePathMap[role] || '/master-admin/dashboard';
+    const redirectPath = getRedirectPath(user) || '/master-admin/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 

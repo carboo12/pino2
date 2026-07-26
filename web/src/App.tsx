@@ -382,7 +382,14 @@ function App() {
                       {/* RUTAS DE TIENDA */}
                       <Route
                         path="/store/:storeId/dashboard"
-                        element={<Navigate to="../work/cash" replace />}
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <DashboardPage />
+                          </ProtectedRoute>
+                        }
                       />
 
                       <Route

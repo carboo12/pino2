@@ -14,29 +14,31 @@ export function getRedirectPath(user: User | null): string | null {
 
 
 
-    // Admin / Super-admin (Acceso global al SaaS)
-    if (role === 'admin' || role === 'super-admin') {
+    const DEFAULT_STORE_ID = '9321856d-19ba-42b8-ba47-cf35c0d133dd';
+    const effectiveStoreId = storeId || DEFAULT_STORE_ID;
+
+    // Administrador General (Super-admin global al SaaS)
+    if (role === 'super-admin') {
         return '/master-admin/dashboard';
     }
 
-    // Si no tiene tienda asignada y no es un rol superior, error
-    if (!storeId) {
-        console.warn(`[RedirectLogic] User with role "${role}" has no assigned storeId.`);
-        return '/login?error=no-store';
+    // Jefe / Encargado de Bodega Central (admin) -> Panel de su Sucursal
+    if (role === 'admin') {
+        return `/store/${effectiveStoreId}/dashboard`;
     }
 
     // Roles específicos de tienda
     switch (role) {
         case 'inventory':
-            return `/store/${storeId}/warehouse`;
-        case 'rutero':
-            return `/store/${storeId}/delivery-route`;
-        case 'gestor':
-            return `/store/${storeId}/vendors/dashboard`;
+            return `/store/${effectiveStoreId}/warehouse`;
         case 'auxiliar':
-            return `/store/${storeId}/warehouse`;
+            return `/store/${effectiveStoreId}/warehouse`;
+        case 'gestor':
+            return `/store/${effectiveStoreId}/vendors/dashboard`;
+        case 'rutero':
+            return `/store/${effectiveStoreId}/delivery-route`;
         default:
             console.error(`[RedirectLogic] Unrecognized role: "${user.role}" -> "${role}"`);
-            return `/store/${storeId}/products`;
+            return `/store/${effectiveStoreId}/dashboard`;
     }
 }
