@@ -1714,6 +1714,7 @@ export default function SupplierInvoicesPage() {
                   ))}
                 </div>
               </div>
+            ) : null}
           </div>
 
           <DialogFooter>
