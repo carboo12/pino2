@@ -32,6 +32,7 @@ import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
 import { calculateStockDisplay } from '@/utils/stock-display';
 import { MobileCardList, MobileCard, MobileCardRow } from '@/components/ui/mobile-card-list';
+import { extractData } from '@/lib/paginated-fetch';
 
 interface Product {
   id: string;
@@ -65,8 +66,8 @@ export default function CatalogWorkspacePage() {
     if (!storeId) return;
     setLoadingStock(true);
     try {
-      const res = await apiClient.get('/products', { params: { storeId, stockCritical: true, limit: 50 } });
-      setCriticalStock(Array.isArray(res.data) ? res.data : res.data?.data || []);
+      const res = await apiClient.get('/products', { params: { storeId, stockCritical: true, page: 1, pageSize: 50 } });
+      setCriticalStock(extractData(res.data));
     } catch { setCriticalStock([]); } finally { setLoadingStock(false); }
   }, [storeId]);
 
@@ -74,8 +75,8 @@ export default function CatalogWorkspacePage() {
     if (!storeId) return;
     setLoadingMovements(true);
     try {
-      const res = await apiClient.get('/inventory/movements', { params: { storeId, limit: 50 } });
-      setMovements(Array.isArray(res.data) ? res.data : res.data?.data || []);
+      const res = await apiClient.get('/inventory/movements', { params: { storeId, page: 1, pageSize: 50 } });
+      setMovements(extractData(res.data));
     } catch { setMovements([]); } finally { setLoadingMovements(false); }
   }, [storeId]);
 
@@ -94,9 +95,9 @@ export default function CatalogWorkspacePage() {
     setError(null);
     try {
       const res = await apiClient.get('/products', {
-        params: { storeId, search: q, limit: 50 },
+        params: { storeId, search: q, page: 1, pageSize: 50 },
       });
-      setProducts(Array.isArray(res.data) ? res.data : res.data?.data || []);
+      setProducts(extractData(res.data));
     } catch {
       setError('Error al buscar productos');
     } finally {
@@ -114,8 +115,8 @@ export default function CatalogWorkspacePage() {
   useEffect(() => {
     if (storeId && searchTerm.length < 2) {
       setLoading(true);
-      apiClient.get('/products', { params: { storeId, limit: 50 } })
-        .then(res => setProducts(Array.isArray(res.data) ? res.data : res.data?.data || []))
+      apiClient.get('/products', { params: { storeId, page: 1, pageSize: 50 } })
+        .then(res => setProducts(extractData(res.data)))
         .catch(() => setError('Error al cargar productos'))
         .finally(() => setLoading(false));
     }

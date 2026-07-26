@@ -31,6 +31,28 @@ export class RoutesService {
     return res.rows.map(this.mapRow);
   }
 
+  async findOne(id: string) {
+    const res = await this.db.query(
+      `SELECT r.*,
+              u.name AS vendor_name,
+              COALESCE(
+                jsonb_agg(rc.client_id::text ORDER BY rc.visit_order)
+                  FILTER (WHERE rc.client_id IS NOT NULL),
+                '[]'::jsonb
+              ) AS normalized_client_ids
+         FROM routes r
+         LEFT JOIN users u ON u.id = r.vendor_id
+         LEFT JOIN route_clients rc ON rc.route_id = r.id
+        WHERE r.id = $1
+        GROUP BY r.id, u.name`,
+      [id],
+    );
+    if (res.rowCount !== 1) {
+      throw new NotFoundException('Ruta no encontrada');
+    }
+    return this.mapRow(res.rows[0]);
+  }
+
   async create(dto: {
     storeId: string;
     vendorId: string;

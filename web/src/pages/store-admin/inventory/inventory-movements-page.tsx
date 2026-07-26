@@ -37,6 +37,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { PrintableTicket, generatePlainTextTicket } from '@/components/printable-ticket';
 import { toast } from '@/lib/swalert';
+import { DataPagination } from '@/components/ui/data-pagination';
+import { extractData, extractTotal } from '@/lib/paginated-fetch';
 
 import { calculateStockDisplay } from '@/utils/stock-display';
 
@@ -66,16 +68,18 @@ export default function InventoryMovementsPage() {
   const [isShareSupported] = useState(() => typeof navigator !== 'undefined' && 'share' in navigator);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const dateStr = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
-  const { data: movements = [], isLoading: loading, error } = useQuery({
-    queryKey: ['inventory-movements', storeId, dateStr, selectedType],
+  const { data, isLoading: loading, error } = useQuery({
+    queryKey: ['inventory-movements', storeId, dateStr, selectedType, page, pageSize],
     queryFn: async () => {
       const response = await apiClient.get('/inventory/movements', {
-        params: { storeId, date: dateStr, type: selectedType }
+        params: { storeId, date: dateStr, type: selectedType, page, pageSize }
       });
-      return response.data.map((m: any, idx: number) => {
+      const items = extractData<any>(response.data).map((m: any, idx: number) => {
         const qty = m.quantity || 0;
         const bal = m.balance || 0;
         const upb = m.units_per_bulk_snapshot || m.unitsPerBulk || 1;
@@ -104,9 +108,14 @@ export default function InventoryMovementsPage() {
           formattedHas: calculateStockDisplay(bal, hb, upb).formatted,
         };
       }) as Movement[];
+      const total = extractTotal(response.data);
+      return { items, total };
     },
     enabled: !!storeId && !!selectedDate,
   });
+
+  const movements = data?.items || [];
+  const total = data?.total || 0;
 
   const filteredMovements = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
@@ -324,6 +333,8 @@ export default function InventoryMovementsPage() {
           <div className="relative flex-grow border rounded-md">
             {renderContent()}
           </div>
+
+          <DataPagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} className="mt-2" />
 
           <div className="flex items-center justify-end gap-2 mt-4">
             <Button variant="outline" onClick={handlePrintOrShare}>

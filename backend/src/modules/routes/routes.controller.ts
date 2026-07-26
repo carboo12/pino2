@@ -51,6 +51,13 @@ export class RoutesController {
   }
 
   @Roles('master-admin', 'store-admin')
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener detalle de una ruta' })
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
+  }
+
+  @Roles('master-admin', 'store-admin')
   @Get(':id/history')
   @ApiOperation({ summary: 'Historial de asignación de una ruta' })
   history(@Param('id') id: string) {

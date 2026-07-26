@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/services/api-client";
 import { toast } from "@/lib/swalert";
@@ -33,8 +33,8 @@ import { logError } from "@/lib/error-logger";
 import { calculateStockDisplay } from "@/utils/stock-display";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { PaginationControls } from "@/components/ui/pagination-controls";
-import { usePagination } from "@/hooks/use-pagination";
+import { DataPagination } from "@/components/ui/data-pagination";
+import { extractData, extractTotal } from "@/lib/paginated-fetch";
 import { ImportProductsDialog } from "@/components/products/import-products-dialog";
 
 interface Department {
@@ -87,23 +87,30 @@ export default function ProductsPage() {
     useState<SubDepartment | null>(null);
   const [reorganizationMode, setReorganizationMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedDepartment, selectedSubDepartment, reorganizationMode]);
 
   const {
     data: pageData,
     isLoading: loading,
     error,
   } = useQuery({
-    queryKey: ["products-page", storeId],
+    queryKey: ["products-page", storeId, page, pageSize],
     queryFn: async () => {
       const [prodsRes, deptsRes, subDeptsRes] = await Promise.all([
-        apiClient.get("/products", { params: { storeId } }),
+        apiClient.get("/products", { params: { storeId, page, pageSize } }),
         apiClient.get("/departments", { params: { storeId, type: "main" } }),
         apiClient
           .get("/departments/sub-departments", { params: { storeId } })
           .catch(() => ({ data: [] })),
       ]);
       return {
-        products: prodsRes.data as Product[],
+        products: extractData<Product>(prodsRes.data),
+        total: extractTotal(prodsRes.data),
         departments: deptsRes.data.map((d: any) => ({
           ...d,
           name: d.name || d.nombre,
@@ -120,6 +127,7 @@ export default function ProductsPage() {
   });
 
   const products = pageData?.products || [];
+  const total = pageData?.total || 0;
   const departments = pageData?.departments || [];
   const subDepartments = pageData?.subDepartments || [];
 
@@ -195,8 +203,6 @@ export default function ProductsPage() {
     () => reorganizationMode ? unorganizedProducts : filteredProducts,
     [reorganizationMode, unorganizedProducts, filteredProducts],
   );
-
-  const { paginatedItems, page, pageSize, totalPages, totalItems, setPage, setPageSize } = usePagination(activeProducts);
 
   const handleExport = () => {
     const dataToExport = products.map((p: any) => ({
@@ -369,7 +375,7 @@ export default function ProductsPage() {
 
     // View Reorganization
     if (reorganizationMode) {
-      return <>{productListContent(unorganizedProducts, paginatedItems)}<PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} /></>;
+      return <>{productListContent(activeProducts, activeProducts)}<DataPagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} /></>;
     }
 
     // View Products for a department (no sub-department) or a sub-department
@@ -377,7 +383,7 @@ export default function ProductsPage() {
       selectedSubDepartment ||
       (selectedDepartment && filteredSubDepartments.length === 0)
     ) {
-      return <>{productListContent(filteredProducts, paginatedItems)}<PaginationControls page={page} pageSize={pageSize} totalPages={totalPages} totalItems={totalItems} onPageChange={setPage} onPageSizeChange={setPageSize} /></>;
+      return <>{productListContent(activeProducts, activeProducts)}<DataPagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} /></>;
     }
 
     // View Sub-Departments for a department
