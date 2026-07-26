@@ -6,6 +6,7 @@ import '../../../../core/network/sync_queue_processor.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/client_portfolio_repository.dart';
 import '../../domain/models/client_summary.dart';
+import '../widgets/client_history_bottom_sheet.dart';
 
 final clientPortfolioProvider = FutureProvider.family
     .autoDispose<List<ClientSummary>, String>((ref, storeId) async {
@@ -181,6 +182,7 @@ class _ClientPortfolioScreenState extends ConsumerState<ClientPortfolioScreen> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _ClientCard(
                             client: client,
+                            storeId: widget.storeId,
                             onEdit: () => _showEditClientDialog(context, client),
                           ),
                         ),
@@ -297,9 +299,14 @@ class _ClientMetric extends StatelessWidget {
 }
 
 class _ClientCard extends StatelessWidget {
-  const _ClientCard({required this.client, this.onEdit});
+  const _ClientCard({
+    required this.client,
+    required this.storeId,
+    this.onEdit,
+  });
 
   final ClientSummary client;
+  final String storeId;
   final VoidCallback? onEdit;
 
   @override
@@ -397,6 +404,28 @@ class _ClientCard extends StatelessWidget {
               text: client.address!,
             ),
           ],
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton.icon(
+                onPressed: () {
+                  ClientHistoryBottomSheet.show(context, client, storeId);
+                },
+                icon: const Icon(Icons.history_rounded, size: 18, color: Color(0xFF0F766E)),
+                label: const Text(
+                  'Expediente 360° & Ventas',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF0F766E),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -433,8 +462,8 @@ class _ClientLoadingState extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Row(
-        children: const [
+      child: const Row(
+        children: [
           SizedBox(
             width: 22,
             height: 22,

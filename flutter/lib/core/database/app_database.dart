@@ -225,19 +225,19 @@ class AppDatabase extends _$AppDatabase {
         await _createBarcodeIndex();
       }
       if (from < 8) {
-        await migrator.addColumn(cachedStores, cachedStores.cursor);
-        await migrator.addColumn(cachedProducts, cachedProducts.cursor);
-        await migrator.addColumn(cachedProductBarcodes, cachedProductBarcodes.cursor);
-        await migrator.addColumn(cachedClients, cachedClients.cursor);
-        await migrator.addColumn(cachedReceivableAccounts, cachedReceivableAccounts.cursor);
-        await migrator.addColumn(cachedCollectionSummaries, cachedCollectionSummaries.cursor);
-        await migrator.addColumn(cachedRoutes, cachedRoutes.cursor);
-        await migrator.addColumn(cachedDeliveries, cachedDeliveries.cursor);
-        await migrator.addColumn(syncQueueEntries, syncQueueEntries.tombstone);
+        await customStatement('ALTER TABLE cached_stores ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_products ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_product_barcodes ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_clients ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_receivable_accounts ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_collection_summaries ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_routes ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE cached_deliveries ADD COLUMN IF NOT EXISTS cursor TEXT;');
+        await customStatement('ALTER TABLE sync_queue_entries ADD COLUMN IF NOT EXISTS tombstone INTEGER DEFAULT 0;');
       }
       if (from < 9) {
-        await migrator.addColumn(syncQueueEntries, syncQueueEntries.operationId);
-        await migrator.addColumn(syncQueueEntries, syncQueueEntries.nextAttemptAt);
+        await customStatement('ALTER TABLE sync_queue_entries ADD COLUMN IF NOT EXISTS operation_id TEXT;');
+        await customStatement('ALTER TABLE sync_queue_entries ADD COLUMN IF NOT EXISTS next_attempt_at INTEGER;');
       }
     },
   );
