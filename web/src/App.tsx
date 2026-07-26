@@ -253,6 +253,7 @@ const RoutesListPage = lazy(() => import('@/pages/store-admin/routes/routes-list
 const RouteFormPage = lazy(() => import('@/pages/store-admin/routes/route-form-page'));
 const RouteDetailPage = lazy(() => import('@/pages/store-admin/routes/route-detail-page'));
 const CargasPage = lazy(() => import('@/pages/store-admin/routes/cargas-page'));
+const SettlementPage = lazy(() => import('@/pages/store-admin/routes/settlement-page'));
 const PromotionsPage = lazy(
   () => import("@/pages/store-admin/promotions/promotions-page"),
 );
@@ -583,6 +584,17 @@ function App() {
                             allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <CargasPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/liquidaciones"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <SettlementPage />
                           </ProtectedRoute>
                         }
                       />

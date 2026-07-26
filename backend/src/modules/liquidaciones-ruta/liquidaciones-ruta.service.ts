@@ -461,6 +461,315 @@ export class LiquidacionesRutaService {
     return this.findOne(id, dto.ruteroId);
   }
 
+  async review(id: string, reviewedBy: string, notes?: string) {
+    await this.db.withTransaction(async (client) => {
+      const result = await client.query(
+        `UPDATE liquidaciones_ruta
+         SET status = 'UNDER_REVIEW', reviewed_by = $2, reviewed_at = NOW(),
+             review_notes = COALESCE($3, review_notes),
+             version = version + 1
+         WHERE id = $1
+           AND status IN ('SUBMITTED_BY_DRIVER', 'UNDER_REVIEW')
+         RETURNING id`,
+        [id, reviewedBy, notes || null],
+      );
+      if (result.rowCount !== 1) {
+        throw new ConflictException(
+          'La liquidación no está disponible para revisión',
+        );
+      }
+    });
+    return this.findOne(id);
+  }
+
+  async approveAndClose(
+    id: string,
+    approvedBy: string,
+    allowCashObservation: boolean,
+    notes?: string,
+  ) {
+    const duplicated = await this.db.withTransaction(async (client) => {
+      const result = await client.query(
+        `SELECT l.*, c.status AS carga_status
+         FROM liquidaciones_ruta l
+         JOIN cargas_camion c ON c.id = l.carga_id
+         WHERE l.id = $1
+         FOR UPDATE OF l, c`,
+        [id],
+      );
+      if (result.rowCount !== 1) {
+        throw new NotFoundException(
+          'Liquidación de carga no encontrada',
+        );
+      }
+      const settlement = result.rows[0];
+      if (settlement.carga_status === 'CLOSED') return true;
+      if (
+        settlement.carga_status !== 'RETURNED' ||
+        !['SUBMITTED_BY_DRIVER', 'UNDER_REVIEW'].includes(settlement.status)
+      ) {
+        throw new ConflictException(
+          'La carga debe estar retornada y la liquidación enviada',
+        );
+      }
+
+      const items = await client.query(
+        `SELECT li.*, p.handles_bulk
+         FROM liquidacion_ruta_items li
+         JOIN products p ON p.id = li.product_id
+         WHERE li.liquidacion_id = $1
+         ORDER BY li.product_id
+         FOR UPDATE OF li, p`,
+        [id],
+      );
+      const merchandiseDifference = items.rows.reduce(
+        (sum, item) => sum + Number(item.difference_units),
+        0,
+      );
+      if (merchandiseDifference !== 0) {
+        throw new ConflictException(
+          'La mercancía física no cuadra; corrija el conteo antes de cerrar',
+        );
+      }
+
+      const cashDifference = Number(settlement.diferencia || 0);
+      if (Math.abs(cashDifference) > 0.01 && !allowCashObservation) {
+        throw new ConflictException(
+          'Existe diferencia de efectivo; requiere aprobación con observación',
+        );
+      }
+
+      for (const item of items.rows) {
+        const returnedUnits = Number(item.returned_units);
+        if (returnedUnits === 0) continue;
+        const unitsPerBulk = Number(item.units_per_bulk_snapshot);
+        const vendor = await client.query(
+          `UPDATE vendor_inventories
+           SET current_quantity = current_quantity - $1,
+               current_bulks = (current_quantity - $1)::int / $2,
+               current_units = (current_quantity - $1)::int % $2,
+               updated_at = NOW()
+           WHERE store_id = $3 AND vendor_id = $4 AND product_id = $5
+             AND current_quantity >= $1
+           RETURNING id`,
+          [
+            returnedUnits,
+            unitsPerBulk,
+            settlement.store_id,
+            settlement.rutero_id,
+            item.product_id,
+          ],
+        );
+        if (vendor.rowCount !== 1) {
+          throw new ConflictException(
+            `Inventario del Rutero insuficiente para ${item.product_id}`,
+          );
+        }
+
+        const product = await client.query(
+          `UPDATE products
+           SET current_stock = current_stock + $1, updated_at = NOW()
+           WHERE id = $2 AND store_id = $3
+           RETURNING current_stock`,
+          [returnedUnits, item.product_id, settlement.store_id],
+        );
+        if (product.rowCount !== 1) {
+          throw new NotFoundException('Producto no encontrado en la tienda');
+        }
+        const quantity = splitIntoBulkUnits(returnedUnits, unitsPerBulk);
+        const balance = splitIntoBulkUnits(
+          Number(product.rows[0].current_stock),
+          unitsPerBulk,
+        );
+        await client.query(
+          `INSERT INTO movements (
+             store_id, product_id, user_id, type, quantity,
+             quantity_bulks, quantity_units, balance,
+             balance_bulks, balance_units, reference,
+             handles_bulk_snapshot, units_per_bulk_snapshot
+           ) VALUES (
+             $1,$2,$3,'IN',$4,$5,$6,$7,$8,$9,$10,$11,$12
+           )`,
+          [
+            settlement.store_id,
+            item.product_id,
+            approvedBy,
+            returnedUnits,
+            quantity.bulks,
+            quantity.units,
+            Number(product.rows[0].current_stock),
+            balance.bulks,
+            balance.units,
+            `Cierre físico carga ${settlement.carga_id}`,
+            item.handles_bulk === true,
+            unitsPerBulk,
+          ],
+        );
+      }
+
+      await client.query(
+        `UPDATE returns
+         SET status = 'RECEIVED', received_by = $2, received_at = NOW(),
+             updated_at = NOW()
+         WHERE carga_id = $1 AND status = 'IN_TRANSIT'`,
+        [settlement.carga_id, approvedBy],
+      );
+      await client.query(
+        `UPDATE orders
+         SET status = 'LIQUIDADO', updated_by = $2, updated_at = NOW(),
+             version = version + 1
+         WHERE grupo_carga_id = $1
+           AND status IN ('ENTREGADO', 'PARCIAL', 'RECHAZADO',
+                          'RECHAZO_TOTAL', 'DEVUELTO')`,
+        [settlement.carga_id, approvedBy],
+      );
+      await client.query(
+        `INSERT INTO order_status_history (order_id, status, user_id)
+         SELECT order_id, 'LIQUIDADO', $2
+         FROM carga_camion_orders
+         WHERE carga_id = $1`,
+        [settlement.carga_id, approvedBy],
+      );
+      await client.query(
+        `UPDATE cargas_camion
+         SET status = 'CLOSED', closed_by = $2, closed_at = NOW(),
+             version = version + 1, updated_at = NOW()
+         WHERE id = $1`,
+        [settlement.carga_id, approvedBy],
+      );
+
+      const finalStatus =
+        Math.abs(cashDifference) <= 0.01
+          ? LiquidacionStatus.CLOSED
+          : LiquidacionStatus.WITH_OBSERVATION;
+      await client.query(
+        `UPDATE liquidaciones_ruta
+         SET status = $2, approved_by = $3, approved_at = NOW(),
+             reviewed_by = COALESCE(reviewed_by, $3),
+             reviewed_at = COALESCE(reviewed_at, NOW()),
+             review_notes = COALESCE($4, review_notes),
+             version = version + 1
+         WHERE id = $1`,
+        [id, finalStatus, approvedBy, notes || null],
+      );
+      await client.query(
+        `INSERT INTO carga_camion_events (
+           carga_id, event_type, actor_id, payload
+         ) VALUES ($1,'CLOSED',$2,$3::jsonb)`,
+        [
+          settlement.carga_id,
+          approvedBy,
+          JSON.stringify({
+            liquidacionId: id,
+            status: finalStatus,
+            cashDifference,
+          }),
+        ],
+      );
+      await client.query(
+        `INSERT INTO outbox_events (
+           store_id, aggregate_type, aggregate_id, event_type, payload
+         ) VALUES ($1,'route_settlement',$2,'ROUTE_SETTLEMENT_CLOSED',$3::jsonb)`,
+        [
+          settlement.store_id,
+          id,
+          JSON.stringify({
+            liquidacionId: id,
+            cargaId: settlement.carga_id,
+            status: finalStatus,
+          }),
+        ],
+      );
+      return false;
+    });
+    return { ...(await this.findOne(id)), isDuplicate: duplicated };
+  }
+
+  private async calculateLoadFinancials(
+    client: PoolClient,
+    cargaId: string,
+    storeId: string,
+    ruteroId: string,
+    fechaRuta: string,
+    arqueoId?: string,
+  ) {
+    const operations = await client.query(
+      `SELECT
+         COUNT(*)::int AS completed,
+         COUNT(*) FILTER (WHERE result_status = 'RECHAZADO')::int AS rejected,
+         COALESCE(SUM(total_delivered) FILTER (
+           WHERE payment_method <> 'CREDIT'
+         ), 0) AS total_contado,
+         COALESCE(SUM(total_delivered) FILTER (
+           WHERE payment_method IN ('CASH', 'EFECTIVO')
+         ), 0) AS delivery_cash
+       FROM delivery_operations dop
+       JOIN pending_deliveries pd ON pd.id = dop.delivery_id
+       WHERE pd.carga_id = $1`,
+      [cargaId],
+    );
+    const orderCount = await client.query(
+      `SELECT COUNT(*)::int AS total
+       FROM carga_camion_orders WHERE carga_id = $1`,
+      [cargaId],
+    );
+    const collections = await client.query(
+      `SELECT COALESCE(SUM(amount), 0) AS total_credito,
+              COALESCE(SUM(amount) FILTER (
+                WHERE UPPER(payment_method) IN ('CASH', 'EFECTIVO')
+              ), 0) AS credit_cash
+       FROM collections
+       WHERE store_id = $1 AND rutero_id = $2
+         AND created_at::date = $3::date`,
+      [storeId, ruteroId, fechaRuta],
+    );
+    const returns = await client.query(
+      `SELECT COALESCE(SUM(total), 0) AS total
+       FROM returns WHERE carga_id = $1`,
+      [cargaId],
+    );
+    const arqueo = arqueoId
+      ? await client.query(
+          `SELECT id, efectivo_contado
+           FROM arqueos
+           WHERE id = $1 AND store_id = $2 AND rutero_id = $3
+             AND fecha = $4::date
+           FOR SHARE`,
+          [arqueoId, storeId, ruteroId, fechaRuta],
+        )
+      : await client.query(
+          `SELECT id, efectivo_contado
+           FROM arqueos
+           WHERE store_id = $1 AND rutero_id = $2 AND fecha = $3::date
+           ORDER BY created_at DESC LIMIT 1 FOR SHARE`,
+          [storeId, ruteroId, fechaRuta],
+        );
+    if (arqueoId && arqueo.rowCount !== 1) {
+      throw new NotFoundException(
+        'El arqueo no pertenece al Rutero, tienda y fecha',
+      );
+    }
+
+    const op = operations.rows[0];
+    const col = collections.rows[0];
+    const efectivoEsperado =
+      Number(op.delivery_cash || 0) + Number(col.credit_cash || 0);
+    const efectivoEntregado =
+      arqueo.rowCount === 1 ? Number(arqueo.rows[0].efectivo_contado || 0) : 0;
+    return {
+      totalPedidos: Number(orderCount.rows[0].total || 0),
+      totalEntregados: Number(op.completed || 0) - Number(op.rejected || 0),
+      totalRechazados: Number(op.rejected || 0),
+      totalContado: Number(op.total_contado || 0),
+      totalCredito: Number(col.total_credito || 0),
+      totalDevoluciones: Number(returns.rows[0].total || 0),
+      efectivoEsperado,
+      efectivoEntregado,
+      diferencia: efectivoEntregado - efectivoEsperado,
+      arqueoId: arqueo.rowCount === 1 ? arqueo.rows[0].id : null,
+    };
+  }
+
   async findAll(storeId: string, fecha?: string, ruteroId?: string) {
     let sql = `SELECT l.*, u1.name as rutero_name, u2.name as liquidador_name 
                FROM liquidaciones_ruta l 
