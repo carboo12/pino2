@@ -23,7 +23,7 @@ import { ProcessSaleDto, SaleResponseDto } from './sales.dto';
 export class SalesController {
   constructor(private readonly service: SalesService) {}
 
-  @Roles('admin')
+  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')
   @Post('process')
   @ApiOperation({ summary: 'Procesar una venta (Transaccional puro)' })
   @ApiOkResponse({ type: SaleResponseDto })
@@ -31,7 +31,7 @@ export class SalesController {
     return this.service.processSale(dto, req.user.sub);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({
     summary: 'Listar ventas (Filtrable por tienda, turno, vendedor y fecha)',
@@ -62,44 +62,10 @@ export class SalesController {
     );
   }
 
-  @Roles('admin')
-  @Get('dashboard-stats')
-  @ApiOperation({
-    summary:
-      'Obtener métricas completas para el dashboard (Altamente optimizado)',
-  })
-  getDashboardStats(@Query('storeId') storeId: string) {
-    return this.service.getDashboardStats(storeId);
-  }
-
-  @Roles('admin')
-  @Get('report')
-  @ApiOperation({ summary: 'Obtener reporte consolidado de ventas' })
-  getReport(
-    @Query('storeId') storeId: string,
-    @Query('startDate') startDate: string,
-    @Query('endDate') endDate: string,
-    @Query('shiftId') shiftId?: string,
-  ) {
-    return this.service.getSalesReport(storeId, startDate, endDate, shiftId);
-  }
-
-  @Roles('admin')
+  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener detalle de una venta con sus items' })
-  @ApiOkResponse({ type: SaleResponseDto })
-  findOne(@Param('id') id: string, @Query('storeId') storeId?: string) {
-    return this.service.findOne(id, storeId);
-  }
-
-  @Roles('admin')
-  @Post(':id/return')
-  @ApiOperation({ summary: 'Procesar devolución de una venta' })
-  processReturn(
-    @Param('id') id: string,
-    @Body()
-    dto: { items: { productId: string; quantity: number }[]; reason?: string },
-  ) {
-    return this.service.processReturn(id, dto);
+  @ApiOperation({ summary: 'Obtener detalle de una venta' })
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 }
