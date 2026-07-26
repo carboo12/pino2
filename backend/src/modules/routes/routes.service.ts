@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -10,10 +14,19 @@ export class RoutesService {
   ) {}
 
   async findAll(storeId: string, vendorId?: string) {
-    let sql = 'SELECT * FROM routes WHERE store_id = $1';
+    let sql = `
+      SELECT r.*,
+             COALESCE(
+               jsonb_agg(rc.client_id::text ORDER BY rc.visit_order)
+                 FILTER (WHERE rc.client_id IS NOT NULL),
+               '[]'::jsonb
+             ) AS normalized_client_ids
+        FROM routes r
+        LEFT JOIN route_clients rc ON rc.route_id = r.id
+       WHERE r.store_id = $1`;
     const params: any[] = [storeId];
-    if (vendorId) sql += ` AND vendor_id = $${params.push(vendorId)}`;
-    sql += ' ORDER BY created_at DESC';
+    if (vendorId) sql += ` AND r.vendor_id = $${params.push(vendorId)}`;
+    sql += ' GROUP BY r.id ORDER BY r.route_date DESC, r.created_at DESC';
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }
@@ -25,6 +38,10 @@ export class RoutesService {
     date?: string;
     notes?: string;
     status?: string;
+    routeType?: 'SALES' | 'DELIVERY';
+    zoneId?: string;
+    validTo?: string;
+    assignedBy?: string;
   }) {
     if (!dto.storeId || !dto.vendorId) {
       throw new BadRequestException('La tienda y el vendedor son requeridos');
@@ -36,19 +53,53 @@ export class RoutesService {
     }
 
     const routeDate = parsedDate.toISOString();
-    const res = await this.db.query(
-      `INSERT INTO routes (store_id, vendor_id, client_ids, route_date, notes, status) 
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [
-        dto.storeId,
-        dto.vendorId,
-        JSON.stringify(dto.clientIds || []),
-        routeDate,
-        dto.notes || null,
-        String(dto.status || 'PENDING').trim().toUpperCase(),
-      ],
-    );
-    const route = this.mapRow(res.rows[0]);
+    const clientIds = [...new Set(dto.clientIds || [])];
+    const route = await this.db.withTransaction(async (client) => {
+      await this.validateVendor(client, dto.storeId, dto.vendorId);
+      await this.validateClients(client, dto.storeId, clientIds);
+
+      const res = await client.query(
+        `INSERT INTO routes (
+           store_id, vendor_id, client_ids, route_date, notes, status,
+           route_type, zone_id, assigned_by, valid_from, valid_to
+         )
+         VALUES (
+           $1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9, $4::date, $10::date
+         )
+         RETURNING *`,
+        [
+          dto.storeId,
+          dto.vendorId,
+          JSON.stringify(clientIds),
+          routeDate,
+          dto.notes || null,
+          String(dto.status || 'PENDING').trim().toUpperCase(),
+          dto.routeType || 'SALES',
+          dto.zoneId || null,
+          dto.assignedBy || null,
+          dto.validTo || null,
+        ],
+      );
+      await this.replaceRouteClients(client, res.rows[0].id, clientIds);
+      await client.query(
+        `INSERT INTO route_assignment_history (
+           route_id, store_id, event_type, new_vendor_id, client_ids,
+           changed_by, reason
+         ) VALUES ($1, $2, 'CREATED', $3, $4::jsonb, $5, $6)`,
+        [
+          res.rows[0].id,
+          dto.storeId,
+          dto.vendorId,
+          JSON.stringify(clientIds),
+          dto.assignedBy || null,
+          dto.notes || null,
+        ],
+      );
+      return this.mapRow({
+        ...res.rows[0],
+        normalized_client_ids: clientIds,
+      });
+    });
 
     // NOTIFICACIÓN: Avisar al vendedor sobre la nueva ruta
     try {
@@ -71,26 +122,195 @@ export class RoutesService {
     return route;
   }
 
-  async update(id: string, dto: { status?: string; notes?: string }) {
-    const sets: string[] = [];
-    const params: any[] = [];
-    let idx = 1;
-    if (dto.status) {
-      sets.push(`status = $${idx++}`);
-      params.push(dto.status.trim().toUpperCase());
-    }
-    if (dto.notes !== undefined) {
-      sets.push(`notes = $${idx++}`);
-      params.push(dto.notes);
-    }
-    if (sets.length === 0) return;
-    sets.push('updated_at = NOW()');
-    params.push(id);
-    await this.db.query(
-      `UPDATE routes SET ${sets.join(', ')} WHERE id = $${idx}`,
-      params,
+  async update(
+    id: string,
+    dto: {
+      status?: string;
+      notes?: string;
+      vendorId?: string;
+      clientIds?: string[];
+      routeType?: 'SALES' | 'DELIVERY';
+      zoneId?: string | null;
+      date?: string;
+      validTo?: string | null;
+      reason?: string;
+      changedBy?: string;
+    },
+  ) {
+    await this.db.withTransaction(async (client) => {
+      const currentRes = await client.query(
+        'SELECT * FROM routes WHERE id = $1 FOR UPDATE',
+        [id],
+      );
+      if (currentRes.rowCount !== 1) {
+        throw new NotFoundException('Ruta no encontrada');
+      }
+      const current = currentRes.rows[0];
+      const clientIds =
+        dto.clientIds === undefined ? undefined : [...new Set(dto.clientIds)];
+
+      if (dto.vendorId) {
+        await this.validateVendor(client, current.store_id, dto.vendorId);
+      }
+      if (clientIds) {
+        await this.validateClients(client, current.store_id, clientIds);
+      }
+
+      await client.query(
+        `UPDATE routes
+            SET status = COALESCE($2, status),
+                notes = CASE WHEN $3::boolean THEN $4 ELSE notes END,
+                vendor_id = COALESCE($5, vendor_id),
+                route_type = COALESCE($6, route_type),
+                zone_id = CASE WHEN $7::boolean THEN $8 ELSE zone_id END,
+                route_date = COALESCE($9::timestamp, route_date),
+                valid_from = COALESCE($9::date, valid_from),
+                valid_to = CASE WHEN $10::boolean THEN $11::date ELSE valid_to END,
+                client_ids = CASE WHEN $12::boolean THEN $13::jsonb ELSE client_ids END,
+                version = version + 1,
+                updated_at = NOW()
+          WHERE id = $1`,
+        [
+          id,
+          dto.status?.trim().toUpperCase() || null,
+          dto.notes !== undefined,
+          dto.notes ?? null,
+          dto.vendorId || null,
+          dto.routeType || null,
+          dto.zoneId !== undefined,
+          dto.zoneId ?? null,
+          dto.date || null,
+          dto.validTo !== undefined,
+          dto.validTo ?? null,
+          clientIds !== undefined,
+          JSON.stringify(clientIds || []),
+        ],
+      );
+
+      if (clientIds) {
+        await this.replaceRouteClients(client, id, clientIds);
+      }
+
+      const eventType =
+        dto.vendorId && dto.vendorId !== current.vendor_id
+          ? 'REASSIGNED'
+          : clientIds
+            ? 'CLIENTS_REPLACED'
+            : dto.status
+              ? 'STATUS_CHANGED'
+              : null;
+      if (eventType) {
+        await client.query(
+          `INSERT INTO route_assignment_history (
+             route_id, store_id, event_type, previous_vendor_id,
+             new_vendor_id, client_ids, reason, changed_by
+           )
+           VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)`,
+          [
+            id,
+            current.store_id,
+            eventType,
+            current.vendor_id,
+            dto.vendorId || current.vendor_id,
+            JSON.stringify(clientIds || current.client_ids || []),
+            dto.reason || null,
+            dto.changedBy || null,
+          ],
+        );
+      }
+    });
+
+    const updated = await this.db.query(
+      `SELECT r.*,
+              COALESCE(
+                jsonb_agg(rc.client_id::text ORDER BY rc.visit_order)
+                  FILTER (WHERE rc.client_id IS NOT NULL),
+                '[]'::jsonb
+              ) AS normalized_client_ids
+         FROM routes r
+         LEFT JOIN route_clients rc ON rc.route_id = r.id
+        WHERE r.id = $1
+        GROUP BY r.id`,
+      [id],
     );
-    return { success: true };
+    return this.mapRow(updated.rows[0]);
+  }
+
+  async findHistory(id: string) {
+    const res = await this.db.query(
+      `SELECT *
+         FROM route_assignment_history
+        WHERE route_id = $1
+        ORDER BY created_at DESC`,
+      [id],
+    );
+    return res.rows.map((row) => ({
+      id: row.id,
+      routeId: row.route_id,
+      eventType: row.event_type,
+      previousVendorId: row.previous_vendor_id,
+      newVendorId: row.new_vendor_id,
+      clientIds: row.client_ids || [],
+      reason: row.reason,
+      changedBy: row.changed_by,
+      createdAt: row.created_at,
+    }));
+  }
+
+  private async validateVendor(client: any, storeId: string, vendorId: string) {
+    const res = await client.query(
+      `SELECT 1
+         FROM users u
+         JOIN user_stores us ON us.user_id = u.id
+        WHERE u.id = $1
+          AND us.store_id = $2
+          AND u.is_active = true
+          AND u.role IN ('sales-manager', 'vendor', 'rutero')`,
+      [vendorId, storeId],
+    );
+    if (res.rowCount !== 1) {
+      throw new BadRequestException(
+        'El responsable no es un usuario de campo activo de esta tienda',
+      );
+    }
+  }
+
+  private async validateClients(
+    client: any,
+    storeId: string,
+    clientIds: string[],
+  ) {
+    if (clientIds.length === 0) return;
+    const res = await client.query(
+      `SELECT COUNT(*)::int AS count
+         FROM clients
+        WHERE store_id = $1
+          AND id = ANY($2::uuid[])
+          AND deleted_at IS NULL`,
+      [storeId, clientIds],
+    );
+    if (Number(res.rows[0].count) !== clientIds.length) {
+      throw new BadRequestException(
+        'Uno o más clientes no pertenecen a la tienda',
+      );
+    }
+  }
+
+  private async replaceRouteClients(
+    client: any,
+    routeId: string,
+    clientIds: string[],
+  ) {
+    await client.query('DELETE FROM route_clients WHERE route_id = $1', [
+      routeId,
+    ]);
+    if (clientIds.length === 0) return;
+    await client.query(
+      `INSERT INTO route_clients (route_id, client_id, visit_order)
+       SELECT $1, item.client_id, item.ordinality::int
+       FROM unnest($2::uuid[]) WITH ORDINALITY AS item(client_id, ordinality)`,
+      [routeId, clientIds],
+    );
   }
 
   private mapRow(row: any): any {
@@ -99,10 +319,16 @@ export class RoutesService {
       storeId: row.store_id,
       vendorId: row.vendor_id,
       clientIds:
-        typeof row.client_ids === 'string'
-          ? JSON.parse(row.client_ids)
-          : row.client_ids || [],
+        typeof row.normalized_client_ids === 'string'
+          ? JSON.parse(row.normalized_client_ids)
+          : row.normalized_client_ids || row.client_ids || [],
       routeDate: row.route_date,
+      routeType: row.route_type || 'SALES',
+      zoneId: row.zone_id,
+      assignedBy: row.assigned_by,
+      validFrom: row.valid_from,
+      validTo: row.valid_to,
+      version: Number(row.version || 1),
       notes: row.notes,
       status: row.status,
       createdAt: row.created_at,

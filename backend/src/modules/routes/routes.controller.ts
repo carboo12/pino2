@@ -50,9 +50,20 @@ export class RoutesController {
       date?: string;
       notes?: string;
       status?: string;
+      routeType?: 'SALES' | 'DELIVERY';
+      zoneId?: string;
+      validTo?: string;
     },
+    @Req() req: any,
   ) {
-    return this.service.create(dto);
+    return this.service.create({ ...dto, assignedBy: req.user.sub });
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Historial de asignación de una ruta' })
+  history(@Param('id') id: string) {
+    return this.service.findHistory(id);
   }
 
   @Roles('master-admin', 'store-admin')
@@ -60,8 +71,20 @@ export class RoutesController {
   @ApiOperation({ summary: 'Actualizar ruta' })
   update(
     @Param('id') id: string,
-    @Body() dto: { status?: string; notes?: string },
+    @Body()
+    dto: {
+      status?: string;
+      notes?: string;
+      vendorId?: string;
+      clientIds?: string[];
+      routeType?: 'SALES' | 'DELIVERY';
+      zoneId?: string | null;
+      date?: string;
+      validTo?: string | null;
+      reason?: string;
+    },
+    @Req() req: any,
   ) {
-    return this.service.update(id, dto);
+    return this.service.update(id, { ...dto, changedBy: req.user.sub });
   }
 }

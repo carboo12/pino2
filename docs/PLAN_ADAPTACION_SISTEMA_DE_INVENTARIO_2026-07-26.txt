@@ -446,13 +446,13 @@ Prioridad dominante: CRÍTICO/ALTO
 
 SUBFASE N2.1 - Rutas normalizadas
 
-[ ][C][IA-NÚCLEO] N2.1.1 Elegir routes como cabecera canónica.
-[ ][C][IA-NÚCLEO] N2.1.2 Elegir route_clients como detalle canónico.
-[ ][A][IA-NÚCLEO] N2.1.3 Migrar/deprecar vendor_routes duplicada.
-[ ][A][IA-NÚCLEO] N2.1.4 Agregar route_type SALES/DELIVERY.
-[ ][A][IA-NÚCLEO] N2.1.5 Agregar zone_id, assigned_by y vigencia.
-[ ][A][IA-NÚCLEO] N2.1.6 Crear historial de asignación/reasignación.
-[ ][A][IA-NÚCLEO] N2.1.7 Agregar índices y restricciones únicas.
+[X][C][IA-NÚCLEO] N2.1.1 Elegir routes como cabecera canónica.
+[X][C][IA-NÚCLEO] N2.1.2 Elegir route_clients como detalle canónico.
+[X][A][IA-NÚCLEO] N2.1.3 Migrar/deprecar vendor_routes duplicada.
+[X][A][IA-NÚCLEO] N2.1.4 Agregar route_type SALES/DELIVERY.
+[X][A][IA-NÚCLEO] N2.1.5 Agregar zone_id, assigned_by y vigencia.
+[X][A][IA-NÚCLEO] N2.1.6 Crear historial de asignación/reasignación.
+[X][A][IA-NÚCLEO] N2.1.7 Agregar índices y restricciones únicas.
 
 SUBFASE N2.2 - Carga física y custodia
 
@@ -3400,16 +3400,30 @@ EVIDENCIA TÉCNICA DEL CORTE:
 [X] /api/health respondió healthy, db=ok una vez después del reinicio.
 [ ] CONTRACT-FREEZE-1: NO LIBERADO.
 
+AVANCE N2.1 POSTERIOR AL CORTE:
+
+[X] routes es cabecera canónica y vendor_routes quedó marcada DEPRECATED.
+[X] route_clients es el detalle canónico, con orden de visita.
+[X] create/update de ruta escriben routes + route_clients en una transacción.
+[X] client_ids JSONB queda temporalmente como espejo de compatibilidad.
+[X] Se validan responsable y clientes contra la misma tienda.
+[X] Se agregaron route_type, zone_id, assigned_by, valid_from, valid_to y version.
+[X] Se agregó route_assignment_history para creación, reasignación, cambio de
+    clientes y cambio de estado.
+[X] GET /routes lee route_clients y respeta el filtro forzado del Gestor.
+[X] GET /routes/:id/history expone historial para administración.
+[X] Migración 2026-07-26_routes_n2_1.sql aplicada en sistema_de_inventario.
+[X] Backend compilado y PM2 reiniciado una vez, sin repetir health.
+
 SIGUIENTE TRABAJO IA-NÚCLEO:
 
-1. N2.1 route_clients, route_type e historial de asignación.
-2. N2.2 tablas detalle de carga y custodia.
-3. N2.3 resultados de entrega por item.
-4. N2.4 devolución IN_TRANSIT/RECEIVED.
-5. N3.2 aceptación de carga idempotente.
-6. N3.3 complete de entrega transaccional.
-7. N3.4 idempotencia transversal.
-8. Publicar endpoints/DTO/JSON y liberar CONTRACT-FREEZE-1.
+1. N2.2 tablas detalle de carga y custodia.
+2. N2.3 resultados de entrega por item.
+3. N2.4 devolución IN_TRANSIT/RECEIVED.
+4. N3.2 aceptación de carga idempotente.
+5. N3.3 complete de entrega transaccional.
+6. N3.4 idempotencia transversal.
+7. Publicar endpoints/DTO/JSON y liberar CONTRACT-FREEZE-1.
 
 ===============================================================================
 21. FASE FLUTTER DIFERIDA - EJECUTAR EN OTRA MÁQUINA
