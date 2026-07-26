@@ -671,7 +671,7 @@ SUBFASE N4.2 - Entradas de inventario pendientes
 [X][A][IA-NÚCLEO] N4.2.1 Recepción parcial de orden de compra.
 [X][A][IA-NÚCLEO] N4.2.2 Importación con staging y validación por fila.
 [X][A][IA-NÚCLEO] N4.2.3 Idempotencia de importación por lote/barcode.
-[ ][A][IA-NÚCLEO] N4.2.4 Ajustar stock negativo mediante movements.
+[X][A][IA-NÚCLEO] N4.2.4 Ajustar stock negativo mediante movements.
 [ ][A][IA-NÚCLEO] N4.2.5 Paginación SQL de clients/products/sales/movements.
 
 EVIDENCIA N4.2.1:
@@ -696,6 +696,19 @@ EVIDENCIA N4.2.2/N4.2.3:
 - Valida descripción, precios, unidades por bulto y códigos repetidos/existentes.
 - Antes de aplicar toma advisory lock y revalida que el catálogo no haya
   cambiado desde el preview.
+
+EVIDENCIA N4.2.4:
+
+- Migración: backend/migrations/2026-07-26_correct_negative_stock_n4_2_4.sql.
+- Se aplicó únicamente en la base activa sistema_de_inventario; la base de
+  reversión multitienda_db no fue alterada por esta corrección de datos.
+- inventory_data_corrections conserva clave idempotente, producto, tienda,
+  stock anterior, stock corregido, cantidad y motivo.
+- Cada corrección genera un movement ADJUSTMENT antes de llevar el stock a cero.
+- Se corrigieron 2 productos legacy: -106 y -72, equivalentes a 178 unidades.
+- Verificación posterior: 0 productos activos con current_stock negativo.
+- stock_bulks y stock_units no se escriben directamente porque PostgreSQL las
+  recalcula como columnas generadas desde current_stock y units_per_bulk.
 
 SUBFASE N4.3 - Flutter financiero/campo
 
