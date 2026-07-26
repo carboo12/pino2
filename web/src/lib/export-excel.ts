@@ -1,42 +1,29 @@
-import { saveAs } from 'file-saver';
-
 /**
- * Exports an array of objects to an Excel (.xlsx) file.
- * @param data - Array of flat objects (each object = one row)
- * @param fileName - Name of the file (without extension)
- * @param sheetName - Name of the Excel sheet (default: "Datos")
+ * Utility function to export array data as a UTF-8 BOM CSV/Excel downloadable file
  */
-export async function exportToExcel<T extends Record<string, unknown>>(
-  data: T[],
-  fileName: string,
-  sheetName = 'Datos',
-) {
-  const XLSX = await import('xlsx');
-  if (data.length === 0) return;
+export function exportToExcel(filename: string, headers: string[], rows: (string | number | undefined | null)[][]) {
+  // Add UTF-8 BOM so Excel opens Spanish special characters (ñ, á, é, í, ó, ú) correctly
+  const BOM = '\uFEFF';
+  const csvContent =
+    BOM +
+    [
+      headers.map((h) => `"${h.replace(/"/g, '""')}"`).join(','),
+      ...rows.map((row) =>
+        row
+          .map((cell) => {
+            const val = cell === null || cell === undefined ? '' : String(cell);
+            return `"${val.replace(/"/g, '""')}"`;
+          })
+          .join(','),
+      ),
+    ].join('\r\n');
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-
-  // Auto-size columns
-  const colWidths = Object.keys(data[0]).map((key) => {
-    const maxLen = Math.max(
-      key.length,
-      ...data.map((row) => String(row[key] ?? '').length),
-    );
-    return { wch: Math.min(maxLen + 2, 40) };
-  });
-  worksheet['!cols'] = colWidths;
-
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-
-  const excelBuffer = XLSX.write(workbook, {
-    bookType: 'xlsx',
-    type: 'array',
-  });
-
-  const blob = new Blob([excelBuffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-
-  saveAs(blob, `${fileName}.xlsx`);
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${filename}_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }

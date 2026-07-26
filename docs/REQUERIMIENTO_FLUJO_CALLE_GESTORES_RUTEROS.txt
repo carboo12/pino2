@@ -1,0 +1,122 @@
+📋 Lista: "roles"
+1. JEFE / ENCARGADO DE BODEGA
+
+✅ Sí hace:
+- Acceso y control total a los 38 módulos del sistema backend y configuraciones globales
+- Gestión de roles y usuarios: crear, editar, activar, desactivar y asignar contraseñas/roles
+- Configuración de negocio: precios, facturación, impuestos, zonas geográficas
+- Supervisión global: reportes de ventas, utilidades, inventarios, auditorías
+- Sobrescribir autorizaciones de emergencia de cualquier rol
+
+❌ No hace:
+- Operación física directa (conteos, despacho diario de camiones)
+- No tiene restricciones técnicas en la plataforma
+
+2. AUXILIAR DE RECEPCIÓN Y DESPACHO
+
+✅ Sí hace:
+- Registrar recepción física de mercancía de proveedores (Bultos y Unidades)
+- Armar cargas físicas para el camión del Rutero
+- Recibir devoluciones de campo (producto no vendido/rechazado)
+- Escanear códigos de barra (bulto y unidad)
+
+❌ No hace:
+- Ver costos ni dinero (márgenes, valorización)
+- Autorizar ajustes de inventario
+- Modificar el factor X (unidades por bulto)
+
+3. ANALISTA DE INVENTARIO (Bodeguero)
+
+✅ Sí hace:
+- Auditoría de Kárdex (movimientos de entrada/salida)
+- Ejecutar arqueos físicos (conteos ciegos por zona)
+- Solicitar ajustes de stock por discrepancias
+- Monitorear errores entre despachado vs. liquidado
+
+❌ No hace:
+- Auto-aprobar sus propios ajustes (separación de funciones)
+- Cobrar o manejar efectivo
+- Modificar el catálogo de productos
+
+4. GESTOR DE VENTAS (App móvil)
+
+Plataforma: App Android Flutter + Drift/SQLite (100% offline)
+
+✅ Sí hace:
+- Levantar pedidos preventa (Bultos y/o Unidades)
+- Consultar stock de bodega en tiempo real
+- Consultar cuentas por cobrar y límite de crédito
+- Registrar visitas a clientes (geolocalización)
+
+❌ No hace:
+- Manejar inventario físico
+- Confirmar facturas ni cobrar entregas
+- Modificar precios o el factor X
+
+5. RUTERO
+
+Plataforma: App Android Flutter + Drift/SQLite (100% offline)
+
+✅ Sí hace:
+- Recepcionar la carga asignada (Bultos y Unidades)
+- Entregar y facturar al cliente
+- Procesar rechazos y devoluciones
+- Recaudar cobros (efectivo, transferencia, cheque) e imprimir recibo Bluetooth
+- Rendir liquidación diaria (mercancía + efectivo)
+
+❌ No hace:
+- Levantar preventas nuevas
+- Modificar precios
+- Ajustar el inventario general de bodega (solo su camión)
+
+6. Administrador General
+
+Tarjeta creada sin descripción (vacía).
+
+⚙️ Lista: "Proceso"
+1. ADMINISTRADOR
+Módulo: Plataforma Web (React 19) — Frecuencia: Eventual/Diario
+- Proceso A (Alta de Personal): Configuración > Gestión de Usuarios → completar datos → asignar rol exacto → guardar (contraseña encriptada con Argon2)
+- Proceso B (Autorización de Emergencia): recibe alerta de proceso bloqueado → revisa incidente → Aprueba/Rechaza (firma digital)
+
+2. JEFE / ENCARGADO DE BODEGA CENTRAL
+Módulo: Plataforma Web (React 19) — Frecuencia: Diario/Continuo
+- Proceso A (Factor X en productos): Catálogo > Nuevo Producto → SKU, precios → activa "¿Se controla en Bultos?" → define Unidades por Bulto (X) → guarda (constraint X > 1)
+- Proceso B (Liquidación de Ruta): recibe al Rutero → sistema cruza Carga Inicial − Facturas Entregadas = Mercancía a Retornar → valida reporte del Auxiliar → Aprueba y Cierra
+
+3. AUXILIAR DE RECEPCIÓN Y DESPACHO
+Módulo: Web/Terminal de Almacén — Frecuencia: Diario/Piso
+- Proceso A (Recepción de compras): ingresa proveedor/orden → digita Bultos y Unidades → valida código de barras → confirma (sistema convierte a Unidades Totales Base)
+- Proceso B (Armado de carga): abre orden de despacho consolidada → prepara mercancía → checklist con el Rutero → marca "Cargado y Entregado"
+
+4. ANALISTA / AUDITOR DE INVENTARIOS
+Módulo: Plataforma Web — Frecuencia: Diario/Periódico
+- Proceso A (Arqueo/Conteo ciego): genera evento por zona → cuenta sin ver stock lógico → sistema compara con movements → genera Reporte de Discrepancia si hay diferencias
+- Proceso B (Ajuste de Kárdex): selecciona producto → indica motivo y cantidad → envía solicitud a authorizations (queda Pendiente)
+
+5. GESTOR DE VENTAS (Preventista)
+Módulo: App Android Flutter + Drift/SQLite — Frecuencia: Diario en Campo
+- Proceso (Toma de pedidos offline): sincroniza catálogo/clientes/stock → selecciona cliente en ruta → busca producto (stock "50 Bultos/10 Unidades") → digita Bultos y Unidades (cálculo reactivo) → guarda pedido local (Outbox Pattern al recuperar red)
+
+6. RUTERO / REPARTIDOR
+Módulo: App Android Flutter + Impresora Bluetooth — Frecuencia: Diario en Campo
+- Proceso A (Recepción de carga): acepta carga del día → revisa resumen (Bultos/Unidades) → firma recepción digital
+- Proceso B (Entrega y cobro): selecciona cliente → confirma entrega total o parcial/rechazo (genera devolución en tránsito) → registra pago → convierte en factura → imprime comprobante
+- Proceso C (Cierre de ruta): finaliza ruta → entrega mercancía no vendida al Auxiliar y efectivo al Cajero → envía resumen de liquidación
+
+📝 Lista: "Tareas"
+Tarjeta: "tareas de asignacion para Gestor de ventas y rutero"
+
+1. Creación de rutas — se crean en Web: Logística y Comercial > Definición de Rutas. Dos tipos: Rutas de Ventas (Preventa) y Rutas de Reparto (Entrega).
+
+2. Asignación de clientes al Gestor — la hace el Jefe de Bodega o Supervisor Comercial:
+- Se crea la Ruta Comercial → se vinculan clientes → se asigna al Gestor → sincronización a la App
+- Reasignación de emergencia: si un Gestor no puede atender, se reasignan sus clientes a otro Gestor vía "Reasignación Express"
+
+3. Asignación de rutas al Rutero — la hace el Jefe de Bodega al consolidar pedidos:
+- Gestores levantan pedidos → Jefe de Bodega filtra por zona y arma "Carga de Camión" → asigna al Rutero → Auxiliar arma la carga física → App del Rutero recibe su mapa de entrega
+- Reasignación de entrega: si el Rutero tiene una avería, se transfiere la carga a otro Rutero disponible
+
+Comentarios en la tarjeta (de Carlos Lira):
+"aqui tengo que hacer enfoque por q este es el flujo de la calle"
+"@card aqui tabo tenes que poner enfoque"

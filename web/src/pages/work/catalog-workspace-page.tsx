@@ -28,8 +28,9 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
-  FileText,
+  FileSpreadsheet,
   User,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { normalizeUserRole } from '@/lib/user-role';
@@ -39,6 +40,7 @@ import apiClient from '@/services/api-client';
 import { calculateStockDisplay } from '@/utils/stock-display';
 import { MobileCardList, MobileCard, MobileCardRow } from '@/components/ui/mobile-card-list';
 import { extractData } from '@/lib/paginated-fetch';
+import { exportToExcel } from '@/lib/export-excel';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -75,7 +77,9 @@ export default function CatalogWorkspacePage() {
   const canManageCatalog = ['master-admin', 'owner', 'store-admin'].includes(role);
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [criticalSearch, setCriticalSearch] = useState('');
   const [movementSearch, setMovementSearch] = useState('');
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,7 +108,7 @@ export default function CatalogWorkspacePage() {
     if (!storeId) return;
     setLoadingStock(true);
     try {
-      const res = await apiClient.get('/products', { params: { storeId, stockCritical: true, page: 1, pageSize: 50 } });
+      const res = await apiClient.get('/products', { params: { storeId, stockCritical: true, page: 1, pageSize: 100 } });
       setCriticalStock(extractData(res.data));
     } catch {
       setCriticalStock([]);
@@ -117,7 +121,7 @@ export default function CatalogWorkspacePage() {
     if (!storeId) return;
     setLoadingMovements(true);
     try {
-      const res = await apiClient.get('/movements', { params: { storeId, limit: 100 } });
+      const res = await apiClient.get('/inventory/movements', { params: { storeId, limit: 150 } });
       setMovements(extractData(res.data));
     } catch {
       setMovements([]);
@@ -138,7 +142,7 @@ export default function CatalogWorkspacePage() {
     setError(null);
     try {
       const res = await apiClient.get('/products', {
-        params: { storeId, search: q, page: 1, pageSize: 50 },
+        params: { storeId, search: q, page: 1, pageSize: 100 },
       });
       setProducts(extractData(res.data));
     } catch {
@@ -158,7 +162,7 @@ export default function CatalogWorkspacePage() {
   useEffect(() => {
     if (storeId && searchTerm.length < 2) {
       setLoading(true);
-      apiClient.get('/products', { params: { storeId, page: 1, pageSize: 50 } })
+      apiClient.get('/products', { params: { storeId, page: 1, pageSize: 100 } })
         .then(res => setProducts(extractData(res.data)))
         .catch(() => setError('Error al cargar productos'))
         .finally(() => setLoading(false));
@@ -182,6 +186,17 @@ export default function CatalogWorkspacePage() {
     }
   }, [storeId]);
 
+  const filteredCriticalStock = useMemo(() => {
+    if (!criticalSearch) return criticalStock;
+    const q = criticalSearch.toLowerCase();
+    return criticalStock.filter(
+      (p) =>
+        p.description.toLowerCase().includes(q) ||
+        (p.barcode && p.barcode.toLowerCase().includes(q)) ||
+        (p.department && p.department.toLowerCase().includes(q)),
+    );
+  }, [criticalStock, criticalSearch]);
+
   const filteredMovements = useMemo(() => {
     if (!movementSearch) return movements;
     const q = movementSearch.toLowerCase();
@@ -196,6 +211,60 @@ export default function CatalogWorkspacePage() {
       );
     });
   }, [movements, movementSearch, productNamesMap]);
+
+  // Export functions
+  const handleExportProducts = () => {
+    const headers = ['ID', 'Descripción', 'Código de Barras', 'Departamento', 'Precio Venta', 'Stock Formateado'];
+    const rows = products.map((p) => [
+      p.id,
+      p.description,
+      p.barcode || '',
+      p.department || '',
+      p.salePrice || 0,
+      p.stockDisplay?.formatted || calculateStockDisplay(p.stock ?? p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted,
+    ]);
+    exportToExcel('Catalogo_Productos', headers, rows);
+    toast.success('Excel Generado', 'Catálogo de productos exportado correctamente.');
+  };
+
+  const handleExportCriticalStock = () => {
+    const headers = ['ID', 'Descripción', 'Código de Barras', 'Stock Crítico Actual'];
+    const rows = filteredCriticalStock.map((p) => [
+      p.id,
+      p.description,
+      p.barcode || '',
+      p.stockDisplay?.formatted || calculateStockDisplay(p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted,
+    ]);
+    exportToExcel('Stock_Critico_Inventario', headers, rows);
+    toast.success('Excel Generado', 'Stock crítico exportado correctamente.');
+  };
+
+  const handleExportMovements = () => {
+    const headers = ['ID Movimiento', 'Producto', 'Tipo Movimiento', 'Cantidad Cambiada', 'Saldo Kárdex', 'Motivo / Documento', 'Usuario Ejecutor', 'Fecha y Hora'];
+    const rows = filteredMovements.map((m) => {
+      const productName =
+        m.productDescription ||
+        m.productName ||
+        m.product?.description ||
+        productNamesMap[m.productId] ||
+        `Producto (ID: ${m.productId ? m.productId.slice(0, 8) : 'General'})`;
+
+      const config = movementLabels[m.type] || { label: m.type || 'Movimiento' };
+
+      return [
+        m.id,
+        productName,
+        config.label,
+        m.quantity,
+        m.balance ?? '',
+        m.reference || m.reason || m.notes || 'Operación de Inventario',
+        m.userName || '',
+        m.createdAt ? format(new Date(m.createdAt), 'dd/MM/yyyy HH:mm:ss') : '',
+      ];
+    });
+    exportToExcel('Kardex_Movimientos_Inventario', headers, rows);
+    toast.success('Excel Generado', 'Histórico de Kárdex exportado correctamente.');
+  };
 
   return (
     <WorkspaceShell
@@ -245,9 +314,9 @@ export default function CatalogWorkspacePage() {
         </TabsList>
 
         {/* TAB 1: PRODUCTOS */}
-        <TabsContent value="productos" className="mt-0 flex-1 p-0">
-          <div className="border-b border-[#DDE2E8] bg-card p-3">
-            <div className="relative">
+        <TabsContent value="productos" className="mt-0 flex-1 p-0 flex flex-col">
+          <div className="border-b border-[#DDE2E8] bg-card p-3 flex items-center justify-between gap-3">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 ref={searchRef}
@@ -257,6 +326,14 @@ export default function CatalogWorkspacePage() {
                 className="pl-9 text-xs h-10 rounded-xl"
               />
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportProducts}
+              className="h-10 font-bold rounded-xl shrink-0 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-700" /> Exportar Catálogo a Excel
+            </Button>
           </div>
 
           <div className="flex-1 overflow-auto p-4">
@@ -338,31 +415,53 @@ export default function CatalogWorkspacePage() {
         </TabsContent>
 
         {/* TAB 2: STOCK CRITICO */}
-        <TabsContent value="stock" className="mt-0 flex-1 p-4 space-y-3">
-          {loadingStock ? <LoadingRows rows={5} /> : criticalStock.length === 0 ? (
-            <EmptyState title="Sin productos en stock crítico" description="Todos los productos tienen inventario suficiente en bodega" icon={CheckCircle2} />
-          ) : (
-            <div className="space-y-2">
-              {criticalStock.map((p) => (
-                <div key={p.id} className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50/30 p-3.5 shadow-xs">
-                  <div>
-                    <p className="text-sm font-bold text-foreground">{p.description}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{p.barcode || 'Sin código'}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-extrabold text-rose-600 font-mono">
-                      {p.stockDisplay?.formatted || calculateStockDisplay(p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}
-                    </span>
-                    {canManageCatalog && (
-                      <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/inventory/adjustments?productId=${p.id}`)} className="rounded-xl font-bold text-xs">
-                        Ajustar Kárdex
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
+        <TabsContent value="stock" className="mt-0 flex-1 p-0 flex flex-col">
+          <div className="border-b border-[#DDE2E8] bg-card p-3 flex items-center justify-between gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Filtrar productos en stock crítico por nombre o código..."
+                value={criticalSearch}
+                onChange={(e) => setCriticalSearch(e.target.value)}
+                className="pl-9 text-xs h-10 rounded-xl"
+              />
             </div>
-          )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCriticalStock}
+              className="h-10 font-bold rounded-xl shrink-0 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-700" /> Exportar Stock Crítico a Excel
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-auto p-4 space-y-3">
+            {loadingStock ? <LoadingRows rows={5} /> : filteredCriticalStock.length === 0 ? (
+              <EmptyState title="Sin productos en stock crítico" description="Todos los productos tienen inventario suficiente en bodega" icon={CheckCircle2} />
+            ) : (
+              <div className="space-y-2">
+                {filteredCriticalStock.map((p) => (
+                  <div key={p.id} className="flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50/30 p-3.5 shadow-xs">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{p.description}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{p.barcode || 'Sin código'}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-extrabold text-rose-600 font-mono">
+                        {p.stockDisplay?.formatted || calculateStockDisplay(p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}
+                      </span>
+                      {canManageCatalog && (
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/inventory/adjustments?productId=${p.id}`)} className="rounded-xl font-bold text-xs">
+                          Ajustar Kárdex
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* TAB 3: HISTORIAL DE KARDEX Y MOVIMIENTOS */}
@@ -377,6 +476,16 @@ export default function CatalogWorkspacePage() {
                 className="pl-9 text-xs h-10 rounded-xl"
               />
             </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportMovements}
+              className="h-10 font-bold rounded-xl shrink-0 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-700" /> Exportar Kárdex a Excel
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
