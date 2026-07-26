@@ -1454,6 +1454,7 @@ export default function SupplierInvoicesPage() {
                 );
               })}
             </div>
+          </div>
 
             <div className="rounded-lg border bg-muted/40 p-4">
               <div className="text-sm text-muted-foreground">
@@ -1713,8 +1714,6 @@ export default function SupplierInvoicesPage() {
                   ))}
                 </div>
               </div>
-              </div>
-            ) : null}
           </div>
 
           <DialogFooter>
