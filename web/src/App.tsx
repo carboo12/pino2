@@ -49,6 +49,7 @@ const AddProductPage = lazy(
 const EditProductPage = lazy(
   () => import("@/pages/store-admin/products/edit-product-page"),
 );
+const ImportProductsPage = lazy(() => import('@/pages/store-admin/products/import-products-page'));
 const DepartmentsPage = lazy(
   () => import("@/pages/store-admin/products/departments-page"),
 );
@@ -396,6 +397,17 @@ function App() {
                             allowedRoles={INVENTORY_ROLES}
                           >
                             <AddProductPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/products/import"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={INVENTORY_ROLES}
+                          >
+                            <ImportProductsPage />
                           </ProtectedRoute>
                         }
                       />
