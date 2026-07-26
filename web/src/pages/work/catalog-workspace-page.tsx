@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   WorkspaceShell,
@@ -31,6 +31,7 @@ import { formatCurrency } from '@/lib/utils';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
 import { calculateStockDisplay } from '@/utils/stock-display';
+import { MobileCardList, MobileCard, MobileCardRow } from '@/components/ui/mobile-card-list';
 
 interface Product {
   id: string;
@@ -53,6 +54,7 @@ export default function CatalogWorkspacePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState('productos');
   const [criticalStock, setCriticalStock] = useState<Product[]>([]);
   const [loadingStock, setLoadingStock] = useState(false);
@@ -132,6 +134,7 @@ export default function CatalogWorkspacePage() {
       setError('Producto no encontrado');
     } finally {
       setLoading(false);
+      searchRef.current?.focus();
     }
   }, [storeId]);
 
@@ -185,6 +188,7 @@ export default function CatalogWorkspacePage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#5B6673]" />
               <Input
+                ref={searchRef}
                 placeholder="Buscar producto por nombre o código..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -209,47 +213,63 @@ export default function CatalogWorkspacePage() {
                 icon={Package}
               />
             ) : (
-              <div className="overflow-hidden rounded-lg border border-[#DDE2E8]">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-[#DDE2E8] bg-[#F6F7F9]">
-                      <th className="px-4 py-2 text-left text-xs font-semibold text-[#5B6673]">Producto</th>
-                      <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Código</th>
-                      <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Precio</th>
-                      <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Stock</th>
-                      <th className="px-4 py-2 text-center text-xs font-semibold text-[#5B6673]">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#DDE2E8]">
-                    {products.map((p) => (
-                      <tr key={p.id} className="hover:bg-[#F6F7F9]">
-                        <td className="px-4 py-2.5">
-                          <p className="font-medium text-[#17202A]">{p.description}</p>
-                          {p.department && (
-                            <p className="text-[10px] text-[#5B6673]">{p.department}</p>
-                          )}
-                        </td>
-                        <td className="px-4 py-2.5 text-right text-xs text-[#5B6673] font-mono">
-                          {p.barcode || '-'}
-                        </td>
-                        <td className="px-4 py-2.5 text-right text-sm font-semibold text-[#17202A]">
-                          {formatCurrency(p.salePrice || 0)}
-                        </td>
-                        <td className="px-4 py-2.5 text-right text-sm text-[#17202A]">
-                          {p.stockDisplay?.formatted || calculateStockDisplay(p.stock ?? p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}
-                        </td>
-                        <td className="px-4 py-2.5 text-center">
-                          {p.stock !== undefined && p.stock <= 5 ? (
-                            <StatusChip variant="error" label="Crítico" />
-                          ) : (
-                            <StatusChip variant="success" label="OK" />
-                          )}
-                        </td>
+              <>
+                <div className="hidden md:block overflow-hidden rounded-lg border border-[#DDE2E8]">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-[#DDE2E8] bg-[#F6F7F9]">
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-[#5B6673]">Producto</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Código</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Precio</th>
+                        <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Stock</th>
+                        <th className="px-4 py-2 text-center text-xs font-semibold text-[#5B6673]">Estado</th>
                       </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#DDE2E8]">
+                      {products.map((p) => (
+                        <tr key={p.id} className="hover:bg-[#F6F7F9]">
+                          <td className="px-4 py-2.5">
+                            <p className="font-medium text-[#17202A]">{p.description}</p>
+                            {p.department && (
+                              <p className="text-[10px] text-[#5B6673]">{p.department}</p>
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 text-right text-xs text-[#5B6673] font-mono">
+                            {p.barcode || '-'}
+                          </td>
+                          <td className="px-4 py-2.5 text-right text-sm font-semibold text-[#17202A]">
+                            {formatCurrency(p.salePrice || 0)}
+                          </td>
+                          <td className="px-4 py-2.5 text-right text-sm text-[#17202A]">
+                            {p.stockDisplay?.formatted || calculateStockDisplay(p.stock ?? p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}
+                          </td>
+                          <td className="px-4 py-2.5 text-center">
+                            {p.stock !== undefined && p.stock <= 5 ? (
+                              <StatusChip variant="error" label="Crítico" />
+                            ) : (
+                              <StatusChip variant="success" label="OK" />
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="md:hidden">
+                  <MobileCardList>
+                    {products.map((p) => (
+                      <MobileCard key={p.id}>
+                        <MobileCardRow label="Producto" value={<span className="font-medium text-[#17202A]">{p.description}</span>} />
+                        {p.department && <MobileCardRow label="Depto" value={<span className="text-[10px] text-[#5B6673]">{p.department}</span>} />}
+                        <MobileCardRow label="Código" value={<span className="text-xs font-mono text-[#5B6673]">{p.barcode || '-'}</span>} />
+                        <MobileCardRow label="Precio" value={<span className="text-sm font-semibold text-[#17202A]">{formatCurrency(p.salePrice || 0)}</span>} />
+                        <MobileCardRow label="Stock" value={<span className="text-sm text-[#17202A]">{p.stockDisplay?.formatted || calculateStockDisplay(p.stock ?? p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}</span>} />
+                        <MobileCardRow label="Estado" value={p.stock !== undefined && p.stock <= 5 ? <StatusChip variant="error" label="Crítico" /> : <StatusChip variant="success" label="OK" />} />
+                      </MobileCard>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </MobileCardList>
+                </div>
+              </>
             )}
           </div>
         </TabsContent>
@@ -281,30 +301,44 @@ export default function CatalogWorkspacePage() {
           {loadingMovements ? <LoadingRows rows={5} /> : movements.length === 0 ? (
             <EmptyState title="Sin movimientos recientes" icon={History} />
           ) : (
-            <div className="overflow-hidden rounded-lg border border-[#DDE2E8]">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[#DDE2E8] bg-[#F6F7F9]">
-                    <th className="px-4 py-2 text-left text-xs font-semibold text-[#5B6673]">Producto</th>
-                    <th className="px-4 py-2 text-center text-xs font-semibold text-[#5B6673]">Tipo</th>
-                    <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Cant</th>
-                    <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#DDE2E8]">
-                  {movements.map((m: any) => (
-                    <tr key={m.id} className="hover:bg-[#F6F7F9]">
-                      <td className="px-4 py-2.5 text-sm text-[#17202A]">{m.productName || m.productId}</td>
-                      <td className="px-4 py-2.5 text-center">
-                        <StatusChip variant={m.type === 'ENTRADA' ? 'success' : m.type === 'SALIDA' ? 'error' : 'warning'} label={m.type || '-'} />
-                      </td>
-                      <td className="px-4 py-2.5 text-right text-sm font-medium text-[#17202A]">{m.quantity ?? '-'}</td>
-                      <td className="px-4 py-2.5 text-right text-xs text-[#5B6673]">{m.createdAt ? new Date(m.createdAt).toLocaleString() : '-'}</td>
+            <>
+              <div className="hidden md:block overflow-hidden rounded-lg border border-[#DDE2E8]">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[#DDE2E8] bg-[#F6F7F9]">
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-[#5B6673]">Producto</th>
+                      <th className="px-4 py-2 text-center text-xs font-semibold text-[#5B6673]">Tipo</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Cant</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-[#5B6673]">Fecha</th>
                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#DDE2E8]">
+                    {movements.map((m: any) => (
+                      <tr key={m.id} className="hover:bg-[#F6F7F9]">
+                        <td className="px-4 py-2.5 text-sm text-[#17202A]">{m.productName || m.productId}</td>
+                        <td className="px-4 py-2.5 text-center">
+                          <StatusChip variant={m.type === 'ENTRADA' ? 'success' : m.type === 'SALIDA' ? 'error' : 'warning'} label={m.type || '-'} />
+                        </td>
+                        <td className="px-4 py-2.5 text-right text-sm font-medium text-[#17202A]">{m.quantity ?? '-'}</td>
+                        <td className="px-4 py-2.5 text-right text-xs text-[#5B6673]">{m.createdAt ? new Date(m.createdAt).toLocaleString() : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="md:hidden">
+                <MobileCardList>
+                  {movements.map((m: any) => (
+                    <MobileCard key={m.id}>
+                      <MobileCardRow label="Producto" value={<span className="text-sm text-[#17202A]">{m.productName || m.productId}</span>} />
+                      <MobileCardRow label="Tipo" value={<StatusChip variant={m.type === 'ENTRADA' ? 'success' : m.type === 'SALIDA' ? 'error' : 'warning'} label={m.type || '-'} />} />
+                      <MobileCardRow label="Cant" value={<span className="text-sm font-medium text-[#17202A]">{m.quantity ?? '-'}</span>} />
+                      <MobileCardRow label="Fecha" value={<span className="text-xs text-[#5B6673]">{m.createdAt ? new Date(m.createdAt).toLocaleString() : '-'}</span>} />
+                    </MobileCard>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </MobileCardList>
+              </div>
+            </>
           )}
         </TabsContent>
       </Tabs>

@@ -169,6 +169,8 @@ export default function CashWorkspacePage() {
       }
     } catch {
       toast.error('No encontrado', `Código: ${code}`);
+    } finally {
+      searchRef.current?.focus();
     }
   }, [storeId, addToCart]);
 
@@ -347,8 +349,7 @@ export default function CashWorkspacePage() {
             <div className="flex flex-1 flex-col">
               <div className="flex items-center justify-between border-b border-[#DDE2E8] bg-[#F6F7F9] px-3 py-1.5">
                 <div className="flex items-center gap-2 text-xs">
-                  <WalletCards className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="font-medium text-emerald-600">● Caja abierta</span>
+                  <StatusChip variant="success" label="Caja abierta" />
                   {activeShift && (
                     <span className="text-[#5B6673]">
                       Turno #{activeShift.id?.toString().slice(0, 8)} · {new Date(activeShift.openingTimestamp).toLocaleTimeString()}
