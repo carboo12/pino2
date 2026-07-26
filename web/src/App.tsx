@@ -537,6 +537,17 @@ function App() {
                         }
                       />
                       <Route
+                        path="/store/:storeId/reports"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <ReportsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/store/:storeId/suppliers"
                         element={
                           <ProtectedRoute

@@ -35,8 +35,11 @@ export function ActiveRegistersOverview({ storeId }: ActiveRegistersOverviewProp
                 } else {
                     setShifts([]);
                 }
-            } catch (error) {
-                console.error("Error fetching active shifts:", error);
+            } catch (error: any) {
+                if (error?.response?.status !== 404) {
+                    console.error("Error fetching active shifts:", error);
+                }
+                setShifts([]);
             } finally {
                 setLoading(false);
             }
