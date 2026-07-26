@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   ParseUUIDPipe,
+  Req,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -23,9 +24,11 @@ import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
 import {
+  ApplyProductImportDto,
   CreateProductDto,
   UpdateProductDto,
   ImportBulkProductsDto,
+  PreviewProductImportDto,
   ProductResponseDto,
 } from './products.dto';
 
@@ -49,6 +52,24 @@ export class ProductsController {
   @ApiOperation({ summary: 'Importación masiva de productos (Transaccional)' })
   importBulk(@Body() dto: ImportBulkProductsDto) {
     return this.productsService.importBulk(dto);
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Post('import/preview')
+  @ApiOperation({ summary: 'Validar y guardar preview de importación' })
+  previewImport(@Body() dto: PreviewProductImportDto, @Req() req: any) {
+    return this.productsService.previewImport(dto, req.user?.sub);
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Post('import/:batchId/apply')
+  @ApiOperation({ summary: 'Aplicar filas válidas de una importación' })
+  applyImport(
+    @Param('batchId', ParseUUIDPipe) batchId: string,
+    @Body() dto: ApplyProductImportDto,
+    @Req() req: any,
+  ) {
+    return this.productsService.applyImport(batchId, dto.storeId, req.user?.sub);
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')

@@ -669,8 +669,8 @@ EVIDENCIA N4.1:
 SUBFASE N4.2 - Entradas de inventario pendientes
 
 [X][A][IA-NÚCLEO] N4.2.1 Recepción parcial de orden de compra.
-[ ][A][IA-NÚCLEO] N4.2.2 Importación con staging y validación por fila.
-[ ][A][IA-NÚCLEO] N4.2.3 Idempotencia de importación por clave/barcode.
+[X][A][IA-NÚCLEO] N4.2.2 Importación con staging y validación por fila.
+[X][A][IA-NÚCLEO] N4.2.3 Idempotencia de importación por lote/barcode.
 [ ][A][IA-NÚCLEO] N4.2.4 Ajustar stock negativo mediante movements.
 [ ][A][IA-NÚCLEO] N4.2.5 Paginación SQL de clients/products/sales/movements.
 
@@ -684,6 +684,18 @@ EVIDENCIA N4.2.1:
 - Bloquea orden, líneas y productos; impide recibir más de lo pendiente.
 - Cada recepción incrementa stock y crea movement IN en la misma transacción.
 - Estado automático PARTIALLY_RECEIVED o COMPLETED.
+
+EVIDENCIA N4.2.2/N4.2.3:
+
+- Migración: backend/migrations/2026-07-26_product_import_staging_n4_2_2.sql.
+- product_import_batches conserva externalId, conteos y estado del lote.
+- product_import_rows conserva payload original/normalizado, errores y warnings.
+- POST /products/import/preview no modifica catálogo ni inventario.
+- POST /products/import/:batchId/apply importa sólo VALID/WARNING.
+- Reintento de preview o apply devuelve el lote existente sin duplicar.
+- Valida descripción, precios, unidades por bulto y códigos repetidos/existentes.
+- Antes de aplicar toma advisory lock y revalida que el catálogo no haya
+  cambiado desde el preview.
 
 SUBFASE N4.3 - Flutter financiero/campo
 

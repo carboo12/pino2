@@ -6,6 +6,7 @@ import {
   IsBoolean,
   IsArray,
   IsInt,
+  IsUUID,
   Min,
   ValidateNested,
 } from 'class-validator';
@@ -311,4 +312,14 @@ export class ImportBulkProductsDto {
   @IsString()
   @IsNotEmpty()
   cashierName!: string;
+}
+
+export class PreviewProductImportDto extends ImportBulkProductsDto {
+  @IsUUID('all')
+  externalId!: string;
+}
+
+export class ApplyProductImportDto {
+  @IsUUID('all')
+  storeId!: string;
 }
