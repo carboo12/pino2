@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
@@ -267,6 +268,9 @@ export function ClientHistoryDialog({
               Expediente e Historial — {clientName}
             </DialogTitle>
           )}
+          <DialogDescription className="text-xs text-muted-foreground">
+            Expediente omnicanal con estado de cuenta, historial de compras y cuentas por cobrar.
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (

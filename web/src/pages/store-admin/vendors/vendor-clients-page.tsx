@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Plus, Phone, MapPin, Pencil, CreditCard, Users } from 'lucide-react';
@@ -446,6 +447,9 @@ export default function VendorClientsPage() {
               <CreditCard className="h-5 w-5 text-primary" />
               Editar Crédito — {editingClient?.name}
             </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Ajusta los límites de crédito, días de plazo y condiciones de entrega del cliente.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="grid grid-cols-2 gap-4">
