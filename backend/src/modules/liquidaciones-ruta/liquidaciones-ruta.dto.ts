@@ -21,13 +21,12 @@ export class LiquidacionReturnItemDto {
 }
 
 export class CreateLiquidacionDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID('all')
   storeId!: string;
 
-  @IsString()
-  @IsNotEmpty()
-  ruteroId!: string;
+  @IsUUID('all')
+  @IsOptional()
+  ruteroId?: string;
 
   @IsString()
   @IsNotEmpty()

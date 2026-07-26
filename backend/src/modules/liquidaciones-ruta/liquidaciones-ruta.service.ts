@@ -217,7 +217,7 @@ export class LiquidacionesRutaService {
     cargaId: string;
     returnItems: Array<{ productId: string; returnedUnits: number }>;
   }) {
-    const id = await this.db.withTransaction(async (client) => {
+    const submission = await this.db.withTransaction(async (client) => {
       const duplicate = await client.query(
         `SELECT id FROM liquidaciones_ruta
          WHERE store_id = $1 AND external_id = $2
@@ -225,7 +225,7 @@ export class LiquidacionesRutaService {
         [dto.storeId, dto.externalId],
       );
       if (duplicate.rowCount === 1) {
-        return duplicate.rows[0].id;
+        return { id: duplicate.rows[0].id, duplicate: true };
       }
 
       const cargaRes = await client.query(
@@ -290,6 +290,27 @@ export class LiquidacionesRutaService {
           Number(row.delivered_units),
         ]),
       );
+      const alreadyReceivedRes = await client.query(
+        `SELECT ri.product_id,
+                COALESCE(SUM(
+                  ri.quantity_bulks * ci.units_per_bulk_snapshot
+                  + ri.quantity_units
+                ), 0)::int AS received_units
+         FROM returns r
+         JOIN return_items ri ON ri.return_id = r.id
+         JOIN carga_camion_items ci
+           ON ci.carga_id = r.carga_id
+          AND ci.product_id = ri.product_id
+         WHERE r.carga_id = $1 AND r.status = 'RECEIVED'
+         GROUP BY ri.product_id`,
+        [dto.cargaId],
+      );
+      const alreadyReceivedByProduct = new Map(
+        alreadyReceivedRes.rows.map((row) => [
+          row.product_id,
+          Number(row.received_units),
+        ]),
+      );
       const input = new Map(
         dto.returnItems.map((item) => [item.productId, item.returnedUnits]),
       );
@@ -312,7 +333,8 @@ export class LiquidacionesRutaService {
       for (const row of expectedRes.rows) {
         const expected =
           Number(row.accepted_units) -
-          Number(deliveredByProduct.get(row.product_id) || 0);
+          Number(deliveredByProduct.get(row.product_id) || 0) -
+          Number(alreadyReceivedByProduct.get(row.product_id) || 0);
         const returned = Number(input.get(row.product_id));
         if (
           expected < 0 ||
@@ -456,22 +478,75 @@ export class LiquidacionesRutaService {
           }),
         ],
       );
-      return liquidacionId;
+      return { id: liquidacionId, duplicate: false };
     });
-    return this.findOne(id, dto.ruteroId);
+    return {
+      ...(await this.findOne(submission.id, dto.ruteroId)),
+      isDuplicate: submission.duplicate,
+    };
   }
 
   async review(id: string, reviewedBy: string, notes?: string) {
     await this.db.withTransaction(async (client) => {
+      const current = await client.query(
+        `SELECT * FROM liquidaciones_ruta
+         WHERE id = $1 FOR UPDATE`,
+        [id],
+      );
+      if (
+        current.rowCount !== 1 ||
+        !['SUBMITTED_BY_DRIVER', 'UNDER_REVIEW'].includes(
+          current.rows[0].status,
+        ) ||
+        !current.rows[0].carga_id
+      ) {
+        throw new ConflictException(
+          'La liquidación no está disponible para revisión',
+        );
+      }
+      const settlement = current.rows[0];
+      const finances = await this.calculateLoadFinancials(
+        client,
+        settlement.carga_id,
+        settlement.store_id,
+        settlement.rutero_id,
+        settlement.fecha_ruta,
+        settlement.arqueo_id || undefined,
+      );
+      if (!finances.arqueoId) {
+        throw new ConflictException(
+          'Debe registrar el arqueo del Rutero antes de revisar',
+        );
+      }
+
       const result = await client.query(
         `UPDATE liquidaciones_ruta
          SET status = 'UNDER_REVIEW', reviewed_by = $2, reviewed_at = NOW(),
              review_notes = COALESCE($3, review_notes),
+             total_pedidos = $4, total_entregados = $5,
+             total_rechazados = $6, total_cobrado_contado = $7,
+             total_cobrado_credito = $8, total_devoluciones = $9,
+             efectivo_esperado = $10, efectivo_entregado = $11,
+             diferencia = $12, arqueo_id = $13,
              version = version + 1
          WHERE id = $1
            AND status IN ('SUBMITTED_BY_DRIVER', 'UNDER_REVIEW')
          RETURNING id`,
-        [id, reviewedBy, notes || null],
+        [
+          id,
+          reviewedBy,
+          notes || null,
+          finances.totalPedidos,
+          finances.totalEntregados,
+          finances.totalRechazados,
+          finances.totalContado,
+          finances.totalCredito,
+          finances.totalDevoluciones,
+          finances.efectivoEsperado,
+          finances.efectivoEntregado,
+          finances.diferencia,
+          finances.arqueoId,
+        ],
       );
       if (result.rowCount !== 1) {
         throw new ConflictException(
@@ -482,12 +557,7 @@ export class LiquidacionesRutaService {
     return this.findOne(id);
   }
 
-  async approveAndClose(
-    id: string,
-    approvedBy: string,
-    allowCashObservation: boolean,
-    notes?: string,
-  ) {
+  async receiveMerchandise(id: string, receivedBy: string) {
     const duplicated = await this.db.withTransaction(async (client) => {
       const result = await client.query(
         `SELECT l.*, c.status AS carga_status
@@ -498,18 +568,16 @@ export class LiquidacionesRutaService {
         [id],
       );
       if (result.rowCount !== 1) {
-        throw new NotFoundException(
-          'Liquidación de carga no encontrada',
-        );
+        throw new NotFoundException('Liquidación de carga no encontrada');
       }
       const settlement = result.rows[0];
-      if (settlement.carga_status === 'CLOSED') return true;
+      if (settlement.merchandise_received_at) return true;
       if (
         settlement.carga_status !== 'RETURNED' ||
         !['SUBMITTED_BY_DRIVER', 'UNDER_REVIEW'].includes(settlement.status)
       ) {
         throw new ConflictException(
-          'La carga debe estar retornada y la liquidación enviada',
+          'La carga debe estar retornada antes de recibir mercancía',
         );
       }
 
@@ -528,14 +596,7 @@ export class LiquidacionesRutaService {
       );
       if (merchandiseDifference !== 0) {
         throw new ConflictException(
-          'La mercancía física no cuadra; corrija el conteo antes de cerrar',
-        );
-      }
-
-      const cashDifference = Number(settlement.diferencia || 0);
-      if (Math.abs(cashDifference) > 0.01 && !allowCashObservation) {
-        throw new ConflictException(
-          'Existe diferencia de efectivo; requiere aprobación con observación',
+          'La mercancía física no cuadra; corrija el conteo antes de recibir',
         );
       }
 
@@ -593,14 +654,14 @@ export class LiquidacionesRutaService {
           [
             settlement.store_id,
             item.product_id,
-            approvedBy,
+            receivedBy,
             returnedUnits,
             quantity.bulks,
             quantity.units,
             Number(product.rows[0].current_stock),
             balance.bulks,
             balance.units,
-            `Cierre físico carga ${settlement.carga_id}`,
+            `Recepción física carga ${settlement.carga_id}`,
             item.handles_bulk === true,
             unitsPerBulk,
           ],
@@ -612,22 +673,90 @@ export class LiquidacionesRutaService {
          SET status = 'RECEIVED', received_by = $2, received_at = NOW(),
              updated_at = NOW()
          WHERE carga_id = $1 AND status = 'IN_TRANSIT'`,
-        [settlement.carga_id, approvedBy],
+        [settlement.carga_id, receivedBy],
       );
       await client.query(
-        `UPDATE orders
-         SET status = 'LIQUIDADO', updated_by = $2, updated_at = NOW(),
+        `UPDATE liquidaciones_ruta
+         SET merchandise_received_by = $2, merchandise_received_at = NOW(),
              version = version + 1
-         WHERE grupo_carga_id = $1
-           AND status IN ('ENTREGADO', 'PARCIAL', 'RECHAZADO',
-                          'RECHAZO_TOTAL', 'DEVUELTO')`,
-        [settlement.carga_id, approvedBy],
+         WHERE id = $1`,
+        [id, receivedBy],
       );
       await client.query(
-        `INSERT INTO order_status_history (order_id, status, user_id)
-         SELECT order_id, 'LIQUIDADO', $2
-         FROM carga_camion_orders
-         WHERE carga_id = $1`,
+        `INSERT INTO carga_camion_events (
+           carga_id, event_type, actor_id, payload
+         ) VALUES ($1,'MERCHANDISE_RECEIVED',$2,$3::jsonb)`,
+        [
+          settlement.carga_id,
+          receivedBy,
+          JSON.stringify({ liquidacionId: id }),
+        ],
+      );
+      return false;
+    });
+    return { ...(await this.findOne(id)), isDuplicate: duplicated };
+  }
+
+  async approveAndClose(
+    id: string,
+    approvedBy: string,
+    allowCashObservation: boolean,
+    notes?: string,
+  ) {
+    const duplicated = await this.db.withTransaction(async (client) => {
+      const result = await client.query(
+        `SELECT l.*, c.status AS carga_status
+         FROM liquidaciones_ruta l
+         JOIN cargas_camion c ON c.id = l.carga_id
+         WHERE l.id = $1
+         FOR UPDATE OF l, c`,
+        [id],
+      );
+      if (result.rowCount !== 1) {
+        throw new NotFoundException(
+          'Liquidación de carga no encontrada',
+        );
+      }
+      const settlement = result.rows[0];
+      if (settlement.carga_status === 'CLOSED') return true;
+      if (
+        settlement.carga_status !== 'RETURNED' ||
+        !['SUBMITTED_BY_DRIVER', 'UNDER_REVIEW'].includes(settlement.status)
+      ) {
+        throw new ConflictException(
+          'La carga debe estar retornada y la liquidación enviada',
+        );
+      }
+      if (!settlement.arqueo_id) {
+        throw new ConflictException(
+          'Debe registrar y vincular el arqueo antes de aprobar el cierre',
+        );
+      }
+      if (!settlement.merchandise_received_at) {
+        throw new ConflictException(
+          'El Auxiliar debe recibir la mercancía antes de aprobar',
+        );
+      }
+
+      const cashDifference = Number(settlement.diferencia || 0);
+      if (Math.abs(cashDifference) > 0.01 && !allowCashObservation) {
+        throw new ConflictException(
+          'Existe diferencia de efectivo; requiere aprobación con observación',
+        );
+      }
+
+      await client.query(
+        `WITH updated_orders AS (
+           UPDATE orders
+           SET status = 'LIQUIDADO', updated_by = $2, updated_at = NOW(),
+               version = version + 1
+           WHERE grupo_carga_id = $1
+             AND status IN ('ENTREGADO', 'PARCIAL', 'RECHAZADO',
+                            'RECHAZO_TOTAL', 'DEVUELTO')
+           RETURNING id
+         )
+         INSERT INTO order_status_history (order_id, status, user_id)
+         SELECT id, 'LIQUIDADO', $2 FROM updated_orders`,
         [settlement.carga_id, approvedBy],
       );
       await client.query(
@@ -807,7 +936,25 @@ export class LiquidacionesRutaService {
     );
     if (res.rowCount === 0)
       throw new NotFoundException('Liquidación no encontrada');
-    return this.mapRow(res.rows[0]);
+    const items = await this.db.query(
+      `SELECT li.*, p.description AS product_name
+       FROM liquidacion_ruta_items li
+       JOIN products p ON p.id = li.product_id
+       WHERE li.liquidacion_id = $1
+       ORDER BY p.description`,
+      [id],
+    );
+    return {
+      ...this.mapRow(res.rows[0]),
+      returnItems: items.rows.map((row) => ({
+        productId: row.product_id,
+        productName: row.product_name,
+        expectedUnits: Number(row.expected_units),
+        returnedUnits: Number(row.returned_units),
+        differenceUnits: Number(row.difference_units),
+        unitsPerBulkSnapshot: Number(row.units_per_bulk_snapshot),
+      })),
+    };
   }
 
   private mapRow(row: any): any {
@@ -832,6 +979,22 @@ export class LiquidacionesRutaService {
       liquidadorName: row.liquidador_name,
       notas: row.notas,
       externalId: row.external_id,
+      cargaId: row.carga_id,
+      submittedAt: row.submitted_at,
+      submittedBy: row.submitted_by,
+      reviewedAt: row.reviewed_at,
+      reviewedBy: row.reviewed_by,
+      merchandiseReceivedAt: row.merchandise_received_at,
+      merchandiseReceivedBy: row.merchandise_received_by,
+      approvedAt: row.approved_at,
+      approvedBy: row.approved_by,
+      reviewNotes: row.review_notes,
+      merchandiseExpectedUnits: Number(row.merchandise_expected_units || 0),
+      merchandiseReturnedUnits: Number(row.merchandise_returned_units || 0),
+      merchandiseDifferenceUnits: Number(
+        row.merchandise_difference_units || 0,
+      ),
+      version: Number(row.version || 1),
       createdAt: row.created_at,
     };
   }

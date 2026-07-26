@@ -43,6 +43,7 @@ MIGRACIONES NUEVAS APLICADAS EN AMBAS BASES:
 [X] 2026-07-26_deliveries_returns_n2_3_n2_4.sql
 [X] 2026-07-26_visit_logs_n3_4.sql
 [X] 2026-07-26_liquidaciones_idempotency_n3_5.sql
+[X] 2026-07-26_route_settlement_n4_1.sql
 
 IMPLEMENTACIÓN CRÍTICA CERRADA:
 
@@ -67,7 +68,7 @@ IMPLEMENTACIÓN CRÍTICA CERRADA:
 
 PENDIENTE DESPUÉS DEL FREEZE:
 
-[ ][A] N4.1 completar aprobación y cierre administrativo de liquidación/carga.
+[X][A] N4.1 retorno, recepción física, revisión, aprobación y cierre de carga.
 [ ][A] N4.2 recepción parcial de compras, importación staging y corrección de
        stocks negativos por movimientos.
 [ ][A] N4.3 implementar Drift/outbox/impresión Flutter en otra máquina.
@@ -646,12 +647,24 @@ Prioridad dominante: ALTO
 
 SUBFASE N4.1 - Retorno y liquidación
 
-[ ][A][IA-NÚCLEO] N4.1.1 Rutero envía SUBMITTED_BY_DRIVER.
-[ ][A][IA-NÚCLEO] N4.1.2 Auxiliar recibe retorno físico.
-[ ][A][IA-NÚCLEO] N4.1.3 Conciliar mercancía esperada/física.
-[ ][A][IA-NÚCLEO] N4.1.4 Conciliar efectivo y otros medios.
-[ ][A][IA-NÚCLEO] N4.1.5 Aprobar WITH_OBSERVATION/CLOSED.
-[ ][A][IA-NÚCLEO] N4.1.6 Cerrar carga, entregas e inventario móvil.
+[X][A][IA-NÚCLEO] N4.1.1 Rutero envía SUBMITTED_BY_DRIVER.
+[X][A][IA-NÚCLEO] N4.1.2 Auxiliar recibe retorno físico.
+[X][A][IA-NÚCLEO] N4.1.3 Conciliar mercancía esperada/física.
+[X][A][IA-NÚCLEO] N4.1.4 Conciliar efectivo y otros medios.
+[X][A][IA-NÚCLEO] N4.1.5 Aprobar WITH_OBSERVATION/CLOSED.
+[X][A][IA-NÚCLEO] N4.1.6 Cerrar carga, pedidos e inventario móvil.
+
+EVIDENCIA N4.1:
+
+- Migración: backend/migrations/2026-07-26_route_settlement_n4_1.sql.
+- Tabla de detalle: liquidacion_ruta_items.
+- POST /liquidaciones-ruta envía retorno idempotente del Rutero.
+- POST /liquidaciones-ruta/:id/review recalcula y exige arqueo.
+- POST /liquidaciones-ruta/:id/receive-merchandise separa la recepción física
+  del Auxiliar de la aprobación administrativa.
+- POST /liquidaciones-ruta/:id/approve cierra carga/pedidos y admite diferencia
+  de efectivo únicamente con observación explícita.
+- La recepción física repone bodega mediante movements IN y no puede repetirse.
 
 SUBFASE N4.2 - Entradas de inventario pendientes
 

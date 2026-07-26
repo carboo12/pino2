@@ -6,6 +6,14 @@ Base operativa: sistema_de_inventario
 Backend: NestJS, prefijo /api
 Consumidores: React ahora; Flutter se implementará posteriormente en otra máquina.
 
+ADENDA N4.1 (aditiva, no rompe versión 1.0):
+
+- El cierre móvil ahora requiere cargaId y returnItems.
+- Se agregan POST /liquidaciones-ruta/{id}/review,
+  /receive-merchandise y /approve.
+- Se agregan estados SUBMITTED_BY_DRIVER, UNDER_REVIEW,
+  WITH_OBSERVATION y CLOSED.
+
 ===============================================================================
 0. REGLAS QUE NO PUEDE CAMBIAR EL AGENTE CONSUMIDOR
 ===============================================================================
@@ -93,9 +101,13 @@ ESTADOS DE VISITA:
 ESTADOS DE LIQUIDACIÓN ACTUALES:
 
 - PENDING
+- SUBMITTED_BY_DRIVER
+- UNDER_REVIEW
 - BALANCED
 - WITH_DIFFERENCE
 - APPROVED
+- WITH_OBSERVATION
+- CLOSED
 - CANCELLED
 
 MÉTODOS DE PAGO:
@@ -550,6 +562,13 @@ Para Rutero, ruteroId se toma de sesión y externalId es obligatorio.
   "storeId": "uuid",
   "ruteroId": "uuid-omitible-para-rutero",
   "fechaRuta": "2026-07-27",
+  "cargaId": "uuid",
+  "returnItems": [
+    {
+      "productId": "uuid",
+      "returnedUnits": 15
+    }
+  ],
   "arqueoId": "uuid-opcional",
   "notas": "Fin de jornada",
   "externalId": "uuid-generado-en-dispositivo"
@@ -571,14 +590,23 @@ Respuesta:
   "efectivoEsperado": 10850.00,
   "efectivoEntregado": 10850.00,
   "diferencia": 0,
-  "status": "BALANCED",
+  "status": "SUBMITTED_BY_DRIVER",
   "externalId": "uuid",
   "isDuplicate": false
 }
 
 Reintento con externalId conserva una sola liquidación y responde
-isDuplicate=true. La revisión/aprobación/cierre administrativo completo
-pertenece a FASE N4 y no debe inventarse en React.
+isDuplicate=true.
+
+Para Rutero también son obligatorios cargaId y returnItems. Debe enviar
+exactamente una fila por cada producto de la carga, incluso cuando
+returnedUnits sea cero. El backend calcula:
+
+  expectedUnits = acceptedUnits - deliveredUnits - unitsAlreadyReceived
+
+returnedUnits no puede superar expectedUnits. En esta operación no se repone
+todavía la bodega: la carga queda RETURNED y la liquidación
+SUBMITTED_BY_DRIVER.
 
 Consultas:
 
@@ -586,6 +614,55 @@ GET /api/liquidaciones-ruta?storeId={uuid}&fecha={YYYY-MM-DD-opcional}
 GET /api/liquidaciones-ruta/{liquidacionId}
 
 El Rutero sólo ve sus liquidaciones.
+
+8.3 Revisar liquidación
+
+POST /api/liquidaciones-ruta/{liquidacionId}/review
+
+Rol: administración.
+
+{
+  "notes": "Conteo y arqueo revisados"
+}
+
+Recalcula importes desde delivery_operations/collections/returns, exige arqueo
+del mismo Rutero/tienda/fecha y cambia el estado a UNDER_REVIEW. No mueve stock.
+
+8.4 Recibir mercancía física
+
+POST /api/liquidaciones-ruta/{liquidacionId}/receive-merchandise
+
+Rol: inventory o administración.
+No recibe body.
+
+Exige que returnedUnits coincida con expectedUnits. En un único commit descuenta
+el retorno del inventario del Rutero, repone bodega, registra movements IN,
+recibe devoluciones IN_TRANSIT y guarda quién realizó la recepción. No aprueba
+dinero ni cierra la carga.
+
+8.5 Aprobar y cerrar
+
+POST /api/liquidaciones-ruta/{liquidacionId}/approve
+
+Rol: administración.
+
+{
+  "allowCashObservation": false,
+  "notes": "Cierre conforme"
+}
+
+Reglas:
+
+- La carga debe estar RETURNED.
+- La mercancía retornada debe coincidir exactamente con la esperada.
+- El Auxiliar debe haber ejecutado receive-merchandise.
+- Sin arqueo no se puede aprobar.
+- Si existe diferencia de efectivo, sólo cierra cuando
+  allowCashObservation=true.
+- En un único commit liquida pedidos y cambia la carga a CLOSED.
+- Sin diferencia: liquidación CLOSED.
+- Con diferencia de efectivo autorizada: WITH_OBSERVATION.
+- Repetir una carga ya CLOSED devuelve isDuplicate=true.
 
 ===============================================================================
 9. MATRIZ DE IDEMPOTENCIA

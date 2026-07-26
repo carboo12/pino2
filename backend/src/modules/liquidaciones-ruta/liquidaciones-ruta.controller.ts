@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -28,9 +29,14 @@ export class LiquidacionesRutaController {
   @Post()
   create(@Body() dto: CreateLiquidacionDto, @Req() req: any) {
     const isRutero = req.user?.role === 'rutero';
+    if (!isRutero && !dto.ruteroId) {
+      throw new BadRequestException(
+        'ruteroId es obligatorio para liquidación administrativa',
+      );
+    }
     return this.service.create({
       ...dto,
-      ruteroId: isRutero ? req.user.sub : dto.ruteroId,
+      ruteroId: isRutero ? req.user.sub : dto.ruteroId!,
       liquidadoPor: req.user.sub,
       requireExternalId: isRutero,
     });
@@ -44,6 +50,12 @@ export class LiquidacionesRutaController {
     @Req() req: any,
   ) {
     return this.service.review(id, req.user.sub, dto.notes);
+  }
+
+  @Roles('master-admin', 'store-admin', 'inventory')
+  @Post(':id/receive-merchandise')
+  receiveMerchandise(@Param('id') id: string, @Req() req: any) {
+    return this.service.receiveMerchandise(id, req.user.sub);
   }
 
   @Roles('master-admin', 'store-admin')
