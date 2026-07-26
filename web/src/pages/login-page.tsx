@@ -3,7 +3,7 @@ import { Eye, EyeOff, Loader2, TreePine } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { Navigate } from 'react-router-dom';
 import { toast } from '@/lib/swalert';
-import { getRedirectPath } from '@/lib/redirect-logic';
+import { normalizeUserRole } from '@/lib/user-role';
 
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -33,7 +33,19 @@ export default function LoginPage() {
   const { login, user } = useAuth();
 
   if (user) {
-    return <Navigate to={getRedirectPath(user) || '/'} replace />;
+    const role = normalizeUserRole(user.role);
+    const storeId = user.storeIds?.[0];
+    const workspaceMap: Record<string, string> = {
+      'store-admin': 'admin', cashier: 'cash', inventory: 'warehouse',
+      dispatcher: 'warehouse', vendor: 'sales', 'sales-manager': 'sales', rutero: 'sales',
+    };
+    let redirectPath = '/master-admin/dashboard';
+    if (role === 'master-admin' || role === 'owner') {
+      redirectPath = '/master-admin/dashboard';
+    } else if (storeId) {
+      redirectPath = `/store/${storeId}/work/${workspaceMap[role] || 'cash'}`;
+    }
+    return <Navigate to={redirectPath} replace />;
   }
 
   const handleLogin = async (e: FormEvent) => {
