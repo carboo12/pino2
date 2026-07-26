@@ -1,0 +1,79 @@
+===============================================================================
+REPORTE DE EJECUCIÓN PRUEBAS E2E — 6 ROLES CANÓNICOS TRELLO
+===============================================================================
+Fecha: 2026-07-26
+Servidor Backend: http://localhost:3010/api
+
+RESULTADOS OBTENIDOS POR ROL:
+[
+  {
+    "roleName": "1. JEFE / ENCARGADO DE BODEGA",
+    "email": "dueno@lospinos.com",
+    "loginOk": true,
+    "apiRole": "admin",
+    "profileStatus": 200,
+    "productsStatus": 200,
+    "usersStatus": 200,
+    "cargasStatus": 200,
+    "authorizationsStatus": 200
+  },
+  {
+    "roleName": "2. ADMINISTRADOR GENERAL",
+    "email": "admin@multitienda.com",
+    "loginOk": true,
+    "apiRole": "super-admin",
+    "profileStatus": 200,
+    "productsStatus": 200,
+    "usersStatus": 200,
+    "cargasStatus": 200,
+    "authorizationsStatus": 200
+  },
+  {
+    "roleName": "3. ANALISTA DE INVENTARIO (Bodeguero)",
+    "email": "bodeg@lospinos.com",
+    "loginOk": true,
+    "apiRole": "inventory",
+    "profileStatus": 200,
+    "productsStatus": 200,
+    "usersStatus": 200,
+    "cargasStatus": 403,
+    "authorizationsStatus": 403
+  },
+  {
+    "roleName": "4. AUXILIAR DE RECEPCIÓN Y DESPACHO",
+    "email": "cajero@tienda.com",
+    "loginOk": true,
+    "apiRole": "auxiliar",
+    "profileStatus": 200,
+    "productsStatus": 200,
+    "usersStatus": 403,
+    "cargasStatus": 403,
+    "authorizationsStatus": 403
+  },
+  {
+    "roleName": "5. GESTOR DE VENTAS (Preventista Móvil)",
+    "email": "gestor@lospinos.com",
+    "loginOk": true,
+    "apiRole": "gestor",
+    "profileStatus": 200,
+    "productsStatus": 200,
+    "usersStatus": 200,
+    "cargasStatus": 403,
+    "authorizationsStatus": 403
+  },
+  {
+    "roleName": "6. RUTERO / REPARTIDOR (Repartidor Móvil)",
+    "email": "rute@lospinos.com",
+    "loginOk": true,
+    "apiRole": "rutero",
+    "profileStatus": 200,
+    "productsStatus": 200,
+    "usersStatus": 403,
+    "cargasStatus": 200,
+    "authorizationsStatus": 403
+  }
+]
+
+===============================================================================
+FIN DEL REPORTE E2E
+===============================================================================
