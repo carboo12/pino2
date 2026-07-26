@@ -237,16 +237,7 @@ export default function DispatcherPage() {
         </div>
       </div>
 
-      {/* TARJETA INFORMATIVA EXPLICATIVA */}
-      <div className="bg-primary/5 border border-primary/20 p-4 rounded-2xl flex items-start gap-3">
-        <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-        <div className="text-xs text-foreground/80 space-y-1">
-          <p className="font-bold text-sm text-primary">¿En qué momento se utiliza esta pantalla?</p>
-          <p>
-            Esta pantalla la utiliza el <strong>despachador o vendedor de mostrador</strong> al atender clientes presenciales. Agrega los productos del catálogo a la comanda y presiona <strong>"Enviar Comanda a Caja"</strong>. El cliente pasa directamente a la caja y el cajero abre la comanda para cobrar de contado o crédito.
-          </p>
-        </div>
-      </div>
+
 
       {/* CONTENIDO EN 2 COLUMNAS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
