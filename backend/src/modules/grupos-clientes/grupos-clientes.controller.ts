@@ -24,31 +24,31 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class GruposClientesController {
   constructor(private readonly service: GruposClientesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   create(@Body() dto: CreateGrupoClienteDto) {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   findAll(@Query('storeId') storeId: string) {
     return this.service.findAll(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateGrupoClienteDto) {
     return this.service.update(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/asignar')
   asignarClientes(
     @Param('id') id: string,
@@ -57,7 +57,7 @@ export class GruposClientesController {
     return this.service.asignarClientes(id, body.clientIds);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/remover')
   removerClientes(
     @Param('id') id: string,
@@ -66,7 +66,7 @@ export class GruposClientesController {
     return this.service.removerClientes(id, body.clientIds);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);

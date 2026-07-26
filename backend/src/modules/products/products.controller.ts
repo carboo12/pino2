@@ -74,7 +74,7 @@ export class ProductsController {
     return role === 'auxiliar' ? this.hideFinancialFields(value) : value;
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear un producto en la tienda' })
   @ApiOkResponse({ type: ProductResponseDto })
@@ -82,21 +82,21 @@ export class ProductsController {
     return this.productsService.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('import')
   @ApiOperation({ summary: 'Importación masiva de productos (Transaccional)' })
   importBulk(@Body() dto: ImportBulkProductsDto) {
     return this.productsService.importBulk(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('import/preview')
   @ApiOperation({ summary: 'Validar y guardar preview de importación' })
   previewImport(@Body() dto: PreviewProductImportDto, @Req() req: any) {
     return this.productsService.previewImport(dto, req.user?.sub);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('import/:batchId/apply')
   @ApiOperation({ summary: 'Aplicar filas válidas de una importación' })
   applyImport(
@@ -107,7 +107,7 @@ export class ProductsController {
     return this.productsService.applyImport(batchId, dto.storeId, req.user?.sub);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero')
   @Get()
   @ApiQuery({ name: 'storeId', required: true })
   @ApiQuery({ name: 'search', required: false })
@@ -163,7 +163,7 @@ export class ProductsController {
     return this.productResponseForRole(result, req?.user?.role);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero')
   @Get('barcode/:barcode')
   @ApiOperation({ summary: 'Buscar producto por código de barras' })
   async findByBarcode(
@@ -175,7 +175,7 @@ export class ProductsController {
     return this.productResponseForRole(result, req.user?.role);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un producto' })
   @ApiOkResponse({ type: ProductResponseDto })
@@ -187,14 +187,14 @@ export class ProductsController {
     return this.productResponseForRole(result, req.user?.role);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar producto' })
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProductDto) {
     return this.productsService.update(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar producto (Desactivación lógica)' })
   remove(@Param('id', ParseUUIDPipe) id: string) {

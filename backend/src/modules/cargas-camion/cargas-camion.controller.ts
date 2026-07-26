@@ -26,13 +26,13 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class CargasCamionController {
   constructor(private readonly service: CargasCamionService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   create(@Body() dto: CreateCargaCamionDto, @Req() req: any) {
     return this.service.create({ ...dto, createdBy: req.user.sub });
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get()
   findAll(
     @Query('storeId') storeId: string,
@@ -47,7 +47,7 @@ export class CargasCamionController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.service.findOne(
@@ -56,7 +56,7 @@ export class CargasCamionController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'auxiliar')
+  @Roles('admin', 'auxiliar')
   @Put(':id/confirm-load')
   confirmLoad(
     @Param('id') id: string,
@@ -81,13 +81,13 @@ export class CargasCamionController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'auxiliar')
+  @Roles('admin', 'auxiliar')
   @Put(':id/reconcile')
   reconcile(@Param('id') id: string, @Req() req: any) {
     return this.service.reconcileAcceptanceDifference(id, req.user.sub);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Put(':id/reassign')
   reassign(
     @Param('id') id: string,
@@ -97,7 +97,7 @@ export class CargasCamionController {
     return this.service.reassign(id, dto.ruteroId, dto.reason, req.user.sub);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Put(':id/salida')
   despachar(@Param('id') id: string, @Req() req: any) {
     return this.service.despachar(id, req.user.sub);

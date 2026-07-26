@@ -19,7 +19,7 @@ import { SupplierCreditNotesService } from "./supplier-credit-notes.service";
 @ApiTags("Supplier Credit Notes")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
-@Roles("master-admin", "store-admin")
+@Roles('admin')
 @Controller("supplier-credit-notes")
 export class SupplierCreditNotesController {
   constructor(private readonly service: SupplierCreditNotesService) {}

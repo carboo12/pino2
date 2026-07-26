@@ -13,7 +13,7 @@ export function GlobalAlertProvider() {
     const { user } = useAuth();
     const role = normalizeUserRole(user?.role);
     const storeId = user?.storeIds?.[0];
-    const canManageAuthorizations = role === 'store-admin' || role === 'master-admin' || role === 'owner';
+    const canManageAuthorizations = role === 'admin' || role === 'super-admin';
 
     useEffect(() => {
         audioRef.current = new Audio(withAppBase('/sounds/ping.mp3'));

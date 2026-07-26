@@ -26,7 +26,7 @@ import {
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
 
-  @Roles("master-admin", "store-admin", "sales-manager", "rutero")
+  @Roles('admin', 'gestor', "rutero")
   @Get()
   @ApiOperation({ summary: "Listar cuentas por cobrar" })
   findAll(
@@ -46,21 +46,21 @@ export class AccountsReceivableController {
     );
   }
 
-  @Roles("master-admin", "store-admin", "sales-manager", "rutero")
+  @Roles('admin', 'gestor', "rutero")
   @Get(":id")
   @ApiOperation({ summary: "Obtener cuenta por cobrar" })
   findOne(@Param("id") id: string, @Req() req: any) {
     return this.service.findOne(id, req.user?.role, req.user?.sub);
   }
 
-  @Roles("master-admin", "store-admin", "rutero")
+  @Roles('admin', "rutero")
   @Post()
   @ApiOperation({ summary: "Crear cuenta por cobrar" })
   create(@Body() dto: CreateAccountReceivableDto) {
     return this.service.create(dto);
   }
 
-  @Roles("master-admin", "store-admin", "rutero")
+  @Roles('admin', "rutero")
   @Post(":id/payments")
   @ApiOperation({ summary: "Registrar pago a cuenta" })
   addPayment(

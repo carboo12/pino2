@@ -29,14 +29,14 @@ import {
 export class PendingDeliveriesController {
   constructor(private readonly service: PendingDeliveriesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get('stats')
   @ApiOperation({ summary: 'Obtener estadísticas de entregas pendientes' })
   async getStats(@Query('storeId') storeId?: string) {
     return this.service.getStats(storeId || '');
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar entregas pendientes con filtros' })
   async findAll(
@@ -60,21 +60,21 @@ export class PendingDeliveriesController {
     }
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear entrega pendiente' })
   create(@Body() dto: CreatePendingDeliveryDto) {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar estado de entrega' })
   update(@Param('id') id: string, @Body() dto: UpdatePendingDeliveryDto) {
     return this.service.update(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('assign-route')
   @ApiOperation({ summary: 'Asignar ruta a entregas pendientes' })
   assignRoute(@Body() dto: AssignRouteDto) {

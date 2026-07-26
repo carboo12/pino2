@@ -160,9 +160,9 @@ export default function MasterUsersPage() {
                         const role = normalizeUserRole(user.role);
                         const storeId = user.storeId;
                         let impersonatePath = '/master-admin/dashboard';
-                        if (role === 'store-admin' || role === 'cashier' || role === 'inventory') {
+                        if (role === 'admin' || role === 'inventory') {
                           impersonatePath = storeId ? `/store/${storeId}/work/cash` : '/master-admin/stores';
-                        } else if (role === 'rutero' || role === 'vendor') {
+                        } else if (role === 'rutero' || role === 'gestor') {
                           impersonatePath = storeId ? `/store/${storeId}/vendors/quick-sale` : '/master-admin/stores';
                         }
                         setTimeout(() => window.location.href = withAppBase(impersonatePath), 1000);

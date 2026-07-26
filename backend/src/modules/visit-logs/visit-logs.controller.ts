@@ -22,7 +22,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class VisitLogsController {
   constructor(private readonly service: VisitLogsService) {}
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
+  @Roles('admin', 'gestor')
   @Get()
   @ApiOperation({ summary: 'Listar logs de visitas de vendedores' })
   findAll(
@@ -30,7 +30,7 @@ export class VisitLogsController {
     @Query('days') days: string | undefined,
     @Req() req: any,
   ) {
-    const fieldRole = ['vendor', 'sales-manager'].includes(req.user?.role);
+    const fieldRole = ['gestor'].includes(req.user?.role);
     return this.service.findAll(
       storeId,
       days ? parseInt(days) : undefined,
@@ -38,7 +38,7 @@ export class VisitLogsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
+  @Roles('admin', 'gestor')
   @Post()
   @ApiOperation({ summary: 'Registrar una visita de vendedor' })
   create(
@@ -56,7 +56,7 @@ export class VisitLogsController {
     },
     @Req() req: any,
   ) {
-    const fieldRole = ['vendor', 'sales-manager'].includes(req.user?.role);
+    const fieldRole = ['gestor'].includes(req.user?.role);
     if (fieldRole && !dto.externalId) {
       throw new BadRequestException(
         'externalId es obligatorio para visitas creadas en ruta',

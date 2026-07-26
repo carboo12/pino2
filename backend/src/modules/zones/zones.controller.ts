@@ -23,14 +23,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class ZonesController {
   constructor(private readonly service: ZonesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar zonas' })
   findAll(@Query('storeId') storeId?: string) {
     return this.service.findAllZones(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear zona' })
   create(
@@ -39,7 +39,7 @@ export class ZonesController {
     return this.service.createZone(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar zona' })
   update(
@@ -49,7 +49,7 @@ export class ZonesController {
     return this.service.updateZone(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar zona' })
   remove(@Param('id') id: string) {
@@ -64,21 +64,21 @@ export class ZonesController {
 export class SubZonesController {
   constructor(private readonly service: ZonesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar sub-zonas' })
   findAll(@Query('zoneId') zoneId?: string) {
     return this.service.findAllSubZones(zoneId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear sub-zona' })
   create(@Body() dto: { name: string; zoneId: string; description?: string }) {
     return this.service.createSubZone(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar sub-zona' })
   update(
@@ -88,7 +88,7 @@ export class SubZonesController {
     return this.service.updateSubZone(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Delete(':id')
   @ApiOperation({ summary: 'Eliminar sub-zona' })
   remove(@Param('id') id: string) {

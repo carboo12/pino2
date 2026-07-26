@@ -24,31 +24,31 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class GruposEconomicosController {
   constructor(private readonly service: GruposEconomicosService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   create(@Body() dto: CreateGrupoEconomicoDto) {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   findAll(@Query('storeId') storeId: string) {
     return this.service.findAll(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Put(':id')
   update(@Param('id') id: string, @Body() dto: UpdateGrupoEconomicoDto) {
     return this.service.update(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);

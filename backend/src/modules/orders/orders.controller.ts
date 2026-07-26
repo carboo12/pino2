@@ -25,12 +25,12 @@ import { CreateOrderDto, UpdateOrderStatusBodyDto, OrderResponseDto } from './or
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
+  @Roles('admin', 'gestor')
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo pedido' })
   @ApiOkResponse({ type: OrderResponseDto })
   async create(@Body() dto: CreateOrderDto, @Req() req: any) {
-    const isFieldSeller = ['vendor', 'sales-manager'].includes(req.user?.role);
+    const isFieldSeller = ['gestor'].includes(req.user?.role);
     if (isFieldSeller && !dto.externalId) {
       throw new BadRequestException(
         'externalId es obligatorio para pedidos creados en ruta',
@@ -54,7 +54,7 @@ export class OrdersController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory')
+  @Roles('admin', 'gestor', 'inventory')
   @Get()
   @ApiOperation({ summary: 'Listar pedidos con filtros' })
   findAll(
@@ -68,7 +68,7 @@ export class OrdersController {
     @Query('createdAt') createdAt?: string,
     @Req() req?: any,
   ) {
-    const isFieldSeller = ['vendor', 'sales-manager'].includes(req?.user?.role);
+    const isFieldSeller = ['gestor'].includes(req?.user?.role);
     return this.service.findAll({
       storeId,
       status,
@@ -81,7 +81,7 @@ export class OrdersController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un pedido' })
   @ApiOkResponse({ type: OrderResponseDto })
@@ -89,7 +89,7 @@ export class OrdersController {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/autorizar')
   @ApiOperation({ summary: 'Autorizar precio especial de un pedido' })
   autorizar(
@@ -105,7 +105,7 @@ export class OrdersController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory', 'rutero')
+  @Roles('admin', 'inventory', 'rutero')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Actualizar status de un pedido' })
   updateStatus(
@@ -131,21 +131,21 @@ export class OrdersController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Patch(':id/prepare')
   @ApiOperation({ summary: 'Marcar pedido en preparación' })
   prepare(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {
     return this.service.updateStatus(id, 'EN_PREPARACION', dto.updatedBy);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Patch(':id/stage')
   @ApiOperation({ summary: 'Marcar pedido como alistado' })
   stage(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {
     return this.service.updateStatus(id, 'ALISTADO', dto.updatedBy);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Patch(':id/load-truck')
   @ApiOperation({ summary: 'Marcar pedido como cargado al camión' })
   loadTruck(
@@ -160,14 +160,14 @@ export class OrdersController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id/dispatch')
   @ApiOperation({ summary: 'Marcar pedido en entrega' })
   dispatch(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {
     return this.service.updateStatus(id, 'EN_RUTA', dto.updatedBy);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id/deliver')
   @ApiOperation({ summary: 'Marcar pedido entregado' })
   deliver(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {

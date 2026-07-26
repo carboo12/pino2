@@ -24,7 +24,7 @@ import { CreateRouteDto, UpdateRouteDto } from './routes.dto';
 export class RoutesController {
   constructor(private readonly service: RoutesService) {}
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
+  @Roles('admin', 'gestor')
   @Get()
   @ApiOperation({ summary: 'Listar rutas de vendedores' })
   findAll(
@@ -32,14 +32,14 @@ export class RoutesController {
     @Query('vendorId') vendorId?: string,
     @Req() req?: any,
   ) {
-    const isFieldSeller = ['vendor', 'sales-manager'].includes(req?.user?.role);
+    const isFieldSeller = ['gestor'].includes(req?.user?.role);
     return this.service.findAll(
       storeId,
       isFieldSeller ? req.user.sub : vendorId,
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear ruta de vendedor' })
   create(
@@ -50,21 +50,21 @@ export class RoutesController {
     return this.service.create({ ...dto, assignedBy: req.user.sub });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una ruta' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id/history')
   @ApiOperation({ summary: 'Historial de asignación de una ruta' })
   history(@Param('id') id: string) {
     return this.service.findHistory(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar ruta' })
   update(

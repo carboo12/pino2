@@ -14,14 +14,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class ContractsController {
   constructor(private readonly service: ContractsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo contrato con cliente' })
   create(@Body() dto: CreateContractDto, @Request() req: any) {
     return this.service.create(dto, req.user?.id);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendedor')
+  @Roles('admin', 'gestor')
   @Get()
   @ApiOperation({ summary: 'Listar contratos' })
   findAll(
@@ -32,14 +32,14 @@ export class ContractsController {
     return this.service.findAll(storeId, clientId, status);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendedor')
+  @Roles('admin', 'gestor')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de contrato' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar contrato' })
   update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateContractDto) {

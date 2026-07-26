@@ -23,14 +23,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class NotificationsController {
   constructor(private readonly service: NotificationsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar notificaciones' })
   findAll(@Query('storeId') storeId?: string, @Query('limit') limit?: string) {
     return this.service.findAll(storeId, limit ? parseInt(limit) : undefined);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Crear notificación (y broadcast via WebSocket)' })
   create(
@@ -47,21 +47,21 @@ export class NotificationsController {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id/read')
   @ApiOperation({ summary: 'Marcar notificación como leída' })
   markAsRead(@Param('id') id: string) {
     return this.service.markAsRead(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch('read-all')
   @ApiOperation({ summary: 'Marcar todas como leídas para una tienda' })
   markAllAsRead(@Body() dto: { storeId: string }) {
     return this.service.markAllAsRead(dto.storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('device-token')
   @ApiOperation({ summary: 'Registrar token de dispositivo para Push' })
   registerToken(
@@ -72,7 +72,7 @@ export class NotificationsController {
     return this.service.registerToken(userId, dto.token, dto.platform);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('unregister-token')
   @ApiOperation({ summary: 'Eliminar token de dispositivo' })
   unregisterToken(@Body() dto: { token: string }) {

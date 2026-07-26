@@ -14,14 +14,9 @@ export function getRedirectPath(user: User | null): string | null {
 
 
 
-    // Master Admin / Owner (Acceso global al SaaS)
-    if (role === 'master-admin' || role === 'owner') {
+    // Admin / Super-admin (Acceso global al SaaS)
+    if (role === 'admin' || role === 'super-admin') {
         return '/master-admin/dashboard';
-    }
-
-    // Administrador de Cadena (Corporativo multi-tienda)
-    if (role === 'chain-admin') {
-        return '/chain-admin/dashboard';
     }
 
     // Si no tiene tienda asignada y no es un rol superior, error
@@ -32,24 +27,16 @@ export function getRedirectPath(user: User | null): string | null {
 
     // Roles específicos de tienda
     switch (role) {
-        case 'store-admin':
-            return `/store/${storeId}/dashboard`;
-        case 'cashier':
-            return `/store/${storeId}/billing`;
         case 'inventory':
             return `/store/${storeId}/warehouse`;
-        case 'dispatcher':
-            return `/store/${storeId}/dispatcher`;
         case 'rutero':
             return `/store/${storeId}/delivery-route`;
-        case 'vendor':
-            return `/store/${storeId}/vendors/quick-sale`;
-        case 'sales-manager':
+        case 'gestor':
             return `/store/${storeId}/vendors/dashboard`;
         case 'auxiliar':
             return `/store/${storeId}/warehouse`;
         default:
             console.error(`[RedirectLogic] Unrecognized role: "${user.role}" -> "${role}"`);
-            return `/store/${storeId}/products`; // Fallback al listado de productos
+            return `/store/${storeId}/products`;
     }
 }

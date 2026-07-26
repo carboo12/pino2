@@ -23,7 +23,7 @@ import { CreateReturnDto } from './returns.dto';
 export class ReturnsController {
   constructor(private readonly service: ReturnsService) {}
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Post()
   @ApiOperation({
     summary: 'Registrar devolución de rutero o devolución POS basada en venta',
@@ -39,7 +39,7 @@ export class ReturnsController {
     } as any);
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar devoluciones con filtros' })
   findAll(
@@ -59,7 +59,7 @@ export class ReturnsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de devolución con items' })
   findOne(@Param('id') id: string, @Req() req: any) {
@@ -69,7 +69,7 @@ export class ReturnsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'auxiliar')
+  @Roles('admin', 'auxiliar')
   @Post(':id/receive')
   @ApiOperation({ summary: 'Recibir físicamente devolución de ruta en bodega' })
   receive(@Param('id') id: string, @Req() req: any) {

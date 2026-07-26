@@ -34,7 +34,7 @@ export class StoreAccessGuard implements CanActivate {
     if (normalizedRole) user.role = normalizedRole;
 
     // Global admins can access any store (must provide storeId explicitly)
-    if (normalizedRole === 'master-admin' || normalizedRole === 'owner') {
+    if (normalizedRole === 'admin' || normalizedRole === 'super-admin') {
       if (storeId) {
         request.context = { userId: user.sub, role: user.role, storeIds: user.storeIds || [], activeStoreId: storeId };
       }

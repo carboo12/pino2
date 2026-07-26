@@ -36,16 +36,12 @@ export default function LoginPage() {
     const role = normalizeUserRole(user.role);
     const storeId = user.storeIds?.[0];
     const rolePathMap: Record<string, string> = {
-      'master-admin': '/master-admin/dashboard',
-      owner: '/master-admin/dashboard',
-      'chain-admin': '/chain-admin/dashboard',
-      'store-admin': '/master-admin/dashboard',
-      cashier: `/store/${storeId}/billing`,
+      admin: '/master-admin/dashboard',
+      'super-admin': '/master-admin/dashboard',
       inventory: `/store/${storeId}/warehouse`,
-      dispatcher: `/store/${storeId}/dispatcher`,
-      vendor: `/store/${storeId}/vendors/quick-sale`,
-      'sales-manager': `/store/${storeId}/vendors/dashboard`,
+      gestor: `/store/${storeId}/vendors/dashboard`,
       rutero: `/store/${storeId}/delivery-route`,
+      auxiliar: `/store/${storeId}/warehouse`,
     };
     const redirectPath = rolePathMap[role] || '/master-admin/dashboard';
     return <Navigate to={redirectPath} replace />;

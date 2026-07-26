@@ -58,7 +58,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(JwtAuthGuard, StoreAccessGuard, RolesGuard)
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('register')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Registrar un nuevo usuario' })
@@ -99,7 +99,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Roles('master-admin')
+  @Roles('admin')
   @Post('impersonate/:userId')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Iniciar sesión como otro usuario (solo master-admin)' })

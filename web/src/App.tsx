@@ -280,34 +280,32 @@ const LoadingFallback = () => (
   </div>
 );
 
-const MASTER_ROLES: NormalizedUserRole[] = ["master-admin", "owner"];
-const STORE_ADMIN_ROLES: NormalizedUserRole[] = ["store-admin"];
-const CASHIER_ROLES: NormalizedUserRole[] = ["cashier", "store-admin"];
-const INVENTORY_ROLES: NormalizedUserRole[] = ["inventory", "store-admin"];
-const AUXILIAR_ROLES: NormalizedUserRole[] = ["auxiliar", "store-admin"];
+const MASTER_ROLES: NormalizedUserRole[] = ["admin", "super-admin"];
+const STORE_ADMIN_ROLES: NormalizedUserRole[] = ["admin"];
+const CASHIER_ROLES: NormalizedUserRole[] = ["admin"];
+const INVENTORY_ROLES: NormalizedUserRole[] = ["inventory", "admin"];
+const AUXILIAR_ROLES: NormalizedUserRole[] = ["auxiliar", "admin"];
 const WAREHOUSE_ROLES: NormalizedUserRole[] = [
   "inventory",
   "auxiliar",
-  "store-admin",
+  "admin",
 ];
 const DISPATCH_ROLES: NormalizedUserRole[] = [
-  "dispatcher",
-  "store-admin",
-  "sales-manager",
+  "auxiliar",
+  "admin",
 ];
 const DELIVERY_ROLES: NormalizedUserRole[] = [
   "rutero",
-  "store-admin",
-  "sales-manager",
+  "admin",
+  "gestor",
 ];
 const SALES_TEAM_ROLES: NormalizedUserRole[] = [
-  "vendor",
-  "sales-manager",
-  "store-admin",
+  "gestor",
+  "admin",
 ];
 const SALES_ADMIN_ROLES: NormalizedUserRole[] = [
-  "sales-manager",
-  "store-admin",
+  "gestor",
+  "admin",
 ];
 
 const ProtectedRoute = ({
@@ -1163,7 +1161,7 @@ function App() {
                         path="/master-admin/stores"
                         element={
                           <ProtectedRoute
-                            allowedRoles={[...MASTER_ROLES, "chain-admin"]}
+                            allowedRoles={MASTER_ROLES}
                           >
                             <MasterStoresPage />
                           </ProtectedRoute>
@@ -1181,7 +1179,7 @@ function App() {
                         path="/master-admin/stores/add"
                         element={
                           <ProtectedRoute
-                            allowedRoles={[...MASTER_ROLES, "chain-admin"]}
+                            allowedRoles={MASTER_ROLES}
                           >
                             <AddStorePage />
                           </ProtectedRoute>
@@ -1191,7 +1189,7 @@ function App() {
                         path="/master-admin/stores/edit/:storeId"
                         element={
                           <ProtectedRoute
-                            allowedRoles={[...MASTER_ROLES, "chain-admin"]}
+                            allowedRoles={MASTER_ROLES}
                           >
                             <EditStorePage />
                           </ProtectedRoute>

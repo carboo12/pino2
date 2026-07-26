@@ -24,7 +24,7 @@ import { CreateAuthorizationDto } from './authorizations.dto';
 export class AuthorizationsController {
   constructor(private readonly service: AuthorizationsService) {}
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Post()
   @ApiOperation({ summary: 'Crear solicitud de autorización' })
   create(@Body() dto: CreateAuthorizationDto, @Req() req: any) {
@@ -34,14 +34,14 @@ export class AuthorizationsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar autorizaciones de una tienda' })
   findAll(@Query('storeId') storeId?: string, @Query('status') status?: string, @Query('limit') limit?: string) {
     return this.service.findAll(storeId, status, limit ? parseInt(limit) : undefined);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Aprobar o rechazar autorización' })
   updateStatus(

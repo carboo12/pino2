@@ -1,11 +1,37 @@
-// ===== ROLES =====
+// ===== ROLES (6 canónicos según negocio) =====
 export const USER_ROLES = [
-  'master-admin', 'owner', 'chain-admin', 'store-admin',
-  'cashier', 'inventory', 'dispatcher', 'rutero',
-  'vendor', 'sales-manager', 'auxiliar',
-  'supervisor-caja', 'supervisor-pasillo',
+  'admin',       // JEFE/ENCARGADO DE BODEGA — acceso web total
+  'super-admin', // ADMINISTRADOR GENERAL — acceso máximo
+  'auxiliar',    // AUXILIAR DE RECEPCIÓN Y DESPACHO
+  'inventory',   // ANALISTA DE INVENTARIO (Bodeguero)
+  'gestor',      // GESTOR DE VENTAS (App móvil)
+  'rutero',      // RUTERO (App móvil)
 ] as const;
 export type UserRole = typeof USER_ROLES[number];
+
+// Legacy role mapping for migration
+export const LEGACY_ROLE_MAP: Record<string, UserRole> = {
+  'master-admin': 'admin',
+  'owner': 'super-admin',
+  'chain-admin': 'admin',
+  'store-admin': 'admin',
+  'cashier': 'admin',
+  'inventory': 'inventory',
+  'dispatcher': 'auxiliar',
+  'rutero': 'rutero',
+  'vendor': 'gestor',
+  'sales-manager': 'gestor',
+  'auxiliar': 'auxiliar',
+  'supervisor-caja': 'admin',
+  'supervisor-pasillo': 'admin',
+  'cajero': 'admin',
+  'vendedor': 'gestor',
+  'despachador': 'auxiliar',
+  'despacho': 'auxiliar',
+  'admin': 'admin',
+  'super-admin': 'super-admin',
+  'gestor': 'gestor',
+};
 
 // ===== ORDER STATUSES =====
 export const ORDER_STATUSES = [

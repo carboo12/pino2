@@ -32,7 +32,7 @@ import {
 export class InventoryController {
   constructor(private readonly service: InventoryService) {}
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Post('counts')
   @ApiOperation({ summary: 'Abrir conteo físico ciego de inventario' })
   createCount(@Body() dto: CreateInventoryCountDto, @Req() req: any) {
@@ -42,21 +42,21 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Get('counts')
   @ApiOperation({ summary: 'Listar conteos físicos de inventario' })
   listCounts(@Query('storeId') storeId: string) {
     return this.service.listCounts(storeId);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Get('counts/:id')
   @ApiOperation({ summary: 'Detalle de conteo; oculta stock mientras está abierto' })
   findCount(@Param('id') id: string) {
     return this.service.findCount(id);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Post('counts/:id/items')
   @ApiOperation({ summary: 'Registrar cantidad física sin revelar stock lógico' })
   recordCountItem(
@@ -66,14 +66,14 @@ export class InventoryController {
     return this.service.recordCountItem(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Post('counts/:id/close')
   @ApiOperation({ summary: 'Cerrar conteo y calcular discrepancias' })
   closeCount(@Param('id') id: string, @Req() req: any) {
     return this.service.closeCount(id, req.user.sub);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Post('counts/:id/request-adjustment')
   @ApiOperation({ summary: 'Solicitar ajuste por discrepancia del conteo' })
   requestCountAdjustment(
@@ -89,7 +89,7 @@ export class InventoryController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('adjust')
   @ApiOperation({ summary: 'Ajustar stock de un producto' })
   adjustStock(@Body() dto: AdjustStockDto, @Req() req: any) {
@@ -99,7 +99,7 @@ export class InventoryController {
     } as any);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('admin', 'inventory')
   @Get('movements')
   @ApiOperation({ summary: 'Obtener historial de movimientos de inventario' })
   getMovements(
@@ -120,7 +120,7 @@ export class InventoryController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory', 'auxiliar')
+  @Roles('admin', 'inventory', 'auxiliar')
   @Get('warehouse')
   @ApiOperation({ summary: 'Obtener inventario de bodega por tienda' })
   async getWarehouseInventory(
@@ -141,17 +141,17 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero', 'vendor')
-  @Get('vendor')
+  @Roles('admin', 'rutero', 'gestor')
+  @Get('gestor')
   @ApiOperation({ summary: 'Obtener inventario asignado a un rutero/vendedor' })
   getVendorInventory(@Query('vendorId') vendorId: string, @Req() req: any) {
-    const isFieldCustodian = ['rutero', 'vendor'].includes(req.user?.role);
+    const isFieldCustodian = ['rutero', 'gestor'].includes(req.user?.role);
     return this.service.getVendorInventory(
       isFieldCustodian ? req.user.sub : vendorId,
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('transfer')
   @ApiOperation({ summary: 'Trasladar producto entre tiendas/bodegas' })
   transferBetweenStores(
@@ -164,7 +164,7 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'auxiliar')
+  @Roles('admin', 'auxiliar')
   @Post('quick-entry')
   @ApiOperation({
     summary: 'Entrada rápida de producto sin factura ni proveedor',
@@ -180,7 +180,7 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('merma')
   @ApiOperation({
     summary: 'Registrar merma (producto dañado, vencido o perdido)',
@@ -196,7 +196,7 @@ export class InventoryController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('ajuste')
   @ApiOperation({ summary: 'Ajuste de inventario (positivo o negativo)' })
   registerAjuste(@Body() dto: AjusteDto, @Req() req: any) {

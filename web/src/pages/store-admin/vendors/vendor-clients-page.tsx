@@ -68,7 +68,7 @@ export default function VendorClientsPage() {
     });
 
     const vendors: Record<string, string> = {};
-    usersData.filter((u: any) => normalizeUserRole(u.role) === 'vendor').forEach((v: any) => { vendors[v.id || v.uid] = v.name; });
+    usersData.filter((u: any) => normalizeUserRole(u.role) === 'gestor').forEach((v: any) => { vendors[v.id || v.uid] = v.name; });
 
     const zones: Record<string, string> = {};
     zonesData.forEach((z: any) => { zones[z.id] = z.name; });

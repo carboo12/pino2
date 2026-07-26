@@ -25,7 +25,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class LiquidacionesRutaController {
   constructor(private readonly service: LiquidacionesRutaService) {}
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Post()
   create(@Body() dto: CreateLiquidacionDto, @Req() req: any) {
     const isRutero = req.user?.role === 'rutero';
@@ -42,7 +42,7 @@ export class LiquidacionesRutaController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/review')
   review(
     @Param('id') id: string,
@@ -52,13 +52,13 @@ export class LiquidacionesRutaController {
     return this.service.review(id, req.user.sub, dto.notes);
   }
 
-  @Roles('master-admin', 'store-admin', 'auxiliar')
+  @Roles('admin', 'auxiliar')
   @Post(':id/receive-merchandise')
   receiveMerchandise(@Param('id') id: string, @Req() req: any) {
     return this.service.receiveMerchandise(id, req.user.sub);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/approve')
   approve(
     @Param('id') id: string,
@@ -73,7 +73,7 @@ export class LiquidacionesRutaController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get()
   findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string, @Query('ruteroId') ruteroId?: string, @Req() req?: any) {
     return this.service.findAll(
@@ -83,7 +83,7 @@ export class LiquidacionesRutaController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.service.findOne(

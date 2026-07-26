@@ -22,7 +22,7 @@ import { CreateCollectionDto } from './collections.dto';
 export class CollectionsController {
   constructor(private readonly service: CollectionsService) {}
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Post()
   @ApiOperation({ summary: 'Registrar cobro del rutero' })
   create(@Body() dto: CreateCollectionDto, @Req() req: any) {
@@ -34,7 +34,7 @@ export class CollectionsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar cobros con filtros' })
   findAll(
@@ -52,7 +52,7 @@ export class CollectionsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero')
+  @Roles('admin', 'rutero')
   @Get('summary')
   @ApiOperation({ summary: 'Resumen de cobros por rutero/fecha' })
   getSummary(

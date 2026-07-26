@@ -18,28 +18,28 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class PurchaseOrdersController {
   constructor(private readonly service: PurchaseOrdersService) {}
 
-  @Roles('master-admin', 'store-admin', 'inventory', 'auxiliar')
+  @Roles('admin', 'inventory', 'auxiliar')
   @Post()
   @ApiOperation({ summary: 'Crear una nueva orden de compra' })
   create(@Body() dto: CreatePurchaseOrderDto, @Request() req: any) {
     return this.service.create(dto, req.user?.sub);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory', 'auxiliar')
+  @Roles('admin', 'inventory', 'auxiliar')
   @Get()
   @ApiOperation({ summary: 'Listar órdenes de compra' })
   findAll(@Query('storeId') storeId: string, @Query('status') status?: string) {
     return this.service.findAll(storeId, status);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory', 'auxiliar')
+  @Roles('admin', 'inventory', 'auxiliar')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de orden de compra' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory', 'auxiliar')
+  @Roles('admin', 'inventory', 'auxiliar')
   @Post(':id/receipts')
   @ApiOperation({ summary: 'Registrar recepción parcial idempotente' })
   receive(
@@ -50,7 +50,7 @@ export class PurchaseOrdersController {
     return this.service.receive(id, dto, req.user?.sub);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Actualizar estado de orden de compra' })
   updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdatePurchaseOrderStatusDto, @Request() req: any) {

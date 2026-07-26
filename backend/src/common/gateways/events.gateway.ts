@@ -69,7 +69,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!user) throw new WsException('No autenticado');
 
     const allowed =
-      user.role === 'master-admin' || (user.storeIds || []).includes(storeId);
+      user.role === 'admin' || user.role === 'super-admin' || (user.storeIds || []).includes(storeId);
     if (!allowed) throw new WsException('forbidden');
 
     client.join(`store_${storeId}`);

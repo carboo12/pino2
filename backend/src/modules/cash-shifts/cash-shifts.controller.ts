@@ -25,7 +25,7 @@ import { OpenShiftDto, CloseShiftDto } from './cash-shifts.dto';
 export class CashShiftsController {
   constructor(private readonly service: CashShiftsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Abrir un nuevo turno de caja' })
   openShift(@Body() dto: OpenShiftDto, @Req() req: any) {
@@ -37,7 +37,7 @@ export class CashShiftsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('close')
   @ApiOperation({ summary: 'Cerrar un turno de caja' })
   closeShift(@Body() dto: CloseShiftDto, @Req() req: any) {
@@ -52,7 +52,7 @@ export class CashShiftsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'cashier')
+  @Roles('admin')
   @Get('active')
   @ApiOperation({
     summary:
@@ -69,14 +69,14 @@ export class CashShiftsController {
     return shift;
   }
 
-  @Roles('master-admin', 'store-admin', 'cashier')
+  @Roles('admin')
   @Get('stats/:id')
   @ApiOperation({ summary: 'Obtener estadísticas (totales) de un turno' })
   getStats(@Param('id') id: string) {
     return this.service.getShiftStats(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar todos los turnos de caja de una tienda' })
   findAll(
@@ -88,14 +88,14 @@ export class CashShiftsController {
     return this.service.findAll(storeId, status, cashierId, limit);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un turno de caja específico por ID' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/close')
   @ApiOperation({ summary: 'Cerrar un turno de caja por ID en URL' })
   closeShiftById(

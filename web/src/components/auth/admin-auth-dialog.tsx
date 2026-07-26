@@ -16,7 +16,7 @@ interface AdminAuthDialogProps {
     onConfirm: () => void;
     title?: string;
     description?: string;
-    requiredRole?: 'admin' | 'owner';
+    requiredRole?: 'admin' | 'super-admin';
 }
 
 export function AdminAuthDialog({
@@ -28,7 +28,7 @@ export function AdminAuthDialog({
     requiredRole,
 }: AdminAuthDialogProps) {
     const { user } = useAuth();
-    const isCurrentUserPrivileged = ['store-admin', 'master-admin', 'owner'].includes(normalizeUserRole(user?.role));
+    const isCurrentUserPrivileged = ['admin', 'super-admin'].includes(normalizeUserRole(user?.role));
     const [adminEmail, setAdminEmail] = useState(user?.email || '');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -53,9 +53,9 @@ export function AdminAuthDialog({
 
             const authorizedRole = normalizeUserRole(response.data?.user?.role);
             const authorized =
-                requiredRole === 'owner'
-                    ? authorizedRole === 'owner' || authorizedRole === 'master-admin'
-                    : ['store-admin', 'master-admin', 'owner'].includes(authorizedRole);
+                requiredRole === 'super-admin'
+                    ? authorizedRole === 'super-admin' || authorizedRole === 'admin'
+                    : ['admin', 'super-admin'].includes(authorizedRole);
 
             if (!authorized) {
                 setError('Las credenciales no corresponden a un usuario autorizado.');

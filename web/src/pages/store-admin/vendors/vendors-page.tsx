@@ -25,7 +25,7 @@ export default function VendorsPage() {
                 const res = await apiClient.get('/users', { params: { storeId } });
                 const routeStaff = (res.data || []).filter((u: any) => {
                     const role = normalizeUserRole(u.role);
-                    return role === 'vendor' || role === 'sales-manager' || role === 'rutero';
+                    return role === 'gestor' || role === 'rutero';
                 });
                 setVendors(routeStaff.map((u: any) => ({ uid: u.id || u.uid, name: u.name, email: u.email, role: u.role })));
             } catch (err) { setError("No se pudieron cargar los vendedores."); }

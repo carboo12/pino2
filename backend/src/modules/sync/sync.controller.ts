@@ -24,7 +24,7 @@ import { BatchSyncDto } from './sync.dto';
 export class SyncController {
   constructor(private readonly service: SyncService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get('statuses')
   @ApiOperation({
     summary: 'Obtener el estado de sincronización de todas las tiendas',
@@ -33,21 +33,21 @@ export class SyncController {
     return this.service.getStatuses();
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get('idempotency-logs')
   @ApiOperation({ summary: 'Obtener logs de idempotencia para auditoría' })
   getIdempotencyLogs(@Query('storeId') storeId?: string) {
     return this.service.getIdempotencyLogs(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('batch')
   @ApiOperation({ summary: 'Recibir una carga batch de operaciones offline' })
   processBatch(@Body() dto: BatchSyncDto) {
     return this.service.processBatchSync(dto.storeId, dto.operations);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('force/:storeId')
   @ApiOperation({
     summary: 'Forzar un nuevo ciclo de sincronización para una tienda',
@@ -56,7 +56,7 @@ export class SyncController {
     return this.service.forceSync(storeId);
   }
 
-  @Roles('master-admin', 'store-admin', 'sales-manager')
+  @Roles('admin', 'gestor')
   @Get('data')
   @ApiOperation({
     summary:

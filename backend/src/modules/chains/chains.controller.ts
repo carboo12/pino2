@@ -24,7 +24,7 @@ export class ChainsController {
   constructor(private readonly chainsService: ChainsService) {}
 
   @Post()
-  @Roles('master-admin')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Crear una nueva cadena de tiendas (Solo Master Admin)',
   })
@@ -32,14 +32,14 @@ export class ChainsController {
     return this.chainsService.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar todas las cadenas' })
   findAll() {
     return this.chainsService.findAll();
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una cadena' })
   findOne(@Param('id') id: string) {
@@ -47,14 +47,14 @@ export class ChainsController {
   }
 
   @Patch(':id')
-  @Roles('master-admin', 'chain-admin')
+  @Roles('admin')
   @ApiOperation({ summary: 'Actualizar datos de una cadena' })
   update(@Param('id') id: string, @Body() dto: UpdateChainDto) {
     return this.chainsService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles('master-admin')
+  @Roles('admin')
   @ApiOperation({ summary: 'Desactivar una cadena' })
   remove(@Param('id') id: string) {
     return this.chainsService.remove(id);

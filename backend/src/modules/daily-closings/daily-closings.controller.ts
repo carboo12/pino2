@@ -23,7 +23,7 @@ import { CreateDailyClosingDto } from './daily-closings.dto';
 export class DailyClosingsController {
   constructor(private readonly service: DailyClosingsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Registrar cierre de caja del rutero' })
   create(@Body() dto: CreateDailyClosingDto, @Req() req: any) {
@@ -33,7 +33,7 @@ export class DailyClosingsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
+  @Roles('admin', 'rutero', 'gestor', 'inventory', 'auxiliar')
   @Get()
   @ApiOperation({ summary: 'Listar cierres de caja' })
   findAll(
@@ -44,7 +44,7 @@ export class DailyClosingsController {
     return this.service.findAll({ storeId, ruteroId, date });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get('summary')
   @ApiOperation({ summary: 'Resumen de cierre del día para un rutero' })
   getSummary(
@@ -55,7 +55,7 @@ export class DailyClosingsController {
     return this.service.getSummary({ storeId, userId, date });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de cierre' })
   findOne(@Param('id') id: string) {

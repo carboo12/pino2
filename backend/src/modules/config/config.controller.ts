@@ -14,21 +14,21 @@ import { UpsertConfigDto } from './config.dto';
 export class ConfigController {
   constructor(private readonly service: ConfigService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Obtener todas las configuraciones' })
   getAll() {
     return this.service.getAll();
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':key')
   @ApiOperation({ summary: 'Obtener configuración por clave' })
   getByKey(@Param('key') key: string) {
     return this.service.getByKey(key);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Put(':key')
   @ApiOperation({ summary: 'Crear o actualizar configuración' })
   upsert(@Param('key') key: string, @Body() dto: UpsertConfigDto) {

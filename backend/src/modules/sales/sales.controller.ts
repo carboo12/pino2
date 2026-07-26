@@ -23,7 +23,7 @@ import { ProcessSaleDto, SaleResponseDto } from './sales.dto';
 export class SalesController {
   constructor(private readonly service: SalesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('process')
   @ApiOperation({ summary: 'Procesar una venta (Transaccional puro)' })
   @ApiOkResponse({ type: SaleResponseDto })
@@ -31,7 +31,7 @@ export class SalesController {
     return this.service.processSale(dto, req.user.sub);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiOperation({
     summary: 'Listar ventas (Filtrable por tienda, turno, vendedor y fecha)',
@@ -60,7 +60,7 @@ export class SalesController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get('dashboard-stats')
   @ApiOperation({
     summary:
@@ -70,7 +70,7 @@ export class SalesController {
     return this.service.getDashboardStats(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get('report')
   @ApiOperation({ summary: 'Obtener reporte consolidado de ventas' })
   getReport(
@@ -82,7 +82,7 @@ export class SalesController {
     return this.service.getSalesReport(storeId, startDate, endDate, shiftId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una venta con sus items' })
   @ApiOkResponse({ type: SaleResponseDto })
@@ -90,7 +90,7 @@ export class SalesController {
     return this.service.findOne(id, storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post(':id/return')
   @ApiOperation({ summary: 'Procesar devolución de una venta' })
   processReturn(

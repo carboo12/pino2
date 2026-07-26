@@ -30,7 +30,7 @@ export class StoresController {
   constructor(private readonly storesService: StoresService) {}
 
   @Post()
-  @Roles('master-admin', 'chain-admin')
+  @Roles('admin')
   @ApiOperation({
     summary: 'Requisitar creación de tienda (Master/Chain Admin)',
   })
@@ -38,7 +38,7 @@ export class StoresController {
     return this.storesService.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   @ApiQuery({ name: 'chainId', required: false })
   @ApiOperation({ summary: 'Listar tiendas (Filtrable por cadena)' })
@@ -46,7 +46,7 @@ export class StoresController {
     return this.storesService.findAll(chainId);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de una tienda específica' })
   findOne(@Param('id') id: string) {
@@ -54,13 +54,13 @@ export class StoresController {
   }
 
   @Patch(':id')
-  @Roles('master-admin', 'chain-admin', 'store-admin')
+  @Roles('admin')
   @ApiOperation({ summary: 'Actualizar datos de una tienda' })
   update(@Param('id') id: string, @Body() dto: UpdateStoreDto) {
     return this.storesService.update(id, dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id/default-client')
   @ApiOperation({ summary: 'Obtener o crear cliente por defecto de la tienda' })
   async getDefaultClient(@Param('id') id: string) {
@@ -68,7 +68,7 @@ export class StoresController {
   }
 
   @Patch(':id/settings')
-  @Roles('master-admin', 'chain-admin', 'store-admin')
+  @Roles('admin')
   @ApiOperation({ summary: 'Actualizar configuración JSONB de la tienda' })
   updateSettings(
     @Param('id') id: string,
@@ -78,7 +78,7 @@ export class StoresController {
   }
 
   @Delete(':id')
-  @Roles('master-admin', 'chain-admin')
+  @Roles('admin')
   @ApiOperation({ summary: 'Desactivar una tienda (Lógico)' })
   remove(@Param('id') id: string) {
     return this.storesService.remove(id);

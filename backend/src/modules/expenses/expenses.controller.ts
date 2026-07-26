@@ -14,14 +14,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class ExpensesController {
   constructor(private readonly service: ExpensesService) {}
 
-  @Roles('master-admin', 'store-admin', 'cajero')
+  @Roles('admin')
   @Post()
   @ApiOperation({ summary: 'Registrar un nuevo gasto' })
   create(@Body() dto: CreateExpenseDto, @Request() req: any) {
     return this.service.create(dto, req.user?.id);
   }
 
-  @Roles('master-admin', 'store-admin', 'cajero')
+  @Roles('admin')
   @Get()
   @ApiOperation({ summary: 'Listar gastos' })
   findAll(
@@ -32,7 +32,7 @@ export class ExpensesController {
     return this.service.findAll(storeId, category, shiftId);
   }
 
-  @Roles('master-admin', 'store-admin', 'cajero')
+  @Roles('admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de gasto' })
   findOne(@Param('id') id: string) {

@@ -14,35 +14,35 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class VehiclesController {
   constructor(private readonly service: VehiclesService) {}
 
-  @Roles('master-admin', 'store-admin', 'despachador')
+  @Roles('admin', 'auxiliar')
   @Post()
   @ApiOperation({ summary: 'Registrar un nuevo vehículo' })
   create(@Body() dto: CreateVehicleDto) {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
+  @Roles('admin', 'auxiliar', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar vehículos' })
   findAll(@Query('storeId') storeId: string, @Query('status') status?: string) {
     return this.service.findAll(storeId, status);
   }
 
-  @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
+  @Roles('admin', 'auxiliar', 'rutero')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de vehículo con historial' })
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('master-admin', 'store-admin', 'despachador')
+  @Roles('admin', 'auxiliar')
   @Post('maintenance')
   @ApiOperation({ summary: 'Registrar mantenimiento de vehículo' })
   addMaintenance(@Body() dto: CreateVehicleMaintenanceDto) {
     return this.service.addMaintenance(dto);
   }
 
-  @Roles('master-admin', 'store-admin', 'despachador', 'rutero')
+  @Roles('admin', 'auxiliar', 'rutero')
   @Post('fuel')
   @ApiOperation({ summary: 'Registrar carga de combustible' })
   addFuelLog(@Body() dto: CreateFuelLogDto, @Request() req: any) {

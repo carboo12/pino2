@@ -20,19 +20,19 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class ArqueosController {
   constructor(private readonly service: ArqueosService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post()
   create(@Body() dto: CreateArqueoDto, @Req() req: any) {
     return this.service.create({ ...dto, realizadoPor: req.user.sub });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get()
   findAll(@Query('storeId') storeId: string, @Query('fecha') fecha?: string) {
     return this.service.findAll(storeId, fecha);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);

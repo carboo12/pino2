@@ -440,7 +440,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         setAllStores(ids.map((id) => ({ id, name: id })));
       }
     };
-    if (user?.role === 'master-admin' || user?.role === 'owner') {
+    if (normalizeUserRole(user?.role) === 'admin' || normalizeUserRole(user?.role) === 'super-admin') {
       fetchStores();
     } else if (user?.storeIds?.length) {
       fetchStoreNames(user.storeIds);
@@ -493,37 +493,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = useMemo(() => {
     const roleId = normalizeUserRole(user?.role);
     switch (roleId) {
-      case 'master-admin':
-      case 'owner':
+      case 'admin':
+      case 'super-admin':
         if (storeId) {
           return getStoreAdminNav(storeId);
         }
         return getMasterAdminNav();
-      case 'chain-admin':
-        if (storeId) {
-          return getStoreAdminNav(storeId);
-        }
-        return getChainAdminNav();
-      case 'store-admin':
-        return getStoreAdminNav(storeId || '');
       case 'inventory':
         return getBodegueroNav(storeId || '');
-      case 'cashier':
-        return getCashierNav(storeId || '');
-      case 'dispatcher':
-        return getDespachoNav(storeId || '');
       case 'rutero':
         return getRuteroNav(storeId || '');
-      case 'vendor':
-        return getVendedorAmbulanteNav(storeId || '');
-      case 'sales-manager':
+      case 'gestor':
         return getGestorVentasNav(storeId || '');
       case 'auxiliar':
         return getAuxiliarNav(storeId || '');
-      case 'supervisor-caja':
-        return getSupervisorCajaNav(storeId || '');
-      case 'supervisor-pasillo':
-        return getSupervisorPasilloNav(storeId || '');
       default:
         return storeId ? getStoreAdminNav(storeId) : [];
     }
@@ -542,11 +525,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const logoHref = (() => {
     const role = normalizeUserRole(user?.role);
-    if (role === 'master-admin' || role === 'owner') return '/master-admin/dashboard';
-    if (role === 'chain-admin') {
-      if (MVP_FEATURES.chainDashboard) return '/chain-admin/dashboard';
-      return storeId ? `/store/${storeId}/dashboard` : '/master-admin/stores';
-    }
+    if (role === 'admin' || role === 'super-admin') return '/master-admin/dashboard';
     return storeId ? `/store/${storeId}/dashboard` : '/';
   })();
 
@@ -601,10 +580,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 
           <div className="flex-1 overflow-y-auto py-2">
-            {!sidebarCollapsed && storeId && (normalizeUserRole(user?.role) === 'master-admin' || normalizeUserRole(user?.role) === 'owner' || normalizeUserRole(user?.role) === 'chain-admin') && (
+            {!sidebarCollapsed && storeId && (normalizeUserRole(user?.role) === 'admin' || normalizeUserRole(user?.role) === 'super-admin') && (
               <div className="px-2 pb-2 mb-1 border-b border-border/50 lg:px-4">
                 <Link
-                  to={normalizeUserRole(user?.role) === 'chain-admin' ? (MVP_FEATURES.chainDashboard ? '/chain-admin/dashboard' : '/master-admin/stores') : '/master-admin/stores'}
+                  to={'/master-admin/stores'}
                   className="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-lg transition-colors hover:bg-primary/90"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>

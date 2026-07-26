@@ -23,7 +23,7 @@ import { ProcessTransactionDto } from './vendor-inventories.dto';
 export class VendorInventoriesController {
   constructor(private readonly service: VendorInventoriesService) {}
 
-  @Roles('master-admin', 'store-admin', 'rutero', 'vendor', 'sales-manager', 'inventory')
+  @Roles('admin', 'rutero', 'gestor', 'inventory')
   @Get(':vendorId/:productId')
   @ApiOperation({
     summary: 'Obtener inventario de un producto asignado a un vendedor',
@@ -39,7 +39,7 @@ export class VendorInventoriesController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'rutero', 'vendor', 'sales-manager', 'inventory')
+  @Roles('admin', 'rutero', 'gestor', 'inventory')
   @Get(':vendorId')
   @ApiOperation({ summary: 'Listar productos asignados a un vendedor' })
   getVendorProducts(
@@ -51,7 +51,7 @@ export class VendorInventoriesController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('admin')
   @Post('transaction')
   @ApiOperation({
     summary:
