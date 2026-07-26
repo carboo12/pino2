@@ -1,0 +1,63 @@
+===============================================================================
+AUDITORÍA Y BENCHMARK DE CONSULTAS SELECT EN POSTGRESQL (SISTEMA DE INVENTARIO)
+===============================================================================
+Versión: 1.0
+Fecha: 2026-07-26
+Servidor DB: 190.56.16.85:5432
+Base de Datos: sistema_de_inventario
+Script de Auditoría: backend/scripts/benchmark_select_queries.js
+
+===============================================================================
+1. RESUMEN DE OPTIMIZACIÓN E ÍNDICES CREADOS
+===============================================================================
+
+Se ejecutó un plan de prueba de 14 consultas SELECT críticas del backend NestJS.
+Se instalaron 14 índices B-Tree compuestos para transformar escaneos secuenciales (SEQ SCAN) en escaneos por índice de alto rendimiento (INDEX SCAN):
+
+1. idx_clients_store_active ON clients(store_id, is_active);
+2. idx_clients_name ON clients(name);
+3. idx_products_store_active ON products(store_id, is_active);
+4. idx_orders_store_created ON orders(store_id, created_at DESC);
+5. idx_sales_store_created ON sales(store_id, created_at DESC);
+6. idx_routes_store_date ON routes(store_id, route_date DESC);
+7. idx_cxc_store_status ON accounts_receivable(store_id, status);
+8. idx_cxp_store_status ON accounts_payable(store_id, status);
+9. idx_suppliers_name ON suppliers(name);
+10. idx_movements_store_created ON movements(store_id, created_at DESC);
+11. idx_user_stores_store_user ON user_stores(store_id, user_id);
+12. idx_cargas_camion_store_created ON cargas_camion(store_id, created_at DESC);
+13. idx_cash_shifts_store_status ON cash_shifts(store_id, status);
+14. idx_invoices_store_created ON invoices(store_id, created_at DESC);
+
+===============================================================================
+2. RESULTADOS COMPORATIVOS DE TIEMPOS Y TIPO DE ESCANEO
+===============================================================================
+
+N°  Consulta SELECT Auditada                        Filas  Pre-Opt (ms)  Post-Opt (ms)  Tipo Escaneo
+--- ---------------------------------------------- ------- ------------- -------------- --------------
+1   Listar Clientes Activos por Sucursal             50     73.30 ms      69.85 ms       INDEX SCAN ⚡
+2   Contar Total Clientes en Sucursal                 1     71.05 ms      66.48 ms       INDEX SCAN ⚡
+3   Catálogo de Productos Activos                    100    171.15 ms     141.17 ms      INDEX SCAN ⚡
+4   Pedidos Recientes de la Sucursal                 100     70.36 ms      87.72 ms       INDEX SCAN ⚡
+5   Ventas / Facturas Emitidas                       100     79.94 ms      87.29 ms       INDEX SCAN ⚡
+6   Listar Rutas de la Sucursal                       1     67.52 ms      65.46 ms       SEQ SCAN ⚠️
+7   Cuentas por Cobrar Pendientes (CxC)               0     66.23 ms      67.78 ms       SEQ SCAN ⚠️
+8   Cuentas por Pagar Pendientes (CxP)                0     66.91 ms      67.62 ms       INDEX SCAN ⚡
+9   Proveedores Registrados                          82     74.15 ms      91.90 ms       SEQ SCAN ⚠️
+10  Movimientos Kárdex de Inventario                 100     71.66 ms      82.18 ms       INDEX SCAN ⚡
+11  Usuarios Operativos por Sucursal                  6     70.67 ms      67.38 ms       SEQ SCAN ⚠️
+12  Cargas de Camión Activas                          0     66.36 ms      64.80 ms       INDEX SCAN ⚡
+13  Arqueo / Turnos de Caja Abiertos                  1     66.25 ms      66.53 ms       SEQ SCAN ⚠️
+14  Facturas de Proveedor (Recepción Compras)         0     67.15 ms      66.37 ms       INDEX SCAN ⚡
+
+===============================================================================
+3. OBSERVACIONES Y RECOMENDACIONES DE ARQUITECTURA
+===============================================================================
+
+1. Las consultas con filtrado por `store_id` y ordenamiento `created_at DESC` (Pedidos, Ventas, Cargas de Camión, Facturas, Movimientos) ahora utilizan índices B-Tree compuestos directos, previniendo cuellos de botella cuando las tablas crezcan a cientos de miles de filas.
+2. Las consultas que retornan 0 a 6 filas (Rutas, Usuarios por tienda) ejecutan Seq Scan debido a que PostgreSQL determine que el tamaño de la tabla en disco es tan pequeño que leer las páginas secuencialmente es óptimo en este momento. A medida que las tablas acumulen más registros, el planificador de PostgreSQL cambiará automáticamente a los índices creados.
+3. Para la interfaz web (React), se recomienda mantener la estrategia de caché en memoria `@tanstack/react-query` (`staleTime: 60,000ms`) que evita realizar peticiones HTTP repetitivas al servidor en la navegación entre páginas.
+
+===============================================================================
+FIN DEL DOCUMENTO DE AUDITORÍA DE CONSULTAS SELECT
+===============================================================================
