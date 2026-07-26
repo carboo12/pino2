@@ -735,6 +735,17 @@ function App() {
                         }
                       />
                       <Route
+                        path="/store/:storeId/cxc"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <ReceivablesPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/store/:storeId/finance/aging"
                         element={
                           <ProtectedRoute
