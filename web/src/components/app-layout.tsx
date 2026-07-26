@@ -104,7 +104,7 @@ const getStoreAdminNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Panel Sucursal', href: `/store/${storeId}/dashboard`, icon: LayoutDashboard },
   { type: 'separator' },
   { type: 'group', name: 'Ventas & Pedidos', icon: ShoppingCart, children: [
-    { type: 'link', name: 'Preventas & Pipeline', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
+    { type: 'link', name: 'Preventas & Flujo de Pedidos', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
     { type: 'link', name: 'Ventas & Facturación', href: `/store/${storeId}/work/sales`, icon: Route },
     { type: 'link', name: 'Clientes & Cartera', href: `/store/${storeId}/vendors/clients`, icon: Users },
   ]},
