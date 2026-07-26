@@ -72,7 +72,7 @@ export default function EditUserPage() {
   const [loading, setLoading] = useState(true);
   const [assignedStores, setAssignedStores] = useState<Array<{ id: string; name: string }>>([]);
 
-  const roleOptions = isMasterMode ? MASTER_ROLE_OPTIONS : STORE_ROLE_OPTIONS;
+  const roleOptions = MASTER_ROLE_OPTIONS;
   const backHref = isMasterMode ? '/master-admin/users' : `/store/${storeId}/users`;
 
   const form = useForm<z.infer<typeof userFormSchema>>({
