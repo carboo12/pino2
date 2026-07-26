@@ -33,8 +33,8 @@ export class StoreAccessGuard implements CanActivate {
     const normalizedRole = normalizeUserRole(user.role);
     if (normalizedRole) user.role = normalizedRole;
 
-    // Global admins can access any store (must provide storeId explicitly)
-    if (normalizedRole === 'admin' || normalizedRole === 'super-admin') {
+    // Global super-admin can access any store (must provide storeId explicitly if needed)
+    if (normalizedRole === 'super-admin') {
       if (storeId) {
         request.context = { userId: user.sub, role: user.role, storeIds: user.storeIds || [], activeStoreId: storeId };
       }

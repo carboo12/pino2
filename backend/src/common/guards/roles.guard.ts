@@ -23,6 +23,8 @@ export class RolesGuard implements CanActivate {
     if (!user) throw new ForbiddenException('No autenticado');
 
     const normalizedRole = normalizeUserRole(user.role);
+    if (normalizedRole === 'super-admin') return true;
+
     const hasRole = requiredRoles.some((role) => normalizedRole === role);
     if (!hasRole) {
       throw new ForbiddenException(

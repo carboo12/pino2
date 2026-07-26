@@ -39,10 +39,12 @@ async function isHealthy(url: string, timeoutMs: number): Promise<boolean> {
 const STORAGE_KEY = 'pino_server_preference';
 
 export function getConfiguredUrls(storeId?: string): { local: string; cloud: string } {
-  const cloudUrl = import.meta.env.VITE_API_URL || 'https://rhclaroni.com/api-dev';
+  // PRODUCCIÓN / REMOTO PRESERVADO:
+  // const cloudUrl = import.meta.env.VITE_API_URL || 'https://rhclaroni.com/api-dev';
+  const cloudUrl = import.meta.env.VITE_API_URL || 'http://localhost:3010/api';
   const localUrl = storeId
-    ? `http://${storeId}.local:3035`
-    : 'http://127.0.0.1:3035';
+    ? `http://${storeId}.local:3010`
+    : 'http://127.0.0.1:3010';
   return { local: localUrl, cloud: cloudUrl };
 }
 

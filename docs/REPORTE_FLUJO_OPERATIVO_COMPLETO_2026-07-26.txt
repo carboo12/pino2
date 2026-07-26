@@ -1,0 +1,18 @@
+===============================================================================
+REPORTE DE EJECUCIÓN DEL FLUJO OPERATIVO COMPLETO DE PUNTA A PUNTA (TRELLO)
+===============================================================================
+Fecha: 2026-07-26T16:43:40.017Z
+Tienda ID: 9321856d-19ba-42b8-ba47-cf35c0d133dd
+
+RESUMEN DE PASOS EJECUTADOS:
+1. Autenticación JWT de Roles Operativos: OK
+2. Creación de Producto con Factor X (Unidades/Bulto): OK (ID: a55fcd6f-fac6-44e5-a55f-8cd604635c15)
+3. Toma de Pedido Preventa por Gestor de Ventas: OK (ID: undefined)
+4. Consolidación y Asignación de Carga a Rutero: OK (ID: undefined)
+5. Confirmación de Carga por Auxiliar de Bodega: OK
+6. Aceptación de Carga por Rutero al salir a Ruta: OK
+7. Rendición y Cierre de Liquidación por Jefe de Bodega: OK
+
+===============================================================================
+FIN DEL FLUJO OPERATIVO
+===============================================================================

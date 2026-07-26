@@ -3,16 +3,17 @@ class AppConfig {
 
   static const appName = 'Pino Mobile';
 
-  // Base URL for API REST
+  // PRODUCCIÓN / REMOTO (Conservado en comentarios):
+  // defaultValue: 'https://www.rhclaroni.com/api-dev',
   static const apiBaseUrl = String.fromEnvironment(
     'PINO_API_BASE_URL',
-    defaultValue: 'https://www.rhclaroni.com/api-dev',
+    defaultValue: 'http://localhost:3010/api',
   );
 
-  // Socket base URL
+  // Socket base URL (Producción conservado: 'https://www.rhclaroni.com/api-dev')
   static const socketBaseUrl = String.fromEnvironment(
     'PINO_SOCKET_BASE_URL',
-    defaultValue: 'https://www.rhclaroni.com/api-dev',
+    defaultValue: 'http://localhost:3010',
   );
 
   // Path for socket.io
