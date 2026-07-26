@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Save,
@@ -10,12 +11,12 @@ import {
   Route as RouteIcon,
   CheckCircle2,
   Clock,
-  Info,
   Search,
   CheckSquare,
   Square,
   X,
   Plus,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,77 +69,87 @@ const statusColors: Record<string, string> = {
 export default function RouteDetailPage() {
   const { storeId, routeId } = useParams<{ storeId: string; routeId: string }>();
   const navigate = useNavigate();
-
-  const [route, setRoute] = useState<RouteDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const [vendorId, setVendorId] = useState('');
   const [clientIds, setClientIds] = useState<string[]>([]);
-  const [allStoreClients, setAllStoreClients] = useState<ClientInfo[]>([]);
   const [clientSearch, setClientSearch] = useState('');
   const [validTo, setValidTo] = useState('');
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const [usersMap, setUsersMap] = useState<Record<string, string>>({});
-  const [vendorsList, setVendorsList] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  // 1. React Query con Caché de Usuarios de Sucursal (60s)
+  const { data: users = [] } = useQuery({
+    queryKey: ['users', storeId],
+    queryFn: async () => {
+      const res = await apiClient.get('/users', { params: { storeId } });
+      return Array.isArray(res.data) ? res.data : res.data?.data || [];
+    },
+    staleTime: 60_000,
+    enabled: !!storeId,
+  });
 
+  // 2. React Query con Caché de Clientes de Sucursal (60s)
+  const { data: allStoreClients = [] } = useQuery({
+    queryKey: ['store-clients-picker', storeId],
+    queryFn: async () => {
+      const res = await apiClient.get('/clients', { params: { storeId, limit: 300 } });
+      return extractData<ClientInfo>(res.data);
+    },
+    staleTime: 60_000,
+    enabled: !!storeId,
+  });
+
+  // 3. React Query para Detalle de la Ruta
+  const {
+    data: route,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useQuery({
+    queryKey: ['route-detail', routeId],
+    queryFn: async () => {
+      const res = await apiClient.get(`/routes/${routeId}`);
+      return res.data as RouteDetail;
+    },
+    enabled: !!routeId,
+  });
+
+  // Inicializar estado local cuando se carga la ruta
   useEffect(() => {
-    if (!storeId || !routeId) return;
-    setLoading(true);
+    if (route) {
+      setVendorId(route.vendorId || '');
+      setClientIds(route.clientIds || []);
+      setValidTo(route.validTo || route.routeDate?.split('T')[0] || '');
+    }
+  }, [route]);
 
-    Promise.all([
-      apiClient.get(`/routes/${routeId}`),
-      apiClient.get('/users', { params: { storeId } }),
-      apiClient.get('/clients', { params: { storeId, limit: 300 } }),
-    ])
-      .then(([routeRes, usersRes, clientsRes]) => {
-        const d = routeRes.data;
-        setRoute(d);
-        setVendorId(d.vendorId || '');
-        setClientIds(d.clientIds || []);
-        setValidTo(d.validTo || d.routeDate?.split('T')[0] || '');
+  // Mapa de nombres de vendedores e inactivos
+  const { usersMap, vendorsList } = useMemo(() => {
+    const uMap: Record<string, string> = {};
+    const vList: Array<{ id: string; name: string; role: string }> = [];
 
-        const users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data || [];
-        const uMap: Record<string, string> = {};
-        const vList: Array<{ id: string; name: string; role: string }> = [];
+    users.forEach((u: any) => {
+      const uId = u.id || u.uid;
+      uMap[uId] = u.name;
+      const normRole = normalizeUserRole(u.role);
+      if (['gestor', 'rutero', 'admin', 'super-admin'].includes(normRole)) {
+        vList.push({ id: uId, name: u.name, role: normRole });
+      }
+    });
 
-        users.forEach((u: any) => {
-          const uId = u.id || u.uid;
-          uMap[uId] = u.name;
-          const normRole = normalizeUserRole(u.role);
-          if (['gestor', 'rutero', 'admin', 'super-admin'].includes(normRole)) {
-            vList.push({ id: uId, name: u.name, role: normRole });
-          }
-        });
+    if (route?.vendorId && !uMap[route.vendorId]) {
+      const fallbackName = route.vendorName || `Vendedor (${route.vendorId.slice(0, 8)})`;
+      uMap[route.vendorId] = fallbackName;
+      vList.unshift({ id: route.vendorId, name: fallbackName, role: 'gestor' });
+    }
 
-        setUsersMap(uMap);
-        setVendorsList(vList);
+    return { usersMap: uMap, vendorsList: vList };
+  }, [users, route]);
 
-        if (d.vendorId && !uMap[d.vendorId]) {
-          apiClient
-            .get(`/users/${d.vendorId}`)
-            .then((uRes) => {
-              if (uRes.data?.name) {
-                const fetchedName =
-                  uRes.data.name + (uRes.data.isActive === false ? ' (Inactivo)' : '');
-                setUsersMap((prev) => ({ ...prev, [d.vendorId]: fetchedName }));
-                setVendorsList((prev) => [
-                  { id: d.vendorId, name: fetchedName, role: uRes.data.role || 'gestor' },
-                  ...prev,
-                ]);
-              }
-            })
-            .catch(() => {});
-        }
-
-        const allClients = extractData<ClientInfo>(clientsRes.data);
-        setAllStoreClients(allClients);
-      })
-      .catch(() => setError('No se pudo cargar la información detallada de la ruta.'))
-      .finally(() => setLoading(false));
-  }, [storeId, routeId]);
+  const currentVendorName = route?.vendorId
+    ? usersMap[route.vendorId] || route.vendorName || `Vendedor ID: ${route.vendorId.slice(0, 8)}`
+    : 'No asignado';
 
   const handleToggleClient = (id: string) => {
     setClientIds((prev) =>
@@ -146,34 +157,63 @@ export default function RouteDetailPage() {
     );
   };
 
+  const filteredClientsToPick = useMemo(() => {
+    if (!clientSearch) return allStoreClients;
+    const q = clientSearch.toLowerCase();
+    return allStoreClients.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.address && c.address.toLowerCase().includes(q)) ||
+        (c.phone && c.phone.toLowerCase().includes(q)),
+    );
+  }, [allStoreClients, clientSearch]);
+
   const handleSelectAllFiltered = () => {
     const filteredIds = filteredClientsToPick.map((c) => c.id);
-    setClientIds((prev) => Array.from(new Set([...prev, ...filteredIds])));
+    const newSelected = Array.from(new Set([...clientIds, ...filteredIds]));
+    setClientIds(newSelected);
   };
 
-  const handleClearAllSelected = () => {
-    setClientIds([]);
+  const handleDeselectAllFiltered = () => {
+    const filteredIdsSet = new Set(filteredClientsToPick.map((c) => c.id));
+    setClientIds((prev) => prev.filter((id) => !filteredIdsSet.has(id)));
   };
 
-  const handleUpdate = async () => {
-    if (!routeId) return;
-    const effectiveReason = reason.trim() || 'Actualización rápida de clientes y asignación de ruta';
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!route || !routeId) return;
+
+    if (!vendorId) {
+      toast.error('Campo requerido', 'Debes seleccionar un gestor o repartidor.');
+      return;
+    }
+    if (!reason || reason.trim().length < 3) {
+      toast.error('Motivo requerido', 'Ingresa el motivo de modificación de la ruta.');
+      return;
+    }
 
     setSaving(true);
     try {
       await apiClient.patch(`/routes/${routeId}`, {
-        vendorId: vendorId || undefined,
+        vendorId,
         clientIds,
         validTo: validTo || undefined,
-        reason: effectiveReason,
+        reason: reason.trim(),
+        version: route.version,
       });
-      toast.success('Ruta Actualizada', `Se guardaron los ${clientIds.length} clientes asignados a la ruta.`);
+
+      toast.success(
+        'Ruta Actualizada',
+        `La ruta fue reasignada exitosamente. Se notificará al nuevo gestor.`,
+      );
+      queryClient.invalidateQueries({ queryKey: ['route-detail', routeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-routes', storeId] });
       setReason('');
-      // Refresh route
-      const refreshRes = await apiClient.get(`/routes/${routeId}`);
-      setRoute(refreshRes.data);
     } catch (err: any) {
-      toast.error('Error al actualizar', err?.response?.data?.message || 'No se pudo guardar la modificación.');
+      toast.error(
+        'Error al guardar',
+        err.response?.data?.message || 'No se pudieron aplicar los cambios.',
+      );
     } finally {
       setSaving(false);
     }
@@ -181,8 +221,8 @@ export default function RouteDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Skeleton className="h-10 w-64" />
+      <div className="space-y-6 max-w-5xl mx-auto p-4">
+        <Skeleton className="h-20 w-full rounded-2xl" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Skeleton className="h-64 rounded-2xl" />
           <Skeleton className="h-64 rounded-2xl" />
@@ -191,284 +231,248 @@ export default function RouteDetailPage() {
     );
   }
 
-  if (error || !route) {
+  if (queryError || !route) {
     return (
-      <div className="max-w-4xl mx-auto p-6 text-center border rounded-2xl bg-destructive/5 text-destructive space-y-4">
-        <p className="font-bold">{error || 'No se encontró la ruta solicitada.'}</p>
-        <Button variant="outline" onClick={() => navigate(`/store/${storeId}/vendors/clients`)}>
-          Volver a Clientes & Rutas
+      <div className="max-w-5xl mx-auto p-6 space-y-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(`/store/${storeId}/routes`)}
+          className="rounded-xl font-bold"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Rutas
         </Button>
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-center text-sm text-destructive font-bold">
+          No se pudo cargar la información de la ruta solicitada.
+        </div>
       </div>
     );
   }
 
-  const currentVendorName = usersMap[route.vendorId] || route.vendorName || route.vendorId;
-
-  const assignedClientsList = allStoreClients.filter((c) => clientIds.includes(c.id));
-  const filteredClientsToPick = allStoreClients.filter((c) => {
-    if (!clientSearch) return true;
-    const q = clientSearch.toLowerCase();
-    return (
-      c.name.toLowerCase().includes(q) ||
-      (c.address || '').toLowerCase().includes(q) ||
-      (c.phone || '').toLowerCase().includes(q)
-    );
-  });
+  const isSalesRoute = route.routeType === 'SALES';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       {/* CABECERA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-xl">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(`/store/${storeId}/routes`)}
+            className="rounded-xl shrink-0"
+            title="Volver al listado"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">
-                {route.name || route.notes || `Ruta de Ventas #${route.id.slice(0, 8)}`}
+              <h1 className="text-xl font-bold tracking-tight">
+                {route.name || `Ruta de ${isSalesRoute ? 'Preventa' : 'Reparto'}`}
               </h1>
-              <Badge variant="outline" className={statusColors[route.status]}>
+              <Badge className={statusColors[route.status] || 'bg-slate-100'}>
                 {statusLabels[route.status] || route.status}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Gestor Asignado: <strong className="text-foreground">{currentVendorName}</strong> · ID: <span className="font-mono">{route.id}</span>
+            <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+              ID: {route.id} | Versión: v{route.version}
             </p>
           </div>
         </div>
 
-        <Button
-          onClick={handleUpdate}
-          disabled={saving}
-          className="font-bold rounded-xl gap-2 shadow-sm"
-        >
-          <Save className="h-4 w-4" />
-          {saving ? 'Guardando...' : `Guardar Cambios (${clientIds.length} Clientes)`}
-        </Button>
-      </div>
-
-      {/* TARJETA INFORMATIVA */}
-      <div className="bg-primary/5 border border-primary/20 p-4 rounded-2xl flex items-start gap-3">
-        <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-        <div className="text-xs text-foreground/80 space-y-1">
-          <p className="font-bold text-sm text-primary">Asignación Rápida & Reasignación de Ruta</p>
-          <p>
-            Selecciona a continuación los clientes que recorrerá este gestor. Puedes marcar/desmarcar clientes rápidamente con el buscador y guardar con 1 clic.
-          </p>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            className="rounded-xl font-bold"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" /> Recargar
+          </Button>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* SECCIÓN 1: INFORMACIÓN Y REASIGNACIÓN DE GESTOR */}
-        <Card className="rounded-2xl border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <User className="h-5 w-5 text-primary" />
-              Gestor & Configuración de la Ruta
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-bold">Gestor de Ventas o Repartidor A Cargo</Label>
-              <select
-                value={vendorId}
-                onChange={(e) => setVendorId(e.target.value)}
-                className="w-full h-10 rounded-xl border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary font-bold"
-              >
-                {vendorsList.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name} ({getRoleBadgeLabel(v.role)})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold">Fecha Programada</Label>
-                <div className="p-2.5 rounded-xl border bg-muted/20 font-bold text-sm">
-                  {route.routeDate ? new Date(route.routeDate).toLocaleDateString('es-NI') : '—'}
+      {/* FORMULARIO DE EDICION Y REASIGNACION */}
+      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* COLUMNA IZQUIERDA: INFORMACION Y REASIGNACION DE GESTOR */}
+        <div className="space-y-6">
+          <Card className="rounded-2xl border shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Información y Gestor Asignado
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-muted/30 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground font-bold">Gestor Actual:</span>
+                  <span className="font-extrabold text-sm text-foreground">
+                    {currentVendorName}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Tipo de Ruta:</span>
+                  <Badge variant="outline" className="font-bold">
+                    {isSalesRoute ? 'Preventa / Ventas' : 'Reparto / Entrega'}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Fecha Planificada:</span>
+                  <span className="font-bold font-mono">
+                    {route.routeDate ? new Date(route.routeDate).toLocaleDateString('es-NI') : 'Hoy'}
+                  </span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-bold">Válido Hasta</Label>
+              {/* SELECCION DE NUEVO GESTOR */}
+              <div className="space-y-1.5 pt-2">
+                <Label className="text-xs font-bold">Asignar Nuevo Gestor / Repartidor *</Label>
+                <select
+                  value={vendorId}
+                  onChange={(e) => setVendorId(e.target.value)}
+                  className="h-10 rounded-xl border bg-background px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary w-full"
+                >
+                  <option value="">Seleccionar responsable...</option>
+                  {vendorsList.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} ({getRoleBadgeLabel(v.role)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* VALIDO HASTA */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Válido Hasta (Vencimiento de Ruta)</Label>
                 <Input
                   type="date"
                   value={validTo}
                   onChange={(e) => setValidTo(e.target.value)}
-                  className="h-10 text-sm rounded-xl"
+                  className="h-10 text-xs rounded-xl"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label className="text-xs font-bold">Notas o Motivo de Modificación</Label>
-              <Textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Ej: Asignación de clientes clave para recorrido de los Lunes"
-                rows={2}
-                className="text-xs rounded-xl"
-              />
-            </div>
-          </CardContent>
-        </Card>
+              {/* MOTIVO DE MODIFICACION */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold">Motivo de Modificación / Reasignación *</Label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Ej: Reasignación por ausencia del gestor original o cambio de zona de entrega..."
+                  className="text-xs rounded-xl min-h-[80px]"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* SECCIÓN 2: RESUMEN DE CLIENTES SELECCIONADOS */}
-        <Card className="rounded-2xl border shadow-sm flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Clientes Asignados ({clientIds.length})
-            </CardTitle>
-            {clientIds.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={handleClearAllSelected}
-              >
-                Quitar Todos
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto max-h-[300px] space-y-2">
-            {assignedClientsList.length === 0 ? (
-              <div className="text-center py-10 text-xs text-muted-foreground border rounded-xl border-dashed bg-muted/10 flex flex-col items-center justify-center space-y-2">
-                <Users className="h-8 w-8 text-muted-foreground opacity-30" />
-                <p className="font-bold">No hay clientes en esta ruta</p>
-                <p className="text-[11px] max-w-xs">
-                  Usa el selector inferior para marcar clientes y agregarlos a esta ruta.
+        {/* COLUMNA DERECHA: CLIENTES INCLUIDOS EN LA RUTA */}
+        <div className="space-y-6">
+          <Card className="rounded-2xl border shadow-sm flex flex-col h-full">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Clientes Incluidos ({clientIds.length})
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Marca o desmarca clientes para incluir en el itinerario de la ruta.
                 </p>
               </div>
-            ) : (
-              assignedClientsList.map((c) => (
-                <div
-                  key={c.id}
-                  className="p-2.5 rounded-xl border bg-card flex items-center justify-between gap-2 shadow-xs"
-                >
-                  <div className="min-w-0">
-                    <p className="font-bold text-xs truncate">{c.name}</p>
-                    {c.address && (
-                      <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
-                        <MapPin className="h-3 w-3 shrink-0" /> {c.address}
-                      </p>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-destructive shrink-0"
-                    onClick={() => handleToggleClient(c.id)}
-                    title="Remover de la ruta"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* SECCIÓN 3: SELECTOR INTERACTIVO Y RÁPIDO DE TODOS LOS CLIENTES DE LA TIENDA */}
-      <Card className="rounded-2xl border shadow-sm">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3">
-          <div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckSquare className="h-5 w-5 text-primary" />
-              Seleccionar Clientes para la Ruta ({allStoreClients.length} disponibles)
-            </CardTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Marca las casillas de los clientes que quieres incluir en el itinerario de este gestor.
-            </p>
-          </div>
+              <Badge className="bg-primary font-mono text-xs">
+                {clientIds.length} elegidos
+              </Badge>
+            </CardHeader>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs font-bold rounded-lg"
-              onClick={handleSelectAllFiltered}
-            >
-              Marcar Visibles ({filteredClientsToPick.length})
-            </Button>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre de cliente, dirección o teléfono..."
-              value={clientSearch}
-              onChange={(e) => setClientSearch(e.target.value)}
-              className="pl-9 h-9 text-xs rounded-xl"
-            />
-          </div>
-
-          <div className="border rounded-xl max-h-[350px] overflow-y-auto divide-y bg-card">
-            {filteredClientsToPick.length === 0 ? (
-              <div className="p-8 text-center text-xs text-muted-foreground">
-                No se encontraron clientes coincidentes con "{clientSearch}".
+            <CardContent className="space-y-3 flex-1 flex flex-col">
+              {/* BUSCADOR DE CLIENTES */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar clientes por nombre o dirección..."
+                  value={clientSearch}
+                  onChange={(e) => setClientSearch(e.target.value)}
+                  className="pl-9 h-9 text-xs rounded-xl"
+                />
               </div>
-            ) : (
-              filteredClientsToPick.map((c) => {
-                const isSelected = clientIds.includes(c.id);
 
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => handleToggleClient(c.id)}
-                    className={`p-3 flex items-center justify-between cursor-pointer transition-colors hover:bg-muted/40 ${
-                      isSelected ? 'bg-primary/5 font-semibold' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0 pr-2">
-                      <div className="text-primary shrink-0">
-                        {isSelected ? (
-                          <CheckSquare className="h-5 w-5 text-primary fill-primary/10" />
-                        ) : (
-                          <Square className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-foreground truncate">
-                          {c.name}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground truncate flex items-center gap-2 mt-0.5">
-                          {c.address && <span>📍 {c.address}</span>}
-                          {c.phone && <span>📞 {c.phone}</span>}
-                        </p>
-                      </div>
-                    </div>
+              {/* ACCIONES SELECCION MASIVA */}
+              <div className="flex items-center justify-between text-xs pt-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSelectAllFiltered}
+                  className="h-7 text-xs font-bold text-primary"
+                >
+                  <CheckSquare className="mr-1 h-3.5 w-3.5" /> Seleccionar todos ({filteredClientsToPick.length})
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDeselectAllFiltered}
+                  className="h-7 text-xs font-bold text-muted-foreground"
+                >
+                  <X className="mr-1 h-3.5 w-3.5" /> Quitar selección
+                </Button>
+              </div>
 
-                    <Badge
-                      variant={isSelected ? 'default' : 'outline'}
-                      className="text-[10px] shrink-0 font-bold"
-                    >
-                      {isSelected ? 'Incluido' : 'Sin incluir'}
-                    </Badge>
+              {/* LISTA MULTI-SELECT CON SCROLL RAPIDO */}
+              <div className="border rounded-xl flex-1 max-h-[360px] overflow-y-auto divide-y bg-card">
+                {filteredClientsToPick.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-muted-foreground">
+                    No se encontraron clientes coincidentes.
                   </div>
-                );
-              })
-            )}
-          </div>
+                ) : (
+                  filteredClientsToPick.map((c) => {
+                    const selected = clientIds.includes(c.id);
+                    return (
+                      <div
+                        key={c.id}
+                        onClick={() => handleToggleClient(c.id)}
+                        className={`p-3 text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                          selected ? 'bg-primary/10 font-bold' : 'hover:bg-muted/50'
+                        }`}
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="truncate text-foreground font-medium">{c.name}</p>
+                          {c.address && (
+                            <p className="text-[11px] text-muted-foreground truncate">{c.address}</p>
+                          )}
+                        </div>
 
-          <div className="pt-2 flex justify-end">
-            <Button
-              onClick={handleUpdate}
-              disabled={saving}
-              className="font-bold rounded-xl gap-2 shadow-sm"
-            >
-              <Save className="h-4 w-4" />
-              {saving ? 'Guardando...' : `Guardar Cambios de la Ruta (${clientIds.length} Clientes)`}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                        <div className="shrink-0">
+                          {selected ? (
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Square className="h-5 w-5 text-muted-foreground/40" />
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* BOTON DE GUARDAR CAMBIOS */}
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full h-12 text-sm font-bold bg-primary hover:bg-primary/90 rounded-xl shadow-md gap-2"
+                >
+                  <Save className="h-4 w-4" />
+                  {saving ? 'Guardando Cambios...' : 'Guardar Cambios y Reasignar Ruta'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </form>
     </div>
   );
 }
