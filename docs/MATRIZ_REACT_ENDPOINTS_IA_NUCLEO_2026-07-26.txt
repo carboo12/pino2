@@ -1,5 +1,5 @@
 MATRIZ REACT <-> ENDPOINTS NESTJS - IA-NUCLEO
-Generado: 2026-07-26T06:45:11.458Z
+Generado: 2026-07-26T07:11:01.558Z
 Alcance: inventario estático completo; no ejecuta operaciones ni modifica datos.
 
 RESUMEN
@@ -2040,7 +2040,7 @@ D.204 POST /sync/batch
     - web/src/lib/sync-service.ts:101 (/sync/batch)
 
 D.205 GET /sync/data
-  Backend: backend/src/modules/sync/sync.controller.ts#n
+  Backend: backend/src/modules/sync/sync.controller.ts#getDeltaData
   Consumidores React: 0
 
 D.206 POST /sync/force/:storeId

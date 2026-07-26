@@ -9,6 +9,9 @@ import { InboxService } from './inbox.service';
 @UseGuards(JwtAuthGuard, StoreAccessGuard)
 @Controller('edge')
 export class SyncEngineController {
+  private static readonly DEFAULT_EDGE_NODE_ID =
+    '00000000-0000-4000-8000-000000000002';
+
   constructor(
     private readonly db: DatabaseService,
     private readonly inbox: InboxService,
@@ -22,7 +25,9 @@ export class SyncEngineController {
       const claim = await this.inbox.claim(
         dto.storeId,
         op.operationId,
-        op.sourceNodeId || 'edge',
+        this.isUuid(op.sourceNodeId)
+          ? op.sourceNodeId
+          : SyncEngineController.DEFAULT_EDGE_NODE_ID,
         op.operationType || 'UNKNOWN',
         op.aggregateType || 'UNKNOWN',
         op.payload || {},
@@ -30,6 +35,15 @@ export class SyncEngineController {
       results.push({ operationId: op.operationId, claimed: claim.claimed, result: claim.existingResult });
     }
     return results;
+  }
+
+  private isUuid(value: unknown): value is string {
+    return (
+      typeof value === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value,
+      )
+    );
   }
 
   @Get('sync/pull')

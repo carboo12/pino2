@@ -46,11 +46,18 @@ export class InvoicesService {
     try {
       return await this.db.withTransaction(async (client) => {
         const supplierRes = await client.query(
-          "SELECT id FROM suppliers WHERE id = $1 FOR SHARE",
-          [dto.supplierId],
+          `SELECT s.id
+             FROM suppliers s
+             JOIN stores st ON st.id = $2
+            WHERE s.id = $1
+              AND s.chain_id = st.chain_id
+            FOR SHARE OF s, st`,
+          [dto.supplierId, dto.storeId],
         );
         if (supplierRes.rowCount !== 1) {
-          throw new NotFoundException("Proveedor no encontrado");
+          throw new NotFoundException(
+            "Proveedor no encontrado para la cadena de esta tienda",
+          );
         }
 
         const duplicateRes = await client.query(

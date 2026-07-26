@@ -1,5 +1,5 @@
 MATRIZ DE PAYLOADS REACT <-> @Body NESTJS
-Generado: 2026-07-26T06:42:55.734Z
+Generado: 2026-07-26T07:11:03.822Z
 
 RESUMEN
 - Operaciones React de escritura detectadas: 106

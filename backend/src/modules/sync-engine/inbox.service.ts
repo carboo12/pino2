@@ -32,10 +32,25 @@ export class InboxService {
 
     if (res.rowCount === 0) {
       const existing = await this.db.query(
-        'SELECT result, status FROM sync_inbox WHERE store_id = $1 AND operation_id = $2',
+        `SELECT result, status, error_code, error_message
+           FROM sync_inbox
+          WHERE store_id = $1 AND operation_id = $2`,
         [storeId, operationId],
       );
-      return { claimed: false, existingResult: existing.rows[0]?.result || existing.rows[0] };
+      const row = existing.rows[0];
+      return {
+        claimed: false,
+        existingResult:
+          row?.status === 'FAILED'
+            ? {
+                status: row.status,
+                errorCode: row.error_code,
+                error: row.error_message,
+                recoverable: true,
+                retryWithNewOperationId: true,
+              }
+            : row?.result || row,
+      };
     }
 
     return { claimed: true };

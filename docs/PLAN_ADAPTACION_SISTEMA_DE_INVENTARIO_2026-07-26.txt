@@ -10,8 +10,7 @@ ACTUALIZACIÓN IA-NÚCLEO - CONTRACT-FREEZE-1 / 2026-07-26
 
 FASE ACTUAL:
 
-- N0: corte de base completado; validaciones financieras manuales N0.2 siguen
-  pendientes y no bloquean la integración del contrato de calle.
+- N0: corte de base y validación financiera transaccional N0.2 completados.
 - N1: puente de roles, estados, identidad y liquidación base completado.
 - N2: rutas, cargas, aceptación, entrega parcial y devolución en tránsito
   implementadas mediante migraciones aditivas.
@@ -19,8 +18,8 @@ FASE ACTUAL:
   contrato de integración. El cliente Flutter se implementará posteriormente
   en otra máquina (ver PLAN_FLUTTER_DIFERIDO_2026-07-26.txt);
   no se compila ni modifica Flutter en este VPS.
-- N4: retorno/liquidación administrativa completa, compras e integridad restante
-  continúan pendientes.
+- N4: retorno/liquidación, compras, importación, integridad y paginación
+  completados.
 - P1: queda habilitado para IA-PARALELA conforme al documento congelado.
 
 CONTRACT-FREEZE-1: [X] LIBERADO.
@@ -327,12 +326,12 @@ REGLAS DE COORDINACIÓN:
 [ ] No renombrar endpoints, estados o campos acordados.
 [ ] Si falta un campo, IA-PARALELA deja un adaptador/TODO tipado y reporta el
     bloqueo; no modifica backend.
-[ ] IA-NÚCLEO publica un resumen de contrato antes de liberar una integración.
+[X] IA-NÚCLEO publica un resumen de contrato antes de liberar una integración.
 [ ] IA-PARALELA no conecta mocks directamente a producción.
 [ ] Ninguna IA ejecuta clone_to_sistema_inventario.js,
     purge_all_test_seed_data.js ni migrate_100_percent_coverage.js.
 [ ] Ninguna IA borra multitienda_db.
-[ ] Todo cambio de base pertenece a IA-NÚCLEO y debe ser aditivo/transaccional.
+[X] Todo cambio de base pertenece a IA-NÚCLEO y debe ser aditivo/transaccional.
 
 AISLAMIENTO RECOMENDADO:
 
@@ -425,19 +424,45 @@ CRITERIO DE SALIDA N0.1:
 
 SUBFASE N0.2 - Cerrar validación funcional financiera
 
-[ ][A][IA-NÚCLEO] N0.2.1 Venta CONTADO controlada.
-[ ][A][IA-NÚCLEO] N0.2.2 Venta CREDITO crea CxC con cliente y due_date.
-[ ][A][IA-NÚCLEO] N0.2.3 Abono parcial y pago total de CxC.
-[ ][A][IA-NÚCLEO] N0.2.4 Factura proveedor CONTADO.
-[ ][A][IA-NÚCLEO] N0.2.5 Factura proveedor CREDITO crea CxP.
-[ ][A][IA-NÚCLEO] N0.2.6 Pago de CxP.
-[ ][A][IA-NÚCLEO] N0.2.7 Nota de crédito revierte inventario y reduce CxP.
+[X][A][IA-NÚCLEO] N0.2.1 Venta CONTADO controlada.
+[X][A][IA-NÚCLEO] N0.2.2 Venta CREDITO crea CxC con cliente y due_date.
+[X][A][IA-NÚCLEO] N0.2.3 Abono parcial y pago total de CxC.
+[X][A][IA-NÚCLEO] N0.2.4 Factura proveedor CONTADO.
+[X][A][IA-NÚCLEO] N0.2.5 Factura proveedor CREDITO crea CxP.
+[X][A][IA-NÚCLEO] N0.2.6 Pago de CxP.
+[X][A][IA-NÚCLEO] N0.2.7 Nota de crédito revierte inventario y reduce CxP.
 
 CRITERIO DE SALIDA N0.2:
 
 - Cada operación queda en sistema_de_inventario.
 - No aparece escritura nueva del proceso Pino en multitienda_db.
 - Saldos y movimientos coinciden con la operación realizada.
+
+EVIDENCIA N0.2:
+
+- Diagnóstico reproducible:
+  backend/scripts/verify_finance_transactional.js.
+- Ejecuta los servicios NestJS compilados sobre sistema_de_inventario dentro
+  de una transacción externa que siempre termina en ROLLBACK.
+- Resultado: 9/9 flujos correctos y cero datos de diagnóstico persistidos.
+- Verificó venta CONTADO, item, descuento de stock y efectivo de caja.
+- Verificó venta CREDITO, cliente y vencimiento por defecto de 8 días.
+- Verificó abono parcial y pago total de CxC con estado PAID.
+- Verificó factura proveedor CONTADO sin CxP.
+- Verificó factura proveedor CREDITO con CxP y due_date.
+- Verificó abono parcial/pago total de CxP y factura PAGADA.
+- Verificó nota de crédito con salida de inventario y reducción de CxP.
+- Verificó bootstrap delta limitado a ruta/clientes del Gestor autenticado.
+- Verificó conflicto offline de stock recuperable y persistente.
+- Se agregó sales.discount, requerido por ProcessSaleUseCase, mediante
+  2026-07-26_sales_discount_n0_2.sql en ambas bases.
+- Se habilitó al usuario operativo pino_app sobre supplier_credit_notes,
+  supplier_credit_note_items y payable_adjustments mediante
+  2026-07-26_finance_runtime_grants_n0_2.sql en ambas bases.
+- Ambas migraciones quedaron registradas en schema_migrations de
+  sistema_de_inventario y multitienda_db.
+- El Rutero quedó habilitado en POST /accounts-receivable/:id/payments.
+- Facturas validan que proveedor y tienda pertenezcan a la misma cadena.
 
 -------------------------------------------------------------------------------
 FASE N1 - DESBLOQUEO DEL FLUJO DE CALLE
@@ -474,9 +499,9 @@ SUBFASE N1.2 - Corregir contratos móviles actualmente bloqueados
 [X][C][IA-NÚCLEO] N1.2.3 Rutero puede leer únicamente sus entregas.
 [X][C][IA-NÚCLEO] N1.2.4 Rutero puede leer únicamente su carga/inventario.
 [X][C][IA-NÚCLEO] N1.2.5 Rutero puede registrar entrega/devolución/cobro.
-[ ][C][IA-NÚCLEO] N1.2.6 Flutter deja de enviar IDs de otro usuario como fuente
+[D][C][MÁQUINA-FLUTTER] N1.2.6 Flutter deja de enviar IDs de otro usuario como fuente
                          de verdad; el backend resuelve el usuario de sesión.
-[ ][C][IA-NÚCLEO] N1.2.7 Eliminar fallback Flutter que muestra todos los
+[D][C][MÁQUINA-FLUTTER] N1.2.7 Eliminar fallback Flutter que muestra todos los
                          clientes cuando no hay ruta.
 [X][A][IA-NÚCLEO] N1.2.8 VisitLogs conserva el status enviado.
 [X][A][IA-NÚCLEO] N1.2.9 VisitLogs usa externalId idempotente.
@@ -494,7 +519,7 @@ SUBFASE N1.3 - Reparar liquidación inoperable
 [X][C][IA-NÚCLEO] N1.3.2 Usar sales/collections/account_payments reales.
 [X][C][IA-NÚCLEO] N1.3.3 Separar CASH de TRANSFER/CHECK.
 [X][C][IA-NÚCLEO] N1.3.4 Conciliar por carga/rutero/fecha operativa.
-[ ][A][IA-NÚCLEO] N1.3.5 Hacer create/submit/approve transaccional.
+[X][A][IA-NÚCLEO] N1.3.5 Hacer create/submit/approve transaccional.
 
 CRITERIO DE SALIDA N1.3:
 
@@ -559,10 +584,24 @@ SUBFASE N3.1 - Ruta comercial y preventa
 
 [X][A][IA-NÚCLEO] N3.1.1 Crear/editar ruta con route_clients.
 [X][A][IA-NÚCLEO] N3.1.2 Reasignación masiva/temporal.
-[ ][A][IA-NÚCLEO] N3.1.3 Bootstrap delta del Gestor.
+[X][A][IA-NÚCLEO] N3.1.3 Bootstrap delta del Gestor.
 [X][A][IA-NÚCLEO] N3.1.4 Contrato backend de pedido offline
                          Bultos/Unidades.
-[ ][A][IA-NÚCLEO] N3.1.5 Conflicto de stock/precio recuperable.
+[X][A][IA-NÚCLEO] N3.1.5 Conflicto de stock/precio recuperable.
+
+EVIDENCIA N3.1.3/N3.1.5:
+
+- GET /sync/data acepta sales-manager y devuelve scope
+  ASSIGNED_SALES_MANAGER.
+- El delta incluye products, productBarcodes, routes, routeClients y sólo los
+  clients vinculados a rutas SALES vigentes del Gestor autenticado.
+- El backend ya no usa textos inválidos como source_node_id UUID en sync
+  batch/edge; usa UUIDs técnicos canónicos.
+- Las operaciones offline fallidas conservan errorCode y error en sync_inbox.
+- STOCK_CONFLICT, PRICE_CONFLICT, VERSION_CONFLICT y VALIDATION_CONFLICT se
+  devuelven como recoverable=true y retryWithNewOperationId=true.
+- Reconsultar una operación FAILED devuelve el conflicto original en lugar de
+  marcarla falsamente como DUPLICATE exitoso.
 
 SUBFASE N3.2 - Preparación y aceptación de carga
 
@@ -593,7 +632,7 @@ SUBFASE N3.4 - Offline e idempotencia
 [X][C][IA-NÚCLEO] N3.4.4 externalId en entrega/cobro.
 [X][C][IA-NÚCLEO] N3.4.5 externalId en devolución.
 [X][C][IA-NÚCLEO] N3.4.6 externalId en cierre.
-[ ][A][IA-NÚCLEO] N3.4.7 Drift conserva error/conflicto sin borrar acción.
+[D][A][MÁQUINA-FLUTTER] N3.4.7 Drift conserva error/conflicto sin borrar acción.
 
 CONTRACT-FREEZE-1:
 
@@ -739,7 +778,7 @@ Prioridad dominante: CRÍTICO/ALTO
 [X][A][IA-NÚCLEO] N5.5 Revisar payload, query y forma de respuesta de cada
                     llamada de escritura y cada página operativa.
 [X][A][IA-NÚCLEO] N5.6 Clasificar y corregir llamadas dinámicas justificadas.
-[ ][A][IA-NÚCLEO] N5.7 Actualizar matriz después de integrar todos los cambios
+[X][A][IA-NÚCLEO] N5.7 Actualizar matriz después de integrar todos los cambios
                     pendientes de IA-PARALELA.
 
 EVIDENCIA N5.1-N5.4:
@@ -789,6 +828,9 @@ EVIDENCIA N5.5-N5.6:
 - Build NestJS y build React completados después de estas correcciones.
 - PM2 pino-api-dev reiniciado y quedó online. No se repitió health por
   instrucción expresa del usuario.
+- N5.7 regeneró ambas matrices en el corte final: 0 endpoint inexistente,
+  0 verbo incompatible, 0 dinámico pendiente, 0 campo requerido faltante y
+  0 campo extra.
 
 -------------------------------------------------------------------------------
 FASE P0 - COMPONENTES PARALELOS SIN DEPENDENCIA DE API
@@ -3603,8 +3645,8 @@ FASES IA-NÚCLEO:
 [X] CONTRACT-FREEZE-1 - LIBERADO.
 [X] N4.1 - Retorno y liquidación.
 [X] N4.2 - Compras, importación, integridad y paginación backend.
-[P] N5 - Auditoría React ↔ NestJS: N5.1 a N5.6 terminadas; N5.7 espera el
-         último corte de IA-PARALELA para regenerar la matriz una vez más.
+[X] N5 - Auditoría React ↔ NestJS completa; N5.7 regeneró las matrices en el
+         corte final.
 [D] N4.3 y todo cambio Flutter - otra máquina.
 
 SUBFASE ACTUAL N5:
@@ -3619,7 +3661,7 @@ SUBFASE ACTUAL N5:
 [X][A] Build backend correcto.
 [X][A] Build web correcto.
 [X][A] Backend reiniciado y online sin health repetitivo.
-[ ]     N5.7 regenerar ambas matrices después del commit final de IA-PARALELA.
+[X]     N5.7 matrices finales regeneradas sin bloqueantes.
 
 CORRECCIONES CRÍTICAS/ALTAS CERRADAS EN N5:
 
@@ -3644,18 +3686,19 @@ ARTEFACTOS DE CONTROL:
 - backend/scripts/audit_react_endpoint_contracts.js
 - backend/scripts/audit_react_payload_contracts.js
 
-SIGUIENTE TRABAJO IA-NÚCLEO:
+CIERRE IA-NÚCLEO:
 
-1. Esperar únicamente el corte final de archivos React de IA-PARALELA.
-2. Ejecutar otra vez las dos auditorías reproducibles.
-3. Corregir cualquier regresión nueva crítica/alta.
-4. Marcar N5.7 sólo si mantiene:
-   missing endpoint = 0;
-   wrong HTTP method = 0;
-   dynamic pending = 0;
-   missing required payload field = 0;
-   extra payload field = 0.
-5. Crear commit de cierre IA-NÚCLEO sin incluir cambios ajenos no revisados.
+[X] missing endpoint = 0.
+[X] wrong HTTP method = 0.
+[X] dynamic pending = 0.
+[X] missing required payload field = 0.
+[X] extra payload field = 0.
+[X] validación transaccional reversible = 9/9.
+[X] build backend = correcto.
+[X] build web = correcto.
+[X] Flutter permanece diferido y fuera de este VPS.
+
+IA-NÚCLEO no conserva trabajo crítico/alto pendiente en este corte.
 
 ===============================================================================
 FIN DEL PLAN.

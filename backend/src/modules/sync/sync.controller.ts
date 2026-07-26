@@ -6,6 +6,7 @@ import {
   UseGuards,
   Param,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { SyncService } from './sync.service';
@@ -55,18 +56,24 @@ export class SyncController {
     return this.service.forceSync(storeId);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'sales-manager')
   @Get('data')
-  @ApiOperation({ summary: 'Obtener datos sincronizados (Delta Sync)' })
+  @ApiOperation({
+    summary:
+      'Obtener bootstrap/delta; el Gestor recibe sólo sus rutas y clientes',
+  })
   getDeltaData(
     @Query('storeId') storeId: string,
     @Query('lastSyncTimestamp') lastSyncTimestamp?: string,
     @Query('limit') limit?: string,
+    @Req() req?: any,
   ) {
     return this.service.getDeltaData(
       storeId,
       lastSyncTimestamp,
       limit ? parseInt(limit) : 500,
+      req?.user?.role,
+      req?.user?.sub,
     );
   }
 }

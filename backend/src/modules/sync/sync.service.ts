@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { SalesService } from '../sales/sales.service';
@@ -11,6 +11,8 @@ import { SyncOperationDto } from './sync.dto';
 @Injectable()
 export class SyncService {
   private readonly logger = new Logger(SyncService.name);
+  private static readonly SYNC_BATCH_NODE_ID =
+    '00000000-0000-4000-8000-000000000001';
 
   constructor(
     private readonly db: DatabaseService,
@@ -65,13 +67,20 @@ export class SyncService {
       const claim = await this.inboxService.claim(
         storeId,
         opId,
-        'sync-batch',
+        SyncService.SYNC_BATCH_NODE_ID,
         op.type,
         op.type,
         op.data || {},
       );
 
       if (!claim.claimed) {
+        if (claim.existingResult?.status === 'FAILED') {
+          results.push({
+            operationId: opId,
+            ...claim.existingResult,
+          });
+          continue;
+        }
         duplicateCount++;
         results.push({
           operationId: opId,
@@ -127,10 +136,11 @@ export class SyncService {
           isDuplicate: false,
         });
       } catch (error) {
+        const conflict = this.classifyRecoverableError(error);
         await this.inboxService.markError(
           storeId,
           opId,
-          'PROCESSING_ERROR',
+          conflict.errorCode,
           error.message,
         );
 
@@ -140,7 +150,10 @@ export class SyncService {
         results.push({
           operationId: opId,
           status: 'FAILED',
+          errorCode: conflict.errorCode,
           error: error.message,
+          recoverable: conflict.recoverable,
+          retryWithNewOperationId: conflict.recoverable,
         });
       }
     }
@@ -158,6 +171,25 @@ export class SyncService {
     return results;
   }
 
+  private classifyRecoverableError(error: any) {
+    const message = String(error?.message || '').toUpperCase();
+    if (message.includes('STOCK')) {
+      return { errorCode: 'STOCK_CONFLICT', recoverable: true };
+    }
+    if (message.includes('PRECIO') || message.includes('PRICE')) {
+      return { errorCode: 'PRICE_CONFLICT', recoverable: true };
+    }
+    const status =
+      error instanceof HttpException ? error.getStatus() : Number(error?.status);
+    if (status === 409) {
+      return { errorCode: 'VERSION_CONFLICT', recoverable: true };
+    }
+    if (status === 400 || status === 422) {
+      return { errorCode: 'VALIDATION_CONFLICT', recoverable: true };
+    }
+    return { errorCode: 'PROCESSING_ERROR', recoverable: false };
+  }
+
   async forceSync(storeId: string) {
     await this.db.query(
       'UPDATE sync_status SET status = $1, last_sync = NOW() WHERE store_id = $2',
@@ -173,49 +205,107 @@ export class SyncService {
     storeId: string,
     lastSyncTimestamp?: string,
     limit: number = 500,
+    actorRole?: string,
+    actorId?: string,
   ) {
-    const params: any[] = [storeId];
-    let timeCondition = '';
-
-    if (lastSyncTimestamp) {
-      timeCondition = ` AND (updated_at > $${params.length + 1} OR created_at > $${params.length + 1})`;
-      params.push(new Date(lastSyncTimestamp));
-    }
+    const safeLimit = Math.min(Math.max(Number(limit) || 500, 1), 1000);
+    const isSalesManager = actorRole === 'sales-manager' && Boolean(actorId);
 
     const fetchPage = async (
       table: string,
       extraConditions: string = '',
       sortColumn: string = 'updated_at',
       timeCol: string = 'updated_at',
+      extraParams: any[] = [],
     ): Promise<{ items: any[]; hasMore: boolean }> => {
+      const queryParams: any[] = [storeId, ...extraParams];
       const effectiveTimeCondition = lastSyncTimestamp
-        ? ` AND (${timeCol} > $2 OR created_at > $2)`
+        ? ` AND (${timeCol} > $${queryParams.length + 1} OR created_at > $${queryParams.length + 1})`
         : '';
-      const queryParams = lastSyncTimestamp
-        ? [storeId, new Date(lastSyncTimestamp)]
-        : [storeId];
+      if (lastSyncTimestamp) queryParams.push(new Date(lastSyncTimestamp));
       const limitIdx = queryParams.length + 1;
-      const queryParamsWithLimit = [...queryParams, limit + 1];
+      const queryParamsWithLimit = [...queryParams, safeLimit + 1];
       const query = `SELECT * FROM ${table} WHERE store_id = $1 ${extraConditions}${effectiveTimeCondition} ORDER BY ${sortColumn} DESC NULLS LAST LIMIT $${limitIdx}`;
       const result = await this.db.query(query, queryParamsWithLimit);
       return {
-        items: result.rows.slice(0, limit),
-        hasMore: result.rows.length > limit,
+        items: result.rows.slice(0, safeLimit),
+        hasMore: result.rows.length > safeLimit,
       };
     };
 
-    const [products, productBarcodes, clients] = await Promise.all([
+    const clientScope = isSalesManager
+      ? `AND EXISTS (
+           SELECT 1
+             FROM route_clients rc
+             JOIN routes r ON r.id = rc.route_id
+            WHERE rc.client_id = clients.id
+              AND r.store_id = clients.store_id
+              AND r.vendor_id = $2
+              AND r.route_type = 'SALES'
+              AND r.status IN ('PENDING', 'ACTIVE', 'IN_PROGRESS')
+              AND (r.valid_from IS NULL OR r.valid_from <= CURRENT_DATE)
+              AND (r.valid_to IS NULL OR r.valid_to >= CURRENT_DATE)
+         )`
+      : '';
+    const routeScope = isSalesManager ? 'AND vendor_id = $2' : '';
+    const scopedParams = isSalesManager ? [actorId] : [];
+
+    const [products, productBarcodes, clients, routes] = await Promise.all([
       fetchPage('products', 'AND (is_active = true OR deleted_at IS NOT NULL)'),
       fetchPage('product_barcodes'),
-      fetchPage('clients', 'AND (is_active = true OR deleted_at IS NOT NULL)', 'created_at', 'created_at'),
+      fetchPage(
+        'clients',
+        `AND (is_active = true OR deleted_at IS NOT NULL) ${clientScope}`,
+        'created_at',
+        'created_at',
+        scopedParams,
+      ),
+      fetchPage(
+        'routes',
+        routeScope,
+        'updated_at',
+        'updated_at',
+        scopedParams,
+      ),
     ]);
+
+    const routeIds = routes.items.map((route: any) => route.id);
+    let routeClients: { items: any[]; hasMore: boolean } = {
+      items: [],
+      hasMore: false,
+    };
+    if (routeIds.length > 0) {
+      const routeClientParams: any[] = [routeIds];
+      let routeClientTime = '';
+      if (lastSyncTimestamp) {
+        routeClientParams.push(new Date(lastSyncTimestamp));
+        routeClientTime = ` AND rc.created_at > $${routeClientParams.length}`;
+      }
+      routeClientParams.push(safeLimit + 1);
+      const routeClientRes = await this.db.query(
+        `SELECT rc.*
+           FROM route_clients rc
+          WHERE rc.route_id = ANY($1::uuid[])
+            ${routeClientTime}
+          ORDER BY rc.created_at DESC
+          LIMIT $${routeClientParams.length}`,
+        routeClientParams,
+      );
+      routeClients = {
+        items: routeClientRes.rows.slice(0, safeLimit),
+        hasMore: routeClientRes.rows.length > safeLimit,
+      };
+    }
 
     return {
       serverTimestamp: new Date().toISOString(),
+      scope: isSalesManager ? 'ASSIGNED_SALES_MANAGER' : 'STORE',
       entities: {
         products,
         productBarcodes,
         clients,
+        routes,
+        routeClients,
       },
     };
   }

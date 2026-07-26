@@ -60,7 +60,7 @@ export class AccountsReceivableController {
     return this.service.create(dto);
   }
 
-  @Roles("master-admin", "store-admin")
+  @Roles("master-admin", "store-admin", "rutero")
   @Post(":id/payments")
   @ApiOperation({ summary: "Registrar pago a cuenta" })
   addPayment(
