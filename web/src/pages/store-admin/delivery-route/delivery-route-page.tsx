@@ -1,24 +1,37 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
-  ClipboardCheck,
-  Hourglass,
+  WorkspaceShell,
+  WorkspaceTopBar,
+  ActionDock,
+  EmptyState,
+  ErrorState,
+  LoadingRows,
+  StatusChip,
+} from '@/components/workspace';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Truck,
   MapPin,
   CheckCircle2,
   XCircle,
-  Truck,
   UserCheck,
   DollarSign,
   Package,
-  ArrowRight,
   RefreshCw,
   Map,
+  Search,
+  Clock,
+  Navigation,
+  FileCheck,
+  PhoneCall,
+  User,
+  ShoppingBag,
+  ExternalLink,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -55,6 +68,8 @@ export default function DeliveryRoutePage() {
   const [deliveries, setDeliveries] = useState<PendingDelivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'assigned' | 'available'>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchDeliveries = useCallback(async () => {
     if (!storeId || !user?.id) return;
@@ -89,11 +104,14 @@ export default function DeliveryRoutePage() {
     }
   };
 
-  const handleUpdateStatus = async (deliveryId: string, newStatus: 'DELIVERED' | 'FAILED' | 'Entregado' | 'No Entregado') => {
+  const handleUpdateStatus = async (
+    deliveryId: string,
+    newStatus: 'DELIVERED' | 'FAILED' | 'Entregado' | 'No Entregado',
+  ) => {
     try {
       const statusMap = newStatus === 'Entregado' ? 'DELIVERED' : newStatus === 'No Entregado' ? 'FAILED' : newStatus;
       await apiClient.patch(`/pending-deliveries/${deliveryId}`, { status: statusMap });
-      toast.success('Estado Actualizado', `El pedido se ha marcado como "${newStatus}".`);
+      toast.success('Entrega Actualizada', `El pedido se ha marcado como "${newStatus}".`);
       fetchDeliveries();
     } catch {
       toast.error('Error', 'No se pudo actualizar el estado de la entrega.');
@@ -102,195 +120,284 @@ export default function DeliveryRoutePage() {
 
   const isCoordinates = (address: string) => /^-?\d+(\.\d+)?,\s*-?\d+(\.\d+)?$/.test(address);
 
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-          ))}
-        </div>
-      );
-    }
+  // Metrics
+  const totalAmount = useMemo(() => deliveries.reduce((acc, d) => acc + (d.total || 0), 0), [deliveries]);
+  const assignedCount = useMemo(() => deliveries.filter((d) => d.ruteroId === user?.id).length, [deliveries, user?.id]);
+  const availableCount = useMemo(() => deliveries.filter((d) => !d.ruteroId).length, [deliveries]);
 
-    if (error) {
-      return (
-        <Alert variant="destructive" className="rounded-2xl">
-          <Hourglass className="h-4 w-4" />
-          <AlertTitle>Error de Conexión</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      );
-    }
+  // Filtered deliveries
+  const filteredDeliveries = useMemo(() => {
+    return deliveries.filter((d) => {
+      // Tab filter
+      if (activeTab === 'assigned' && d.ruteroId !== user?.id) return false;
+      if (activeTab === 'available' && d.ruteroId) return false;
 
-    if (deliveries.length === 0) {
-      return (
-        <div className="text-center py-8 space-y-4">
-          <div className="inline-flex p-4 rounded-full bg-emerald-50 text-emerald-600">
-            <CheckCircle2 className="h-8 w-8" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground">¡Todo al Día en Tu Ruta!</h3>
-            <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-              Por el momento no tienes entregas pendientes asignadas. Cuando el despachador o vendedor genere nuevos envíos, aparecerán automáticamente en esta pantalla.
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={fetchDeliveries} className="rounded-xl font-bold">
-              <RefreshCw className="mr-2 h-4 w-4" /> Recargar Pedidos
-            </Button>
-            <Button size="sm" onClick={() => navigate(`/store/${storeId}/daily-closing`)} className="rounded-xl font-bold">
-              <Truck className="mr-2 h-4 w-4" /> Ir a Liquidación de Ruta
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <Accordion type="single" collapsible className="w-full space-y-3">
-        {deliveries.map((delivery) => {
-          const isAssignedToMe = delivery.ruteroId === user?.id;
-
-          return (
-            <AccordionItem
-              value={delivery.id}
-              key={delivery.id}
-              className="border border-[#DDE2E8] bg-card rounded-2xl px-4 py-1 shadow-xs overflow-hidden"
-            >
-              <AccordionTrigger className="hover:no-underline py-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full text-left gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-extrabold text-foreground text-sm">{delivery.clientName}</p>
-                      {isAssignedToMe ? (
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
-                          Mi Ruta
-                        </Badge>
-                      ) : (
-                        <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-bold text-[10px]">
-                          Disponible Tienda
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Vendedor: {delivery.salesManagerName || 'Atención Cliente'} •{' '}
-                      {delivery.createdAt ? format(new Date(delivery.createdAt), "d 'de' MMM, hh:mm a", { locale: es }) : ''}
-                    </p>
-                  </div>
-                  <div className="font-extrabold text-base text-emerald-600 sm:pr-4">
-                    {formatCurrency(delivery.total || 0)}
-                  </div>
-                </div>
-              </AccordionTrigger>
-
-              <AccordionContent className="bg-muted/20 p-4 rounded-xl space-y-3 border-t border-[#DDE2E8]">
-                {delivery.clientAddress && (
-                  <div className="flex items-start gap-2 text-xs">
-                    <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <strong>Dirección de Entrega:</strong>{' '}
-                      {isCoordinates(delivery.clientAddress) ? (
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${delivery.clientAddress}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-blue-600 hover:underline font-bold"
-                        >
-                          <Map className="h-3.5 w-3.5" /> Ver en Google Maps
-                        </a>
-                      ) : (
-                        <span>{delivery.clientAddress}</span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="text-xs flex items-center gap-4 text-muted-foreground">
-                  <span><strong>Condición Pago:</strong> {delivery.paymentType || 'Contado'}</span>
-                  <span><strong>Items:</strong> {delivery.items?.length || 0} productos</span>
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-xs mb-1 text-foreground flex items-center gap-1">
-                    <Package className="h-3.5 w-3.5 text-primary" /> Productos a Entregar:
-                  </h4>
-                  <div className="bg-card rounded-xl p-2.5 border border-[#DDE2E8] space-y-1">
-                    {delivery.items?.map((item) => (
-                      <div key={item.id} className="flex justify-between text-xs font-medium">
-                        <span>• {item.description}</span>
-                        <span className="font-bold font-mono">x{item.quantity}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-2 flex flex-wrap gap-2">
-                  {!isAssignedToMe ? (
-                    <Button
-                      onClick={() => handleAssignToMe(delivery.id)}
-                      className="rounded-xl font-bold bg-amber-600 hover:bg-amber-700 text-white"
-                      size="sm"
-                    >
-                      <UserCheck className="mr-1.5 h-4 w-4" /> Asignarme a Mi Ruta
-                    </Button>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={() => handleUpdateStatus(delivery.id, 'Entregado')}
-                        className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
-                        size="sm"
-                      >
-                        <CheckCircle2 className="mr-1.5 h-4 w-4" /> Marcar Entregado
-                      </Button>
-
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleUpdateStatus(delivery.id, 'No Entregado')}
-                        className="rounded-xl font-bold"
-                        size="sm"
-                      >
-                        <XCircle className="mr-1.5 h-4 w-4" /> No Entregado
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          );
-        })}
-      </Accordion>
-    );
-  }
+      // Search filter
+      if (searchTerm) {
+        const q = searchTerm.toLowerCase();
+        const clientMatch = d.clientName?.toLowerCase().includes(q);
+        const addressMatch = d.clientAddress?.toLowerCase().includes(q);
+        const sellerMatch = d.salesManagerName?.toLowerCase().includes(q);
+        return clientMatch || addressMatch || sellerMatch;
+      }
+      return true;
+    });
+  }, [deliveries, activeTab, searchTerm, user?.id]);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 p-2 sm:p-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-            <Truck className="h-5 w-5 text-primary" /> Mi Ruta & Pedidos de Entrega
-          </h1>
-          <p className="text-xs text-muted-foreground">
-            Consulta y gestiona las entregas de productos asignadas a tu ruta para la tienda.
-          </p>
+    <WorkspaceShell
+      topbar={
+        <WorkspaceTopBar
+          title="Navegación & Control de Ruta de Entrega"
+          storeName={user?.storeName}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchDeliveries}
+                className="rounded-xl font-bold text-xs"
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Actualizar
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => navigate(`/store/${storeId}/daily-closing`)}
+                className="rounded-xl font-bold text-xs"
+              >
+                <FileCheck className="mr-1.5 h-3.5 w-3.5" /> Liquidar Ruta
+              </Button>
+            </div>
+          }
+        />
+      }
+    >
+      <div className="p-4 space-y-4 max-w-6xl mx-auto">
+        {/* CARDS DE METRICAS EJECUTIVAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Card className="rounded-2xl border bg-card shadow-xs">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Monto Total a Cobrar en Campo</p>
+                <p className="text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">
+                  {formatCurrency(totalAmount)}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-700">
+                <DollarSign className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border bg-card shadow-xs">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Pedidos Asignados a Mi Ruta</p>
+                <p className="text-2xl font-extrabold text-foreground font-mono mt-0.5">
+                  {assignedCount}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <Truck className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border bg-card shadow-xs">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Disponibles en Tienda</p>
+                <p className="text-2xl font-extrabold text-amber-600 font-mono mt-0.5">
+                  {availableCount}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-amber-100 text-amber-700">
+                <Clock className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Button variant="outline" size="sm" onClick={fetchDeliveries} className="rounded-xl font-bold text-xs">
-          <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Actualizar
-        </Button>
-      </div>
+        {/* FILTROS Y BARRA DE BÚSQUEDA */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-3 rounded-2xl border border-[#DDE2E8]">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            <Button
+              variant={activeTab === 'all' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('all')}
+              className="rounded-xl font-bold text-xs"
+            >
+              Todos ({deliveries.length})
+            </Button>
+            <Button
+              variant={activeTab === 'assigned' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('assigned')}
+              className="rounded-xl font-bold text-xs"
+            >
+              Mi Ruta ({assignedCount})
+            </Button>
+            <Button
+              variant={activeTab === 'available' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('available')}
+              className="rounded-xl font-bold text-xs"
+            >
+              Disponibles ({availableCount})
+            </Button>
+          </div>
 
-      <Card className="rounded-2xl border bg-card shadow-xs">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-bold text-foreground">
-            Entregas Pendientes ({deliveries.length})
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Selecciona una entrega para desplegar la dirección, lista de productos y confirmar la entrega.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>{renderContent()}</CardContent>
-      </Card>
-    </div>
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por cliente, dirección o vendedor..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 text-xs h-9 rounded-xl"
+            />
+          </div>
+        </div>
+
+        {/* CONTENIDO DE PEDIDOS EN RUTA */}
+        {loading ? (
+          <LoadingRows rows={4} />
+        ) : error ? (
+          <ErrorState message={error} onRetry={fetchDeliveries} />
+        ) : filteredDeliveries.length === 0 ? (
+          <EmptyState
+            title={searchTerm ? 'Sin coincidencias' : '¡Todo al día en tu ruta de entregas!'}
+            description={
+              searchTerm
+                ? 'No se encontraron entregas con el criterio ingresado.'
+                : 'No tienes entregas pendientes asignadas por el momento.'
+            }
+            icon={CheckCircle2}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredDeliveries.map((delivery) => {
+              const isAssignedToMe = delivery.ruteroId === user?.id;
+
+              return (
+                <Card
+                  key={delivery.id}
+                  className="rounded-2xl border border-[#DDE2E8] bg-card shadow-xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                >
+                  <CardHeader className="pb-3 border-b border-[#DDE2E8]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-base font-extrabold text-foreground">
+                            {delivery.clientName}
+                          </CardTitle>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                          <User className="h-3 w-3 text-primary" /> Vendedor:{' '}
+                          {delivery.salesManagerName || 'Mostrador Central'}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <span className="text-lg font-extrabold text-emerald-600 font-mono block">
+                          {formatCurrency(delivery.total || 0)}
+                        </span>
+                        {isAssignedToMe ? (
+                          <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 font-bold text-[10px]">
+                            🟢 Mi Ruta
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-amber-100 text-amber-800 border-amber-300 font-bold text-[10px]">
+                            🟡 Disponible Tienda
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="p-4 space-y-3 flex-1">
+                    {/* DIRECCION */}
+                    {delivery.clientAddress && (
+                      <div className="rounded-xl bg-muted/40 p-3 border border-[#DDE2E8] text-xs space-y-1">
+                        <div className="flex items-center justify-between font-bold text-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-primary" /> Dirección de Entrega:
+                          </span>
+                          {isCoordinates(delivery.clientAddress) && (
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${delivery.clientAddress}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline flex items-center gap-1 font-bold"
+                            >
+                              <Navigation className="h-3 w-3" /> Abrir GPS <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground">{delivery.clientAddress}</p>
+                      </div>
+                    )}
+
+                    {/* DETALLES DE PAGO Y PRODUCTOS */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="font-semibold">
+                        Condición Pago: <span className="text-foreground font-bold">{delivery.paymentType || 'Contado'}</span>
+                      </span>
+                      <span className="font-semibold">
+                        Fecha: <span className="text-foreground">{delivery.createdAt ? format(new Date(delivery.createdAt), "d MMM, hh:mm a", { locale: es }) : '-'}</span>
+                      </span>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-bold text-foreground mb-1.5 flex items-center gap-1">
+                        <Package className="h-3.5 w-3.5 text-primary" /> Productos Incluidos ({delivery.items?.length || 0}):
+                      </p>
+                      <div className="space-y-1 bg-card rounded-xl p-2.5 border border-[#DDE2E8]">
+                        {delivery.items?.map((item) => (
+                          <div key={item.id} className="flex justify-between text-xs font-medium">
+                            <span className="text-foreground">• {item.description}</span>
+                            <span className="font-mono font-extrabold text-foreground">x{item.quantity}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+
+                  {/* ACCIONES */}
+                  <div className="p-4 pt-0 border-t border-[#DDE2E8] bg-muted/10 rounded-b-2xl">
+                    <div className="pt-3 flex flex-wrap items-center gap-2">
+                      {!isAssignedToMe ? (
+                        <Button
+                          onClick={() => handleAssignToMe(delivery.id)}
+                          className="w-full rounded-xl font-bold bg-amber-600 hover:bg-amber-700 text-white text-xs h-10"
+                        >
+                          <UserCheck className="mr-1.5 h-4 w-4" /> Asignarme a Mi Ruta
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            onClick={() => handleUpdateStatus(delivery.id, 'Entregado')}
+                            className="flex-1 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-10 shadow-xs"
+                          >
+                            <CheckCircle2 className="mr-1.5 h-4 w-4" /> Marcar Entregado
+                          </Button>
+
+                          <Button
+                            variant="outline"
+                            onClick={() => handleUpdateStatus(delivery.id, 'No Entregado')}
+                            className="flex-1 rounded-xl font-bold text-rose-600 border-rose-300 hover:bg-rose-50 text-xs h-10"
+                          >
+                            <XCircle className="mr-1.5 h-4 w-4 text-rose-600" /> No Entregado
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </WorkspaceShell>
   );
 }
