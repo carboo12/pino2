@@ -80,20 +80,20 @@ export default function VendorClientsPage() {
     notasEntrega: '',
   });
 
-  const { data: usersData = [] } = useQuery({
+  const { data: rawUsersData } = useQuery({
     queryKey: ['users', storeId],
     queryFn: async () => {
       const res = await apiClient.get('/users', { params: { storeId } });
-      return res.data || [];
+      return extractData<any>(res.data);
     },
     enabled: !!storeId,
   });
 
-  const { data: zonesData = [] } = useQuery({
+  const { data: rawZonesData } = useQuery({
     queryKey: ['store-zones', storeId],
     queryFn: async () => {
       const res = await apiClient.get('/store-zones', { params: { storeId } });
-      return res.data || [];
+      return extractData<any>(res.data);
     },
     enabled: !!storeId,
   });
@@ -115,16 +115,21 @@ export default function VendorClientsPage() {
   const clients = clientsData?.data || [];
   const total = clientsData?.total || 0;
 
+  const usersList = Array.isArray(rawUsersData) ? rawUsersData : [];
+  const zonesList = Array.isArray(rawZonesData) ? rawZonesData : [];
+
   const vendors: Record<string, string> = {};
-  usersData
+  usersList
     .filter((u: any) => normalizeUserRole(u.role) === 'gestor')
     .forEach((v: any) => {
       vendors[v.id || v.uid] = v.name;
     });
 
   const zones: Record<string, string> = {};
-  zonesData.forEach((z: any) => {
-    zones[z.id] = z.name;
+  zonesList.forEach((z: any) => {
+    if (z && z.id) {
+      zones[z.id] = z.name || z.descripcion || 'Zona';
+    }
   });
 
   const filteredClients = clients.filter((c) => {
