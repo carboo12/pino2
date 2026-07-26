@@ -25,7 +25,7 @@ import { Roles } from "../../common/decorators/roles.decorator";
 export class InvoicesController {
   constructor(private readonly service: InvoicesService) {}
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Post()
   @ApiOperation({
     summary:
@@ -35,7 +35,7 @@ export class InvoicesController {
     return this.service.create({ ...dto, userId: req.user?.sub });
   }
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: "Listar facturas" })
   findAll(
@@ -45,26 +45,17 @@ export class InvoicesController {
     return this.service.findAll(storeId, supplierId);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Get(":id")
   @ApiOperation({ summary: "Obtener detalle de una factura" })
   findOne(@Param("id") id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Patch(":id")
   @ApiOperation({ summary: "Actualizar estado de factura" })
   update(@Param("id") id: string, @Body() dto: { status?: string }) {
     return this.service.update(id, dto);
-  }
-
-  @Roles('admin')
-  @Delete(":id")
-  @ApiOperation({
-    summary: "Anular factura y revertir inventario/CxP sin borrar historial",
-  })
-  remove(@Param("id") id: string, @Req() req: any) {
-    return this.service.remove(id, req.user?.sub);
   }
 }

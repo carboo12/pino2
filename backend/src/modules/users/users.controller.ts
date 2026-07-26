@@ -25,27 +25,27 @@ export class UsersController {
   constructor(private readonly service: UsersService) {}
 
   @Post()
-  @Roles('admin')
+  @Roles('admin', 'chain-admin', 'super-admin')
   @ApiOperation({ summary: 'Crear un nuevo usuario (admin crea staff)' })
   create(@Body() dto: CreateUserDto) {
     return this.service.createUser(dto);
   }
 
   @Get()
-  @Roles('admin', 'gestor', 'inventory')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero', 'chain-admin', 'super-admin')
   @ApiOperation({ summary: 'Listar usuarios con filtros opcionales' })
   findAll(@Query('storeId') storeId?: string, @Query('role') role?: string, @Query('limit') limit?: string) {
     return this.service.findAll(storeId, role, limit ? parseInt(limit, 10) : undefined);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero', 'chain-admin', 'super-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un usuario por ID' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'chain-admin', 'super-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar perfil de usuario' })
   update(@Param('id') id: string, @Body() dto: UpdateUserDto) {
@@ -53,23 +53,9 @@ export class UsersController {
   }
 
   @Post(':id/assign/:storeId')
-  @Roles('admin')
+  @Roles('admin', 'chain-admin', 'super-admin')
   @ApiOperation({ summary: 'Asignar usuario a una tienda' })
   assignToStore(@Param('id') id: string, @Param('storeId') storeId: string) {
     return this.service.assignToStore(id, storeId);
-  }
-
-  @Roles('admin')
-  @Get(':id/stores')
-  @ApiOperation({ summary: 'Obtener tiendas asignadas a un usuario' })
-  getUserStores(@Param('id') id: string) {
-    return this.service.getUserStores(id);
-  }
-
-  @Delete(':id')
-  @Roles('admin')
-  @ApiOperation({ summary: 'Eliminar usuario' })
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
   }
 }

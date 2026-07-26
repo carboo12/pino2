@@ -25,14 +25,14 @@ import {
 export class AccountsPayableController {
   constructor(private readonly service: AccountsPayableService) {}
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Post()
   @ApiOperation({ summary: 'Crear cuenta por pagar' })
   create(@Body() dto: CreateAccountPayableDto) {
     return this.service.create(dto);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: 'Listar cuentas por pagar' })
   findAll(
@@ -43,14 +43,14 @@ export class AccountsPayableController {
     return this.service.findAll({ storeId, supplierId, pending });
   }
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de CxP con historial de pagos' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
   @Post(':id/payment')
   @ApiOperation({ summary: 'Registrar pago de CxP' })
   addPayment(@Param('id') id: string, @Body() dto: AddPayablePaymentDto) {
