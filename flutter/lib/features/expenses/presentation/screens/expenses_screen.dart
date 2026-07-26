@@ -96,7 +96,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: categoryCtrl.text,
+                  initialValue: categoryCtrl.text.isNotEmpty ? categoryCtrl.text : 'Combustible',
                   decoration: const InputDecoration(labelText: 'Categoría', border: OutlineInputBorder()),
                   items: const [
                     DropdownMenuItem(value: 'Combustible', child: Text('Combustible / Gasolina')),
@@ -138,6 +138,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                       final storeId = authState.session?.user.primaryStoreId ?? '';
                       final userId = authState.session?.user.id ?? '';
 
+                      final navigator = Navigator.of(context);
+                      final messenger = ScaffoldMessenger.of(context);
+
                       try {
                         final apiClient = ref.read(appApiClientProvider);
                         await apiClient.postMap(
@@ -152,19 +155,17 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                             'receiptNumber': receiptCtrl.text.isNotEmpty ? receiptCtrl.text : null,
                           },
                         );
-                        if (mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Gasto registrado con éxito')),
-                          );
-                          _loadExpenses();
-                        }
+                        if (!mounted) return;
+                        navigator.pop();
+                        messenger.showSnackBar(
+                          const SnackBar(content: Text('Gasto registrado con éxito')),
+                        );
+                        _loadExpenses();
                       } catch (err) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al guardar: $err'), backgroundColor: Colors.red),
-                          );
-                        }
+                        if (!mounted) return;
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Error al guardar: $err'), backgroundColor: Colors.red),
+                        );
                       }
                     },
                     child: const Text('Guardar Gasto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

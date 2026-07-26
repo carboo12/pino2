@@ -200,7 +200,7 @@ class _ClientHistoryBottomSheetState
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _sales.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
         final sale = _sales[index];
         final total = double.tryParse(sale['total']?.toString() ?? '0') ?? 0;

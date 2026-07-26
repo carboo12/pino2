@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database/local_cache_repository.dart';
@@ -122,7 +123,7 @@ class DeltaSyncService {
             _timestampKey(effectiveStoreId), serverTimestamp);
       }
     } catch (e) {
-      print('DeltaSync Error for store $effectiveStoreId: $e');
+      debugPrint('DeltaSync Error for store $effectiveStoreId: $e');
     }
   }
 
@@ -134,7 +135,7 @@ class DeltaSyncService {
     try {
       await handler(rawData as T);
     } catch (e) {
-      print('DeltaSync: error processing entity: $e');
+      debugPrint('DeltaSync: error processing entity: $e');
     }
   }
 }

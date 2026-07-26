@@ -62,7 +62,7 @@ GoRoute _fadeRoute({
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = _AuthRouterNotifier();
 
-  ref.listen(authControllerProvider, (_, __) {
+  ref.listen(authControllerProvider, (_, _) {
     notifier.notify();
   });
 
