@@ -5,6 +5,785 @@ Repositorio analizado: /opt/apps/pino2
 Commit base analizado: 82547b0 (main)
 
 ===============================================================================
+ACTUALIZACIÓN DE EJECUCIÓN - 2026-07-26 03:30 UTC
+===============================================================================
+
+ESTADO GENERAL:
+
+FASE DE DATOS ACTUAL: P3 - CORTE REALIZADO / ESTABILIZACIÓN Y CIERRE.
+
+FASE IA-NÚCLEO ACTUAL:
+
+- N0.1: congelar el estado operativo y crear baseline controlado.
+- Siguiente: N1, desbloquear contratos Gestor/Rutero.
+- Prioridades asignadas: CRÍTICO y ALTO.
+
+FASE IA-PARALELA ACTUAL:
+
+- P0: componentes React/Flutter puros sin llamadas API.
+- Puede iniciar cuando IA-NÚCLEO cierre N0.1.5 y publique el commit baseline.
+- Prioridades asignadas: MEDIO y BAJO.
+
+El backend principal ya apunta a sistema_de_inventario y está operativo.
+La fusión de multitienda_db hacia sistema_de_inventario terminó sin eliminar
+ni modificar destructivamente la base anterior. P0 está cerrada. La parte
+crítica de P1 está implementada. Quedan trabajos funcionales de P1/P2 que no
+deben confundirse con el corte de base ya completado.
+
+PUNTUACIÓN DEL CORTE DE DATOS Y FINANZAS: 7.5 / 10.
+
+PUNTUACIÓN MVP GLOBAL INCLUYENDO OPERACIÓN EN CALLE: 5.5 / 10.
+
+Comparación:
+
+- Diagnóstico inicial antes de ejecutar el plan:       3.5 / 10.
+- Base, fusión y finanzas después del corte:            7.5 / 10.
+- MVP global con Gestor/Rutero exigido por Trello:      5.5 / 10.
+- Meta después de cerrar pendientes P1/P2:              8.5 / 10.
+
+Por qué todavía no es 8.5/10:
+
+1. Falta completar recepción parcial de órdenes de compra.
+2. Falta cerrar importación Excel/CSV con preview y errores por fila.
+3. Falta corregir mediante movimientos los stocks negativos identificados.
+4. Falta paginación real de servidor en todas las listas grandes.
+5. Falta ampliar el contrato offline de CxC en Flutter.
+6. Falta una validación funcional autenticada de todos los flujos de escritura
+   con usuarios reales de cada rol.
+7. Falta período de observación del corte antes de retirar multitienda_db.
+8. El flujo obligatorio Gestor de Ventas -> Carga -> Rutero -> Liquidación
+   todavía tiene bloqueantes funcionales detallados en la sección 17.
+
+RESULTADO DEL CORTE DE BASE:
+
+[X] backend/.env usa DATABASE_NAME=sistema_de_inventario.
+[X] backend/.env.dev usa DATABASE_NAME=sistema_de_inventario.
+[X] PM2 pino-api-dev está online y escucha en 0.0.0.0:3035.
+[X] PostgreSQL confirma una conexión pino_app a sistema_de_inventario.
+[X] GET /api/health responde HTTP 200, status=healthy y db=ok.
+[X] Nginx /api-dev/ enruta al backend 127.0.0.1:3035/api/.
+[X] React desplegado en /var/www/dev/prueba/pino coincide con web/dist.
+[X] URL servida por Nginx: /dev/prueba/pino/.
+[X] Los endpoints críticos existen a través de Nginx; sin token devuelven 401
+    y no 404:
+    - GET /api-dev/accounts-receivable
+    - GET /api-dev/accounts-payable
+    - GET /api-dev/supplier-credit-notes
+    - GET /api-dev/clients
+    - GET /api-dev/products
+    - GET /api-dev/orders
+[X] Se observaron solicitudes autenticadas reales GET /api/orders con HTTP 200
+    después del corte.
+[ ] Pendiente ejecutar flujos autenticados de escritura de punta a punta:
+    venta a crédito, abono CxC, factura a crédito, pago CxP y nota de crédito.
+
+RESPALDOS VERIFICABLES:
+
+[X] Respaldo previo de multitienda_db:
+    /root/pino2-backups/cutover-2026-07-26/
+    multitienda_db-before-cutover.dump
+    SHA-256:
+    fcfec73e887b613786a1bc44c1e109ddac890fd5cedc139e26254a0a6263d1d8
+
+[X] Respaldo previo de sistema_de_inventario:
+    /root/pino2-backups/cutover-2026-07-26/
+    sistema_de_inventario-before-cutover.dump
+    SHA-256:
+    2f572951b3c42642d003885e19eb6b2fb5562f69c78233d7a63856742e66fd98
+
+[X] Respaldo posterior al corte:
+    /root/pino2-backups/cutover-2026-07-26/
+    sistema_de_inventario-after-cutover.dump
+    Tamaño comprimido: 67 MiB.
+    SHA-256:
+    8c0c1303086057a4ae06c52320c6a714a3e8279514ecb06e9e444eaabf9852b7
+
+[X] pg_restore puede listar el catálogo del respaldo posterior.
+[X] Respaldo específico de clientes antes del ajuste de visibilidad:
+    /root/pino2-backups/cutover-2026-07-26/
+    clients-before-visibility-fix.sql
+
+FUSIÓN EJECUTADA:
+
+[X] Script seguro creado:
+    backend/scripts/merge_multitienda_into_sistema.js
+[X] Fuente fija: multitienda_db.
+[X] Destino fijo: sistema_de_inventario.
+[X] Modo --dry-run ejecutado antes de --apply.
+[X] Fuente abierta en transacción READ ONLY / REPEATABLE READ.
+[X] Destino protegido por transacción y advisory lock.
+[X] Sin DROP, TRUNCATE ni DELETE.
+[X] Primera ejecución insertó 2,551 filas faltantes:
+    - users: 19
+    - departments: 3
+    - clients: 9
+    - products: 170
+    - product_barcodes: 114
+    - user_stores: 16
+    - cash_shifts: 9
+    - authorizations: 2
+    - vendor_inventories: 3
+    - orders: 155
+    - order_items: 160
+    - order_status_history: 187
+    - pending_deliveries: 146
+    - sales: 477
+    - sale_items: 477
+    - movements: 587
+    - accounts_receivable: 9
+    - account_payments: 3
+    - notifications: 1
+    - device_tokens: 1
+    - error_logs: 1
+    - outbox_events: 2
+[X] Reejecución idempotente: cero inserciones duplicadas.
+[X] Reconciliación explícita de users y clients compartidos.
+[X] Las 2 collections recuperaron account_id.
+[X] Sumas financieras de las filas fusionadas coinciden con la fuente.
+[X] multitienda_db se mantiene intacta.
+
+CONTEOS FINALES EN sistema_de_inventario:
+
+- stores:                   5
+- users:                   36
+- clients:              4,298
+- clients activos:      3,563
+- products:             3,730
+- product_barcodes:     1,698
+- sales:               86,964
+- sale_items:         497,755
+- orders:                 809
+- order_items:          9,403
+- movements:          553,727
+- accounts_receivable:      9
+- account_payments:          3
+- legacy_notas_credito:  1,768
+
+AJUSTE DE VISIBILIDAD DE CLIENTES:
+
+[X] No se activaron indiscriminadamente todos los clientes.
+[X] Se activaron 3,553 clientes que cumplían al menos una condición operativa:
+    tenían ventas, eran tipo CREDITO o tenían preventa asignada.
+[X] Clientes visibles/activos finales: 3,563.
+[X] Permanecen inactivos 735 registros sin ventas, sin crédito y sin preventa.
+[X] No se borró ningún cliente.
+[ ] Pendiente decisión de negocio sobre los 735 clientes restantes.
+
+INTEGRIDAD FINAL:
+
+[X] Cero sale_items huérfanos.
+[X] Cero order_items huérfanos.
+[X] Cero movements huérfanos.
+[X] Cero accounts_receivable con client_id huérfano.
+[X] Cero collections sin account_id.
+[X] Las 9 CxC tienen source, issued_at, due_date y credit_days_snapshot.
+[X] Las 9 CxC tienen saldo válido.
+[X] Estados CxC canónicos: 8 PENDING y 1 PARTIAL.
+[X] Total CxC: C$ 2,473.20.
+[X] Saldo pendiente CxC: C$ 1,623.20.
+[X] Pagos preservados: C$ 1,450.00.
+[X] Migración 2026-07-26_finance_mvp_critical.sql aplicada.
+[X] Migración 2026-07-26_validate_finance_constraints.sql aplicada.
+[X] Restricciones AR/AP existentes validadas por PostgreSQL.
+
+REGLA DE CONTINUIDAD:
+
+No borrar multitienda_db. Mantenerla sin uso operativo durante observación.
+Toda corrección nueva debe aplicarse primero a sistema_de_inventario mediante
+migración o transacción auditable. No volver a ejecutar los scripts destructivos
+enumerados en la sección 0.
+
+===============================================================================
+PLAN DE EJECUCIÓN PARALELA POR FASE, SUBFASE, PRIORIDAD Y RESPONSABLE
+===============================================================================
+
+ESTA SECCIÓN ES LA FUENTE PRINCIPAL PARA REPARTIR EL TRABAJO.
+
+Si una tarea posterior del documento parece tener otra prioridad, prevalece la
+clasificación de esta sección.
+
+LEYENDA DE PRIORIDAD:
+
+- [C] CRÍTICO:
+  Sin esto hay riesgo de pérdida/corrupción de datos, doble inventario, doble
+  cobro, deuda incorrecta o un flujo principal completamente inoperable.
+
+- [A] ALTO:
+  Es obligatorio para el MVP y bloquea una operación completa, aunque no
+  produzca corrupción inmediata.
+
+- [M] MEDIO:
+  Mejora usabilidad, rendimiento visual o completitud de una pantalla. Puede
+  ejecutarse en paralelo cuando el contrato de datos esté congelado.
+
+- [B] BAJO:
+  Pulido visual, textos, consistencia y comodidad. No cambia reglas de negocio.
+
+RESPONSABLES:
+
+- IA-NÚCLEO:
+  Responsable exclusivo de tareas [C] y [A].
+  Modifica PostgreSQL, migraciones, transacciones NestJS, contratos API,
+  sincronización offline y lógica financiera/inventario.
+
+- IA-PARALELA:
+  Responsable de tareas [M] y [B].
+  Trabaja componentes visuales, HTML/CSS/Tailwind, estados de interfaz,
+  controles reutilizables y adaptación responsive.
+  No cambia reglas, tablas, SQL ni contratos por iniciativa propia.
+
+ESTADO DE LOS CARRILES:
+
+- IA-NÚCLEO:
+  iniciar FASE N0 / SUBFASE N0.1 y después FASE N1.
+
+- IA-PARALELA:
+  puede iniciar FASE P0 después del commit baseline N0.1.5 usando sólo archivos
+  nuevos permitidos.
+  Debe esperar CONTRACT-FREEZE-1 para integrar páginas con endpoints.
+
+REGLAS DE COORDINACIÓN:
+
+[ ] Cada tarea debe mencionar su ID, por ejemplo N1.2 o P1.4.
+[ ] No ejecutar dos tareas sobre el mismo archivo al mismo tiempo.
+[ ] No usar git add -A.
+[ ] Cada IA añade únicamente los archivos de su tarea.
+[ ] No reformatear módulos completos fuera del alcance.
+[ ] No renombrar endpoints, estados o campos acordados.
+[ ] Si falta un campo, IA-PARALELA deja un adaptador/TODO tipado y reporta el
+    bloqueo; no modifica backend.
+[ ] IA-NÚCLEO publica un resumen de contrato antes de liberar una integración.
+[ ] IA-PARALELA no conecta mocks directamente a producción.
+[ ] Ninguna IA ejecuta clone_to_sistema_inventario.js,
+    purge_all_test_seed_data.js ni migrate_100_percent_coverage.js.
+[ ] Ninguna IA borra multitienda_db.
+[ ] Todo cambio de base pertenece a IA-NÚCLEO y debe ser aditivo/transaccional.
+
+AISLAMIENTO RECOMENDADO:
+
+1. IA-NÚCLEO termina N0.1.5 y comunica BASELINE_COMMIT.
+2. Crear una rama/worktree separada para IA-PARALELA desde ese commit.
+3. IA-NÚCLEO continúa en su carril crítico/alto.
+4. IA-PARALELA trabaja sólo P0/P1/P2.
+5. Integrar primero IA-NÚCLEO y después IA-PARALELA.
+
+Ejemplo orientativo, ejecutado sólo después de publicar BASELINE_COMMIT:
+
+  git worktree add /opt/apps/pino2-medium-low \
+    -b ia/medium-low BASELINE_COMMIT
+
+Si no se usa worktree separado, las dos IAs no deben operar simultáneamente en
+el mismo checkout.
+
+ARCHIVOS RESERVADOS A IA-NÚCLEO:
+
+- backend/migrations/**
+- backend/scripts/merge_multitienda_into_sistema.js
+- backend/src/database/**
+- backend/src/modules/routes/**
+- backend/src/modules/orders/**
+- backend/src/modules/pending-orders/**
+- backend/src/modules/pending-deliveries/**
+- backend/src/modules/cargas-camion/**
+- backend/src/modules/vendor-inventories/**
+- backend/src/modules/returns/**
+- backend/src/modules/collections/**
+- backend/src/modules/accounts-receivable/**
+- backend/src/modules/liquidaciones-ruta/**
+- backend/src/modules/sales/**
+- backend/src/modules/invoices/**
+- backend/src/modules/purchase-orders/**
+- backend/src/modules/inventory/**
+- backend/src/modules/sync-engine/**
+- web/src/services/**
+- web/src/lib/runtime-config.ts
+- web/src/App.tsx
+- flutter/lib/core/database/**
+- flutter/lib/core/network/**
+- flutter/lib/features/**/data/**
+- flutter/lib/features/**/domain/**
+- flutter/lib/features/preventa/presentation/screens/preventa_route_screen.dart
+- flutter/lib/features/preventa/presentation/screens/preventa_order_screen.dart
+- flutter/lib/features/deliveries/presentation/screens/delivery_detail_screen.dart
+- flutter/lib/features/deliveries/presentation/screens/route_board_screen.dart
+- flutter/lib/features/warehouse/presentation/screens/carga_camion_screen.dart
+- flutter/lib/features/collections/presentation/screens/collections_screen.dart
+
+ARCHIVOS/ÁREAS INICIALES PERMITIDAS A IA-PARALELA:
+
+- web/src/components/field-operations/**        (archivos nuevos)
+- web/src/components/bulk-unit-input/**         (archivos nuevos)
+- web/src/components/data-pagination/**         (archivos nuevos)
+- web/src/components/import-preview/**          (archivos nuevos)
+- web/src/components/states/**                  (archivos nuevos)
+- flutter/lib/features/preventa/presentation/widgets/**   (archivos nuevos)
+- flutter/lib/features/deliveries/presentation/widgets/** (archivos nuevos)
+- flutter/lib/features/warehouse/presentation/widgets/**  (archivos nuevos)
+- flutter/lib/features/collections/presentation/widgets/** (archivos nuevos)
+
+IA-PARALELA podrá editar páginas existentes sólo cuando IA-NÚCLEO marque el
+contrato correspondiente como FROZEN. Hasta entonces debe crear componentes
+puros con props/modelos de presentación locales y sin llamadas HTTP.
+
+DEPENDENCIA GENERAL:
+
+  N0 Estabilización
+      -> N1 Contratos y estados
+          -> N2 Migración de rutas/cargas/entregas
+              -> N3 Operaciones transaccionales
+                  -> CONTRACT-FREEZE-1
+                      -> P1 Integración React/Flutter
+                          -> N4 Liquidación/cierre
+                              -> P2 UX final
+
+Mientras N0-N3 avanzan, IA-PARALELA puede ejecutar P0 sin tocar integraciones.
+
+-------------------------------------------------------------------------------
+FASE N0 - ESTABILIZACIÓN DEL CORTE
+Responsable: IA-NÚCLEO
+Prioridad dominante: CRÍTICO
+-------------------------------------------------------------------------------
+
+SUBFASE N0.1 - Congelar el estado operativo actual
+
+[X][C][IA-NÚCLEO] N0.1.1 sistema_de_inventario es la base activa.
+[X][C][IA-NÚCLEO] N0.1.2 Backups antes/después del corte verificados.
+[X][C][IA-NÚCLEO] N0.1.3 PM2/Nginx/API/DB responden correctamente.
+[X][C][IA-NÚCLEO] N0.1.4 Cero huérfanos críticos.
+[ ][C][IA-NÚCLEO] N0.1.5 Crear un commit base controlado con los cambios del
+                         corte antes de integrar trabajo paralelo.
+
+CRITERIO DE SALIDA N0.1:
+
+- Existe referencia exacta del commit base.
+- No hay archivos de IA-PARALELA mezclados.
+- El dump posterior al corte sigue disponible.
+
+SUBFASE N0.2 - Cerrar validación funcional financiera
+
+[ ][A][IA-NÚCLEO] N0.2.1 Venta CONTADO controlada.
+[ ][A][IA-NÚCLEO] N0.2.2 Venta CREDITO crea CxC con cliente y due_date.
+[ ][A][IA-NÚCLEO] N0.2.3 Abono parcial y pago total de CxC.
+[ ][A][IA-NÚCLEO] N0.2.4 Factura proveedor CONTADO.
+[ ][A][IA-NÚCLEO] N0.2.5 Factura proveedor CREDITO crea CxP.
+[ ][A][IA-NÚCLEO] N0.2.6 Pago de CxP.
+[ ][A][IA-NÚCLEO] N0.2.7 Nota de crédito revierte inventario y reduce CxP.
+
+CRITERIO DE SALIDA N0.2:
+
+- Cada operación queda en sistema_de_inventario.
+- No aparece escritura nueva del proceso Pino en multitienda_db.
+- Saldos y movimientos coinciden con la operación realizada.
+
+-------------------------------------------------------------------------------
+FASE N1 - DESBLOQUEO DEL FLUJO DE CALLE
+Responsable: IA-NÚCLEO
+Prioridad dominante: CRÍTICO
+-------------------------------------------------------------------------------
+
+SUBFASE N1.1 - Estados y vocabulario canónico
+
+[ ][C][IA-NÚCLEO] N1.1.1 Definir estados de routes:
+                         DRAFT, ASSIGNED, ACTIVE, COMPLETED, CANCELLED.
+[ ][C][IA-NÚCLEO] N1.1.2 Definir estados de cargas:
+                         PLANNED, PICKING, LOADED, PENDING_ACCEPTANCE,
+                         ACCEPTED, EN_ROUTE, RETURNED, CLOSED, CANCELLED.
+[ ][C][IA-NÚCLEO] N1.1.3 Definir estados de entregas:
+                         PENDING, ASSIGNED, EN_ROUTE, ARRIVED,
+                         DELIVERED_FULL, DELIVERED_PARTIAL, REJECTED, SETTLED.
+[ ][C][IA-NÚCLEO] N1.1.4 Definir estados de liquidación:
+                         DRAFT, SUBMITTED_BY_DRIVER, UNDER_REVIEW,
+                         APPROVED, WITH_OBSERVATION, CLOSED.
+[ ][A][IA-NÚCLEO] N1.1.5 Unificar Gestor como sales-manager.
+[ ][A][IA-NÚCLEO] N1.1.6 Mantener preventa sólo como alias normalizado.
+[ ][A][IA-NÚCLEO] N1.1.7 No mezclar vendor con Gestor de Preventa.
+
+ENTREGABLE N1.1:
+
+- Un archivo de contratos compartidos con enums.
+- NestJS, React y Flutter consumen los mismos valores.
+
+SUBFASE N1.2 - Corregir contratos móviles actualmente bloqueados
+
+[ ][C][IA-NÚCLEO] N1.2.1 Gestor puede leer únicamente su ruta del día.
+[ ][C][IA-NÚCLEO] N1.2.2 Gestor puede crear orders con externalId.
+[ ][C][IA-NÚCLEO] N1.2.3 Rutero puede leer únicamente sus entregas.
+[ ][C][IA-NÚCLEO] N1.2.4 Rutero puede leer únicamente su carga/inventario.
+[ ][C][IA-NÚCLEO] N1.2.5 Rutero puede registrar entrega/devolución/cobro.
+[ ][C][IA-NÚCLEO] N1.2.6 Flutter deja de enviar IDs de otro usuario como fuente
+                         de verdad; el backend resuelve el usuario de sesión.
+[ ][C][IA-NÚCLEO] N1.2.7 Eliminar fallback Flutter que muestra todos los
+                         clientes cuando no hay ruta.
+[ ][A][IA-NÚCLEO] N1.2.8 VisitLogs conserva el status enviado.
+[ ][A][IA-NÚCLEO] N1.2.9 VisitLogs usa externalId idempotente.
+
+CRITERIO DE SALIDA N1.2:
+
+- Sin ruta asignada, Gestor obtiene lista vacía.
+- Gestor no recibe clientes de otro Gestor.
+- Rutero no recibe carga/entregas de otro Rutero.
+- Reintentar externalId devuelve la operación existente.
+
+SUBFASE N1.3 - Reparar liquidación inoperable
+
+[ ][C][IA-NÚCLEO] N1.3.1 Eliminar consulta a tabla inexistente payments.
+[ ][C][IA-NÚCLEO] N1.3.2 Usar sales/collections/account_payments reales.
+[ ][C][IA-NÚCLEO] N1.3.3 Separar CASH de TRANSFER/CHECK.
+[ ][C][IA-NÚCLEO] N1.3.4 Conciliar por carga/rutero/fecha operativa.
+[ ][A][IA-NÚCLEO] N1.3.5 Hacer create/submit/approve transaccional.
+
+CRITERIO DE SALIDA N1.3:
+
+- POST de liquidación no falla por tabla/columna inexistente.
+- Efectivo esperado puede explicarse fila por fila.
+
+-------------------------------------------------------------------------------
+FASE N2 - MODELO DE DATOS DE RUTA, CARGA Y ENTREGA
+Responsable: IA-NÚCLEO
+Prioridad dominante: CRÍTICO/ALTO
+-------------------------------------------------------------------------------
+
+SUBFASE N2.1 - Rutas normalizadas
+
+[ ][C][IA-NÚCLEO] N2.1.1 Elegir routes como cabecera canónica.
+[ ][C][IA-NÚCLEO] N2.1.2 Elegir route_clients como detalle canónico.
+[ ][A][IA-NÚCLEO] N2.1.3 Migrar/deprecar vendor_routes duplicada.
+[ ][A][IA-NÚCLEO] N2.1.4 Agregar route_type SALES/DELIVERY.
+[ ][A][IA-NÚCLEO] N2.1.5 Agregar zone_id, assigned_by y vigencia.
+[ ][A][IA-NÚCLEO] N2.1.6 Crear historial de asignación/reasignación.
+[ ][A][IA-NÚCLEO] N2.1.7 Agregar índices y restricciones únicas.
+
+SUBFASE N2.2 - Carga física y custodia
+
+[ ][C][IA-NÚCLEO] N2.2.1 Crear carga_camion_orders.
+[ ][C][IA-NÚCLEO] N2.2.2 Crear carga_camion_items.
+[ ][C][IA-NÚCLEO] N2.2.3 Congelar units_per_bulk por línea.
+[ ][C][IA-NÚCLEO] N2.2.4 Separar PLANNED de movimiento de stock.
+[ ][C][IA-NÚCLEO] N2.2.5 Modelar stock de carga/en tránsito.
+[ ][A][IA-NÚCLEO] N2.2.6 Guardar responsables y timestamps.
+[ ][A][IA-NÚCLEO] N2.2.7 Modelar discrepancias al aceptar.
+
+SUBFASE N2.3 - Entrega parcial
+
+[ ][C][IA-NÚCLEO] N2.3.1 Crear delivery_item_results.
+[ ][C][IA-NÚCLEO] N2.3.2 Agregar externalId único a entrega.
+[ ][C][IA-NÚCLEO] N2.3.3 Agregar delivered/rejected units por item.
+[ ][A][IA-NÚCLEO] N2.3.4 Agregar ubicación, receptor y prueba.
+[ ][A][IA-NÚCLEO] N2.3.5 Agregar route_id y stop_order.
+
+SUBFASE N2.4 - Devolución en tránsito
+
+[ ][C][IA-NÚCLEO] N2.4.1 Agregar IN_TRANSIT/RECEIVED a devolución de ruta.
+[ ][C][IA-NÚCLEO] N2.4.2 No aumentar bodega al rechazar en calle.
+[ ][C][IA-NÚCLEO] N2.4.3 Reponer sólo al recibir físicamente.
+[ ][A][IA-NÚCLEO] N2.4.4 Vincular retorno con carga, entrega e item.
+
+CRITERIO DE SALIDA FASE N2:
+
+- Migración aditiva aplicada sin borrar datos.
+- Las 146 pending_deliveries existentes siguen válidas.
+- El esquema soporta entrega parcial y aceptación de carga.
+- No existen dos ubicaciones con la misma unidad física.
+
+-------------------------------------------------------------------------------
+FASE N3 - OPERACIONES TRANSACCIONALES DEL FLUJO DE CALLE
+Responsable: IA-NÚCLEO
+Prioridad dominante: CRÍTICO/ALTO
+-------------------------------------------------------------------------------
+
+SUBFASE N3.1 - Ruta comercial y preventa
+
+[ ][A][IA-NÚCLEO] N3.1.1 Crear/editar ruta con route_clients.
+[ ][A][IA-NÚCLEO] N3.1.2 Reasignación masiva/temporal.
+[ ][A][IA-NÚCLEO] N3.1.3 Bootstrap delta del Gestor.
+[ ][A][IA-NÚCLEO] N3.1.4 Pedido offline Bultos/Unidades.
+[ ][A][IA-NÚCLEO] N3.1.5 Conflicto de stock/precio recuperable.
+
+SUBFASE N3.2 - Preparación y aceptación de carga
+
+[ ][C][IA-NÚCLEO] N3.2.1 Crear PLANNED sin descontar stock.
+[ ][C][IA-NÚCLEO] N3.2.2 Confirmar LOADED y mover a carga/en tránsito.
+[ ][C][IA-NÚCLEO] N3.2.3 Aceptar carga y mover a vendor_inventories.
+[ ][C][IA-NÚCLEO] N3.2.4 Evitar doble descuento/reintento.
+[ ][A][IA-NÚCLEO] N3.2.5 Manejar discrepancia/rechazo de aceptación.
+[ ][A][IA-NÚCLEO] N3.2.6 Autorizar salida EN_ROUTE.
+
+SUBFASE N3.3 - Entrega, cobro y deuda
+
+[ ][C][IA-NÚCLEO] N3.3.1 Endpoint complete idempotente.
+[ ][C][IA-NÚCLEO] N3.3.2 Bloquear entrega/order/items/inventario FOR UPDATE.
+[ ][C][IA-NÚCLEO] N3.3.3 Validar cantidades planificadas.
+[ ][C][IA-NÚCLEO] N3.3.4 Crear sale/sale_items de cliente.
+[ ][C][IA-NÚCLEO] N3.3.5 CONTADO persiste pago.
+[ ][C][IA-NÚCLEO] N3.3.6 CREDITO crea CxC.
+[ ][C][IA-NÚCLEO] N3.3.7 Rechazo crea devolución IN_TRANSIT.
+[ ][C][IA-NÚCLEO] N3.3.8 Actualizar inventario/estados en un commit.
+[ ][A][IA-NÚCLEO] N3.3.9 Crear snapshot imprimible.
+
+SUBFASE N3.4 - Offline e idempotencia
+
+[ ][C][IA-NÚCLEO] N3.4.1 externalId en visita.
+[ ][C][IA-NÚCLEO] N3.4.2 externalId en pedido.
+[ ][C][IA-NÚCLEO] N3.4.3 externalId en aceptación.
+[ ][C][IA-NÚCLEO] N3.4.4 externalId en entrega/cobro.
+[ ][C][IA-NÚCLEO] N3.4.5 externalId en devolución.
+[ ][C][IA-NÚCLEO] N3.4.6 externalId en cierre.
+[ ][A][IA-NÚCLEO] N3.4.7 Drift conserva error/conflicto sin borrar acción.
+
+CONTRACT-FREEZE-1:
+
+IA-NÚCLEO debe publicar antes de liberar P1:
+
+1. Endpoints definitivos.
+2. Métodos HTTP.
+3. DTO request/response.
+4. Estados canónicos.
+5. Campos opcionales/obligatorios.
+6. Ejemplos JSON.
+7. Regla de error recuperable.
+
+-------------------------------------------------------------------------------
+FASE N4 - CIERRE, COMPRAS E INTEGRIDAD RESTANTE
+Responsable: IA-NÚCLEO
+Prioridad dominante: ALTO
+-------------------------------------------------------------------------------
+
+SUBFASE N4.1 - Retorno y liquidación
+
+[ ][A][IA-NÚCLEO] N4.1.1 Rutero envía SUBMITTED_BY_DRIVER.
+[ ][A][IA-NÚCLEO] N4.1.2 Auxiliar recibe retorno físico.
+[ ][A][IA-NÚCLEO] N4.1.3 Conciliar mercancía esperada/física.
+[ ][A][IA-NÚCLEO] N4.1.4 Conciliar efectivo y otros medios.
+[ ][A][IA-NÚCLEO] N4.1.5 Aprobar WITH_OBSERVATION/CLOSED.
+[ ][A][IA-NÚCLEO] N4.1.6 Cerrar carga, entregas e inventario móvil.
+
+SUBFASE N4.2 - Entradas de inventario pendientes
+
+[ ][A][IA-NÚCLEO] N4.2.1 Recepción parcial de orden de compra.
+[ ][A][IA-NÚCLEO] N4.2.2 Importación con staging y validación por fila.
+[ ][A][IA-NÚCLEO] N4.2.3 Idempotencia de importación por clave/barcode.
+[ ][A][IA-NÚCLEO] N4.2.4 Ajustar stock negativo mediante movements.
+[ ][A][IA-NÚCLEO] N4.2.5 Paginación SQL de clients/products/sales/movements.
+
+SUBFASE N4.3 - Flutter financiero/campo
+
+[ ][A][IA-NÚCLEO] N4.3.1 Migración Drift de CxC.
+[ ][A][IA-NÚCLEO] N4.3.2 Cache de dueDate/daysOverdue/saldo/límite.
+[ ][A][IA-NÚCLEO] N4.3.3 Cobro offline idempotente.
+[ ][A][IA-NÚCLEO] N4.3.4 Impresión Bluetooth.
+[ ][A][IA-NÚCLEO] N4.3.5 Reimpresión sin repetir operación.
+
+-------------------------------------------------------------------------------
+FASE P0 - COMPONENTES PARALELOS SIN DEPENDENCIA DE API
+Responsable: IA-PARALELA
+Prioridad dominante: MEDIO/BAJO
+Puede iniciar después de N0.1.5; no requiere CONTRACT-FREEZE-1.
+-------------------------------------------------------------------------------
+
+SUBFASE P0.1 - Componentes React puros
+
+[ ][M][IA-PARALELA] P0.1.1 BulkUnitInput:
+                           props unitsPerBulk, bulks, units, onChange.
+[ ][M][IA-PARALELA] P0.1.2 BulkUnitDisplay:
+                           “50 Bultos / 10 Unidades”.
+[ ][M][IA-PARALELA] P0.1.3 DataPagination:
+                           page, pageSize, total, onPageChange.
+[ ][M][IA-PARALELA] P0.1.4 ImportPreviewTable:
+                           valid/invalid/warning por fila.
+[ ][M][IA-PARALELA] P0.1.5 FieldOperationStatus:
+                           chip para ruta/carga/entrega/liquidación.
+[ ][B][IA-PARALELA] P0.1.6 EmptyState con acción concreta.
+[ ][B][IA-PARALELA] P0.1.7 InlineError con Reintentar.
+[ ][B][IA-PARALELA] P0.1.8 LoadingRows/Skeleton localizado.
+
+RESTRICCIÓN:
+
+Estos componentes no llaman apiClient y no importan servicios.
+
+SUBFASE P0.2 - Widgets Flutter puros
+
+[ ][M][IA-PARALELA] P0.2.1 BulkUnitStepper.
+[ ][M][IA-PARALELA] P0.2.2 BulkUnitSummary.
+[ ][M][IA-PARALELA] P0.2.3 RouteStopCard.
+[ ][M][IA-PARALELA] P0.2.4 LoadItemCountCard.
+[ ][M][IA-PARALELA] P0.2.5 DeliveryItemResultEditor visual.
+[ ][M][IA-PARALELA] P0.2.6 PaymentMethodSelector visual.
+[ ][M][IA-PARALELA] P0.2.7 SyncOperationStatusCard.
+[ ][B][IA-PARALELA] P0.2.8 EmptyRouteState.
+[ ][B][IA-PARALELA] P0.2.9 CompactErrorBanner.
+
+RESTRICCIÓN:
+
+Los widgets reciben valores/callbacks; no usan Dio, Drift ni repositorios.
+
+CRITERIO DE SALIDA P0:
+
+- Componentes reutilizables y sin lógica de negocio.
+- Responsive.
+- Teclado numérico adecuado.
+- Accesibles con botones grandes para uso de piso/calle.
+- No hay endpoints inventados.
+
+-------------------------------------------------------------------------------
+FASE P1 - INTEGRACIÓN DE PÁGINAS CON CONTRATO CONGELADO
+Responsable: IA-PARALELA
+Prioridad dominante: MEDIO
+Requiere CONTRACT-FREEZE-1.
+-------------------------------------------------------------------------------
+
+SUBFASE P1.1 - React Definición de Rutas
+
+[ ][M][IA-PARALELA] P1.1.1 Formulario ruta Preventa/Entrega.
+[ ][M][IA-PARALELA] P1.1.2 Buscador/paginación de clientes.
+[ ][M][IA-PARALELA] P1.1.3 Selección masiva y visit_order.
+[ ][M][IA-PARALELA] P1.1.4 Resumen fijo Gestor/zona/fecha/clientes.
+[ ][B][IA-PARALELA] P1.1.5 Estados vacío/carga/error.
+
+SUBFASE P1.2 - React Reasignación Express
+
+[ ][M][IA-PARALELA] P1.2.1 Selección múltiple.
+[ ][M][IA-PARALELA] P1.2.2 Origen/destino.
+[ ][M][IA-PARALELA] P1.2.3 Vigencia desde/hasta.
+[ ][M][IA-PARALELA] P1.2.4 Motivo obligatorio.
+[ ][B][IA-PARALELA] P1.2.5 Confirmación clara antes de mover.
+
+SUBFASE P1.3 - React Despacho/Cargas
+
+[ ][M][IA-PARALELA] P1.3.1 Filtros fecha/zona/ruta/estado.
+[ ][M][IA-PARALELA] P1.3.2 Consolidado Bultos/Unidades.
+[ ][M][IA-PARALELA] P1.3.3 Checklist de picking.
+[ ][M][IA-PARALELA] P1.3.4 Panel Rutero/vehículo.
+[ ][M][IA-PARALELA] P1.3.5 Estado de aceptación/discrepancia.
+[ ][B][IA-PARALELA] P1.3.6 Botones grandes y sticky action bar.
+
+SUBFASE P1.4 - React Liquidación
+
+[ ][M][IA-PARALELA] P1.4.1 Secciones inventario/dinero.
+[ ][M][IA-PARALELA] P1.4.2 Efectivo vs otros medios.
+[ ][M][IA-PARALELA] P1.4.3 Diferencias y observaciones.
+[ ][M][IA-PARALELA] P1.4.4 Acción Aprobar/Cerrar.
+[ ][B][IA-PARALELA] P1.4.5 Impresión/resumen visual.
+
+SUBFASE P1.5 - Flutter presentación
+
+[ ][M][IA-PARALELA] P1.5.1 Integrar widgets de ruta.
+[ ][M][IA-PARALELA] P1.5.2 Integrar editor Bultos/Unidades.
+[ ][M][IA-PARALELA] P1.5.3 Integrar editor entrega parcial.
+[ ][M][IA-PARALELA] P1.5.4 Integrar selector de pago.
+[ ][M][IA-PARALELA] P1.5.5 Mostrar estados outbox.
+[ ][B][IA-PARALELA] P1.5.6 Simplificar navegación a una mano.
+
+REGLA:
+
+IA-PARALELA no modifica repositorios ni payloads. Si el contrato no alcanza,
+reporta el campo exacto a IA-NÚCLEO.
+
+-------------------------------------------------------------------------------
+FASE P2 - RENDIMIENTO VISUAL Y PULIDO
+Responsable: IA-PARALELA
+Prioridad dominante: MEDIO/BAJO
+-------------------------------------------------------------------------------
+
+SUBFASE P2.1 - Listas grandes
+
+[ ][M][IA-PARALELA] P2.1.1 Controles paginados clients.
+[ ][M][IA-PARALELA] P2.1.2 Controles paginados products.
+[ ][M][IA-PARALELA] P2.1.3 Controles paginados sales.
+[ ][M][IA-PARALELA] P2.1.4 Controles paginados movements.
+[ ][M][IA-PARALELA] P2.1.5 Debounce 250-350 ms.
+[ ][B][IA-PARALELA] P2.1.6 Mantener filtros al cambiar página.
+
+La consulta SQL paginada es N4.2.5 y pertenece a IA-NÚCLEO.
+
+SUBFASE P2.2 - Importación
+
+[ ][M][IA-PARALELA] P2.2.1 Preview de primeras filas.
+[ ][M][IA-PARALELA] P2.2.2 Resumen válidas/advertencias/errores.
+[ ][M][IA-PARALELA] P2.2.3 Filtro “ver sólo errores”.
+[ ][M][IA-PARALELA] P2.2.4 Descarga de errores usando respuesta real.
+[ ][B][IA-PARALELA] P2.2.5 Ayuda breve de columnas.
+
+Staging/idempotencia/importación real pertenecen a N4.2.
+
+SUBFASE P2.3 - Consistencia UX
+
+[ ][B][IA-PARALELA] P2.3.1 Textos de acción:
+                           Cobrar, Pagar, Recibir, Asignar, Cargar, Cerrar.
+[ ][B][IA-PARALELA] P2.3.2 Colores de estado consistentes.
+[ ][B][IA-PARALELA] P2.3.3 Tablas convertidas a tarjetas en móvil.
+[ ][B][IA-PARALELA] P2.3.4 Tooltips para botones deshabilitados.
+[ ][B][IA-PARALELA] P2.3.5 Fechas/montos/formato Bultos-Unidades uniforme.
+[ ][B][IA-PARALELA] P2.3.6 Foco de escáner persistente en picking.
+
+-------------------------------------------------------------------------------
+ORDEN DE ENTREGA Y PUNTOS DE SINCRONIZACIÓN
+-------------------------------------------------------------------------------
+
+SYNC-0:
+
+- IA-NÚCLEO cierra N0.1.
+- IA-PARALELA inicia P0.
+
+SYNC-1:
+
+- IA-NÚCLEO termina N1.1 y entrega enums.
+- IA-PARALELA adapta chips/labels sin integrar endpoints.
+
+SYNC-2:
+
+- IA-NÚCLEO termina N2 y N3.
+- Se publica CONTRACT-FREEZE-1.
+- IA-PARALELA inicia P1.
+
+SYNC-3:
+
+- IA-NÚCLEO termina N4.2.5 paginación backend.
+- IA-PARALELA conecta P2.1.
+
+SYNC-4:
+
+- IA-NÚCLEO termina importación N4.2.
+- IA-PARALELA conecta P2.2.
+
+SYNC-5:
+
+- Integrar primero cambios IA-NÚCLEO.
+- Rebasar/reaplicar IA-PARALELA.
+- Resolver conflictos por propietario de archivo, nunca combinando a ciegas.
+
+DEFINICIÓN DE HECHO PARA IA-NÚCLEO:
+
+[ ] Migración aplicada y registrada cuando corresponda.
+[ ] Operación transaccional.
+[ ] Idempotencia donde hay offline/reintento.
+[ ] Conteos/saldos/inventario reconciliados.
+[ ] Endpoint y DTO congelados.
+[ ] Build NestJS/React/Flutter según área tocada.
+[ ] Plan actualizado con [X], evidencia y pendiente real.
+
+DEFINICIÓN DE HECHO PARA IA-PARALELA:
+
+[ ] Sólo modificó archivos asignados.
+[ ] No agregó SQL, endpoints ni reglas.
+[ ] Componente funciona con props/contrato entregado.
+[ ] Estados carga/vacío/error visibles.
+[ ] Responsive para escritorio, tablet o móvil según pantalla.
+[ ] No usa datos falsos al quedar conectado.
+[ ] Build del frontend correspondiente.
+[ ] Entrega lista exacta de archivos y task IDs terminados.
+
+PROMPT CORTO PARA ENTREGAR A IA-PARALELA:
+
+“Trabaja únicamente tareas [M] y [B] del PLAN DE EJECUCIÓN PARALELA en
+docs/PLAN_ADAPTACION_SISTEMA_DE_INVENTARIO_2026-07-26.txt. Empieza por FASE P0.
+No edites archivos reservados a IA-NÚCLEO, no cambies backend, SQL, migraciones,
+servicios, endpoints, DTOs, Drift ni repositorios. Crea componentes puros que
+reciban props/callbacks. Identifica cada cambio con su ID P0.x/P1.x/P2.x. Si un
+contrato no está marcado FROZEN, no conectes la pantalla: reporta el bloqueo.
+No uses git add -A y no reformatees archivos ajenos. Al finalizar, actualiza
+sólo tus checklists y entrega archivos modificados, build y pendientes.”
+
+===============================================================================
 0. INSTRUCCIÓN PRINCIPAL PARA EL AGENTE DE IA EJECUTOR
 ===============================================================================
 
@@ -66,7 +845,11 @@ necesarias para garantizar que ningún dato del cliente se pierda.
 1. DIAGNÓSTICO DIRECTO Y PUNTUACIÓN MVP
 ===============================================================================
 
-PUNTUACIÓN ACTUAL PARA USAR sistema_de_inventario COMO BASE DEL MVP: 3.5 / 10
+PUNTUACIÓN ORIGINAL ANTES DE EJECUTAR ESTE PLAN: 3.5 / 10
+
+PUNTUACIÓN ACTUAL DEL SUBSISTEMA DATOS/FINANZAS: 7.5 / 10
+
+PUNTUACIÓN GLOBAL AL INCLUIR EL FLUJO DE CALLE TRELLO: 5.5 / 10
 
 Desglose:
 
@@ -1580,56 +2363,117 @@ Usar CREATE INDEX CONCURRENTLY para tablas grandes fuera de una transacción de
 migración normal, en una ventana controlada.
 
 ===============================================================================
-14. ORDEN DE IMPLEMENTACIÓN PARA OTRA IA
+14. ESTADO DEL ORDEN ORIGINAL (REFERENCIA HISTÓRICA)
 ===============================================================================
+
+No usar esta sección para repartir trabajo nuevo. Conserva el avance del plan
+inicial y sus números 1..35. La asignación vigente por prioridad/responsable es
+el PLAN DE EJECUCIÓN PARALELA ubicado al inicio del documento.
 
 FASE P0 - BLOQUEANTES DE DATOS
 
-[ ] 1. Crear respaldo verificable de ambas bases.
-[ ] 2. Generar reporte dry-run de la fusión.
-[ ] 3. Crear migración de accounts_receivable.
-[ ] 4. Crear tablas de nota de crédito de proveedor.
-[ ] 5. Crear índices críticos.
-[ ] 6. Corregir/validar is_active de clientes legacy.
-[ ] 7. Fusionar multitienda_db -> sistema_de_inventario en copia temporal.
-[ ] 8. Reconciliar conteos, montos y FK.
-[ ] 9. Repetir fusión final con backend sin escrituras.
-[ ] 10. Mantener multitienda_db intacta.
+ESTADO DE FASE: COMPLETADA.
+
+[X] 1. Crear respaldo verificable de ambas bases.
+       Hecho: dumps previos de ambas bases y dump posterior del destino.
+[X] 2. Generar reporte dry-run de la fusión.
+       Hecho: dry-run transaccional, sin huérfanos y con sumas iguales.
+[X] 3. Crear migración de accounts_receivable.
+       Hecho: 2026-07-26_finance_mvp_critical.sql.
+[X] 4. Crear tablas de nota de crédito de proveedor.
+       Hecho: supplier_credit_notes y supplier_credit_note_items.
+[X] 5. Crear índices críticos.
+       Hecho para CxC, CxP, invoices y notas de crédito.
+[X] 6. Corregir/validar is_active de clientes legacy.
+       Hecho con criterio conservador: ventas, crédito o preventa.
+[X] 7. Validar la fusión antes del corte.
+       Se reemplazó la copia temporal por un dry-run completo sobre el destino
+       real dentro de transacción con ROLLBACK y advisory lock.
+[X] 8. Reconciliar conteos, montos y FK.
+       Hecho; cero huérfanos y sumas financieras iguales.
+[X] 9. Repetir fusión final con backend sin escrituras.
+       Hecho; API detenida durante --apply y reiniciada al finalizar.
+[X] 10. Mantener multitienda_db intacta.
+        Hecho; no se eliminó ni se convirtió en destino de escrituras.
 
 FASE P1 - NÚCLEO OPERATIVO
 
-[ ] 11. Corregir SalesRepository.insertSale.
-[ ] 12. Crear CxC al finalizar venta a crédito.
-[ ] 13. Mover CxC de pedido a entrega/facturación.
-[ ] 14. Unificar statuses financieros.
-[ ] 15. Corregir InvoicesService.
-[ ] 16. Bloquear borrado físico de factura.
-[ ] 17. Implementar nota de crédito de proveedor.
-[ ] 18. Implementar recepción de orden de compra.
+ESTADO DE FASE: 7 DE 10 COMPLETADOS; 3 PENDIENTES.
+
+[X] 11. Corregir SalesRepository.insertSale.
+        La venta conserva client_id y sus datos dentro de la transacción.
+[X] 12. Crear CxC al finalizar venta a crédito.
+        Usa cliente de crédito, plazo default 8 o dias_credito personalizado.
+[X] 13. Mover CxC de pedido a entrega/facturación.
+        Pedido normal genera deuda en ENTREGADO; venta directa entregada puede
+        generarla al crear la operación definitiva.
+[X] 14. Unificar statuses financieros.
+        Contrato: PENDING, PARTIAL, PAID y CANCELLED.
+[X] 15. Corregir InvoicesService.
+        Total calculado en backend; productos nuevos crean item y movement;
+        factura crédito crea CxP con el total calculado.
+[X] 16. Bloquear borrado físico de factura.
+        Se usa cancelación y reversión transaccional cuando es permitido.
+[X] 17. Implementar nota de crédito de proveedor.
+        Módulo, DTO, controller, service, tablas y aplicación a CxP/inventario.
+[ ] 18. Implementar recepción parcial real de orden de compra.
+        Falta received_quantity por item, movimientos por recepción y estados
+        PARTIALLY_RECEIVED/RECEIVED.
 [ ] 19. Corregir importación masiva.
+        Falta staging, preview, validación por fila, archivo de errores e
+        idempotencia explícita por barcode/clave de importación.
 [ ] 20. Corregir stock negativo mediante movimientos.
+        No usar UPDATE directo; crear ajustes con referencia auditable.
 
 FASE P2 - REACT/FLUTTER
 
-[ ] 21. Corregir cartera y aging por dueDate.
-[ ] 22. Registrar ruta React de payables.
-[ ] 23. Habilitar payables.
+ESTADO DE FASE: 4 DE 8 COMPLETADOS; 4 PENDIENTES.
+
+[X] 21. Corregir cartera y aging por dueDate.
+        CxC muestra vencimiento/días vencidos y aging usa dueDate.
+[X] 22. Registrar ruta React de payables.
+[X] 23. Habilitar payables.
 [ ] 24. Completar creación/recepción de órdenes.
-[ ] 25. Agregar UI de nota de crédito.
+        Bloqueado por el pendiente P1.18.
+[X] 25. Agregar UI de nota de crédito.
+        Acción "Aplicar NC" disponible desde factura de proveedor.
 [ ] 26. Agregar preview de importación.
+        Depende del contrato definitivo de P1.19.
 [ ] 27. Paginación de servidor en datos grandes.
+        Prioridad inmediata: clients, products, sales y movements.
 [ ] 28. Ampliar CxC offline Flutter.
+        Agregar dueDate, daysOverdue, creditDays, invoiceNumber, migración Drift
+        e idempotencia de cobro por externalId.
 
 FASE P3 - CAMBIO DE BASE
 
-[ ] 29. Configurar backend temporal de validación apuntando a
-        sistema_de_inventario.
-[ ] 30. Verificar flujos manuales críticos.
-[ ] 31. Confirmar que usuarios y tiendas recientes acceden a sus datos.
-[ ] 32. Cambiar DATABASE_NAME del proceso principal.
-[ ] 33. Reiniciar backend.
-[ ] 34. Confirmar escrituras nuevas solo en sistema_de_inventario.
-[ ] 35. Mantener multitienda_db sin borrar durante el período de observación.
+ESTADO DE FASE: CORTE REALIZADO; ESTABILIZACIÓN EN CURSO.
+
+[X] 29. Validar backend apuntando a sistema_de_inventario.
+        Health HTTP 200/db=ok, conexión pino_app confirmada y consultas reales
+        de pedidos HTTP 200.
+[ ] 30. Verificar flujos manuales críticos autenticados.
+        Falta ejecutar con usuario real:
+        a. venta contado;
+        b. venta crédito y creación CxC;
+        c. abono parcial y pago total;
+        d. factura proveedor contado;
+        e. factura proveedor crédito y CxP;
+        f. pago de CxP;
+        g. devolución/nota de crédito;
+        h. cancelación de factura sin pagos/NC.
+[~] 31. Confirmar que usuarios y tiendas recientes acceden a sus datos.
+        Datos y relaciones fueron fusionados; existe tráfico autenticado real
+        de pedidos con HTTP 200. Falta recorrer una cuenta de cada rol operativo.
+[X] 32. Cambiar DATABASE_NAME del proceso principal.
+        backend/.env y backend/.env.dev apuntan a sistema_de_inventario.
+[X] 33. Reiniciar backend.
+        PM2 pino-api-dev online en puerto 3035.
+[X] 34. Confirmar que el proceso principal usa sistema_de_inventario.
+        pg_stat_activity muestra pino_app conectado al destino y no a
+        multitienda_db.
+[X] 35. Mantener multitienda_db sin borrar durante el período de observación.
+        La base anterior y su respaldo verificable permanecen disponibles.
 
 ===============================================================================
 15. VALIDACIONES DE ACEPTACIÓN DEL MVP
@@ -1637,89 +2481,816 @@ FASE P3 - CAMBIO DE BASE
 
 DATOS
 
-[ ] 4,289 clientes preservados.
-[ ] Cliente legacy visible según estado corregido.
-[ ] 3,560 productos legacy preservados.
-[ ] 170 productos recientes incorporados.
-[ ] 86,487 ventas legacy preservadas.
-[ ] 477 ventas recientes incorporadas.
-[ ] 497,278 sale_items legacy preservados.
-[ ] 477 sale_items recientes incorporados.
-[ ] 553,140 movimientos legacy preservados.
-[ ] 585 movimientos recientes incorporados.
-[ ] 155 pedidos recientes incorporados.
-[ ] 9 CxC recientes y 3 pagos preservados.
-[ ] 1,768 notas de crédito legacy preservadas.
-[ ] Cero huérfanos.
+Leyenda de aceptación:
+
+- [X] validado con evidencia de ejecución o consulta.
+- [~] implementado, pero falta validación funcional autenticada.
+- [ ] pendiente de implementación.
+
+[X] 4,289 clientes legacy preservados; total consolidado: 4,298.
+[X] 3,563 clientes visibles/activos mediante criterio conservador.
+[X] 3,560 productos legacy preservados.
+[X] 170 productos recientes incorporados; total: 3,730.
+[X] 86,487 ventas legacy preservadas.
+[X] 477 ventas recientes incorporadas; total: 86,964.
+[X] 497,278 sale_items legacy preservados.
+[X] 477 sale_items recientes incorporados; total: 497,755.
+[X] 553,140 movimientos legacy preservados.
+[X] 587 movimientos recientes incorporados; total: 553,727.
+[X] 155 pedidos recientes incorporados; total: 809.
+[X] 9 CxC recientes y 3 pagos preservados.
+[X] 1,768 notas de crédito legacy preservadas.
+[X] Cero huérfanos en relaciones críticas auditadas.
 
 CLIENTES/CXC
 
-[ ] Venta contado no crea CxC.
-[ ] Venta crédito exige cliente.
-[ ] Plazo default es 8 días.
-[ ] Plazo personalizado del cliente se usa.
-[ ] Override de factura queda congelado.
-[ ] Pago parcial cambia a PARTIAL.
-[ ] Pago total cambia a PAID.
-[ ] Aging usa dueDate.
-[ ] Un pedido cancelado antes de entrega no genera deuda.
+[~] Venta contado no crea CxC.
+[~] Venta crédito exige cliente.
+[~] Plazo default es 8 días.
+[~] Plazo personalizado del cliente se usa.
+[~] Override de factura queda congelado en credit_days_snapshot/due_date.
+[~] Pago parcial cambia a PARTIAL.
+[~] Pago total cambia a PAID.
+[X] Aging usa dueDate.
+[~] Un pedido cancelado antes de entrega no genera deuda.
+
+Para convertir [~] en [X], ejecutar el bloque P3.30 y reconciliar después cada
+operación contra sales, orders, accounts_receivable, account_payments y
+collections dentro de sistema_de_inventario.
 
 CXP/COMPRAS
 
-[ ] Factura contado incrementa inventario y no crea CxP.
-[ ] Factura crédito incrementa inventario y crea CxP.
-[ ] Total de factura y CxP son idénticos al cálculo backend.
-[ ] Producto nuevo dentro de factura crea invoice_item y movement.
-[ ] Nota de crédito reduce stock y CxP.
-[ ] No se puede devolver más de lo comprado.
-[ ] No se puede pagar más del saldo.
-[ ] Factura posteada no se borra físicamente.
+[~] Factura contado incrementa inventario y no crea CxP.
+[~] Factura crédito incrementa inventario y crea CxP.
+[~] Total de factura y CxP son idénticos al cálculo backend.
+[~] Producto nuevo dentro de factura crea invoice_item y movement.
+[~] Nota de crédito reduce stock y CxP.
+[~] No se puede devolver más de lo comprado.
+[~] No se puede pagar más del saldo.
+[~] Factura posteada no se borra físicamente.
+
+El código y el esquema están listos, pero accounts_payable está vacío en los
+datos consolidados. Hace falta crear una factura controlada con un proveedor
+real para validar el flujo completo antes de marcarlo [X].
 
 INVENTARIO
 
 [ ] Importación puede previsualizar errores.
 [ ] Reimportar no duplica barcode.
-[ ] Formulario con stock inicial crea movement.
+[~] Formulario/factura con producto nuevo crea movement.
 [ ] Recepción parcial de orden solo suma lo recibido.
-[ ] Cada cambio de stock tiene movimiento.
+[~] Facturas y notas nuevas registran movement; falta auditar todos los demás
+    flujos de cambio de stock.
 
 UX
 
-[ ] CxC muestra vencimiento y prioridad.
-[ ] CxP tiene ruta accesible.
+[X] CxC muestra vencimiento y prioridad.
+[X] CxP tiene ruta accesible.
 [ ] Orden de compra se puede crear y recibir.
-[ ] Nota de crédito se puede registrar desde la factura/CxP.
+[~] Nota de crédito se puede iniciar desde la factura; falta validación manual.
 [ ] Listas grandes responden mediante paginación de servidor.
 
 ===============================================================================
 16. CRITERIO FINAL DE CORTE
 ===============================================================================
 
-NO cambiar la base activa si cualquiera de estas condiciones sigue presente:
+ESTADO DEL CORTE DE BASE: APROBADO Y EJECUTADO.
 
-- clientes legacy visibles <= 1 sin decisión de negocio;
-- faltan usuarios recientes;
-- faltan productos recientes;
-- faltan ventas/pedidos recientes;
-- CxC sigue sin due_date;
-- venta a crédito no guarda client_id;
-- venta a crédito no crea CxC;
-- InvoicesService conserva el continue del producto nuevo;
-- una factura puede borrarse sin reversión;
-- nota de crédito de proveedor no reduce CxP de forma transaccional;
-- existen huérfanos o diferencias de sumas.
+Las condiciones bloqueantes de datos que impedían el cambio ya fueron
+resueltas:
 
-CAMBIO APROBABLE:
+[X] Clientes legacy visibles > 1: actualmente 3,563.
+[X] Usuarios recientes incorporados.
+[X] Productos recientes incorporados.
+[X] Ventas y pedidos recientes incorporados.
+[X] CxC tiene issued_at, due_date y credit_days_snapshot.
+[X] Venta conserva client_id.
+[X] Venta a crédito implementa creación de CxC.
+[X] InvoicesService ya procesa item/movement del producto nuevo.
+[X] Factura operativa se cancela/revierte; no se borra físicamente.
+[X] Nota de crédito de proveedor aplica inventario y CxP en transacción.
+[X] Cero huérfanos y sumas de fusión reconciliadas.
 
-sistema_de_inventario puede convertirse en DATABASE_NAME principal cuando:
+Por ello sistema_de_inventario ya es DATABASE_NAME del proceso principal.
 
-1. Histórico y operación reciente estén unidos.
-2. Los clientes estén visibles correctamente.
-3. Los contratos SQL de NestJS coincidan con el esquema real.
-4. CxC implemente plazo de 8 días y excepciones.
-5. CxP use factura, vencimiento y notas de crédito.
-6. Las tres vías de entrada de inventario generen trazabilidad.
-7. React permita operar los flujos sin rutas ocultas ni botones ficticios.
-8. Flutter pueda cobrar CxC con vencimiento e idempotencia.
+CRITERIO DE MVP COMPLETO:
+
+El corte de base no significa que todo el plan funcional esté terminado. Para
+declarar el MVP sólido en 8.5/10 todavía se debe confirmar:
+
+[X] 1. Histórico y operación reciente unidos.
+[X] 2. Clientes operativos visibles con criterio conservador.
+[X] 3. Contratos SQL críticos de NestJS alineados con el esquema real.
+[~] 4. CxC implementa plazo de 8 días y excepciones; falta flujo manual.
+[~] 5. CxP usa factura, vencimiento y notas de crédito; falta flujo manual.
+[ ] 6. Las tres vías de entrada generan trazabilidad completa.
+[~] 7. React expone CxC, CxP y NC; faltan órdenes/importación/paginación.
+[ ] 8. Flutter cobra CxC con vencimiento e idempotencia completa.
+
+SIGUIENTE FASE RECOMENDADA:
+
+1. Ejecutar P3.30 con operaciones controladas y reconciliación SQL.
+2. Cerrar P1.18: recepción parcial de orden de compra.
+3. Cerrar P1.19/P2.26: importación con staging y preview.
+4. Cerrar P1.20: ajustes auditables de stock negativo.
+5. Cerrar P2.27: paginación de servidor.
+6. Cerrar P2.28: contrato CxC offline Flutter.
+7. Mantener observación sobre sistema_de_inventario y no borrar
+   multitienda_db.
+
+===============================================================================
+17. REQUISITO OBLIGATORIO TRELLO: GESTOR DE VENTAS Y RUTERO
+===============================================================================
+
+ORIGEN DEL REQUISITO:
+
+- Tablero Trello: Los Pinos.
+- Tarjeta #13: tareas de asignacio para Gestor de ventas y rutero.
+- Regla del responsable: “aquí tengo que hacer enfoque porque este es el flujo
+  de la calle”.
+- Este bloque es OBLIGATORIO para declarar el MVP completo.
+- No se debe cerrar como “hecho” porque existan pantallas con esos nombres.
+  Debe funcionar el flujo de punta a punta con datos reales y modo offline.
+
+17.1 Objetivo operativo obligatorio
+
+Implementar una cadena única y trazable:
+
+  ADMIN/JEFATURA WEB
+      -> crea ruta comercial
+      -> asigna clientes al Gestor
+      -> Gestor sincroniza ruta
+      -> Gestor visita y levanta preventa offline
+      -> Bodega consolida pedidos
+      -> Auxiliar prepara/carga mercancía
+      -> Jefatura asigna carga al Rutero
+      -> Rutero acepta físicamente la carga
+      -> Rutero entrega, cobra y emite comprobante
+      -> Rechazos quedan como devolución en tránsito
+      -> Rutero retorna mercancía y efectivo
+      -> Jefatura revisa y cierra liquidación
+
+REGLAS NO NEGOCIABLES DEL FLUJO:
+
+[ ] El Gestor de Ventas nunca puede ver “todos los clientes” como fallback.
+[ ] El Gestor sólo ve clientes asignados a su ruta/fecha.
+[ ] El Gestor no se autoasigna clientes.
+[ ] El Rutero sólo ve cargas y entregas asignadas a su usuario.
+[ ] El Rutero no escoge pedidos libres.
+[ ] Crear una ruta no modifica inventario.
+[ ] Crear una carga planificada no descuenta inventario.
+[ ] Toda salida, transferencia, entrega, rechazo y retorno tiene movimiento.
+[ ] Bultos y unidades se convierten siempre a unidades base:
+
+      total_units = (quantity_bulks * units_per_bulk_snapshot)
+                    + quantity_units
+
+[ ] El factor units_per_bulk usado queda congelado por línea.
+[ ] Un reintento offline con el mismo externalId no duplica pedido, visita,
+    cobro, devolución, entrega ni cierre.
+[ ] Precios, totales, crédito y saldo se validan/recalculan en NestJS.
+[ ] La factura/ticket al cliente usa sales + sale_items.
+[ ] No usar invoices para factura de cliente: invoices es compra a proveedor.
+[ ] Una devolución rechazada en calle no vuelve inmediatamente al stock de
+    bodega; permanece EN_TRANSITO hasta recepción física.
+[ ] La liquidación sólo cierra cuando cuadran mercancía, entregas, cobros y
+    devoluciones, o queda una observación explícita.
+
+17.2 Mapeo funcional de roles Trello a roles existentes
+
+No crear nombres nuevos dispersos. Para el MVP usar:
+
+- Administrador General:
+  master-admin.
+
+- Jefe / Encargado de Bodega Central:
+  store-admin.
+
+- Auxiliar de Recepción y Despacho:
+  dispatcher.
+  Debe recibir compras, preparar picking, confirmar carga física y recibir
+  retornos, sin usar el perfil de Auditor.
+
+- Analista / Auditor de Inventarios:
+  inventory.
+  Ejecuta conteos, revisa kárdex y solicita ajustes.
+
+- Gestor de Ventas / Preventista:
+  sales-manager como valor canónico.
+  “preventa” debe quedar sólo como alias normalizado hacia sales-manager.
+  No usar rutero ni vendor para representar a este rol.
+
+- Rutero / Repartidor:
+  rutero.
+
+DECISIÓN FUNCIONAL:
+
+El rol vendor representa vendedor con inventario propio/venta rápida y no debe
+mezclarse automáticamente con Gestor de Preventa. En tablas antiguas puede
+seguir llamándose vendor_id, pero el contrato nuevo debe exponer assigneeUserId
+o salesManagerId para evitar que el nombre de columna determine el negocio.
+
+17.3 Diagnóstico real contra el código actual
+
+DATOS ACTUALES:
+
+- routes:                 1
+- route_clients:          0
+- vendor_routes:          0
+- vendor_route_clients:   0
+- pending_deliveries:   146
+- cargas_camion:          0
+- vendor_inventories:     3
+- liquidaciones_ruta:     0
+- visit_logs:             0
+
+HALLAZGOS BLOQUEANTES:
+
+[ ] CRÍTICO: PreventaRouteScreen selecciona todos los clientes cuando no
+    encuentra routeClientIds. Esto viola la asignación administrativa.
+    Corregir a lista vacía + mensaje “No tienes ruta asignada para hoy”.
+
+[ ] CRÍTICO: GET /routes sólo permite master-admin/store-admin, pero Flutter
+    lo consume como Gestor/Rutero. El contrato de lectura móvil no funciona
+    para el usuario de calle.
+
+[ ] CRÍTICO: POST /orders sólo permite master-admin/store-admin, pero Flutter
+    PreventaOrderScreen encola POST /orders para el Gestor.
+
+[ ] CRÍTICO: GET/PATCH /pending-deliveries sólo permite administradores, pero
+    Flutter RouteBoardRepository y DeliveryDetailScreen los necesitan.
+
+[ ] CRÍTICO: GET /vendor-inventories/:vendorId sólo permite administradores,
+    pero Flutter consulta el inventario del Rutero.
+
+[ ] CRÍTICO: POST /returns sólo permite administradores, pero Flutter encola
+    devoluciones del Rutero.
+
+[ ] CRÍTICO: GET/POST accounts-receivable y payments sólo permite
+    administradores, pero Flutter CollectionsRepository los consume.
+
+[ ] CRÍTICO: GET/POST /collections sólo permite administradores, pero el
+    Rutero necesita registrar y consultar su recaudo.
+
+[ ] CRÍTICO: LiquidacionesRutaService consulta FROM payments con store_id,
+    collected_by y payment_date. Esa tabla no existe en el esquema activo.
+    Debe reconciliar collections, account_payments y ventas contado.
+
+[ ] CRÍTICO: DeliveryDetailScreen pide efectivo en un diálogo, pero sólo
+    cambia el estado del pedido a ENTREGADO. No persiste el método/monto de
+    pago, no crea venta/ticket y no registra recaudo.
+
+[ ] CRÍTICO: DeliveryDetailScreen sólo soporta entrega total o rechazo total.
+    No existe entrega parcial por item.
+
+[ ] CRÍTICO: CargasCamionService.create descuenta stock de bodega y aumenta
+    vendor_inventories antes de que el Rutero inspeccione/acepte la carga.
+
+[ ] CRÍTICO: no existe endpoint Aceptar Carga del Día con firma, conteo o
+    discrepancias.
+
+[ ] CRÍTICO: no existe integración de impresora Bluetooth ni dependencia de
+    impresión térmica en Flutter.
+
+[ ] PreventaOrderScreen opera principalmente con cantidad unitaria; no tiene
+    teclado doble Bultos/Unidades por línea.
+
+[ ] PreventaOrderScreen muestra currentStock como número simple y no
+    “N Bultos / M Unidades”.
+
+[ ] PreventaOrderScreen intenta cargar crédito del cliente por HTTP; offline
+    cae a límite cero en vez de usar el snapshot local sincronizado.
+
+[ ] routes.client_ids y vendor_routes.client_ids duplican el concepto en JSONB
+    aunque ya existen route_clients y vendor_route_clients normalizadas.
+
+[ ] ClientReassignPage reasigna un cliente por vez, incluye rutero como
+    preventista y no maneja vigencia temporal ni reasignación masiva.
+
+[ ] AssignRoutePage asigna pending_deliveries al rutero, pero no crea una carga
+    física consolidada, vehículo, secuencia de paradas ni checklist.
+
+[ ] VisitLogsService ignora dto.status y siempre responde status=visited.
+    Debe conservar VISITED_WITH_ORDER, VISITED_NO_ORDER, ABSENT, CLOSED y otros
+    resultados definidos.
+
+[ ] PendingOrders y Orders representan conceptos solapados. El flujo de
+    preventa nuevo debe usar orders como agregado canónico y dejar
+    pending_orders sólo como compatibilidad temporal si aún tiene consumidores.
+
+17.4 Arquitectura de datos obligatoria
+
+RUTAS:
+
+[ ] Usar routes como cabecera canónica.
+[ ] Usar route_clients para los clientes/secuencia.
+[ ] Dejar vendor_routes/vendor_route_clients como compatibilidad temporal y
+    migrar sus filas; no mantener dos fuentes de verdad.
+[ ] Agregar a routes:
+    - name
+    - route_type: SALES o DELIVERY
+    - zone_id opcional
+    - assigned_by
+    - effective_date
+    - status canónico
+[ ] Agregar UNIQUE(route_id, client_id) a route_clients.
+[ ] Agregar UNIQUE(route_id, visit_order) cuando visit_order no sea NULL.
+[ ] Agregar índices:
+    - routes(store_id, route_date, vendor_id, status)
+    - route_clients(route_id, visit_order)
+    - route_clients(client_id)
+[ ] pending_deliveries debe guardar route_id y stop_order.
+[ ] Crear historial de asignación/reasignación:
+    route_assignment_history(
+      id, store_id, route_id, client_id, from_user_id, to_user_id,
+      effective_from, effective_to, reason, changed_by, created_at
+    ).
+
+CARGAS:
+
+[ ] Crear carga_camion_orders para no depender sólo de orders.grupo_carga_id.
+[ ] Crear carga_camion_items con:
+    - carga_id
+    - product_id
+    - ordered_units
+    - loaded_units
+    - accepted_units
+    - returned_units
+    - units_per_bulk_snapshot
+    - loaded_bulks/loaded_units_loose
+    - accepted_bulks/accepted_units_loose
+    - discrepancy_reason
+[ ] Estados mínimos:
+    PLANNED -> PICKING -> LOADED -> PENDING_ACCEPTANCE
+    -> ACCEPTED -> EN_ROUTE -> RETURNED -> CLOSED.
+[ ] CANCELLED sólo antes de EN_ROUTE y con reversión completa si hubo
+    movimientos.
+[ ] Guardar:
+    prepared_by, loaded_by, accepted_by, dispatched_by,
+    prepared_at, loaded_at, accepted_at, departed_at, returned_at, closed_at.
+
+INVENTARIO POR UBICACIÓN:
+
+[ ] PLANNED/PICKING no afecta stock.
+[ ] Al confirmar LOADED:
+    - descontar bodega;
+    - crear stock de carga/en tránsito;
+    - insertar movement OUT_TO_TRUCK_LOAD.
+[ ] Al aceptar el Rutero:
+    - mover carga/en tránsito a vendor_inventories;
+    - insertar movement LOAD_ACCEPTED_BY_DRIVER;
+    - no volver a descontar bodega.
+[ ] Al entregar:
+    - descontar vendor_inventories sólo por cantidad entregada;
+    - insertar movement ROUTE_DELIVERY.
+[ ] Rechazo parcial:
+    - permanece en inventario del Rutero;
+    - crear devolución status IN_TRANSIT;
+    - no aumentar products.current_stock todavía.
+[ ] Recepción física de retorno:
+    - descontar inventario Rutero;
+    - aumentar bodega;
+    - insertar movement ROUTE_RETURN_RECEIVED;
+    - cambiar devolución a RECEIVED.
+
+ENTREGAS:
+
+[ ] Crear delivery_item_results o estructura equivalente:
+    delivery_id, order_item_id, product_id, planned_units, delivered_units,
+    rejected_units, rejection_reason, units_per_bulk_snapshot.
+[ ] Agregar a pending_deliveries:
+    delivery_started_at, delivered_at, delivery_latitude, delivery_longitude,
+    received_by_name, proof_reference, external_id.
+[ ] Estados:
+    PENDING -> ASSIGNED -> EN_ROUTE -> ARRIVED
+    -> DELIVERED_FULL | DELIVERED_PARTIAL | REJECTED
+    -> SETTLED.
+
+COBROS Y COMPROBANTE:
+
+[ ] Para CONTADO:
+    - guardar sale/sale_items del cliente;
+    - guardar pago y método;
+    - sumar efectivo sólo si método=CASH;
+    - transferencia/cheque quedan separados.
+[ ] Para CREDITO:
+    - finalizar sale/ticket;
+    - crear CxC con due_date;
+    - no sumar el total como efectivo entregado.
+[ ] Para abono de deuda anterior:
+    - usar accounts_receivable/:id/payments;
+    - crear collection + account_payment en la misma transacción.
+[ ] Congelar snapshot imprimible:
+    número, fecha, tienda, cliente, items, bultos/unidades, precios, total,
+    método, saldo anterior, abono y saldo nuevo cuando aplique.
+
+LIQUIDACIÓN:
+
+[ ] Reescribir LiquidacionesRutaService con una sola transacción.
+[ ] No consultar la tabla inexistente payments.
+[ ] Efectivo esperado:
+
+    cash_expected =
+      cash_sales_delivered
+      + cash_collections
+      - cash_refunds
+
+[ ] No mezclar transferencias/cheques con efectivo físico.
+[ ] Conciliar por carga_id/rutero_id/fecha, no sólo DATE(updated_at).
+[ ] La mercancía esperada de retorno:
+
+    expected_return_units =
+      accepted_load_units
+      - delivered_units
+
+[ ] Diferencia de mercancía:
+
+    inventory_difference =
+      physically_returned_units
+      - expected_return_units
+
+[ ] Estados:
+    DRAFT -> SUBMITTED_BY_DRIVER -> UNDER_REVIEW
+    -> APPROVED | WITH_OBSERVATION -> CLOSED.
+[ ] Sólo CLOSED:
+    - finaliza la carga;
+    - cierra inventario móvil del Rutero;
+    - marca entregas SETTLED;
+    - congela totales de liquidación.
+
+17.5 Contratos API obligatorios
+
+No crear endpoints duplicados por pantalla. Construir contratos por agregado.
+
+ADMINISTRACIÓN DE RUTA COMERCIAL:
+
+[ ] GET /routes?storeId=&type=SALES&date=&assigneeUserId=
+[ ] POST /routes
+[ ] GET /routes/:id
+[ ] PATCH /routes/:id
+[ ] PUT /routes/:id/clients
+    body:
+    {
+      "clientAssignments": [
+        { "clientId": "uuid", "visitOrder": 1 }
+      ],
+      "effectiveDate": "YYYY-MM-DD",
+      "reason": "asignación inicial"
+    }
+[ ] POST /routes/:id/reassign
+    body:
+    {
+      "clientIds": ["uuid"],
+      "toUserId": "uuid",
+      "effectiveFrom": "YYYY-MM-DD",
+      "effectiveTo": null,
+      "reason": "ausencia"
+    }
+
+APP GESTOR:
+
+[ ] GET /field/sales-route/today
+    El userId se toma de sesión; no aceptar otro vendorId desde Flutter.
+[ ] GET /field/bootstrap?storeId=&date=
+    Devuelve delta/snapshot de ruta, clientes asignados, catálogo, stock,
+    promociones y CxC necesarias.
+[ ] POST /visit-logs con externalId y status real.
+[ ] POST /orders acepta externalId y rol Gestor.
+[ ] GET /orders?mine=true&date= para el resumen de sincronización.
+
+CARGA Y RUTERO:
+
+[ ] POST /truck-loads para crear carga PLANNED.
+[ ] POST /truck-loads/:id/start-picking.
+[ ] POST /truck-loads/:id/confirm-loaded.
+[ ] GET /field/truck-loads/today.
+[ ] POST /field/truck-loads/:id/accept
+    body:
+    {
+      "externalId": "uuid",
+      "acceptedAt": "ISO-8601",
+      "signatureData": "referencia local o archivo",
+      "items": [
+        {
+          "productId": "uuid",
+          "quantityBulks": 2,
+          "quantityUnits": 5
+        }
+      ],
+      "discrepancies": []
+    }
+[ ] POST /truck-loads/:id/depart.
+[ ] GET /field/deliveries/today.
+[ ] POST /field/deliveries/:id/complete.
+[ ] POST /field/deliveries/:id/reject.
+[ ] POST /field/routes/:id/submit-close.
+[ ] POST /route-liquidations/:id/approve.
+
+ENTREGA COMPLETA/PARCIAL:
+
+El endpoint complete debe recibir una operación idempotente:
+
+{
+  "externalId": "uuid",
+  "completedAt": "ISO-8601",
+  "latitude": 0,
+  "longitude": 0,
+  "receivedByName": "Cliente",
+  "items": [
+    {
+      "orderItemId": "uuid",
+      "deliveredBulks": 2,
+      "deliveredUnits": 5,
+      "rejectedBulks": 1,
+      "rejectedUnits": 0,
+      "rejectionReason": "empaque dañado"
+    }
+  ],
+  "payment": {
+    "method": "CASH",
+    "amount": 1000,
+    "reference": null
+  }
+}
+
+NestJS debe ejecutar todo en una transacción:
+
+1. Verificar externalId.
+2. Bloquear delivery, order, items e inventario del Rutero.
+3. Validar cantidades.
+4. Calcular unidades base y total en servidor.
+5. Crear resultado por item.
+6. Descontar inventario entregado.
+7. Crear devolución IN_TRANSIT por rechazado.
+8. Crear sale/ticket.
+9. Crear pago o CxC según modalidad.
+10. Actualizar estados.
+11. Guardar outbox_event.
+12. Commit.
+
+17.6 React Web obligatorio
+
+PÁGINA DEFINICIÓN DE RUTAS:
+
+[ ] Menú: Logística y Comercial > Definición de Rutas.
+[ ] Selector tipo: Preventa o Entrega.
+[ ] Fecha/día, zona, nombre y responsable.
+[ ] Lista paginada/buscable de clientes.
+[ ] Selección masiva.
+[ ] Orden de visita editable.
+[ ] Resumen fijo: clientes, zona, Gestor y fecha.
+[ ] Guardar asignación en route_clients, no sólo JSON client_ids.
+
+PÁGINA REASIGNACIÓN EXPRESS:
+
+[ ] Corregir filtro de responsables: Gestor=sales-manager; no incluir rutero.
+[ ] Permitir seleccionar múltiples clientes.
+[ ] Mostrar origen, destino, vigencia y motivo.
+[ ] Permitir reasignación temporal con fecha fin.
+[ ] Registrar historial.
+[ ] Al confirmar, emitir evento de sincronización para el nuevo Gestor.
+[ ] En la siguiente sincronización el Gestor B ve los clientes.
+[ ] El Gestor A deja de verlos desde la vigencia definida.
+
+DESPACHO Y CARGAS:
+
+[ ] Filtrar pedidos por fecha, zona, ruta comercial y estado ALISTADO.
+[ ] Seleccionar pedidos y consolidar cantidades por producto.
+[ ] Mostrar Bultos/Unidades y unidades base.
+[ ] Seleccionar Rutero y vehículo.
+[ ] Crear carga PLANNED.
+[ ] Checklist de picking por producto.
+[ ] Confirmación de carga física por Auxiliar.
+[ ] Pantalla de discrepancias antes de salida.
+[ ] Estado visible de aceptación por Rutero.
+[ ] No permitir salida sin aceptación o excepción explícita de Jefatura.
+
+LIQUIDACIÓN DE RUTA:
+
+[ ] Seleccionar carga/rutero/fecha.
+[ ] Mostrar carga aceptada.
+[ ] Mostrar entregado completo/parcial/rechazado.
+[ ] Mostrar mercancía esperada y física retornada.
+[ ] Mostrar ventas efectivo, transferencias, cheques y cobros de cartera por
+    separado.
+[ ] Mostrar efectivo esperado, entregado y diferencia.
+[ ] Botón “Aprobar y Cerrar Liquidación”.
+[ ] Si hay diferencia, exigir observación.
+[ ] Cierre genera movimientos y congela el resumen.
+
+UX WEB:
+
+[ ] Acciones primarias grandes: Asignar, Preparar, Confirmar carga, Despachar,
+    Reasignar, Aprobar cierre.
+[ ] Evitar tablas horizontales en terminal de almacén.
+[ ] Lectura rápida por color y estado.
+[ ] Escaneo de barra siempre enfocado durante picking.
+[ ] Botones deshabilitados deben explicar qué requisito falta.
+
+17.7 Flutter Gestor de Ventas obligatorio
+
+[ ] Sincronización inicial por delta y botón visible “Actualizar ruta”.
+[ ] Nunca descargar catálogos/clientes completos sin filtro de tienda/usuario.
+[ ] Si no hay ruta: mostrar estado vacío; no mostrar todos los clientes.
+[ ] Ruta ordenada por visit_order.
+[ ] Tarjeta cliente:
+    nombre, dirección, teléfono, saldo, límite, mora y estado de visita.
+[ ] Acciones: Navegar, Llamar, Tomar pedido, No compra, Ausente.
+[ ] Capturar GPS y fecha de la visita también offline.
+[ ] Catálogo muestra:
+    stock último sincronizado, Bultos/Unidades, precio y promoción.
+[ ] Teclado doble:
+    cantidad de Bultos + cantidad de Unidades.
+[ ] Calcular vista previa local, pero backend recalcula al sincronizar.
+[ ] Pedido offline guarda:
+    externalId, clientId, routeId, visitId, storeId, userId,
+    items con snapshot, paymentType, createdAtLocal.
+[ ] Outbox muestra Pendiente/Enviando/Confirmado/Error.
+[ ] Conflicto de precio/stock no borra el pedido: solicita revisión.
+[ ] El Gestor consulta CxC, pero no confirma entrega ni cobro de reparto.
+
+17.8 Flutter Rutero obligatorio
+
+APERTURA:
+
+[ ] Pantalla “Aceptar Carga del Día”.
+[ ] Resumen por producto y total Bultos/Unidades.
+[ ] Conteo físico editable.
+[ ] Discrepancias antes de aceptar.
+[ ] Firma/confirmación digital.
+[ ] Al aceptar se habilita inventario de camión.
+
+RUTA:
+
+[ ] Mostrar sólo pending_deliveries del Rutero.
+[ ] Ordenar por stop_order.
+[ ] Funcionar con snapshot offline.
+[ ] Estado por parada: pendiente, en cliente, parcial, entregada, rechazada.
+
+ENTREGA:
+
+[ ] Cantidad entregada editable por item en Bultos/Unidades.
+[ ] Cantidad rechazada por item.
+[ ] Motivo obligatorio por rechazo.
+[ ] Métodos: CASH, TRANSFER, CHECK, CREDIT.
+[ ] Guardar referencia cuando no sea CASH.
+[ ] Persistir operación antes de mostrar éxito.
+[ ] Generar comprobante local con número estable.
+[ ] Imprimir por Bluetooth.
+[ ] Si no hay impresora, permitir reintentar/compartir PDF sin repetir cobro.
+[ ] Operación offline entra a outbox con externalId.
+
+CIERRE:
+
+[ ] Resumen de carga aceptada.
+[ ] Total entregado.
+[ ] Total en devolución.
+[ ] Efectivo cobrado.
+[ ] Otros medios.
+[ ] Cobros de cartera.
+[ ] Diferencia preliminar.
+[ ] Botón “Finalizar Ruta” crea SUBMITTED_BY_DRIVER.
+[ ] No devolver stock a bodega hasta recepción del Auxiliar.
+
+17.9 Matriz endpoint/página actual y acción
+
+1. routes + AssignRoute/ClientReassign
+   Estado: PARCIAL/INCONSISTENTE.
+   Acción: normalizar route_clients, separar ruta comercial de entrega,
+   reasignación masiva e historial.
+
+2. visit-logs + Flutter Preventa
+   Estado: PARCIAL.
+   Acción: conservar status, externalId, routeId y sincronización offline.
+
+3. orders + PreventaOrderScreen
+   Estado: BLOQUEADO PARA GESTOR.
+   Acción: contrato móvil, doble cantidad, snapshots e idempotencia.
+
+4. pending-deliveries + DeliveryDetailScreen
+   Estado: BLOQUEADO PARA RUTERO.
+   Acción: lectura “mine”, entrega por items, pago y estados canónicos.
+
+5. cargas-camion + Warehouse/Dispatch
+   Estado: PARCIAL Y CON MOVIMIENTO PREMATURO.
+   Acción: estados de carga, items, aceptación y transferencia por ubicación.
+
+6. vendor-inventories + Flutter
+   Estado: BLOQUEADO PARA RUTERO.
+   Acción: lectura propia y movimientos de custodia.
+
+7. returns + Flutter
+   Estado: BLOQUEADO PARA RUTERO Y SEMÁNTICA INCORRECTA PARA TRÁNSITO.
+   Acción: IN_TRANSIT -> RECEIVED; no reponer bodega al rechazar en calle.
+
+8. accounts-receivable/collections + Flutter
+   Estado: IMPLEMENTADO EN DATOS, BLOQUEADO PARA FLUJO MÓVIL.
+   Acción: lectura/cobro propio, cache Drift e idempotencia.
+
+9. liquidaciones-ruta
+   Estado: CRÍTICO/NO OPERABLE.
+   Acción: eliminar referencia a payments y conciliar fuentes reales.
+
+10. impresión Bluetooth
+    Estado: NO EXISTE.
+    Acción: seleccionar paquete compatible, servicio de impresión, plantilla
+    de ticket y cola de reimpresión.
+
+17.10 Orden obligatorio de implementación
+
+Usar los IDs y propietarios del PLAN DE EJECUCIÓN PARALELA.
+
+ORDEN IA-NÚCLEO, CRÍTICO/ALTO:
+
+1. N0.1 - Congelar baseline.
+2. N1.1 - Estados/vocabulario.
+3. N1.2 - Contratos móviles.
+4. N1.3 - Reparar liquidación.
+5. N2.1 - Rutas normalizadas.
+6. N2.2 - Carga/custodia.
+7. N2.3 - Entrega parcial.
+8. N2.4 - Devolución en tránsito.
+9. N3.1 - Preventa.
+10. N3.2 - Aceptación de carga.
+11. N3.3 - Entrega/cobro/deuda.
+12. N3.4 - Offline/idempotencia.
+13. Publicar CONTRACT-FREEZE-1.
+14. N4.1 - Retorno/liquidación.
+15. N4.2 - Compras/importación/integridad.
+16. N4.3 - Flutter financiero/impresión.
+
+ORDEN IA-PARALELA, MEDIO/BAJO:
+
+1. P0.1 - Componentes React puros.
+2. P0.2 - Widgets Flutter puros.
+3. Esperar CONTRACT-FREEZE-1.
+4. P1.1 - UI Definición de Rutas.
+5. P1.2 - UI Reasignación.
+6. P1.3 - UI Despacho/Cargas.
+7. P1.4 - UI Liquidación.
+8. P1.5 - Presentación Flutter.
+9. P2.1 - Controles de listas paginadas.
+10. P2.2 - UI importación/preview.
+11. P2.3 - Consistencia y pulido.
+
+PROHIBICIÓN DE ADELANTAMIENTO:
+
+IA-PARALELA no puede iniciar P1 usando endpoints supuestos. Si no existe
+CONTRACT-FREEZE-1 sólo trabaja P0.
+
+17.11 Checklist de aceptación obligatoria
+
+ASIGNACIÓN:
+
+[ ] Jefatura crea “Ruta Norte - Lunes” con 10 clientes y un Gestor.
+[ ] El Gestor sincroniza y ve exactamente esos 10 clientes.
+[ ] Sin ruta asignada ve cero clientes, no toda la cartera.
+[ ] Reasignar 3 clientes de A a B hace que B los reciba en la siguiente sync.
+[ ] A deja de verlos según la vigencia.
+
+PREVENTA:
+
+[ ] Sin red, el Gestor registra visita y pedido de 2 Bultos + 5 Unidades.
+[ ] Al volver la red se crea una sola orden.
+[ ] Reintentar el mismo externalId no duplica la orden.
+[ ] El stock mostrado conserva fecha de última sincronización.
+[ ] Un conflicto queda visible y recuperable.
+
+CARGA:
+
+[ ] Jefatura agrupa pedidos, asigna vehículo y Rutero.
+[ ] Crear PLANNED no cambia stock.
+[ ] Auxiliar confirma cantidades físicas.
+[ ] Rutero ve sólo su carga.
+[ ] Rutero acepta o reporta diferencia.
+[ ] El inventario queda en una sola ubicación lógica en cada estado.
+
+ENTREGA:
+
+[ ] Entrega total contado crea venta, pago y reduce inventario del Rutero.
+[ ] Entrega crédito crea venta y CxC con vencimiento.
+[ ] Entrega parcial guarda cantidades por item.
+[ ] Rechazo crea devolución IN_TRANSIT.
+[ ] Reintento offline no duplica venta/cobro/devolución.
+[ ] Comprobante imprime y puede reimprimirse sin repetir la operación.
+
+LIQUIDACIÓN:
+
+[ ] Efectivo esperado coincide con ventas CASH + cobros CASH - reembolsos.
+[ ] Transferencias y cheques aparecen separados.
+[ ] Mercancía esperada coincide con carga aceptada - entregada.
+[ ] Auxiliar recibe retorno físico y entonces repone bodega.
+[ ] Diferencia exige observación.
+[ ] Aprobar cierre deja carga CLOSED y entregas SETTLED.
+
+CONDICIÓN DE CIERRE:
+
+No declarar terminada la tarjeta Trello #13 ni subir la puntuación global por
+encima de 7/10 mientras exista cualquiera de estos cuatro bloqueantes:
+
+1. Flutter muestra clientes no asignados.
+2. Rutero no puede completar entrega parcial con persistencia real.
+3. No existe aceptación de carga/inventario por custodia.
+4. Liquidación sigue consultando payments o no concilia inventario y efectivo.
 
 FIN DEL PLAN.

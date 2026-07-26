@@ -147,6 +147,41 @@ async function copyMissingRows(source, target, table) {
   };
 }
 
+async function reconcileSourceRows(source, target, table) {
+  const quotedTable = quoteIdentifier(table);
+  const columns = (
+    await getInsertableColumns(source, target, table)
+  ).filter((column) => column !== 'id');
+  const sourceRows = (await source.query(`SELECT * FROM ${quotedTable}`))
+    .rows;
+  let updated = 0;
+
+  const setClause = columns
+    .map(
+      (column, index) =>
+        `${quoteIdentifier(column)} = $${index + 2}`,
+    )
+    .join(', ');
+  const distinctClause = columns
+    .map(
+      (column, index) =>
+        `${quoteIdentifier(column)} IS DISTINCT FROM $${index + 2}`,
+    )
+    .join(' OR ');
+
+  for (const row of sourceRows) {
+    const result = await target.query(
+      `UPDATE ${quotedTable}
+          SET ${setClause}
+        WHERE id = $1
+          AND (${distinctClause})`,
+      [row.id, ...columns.map((column) => row[column])],
+    );
+    updated += result.rowCount || 0;
+  }
+  return { table, sourceRows: sourceRows.length, updated };
+}
+
 async function validateSharedIdentities(source, target) {
   for (const table of ['chains', 'stores']) {
     const quotedTable = quoteIdentifier(table);
@@ -342,6 +377,12 @@ async function main() {
       );
     }
 
+    report.reconciledSourceRows = [];
+    for (const table of ['users', 'clients']) {
+      report.reconciledSourceRows.push(
+        await reconcileSourceRows(source, target, table),
+      );
+    }
     report.collectionLinks = await restoreCollectionLinks(source, target);
     report.integrity = await validateIntegrity(target);
     report.financial = await financialReconciliation(source, target);
