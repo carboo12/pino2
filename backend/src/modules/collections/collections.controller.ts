@@ -22,17 +22,20 @@ import { CreateCollectionDto } from './collections.dto';
 export class CollectionsController {
   constructor(private readonly service: CollectionsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Post()
   @ApiOperation({ summary: 'Registrar cobro del rutero' })
   create(@Body() dto: CreateCollectionDto, @Req() req: any) {
     return this.service.create({
       ...dto,
-      ruteroId: dto.ruteroId || req.user?.sub,
+      ruteroId:
+        req.user?.role === 'rutero'
+          ? req.user.sub
+          : dto.ruteroId || req.user?.sub,
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar cobros con filtros' })
   findAll(
@@ -40,18 +43,29 @@ export class CollectionsController {
     @Query('ruteroId') ruteroId?: string,
     @Query('clientId') clientId?: string,
     @Query('date') date?: string,
+    @Req() req?: any,
   ) {
-    return this.service.findAll({ storeId, ruteroId, clientId, date });
+    return this.service.findAll({
+      storeId,
+      ruteroId: req?.user?.role === 'rutero' ? req.user.sub : ruteroId,
+      clientId,
+      date,
+    });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get('summary')
   @ApiOperation({ summary: 'Resumen de cobros por rutero/fecha' })
   getSummary(
     @Query('storeId') storeId: string,
     @Query('ruteroId') ruteroId?: string,
     @Query('date') date?: string,
+    @Req() req?: any,
   ) {
-    return this.service.getSummary({ storeId, ruteroId, date });
+    return this.service.getSummary({
+      storeId,
+      ruteroId: req?.user?.role === 'rutero' ? req.user.sub : ruteroId,
+      date,
+    });
   }
 }

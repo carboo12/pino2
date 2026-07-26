@@ -92,7 +92,7 @@ export default function LiquidationRoutePage() {
                  onChange={(e) => setSelectedDate(e.target.value)}
               />
             </div>
-            <Button className="h-10 w-full" onClick={handleConsultar} disabled={loading || !selectedRutero}>
+            <Button className="h-10 w-full" onClick={handleConsultar} disabled={loading || !selectedRutero} title={!selectedRutero ? 'Seleccione un rutero primero' : 'Cargando...'}>
                Consultar Estado
             </Button>
          </div>

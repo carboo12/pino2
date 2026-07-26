@@ -45,7 +45,7 @@ export class RoutesService {
         JSON.stringify(dto.clientIds || []),
         routeDate,
         dto.notes || null,
-        dto.status || 'pending',
+        String(dto.status || 'PENDING').trim().toUpperCase(),
       ],
     );
     const route = this.mapRow(res.rows[0]);
@@ -77,7 +77,7 @@ export class RoutesService {
     let idx = 1;
     if (dto.status) {
       sets.push(`status = $${idx++}`);
-      params.push(dto.status);
+      params.push(dto.status.trim().toUpperCase());
     }
     if (dto.notes !== undefined) {
       sets.push(`notes = $${idx++}`);

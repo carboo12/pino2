@@ -138,6 +138,45 @@ export class OrdersService {
     );
   }
 
+  async updateStatusAsRutero(
+    id: string,
+    newStatus: string,
+    ruteroId: string,
+    expectedVersion?: number,
+  ) {
+    const target = String(newStatus || '').trim().toUpperCase();
+    const allowedTargets = new Set([
+      OrderStatus.ENTREGADO,
+      OrderStatus.RECHAZO_TOTAL,
+    ]);
+    if (!allowedTargets.has(target as OrderStatus)) {
+      throw new BadRequestException(
+        'El rutero solo puede confirmar entrega total o rechazo total',
+      );
+    }
+
+    const assignment = await this.db.query(
+      `SELECT id
+         FROM orders
+        WHERE id = $1
+          AND rutero_id = $2`,
+      [id, ruteroId],
+    );
+    if (assignment.rowCount !== 1) {
+      throw new NotFoundException(
+        'Pedido no encontrado en las entregas asignadas al rutero',
+      );
+    }
+
+    return this.updateStatus(
+      id,
+      target,
+      ruteroId,
+      ruteroId,
+      expectedVersion,
+    );
+  }
+
   async autorizarPrice(
     id: string,
     decision: 'aprobar' | 'rechazar',

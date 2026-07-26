@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -34,7 +35,7 @@ export class PendingDeliveriesController {
     return this.service.getStats(storeId || '');
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get()
   @ApiOperation({ summary: 'Listar entregas pendientes con filtros' })
   async findAll(
@@ -42,13 +43,15 @@ export class PendingDeliveriesController {
     @Query('status') status?: string,
     @Query('ruteroId') ruteroId?: string,
     @Query('unassigned') unassigned?: string,
+    @Req() req?: any,
   ) {
     try {
       return await this.service.findAll({
         storeId,
         status,
-        ruteroId,
-        unassigned: unassigned === 'true',
+        ruteroId: req?.user?.role === 'rutero' ? req.user.sub : ruteroId,
+        unassigned:
+          req?.user?.role === 'rutero' ? false : unassigned === 'true',
       });
     } catch (e) {
       console.error('ERROR EN pending-deliveries findAll:', e);

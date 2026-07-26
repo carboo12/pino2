@@ -113,7 +113,7 @@ export default function SalesWorkspacePage() {
               )}
               <div className="space-y-2 pt-2">
                 <Button size="sm" className="w-full" onClick={() => navigate(`/store/${storeId}/vendors/quick-sale`)}>
-                  <ShoppingCart className="mr-1.5 h-3.5 w-3.5" /> Nuevo pedido
+                  <ShoppingCart className="mr-1.5 h-3.5 w-3.5" /> Crear pedido
                 </Button>
                 <Button size="sm" variant="outline" className="w-full" onClick={() => navigate(`/store/${storeId}/vendors/collections`)}>
                   <HandCoins className="mr-1.5 h-3.5 w-3.5" /> Cobrar

@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Query,
+  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiBearerAuth } from "@nestjs/swagger";
@@ -25,7 +26,7 @@ import {
 export class AccountsReceivableController {
   constructor(private readonly service: AccountsReceivableService) {}
 
-  @Roles("master-admin", "store-admin")
+  @Roles("master-admin", "store-admin", "sales-manager", "rutero")
   @Get()
   @ApiOperation({ summary: "Listar cuentas por cobrar" })
   findAll(
@@ -33,23 +34,26 @@ export class AccountsReceivableController {
     @Query("pending") pending?: string,
     @Query("status") status?: string,
     @Query("limit") limit?: string,
+    @Req() req?: any,
   ) {
     return this.service.findAll(
       storeId,
       pending === "true",
       status,
       limit ? parseInt(limit, 10) : undefined,
+      req?.user?.role,
+      req?.user?.sub,
     );
   }
 
-  @Roles("master-admin", "store-admin")
+  @Roles("master-admin", "store-admin", "sales-manager", "rutero")
   @Get(":id")
   @ApiOperation({ summary: "Obtener cuenta por cobrar" })
-  findOne(@Param("id") id: string) {
-    return this.service.findOne(id);
+  findOne(@Param("id") id: string, @Req() req: any) {
+    return this.service.findOne(id, req.user?.role, req.user?.sub);
   }
 
-  @Roles("master-admin", "store-admin")
+  @Roles("master-admin", "store-admin", "rutero")
   @Post()
   @ApiOperation({ summary: "Crear cuenta por cobrar" })
   create(@Body() dto: CreateAccountReceivableDto) {
@@ -59,13 +63,21 @@ export class AccountsReceivableController {
   @Roles("master-admin", "store-admin")
   @Post(":id/payments")
   @ApiOperation({ summary: "Registrar pago a cuenta" })
-  addPayment(@Param("id") id: string, @Body() dto: AddPaymentDto) {
+  addPayment(
+    @Param("id") id: string,
+    @Body() dto: AddPaymentDto,
+    @Req() req: any,
+  ) {
+    const isRutero = req.user?.role === "rutero";
     return this.service.addPayment(id, {
       amount: dto.amount,
       paymentMethod: dto.paymentMethod,
       notes: dto.notes || dto.vendorName || null,
-      collectedBy: dto.collectedBy || dto.vendorId,
+      collectedBy: isRutero
+        ? req.user.sub
+        : dto.collectedBy || dto.vendorId,
       externalId: dto.externalId,
+      requireRuteroAssignment: isRutero,
     });
   }
 }

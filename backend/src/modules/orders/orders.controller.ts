@@ -24,12 +24,16 @@ import { CreateOrderDto, UpdateOrderStatusBodyDto, OrderResponseDto } from './or
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo pedido' })
   @ApiOkResponse({ type: OrderResponseDto })
-  create(@Body() dto: CreateOrderDto) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateOrderDto, @Req() req: any) {
+    const isFieldSeller = ['vendor', 'sales-manager'].includes(req.user?.role);
+    return this.service.create({
+      ...dto,
+      vendorId: isFieldSeller ? req.user.sub : dto.vendorId,
+    });
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory')
@@ -44,11 +48,13 @@ export class OrdersController {
     @Query('toDate') toDate?: string,
     @Query('limit') limit?: string,
     @Query('createdAt') createdAt?: string,
+    @Req() req?: any,
   ) {
+    const isFieldSeller = ['vendor', 'sales-manager'].includes(req?.user?.role);
     return this.service.findAll({
       storeId,
       status,
-      vendorId,
+      vendorId: isFieldSeller ? req.user.sub : vendorId,
       clientId,
       fromDate,
       toDate,
@@ -81,10 +87,22 @@ export class OrdersController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('master-admin', 'store-admin', 'inventory', 'rutero')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Actualizar status de un pedido' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusBodyDto) {
+  updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateOrderStatusBodyDto,
+    @Req() req: any,
+  ) {
+    if (req.user?.role === 'rutero') {
+      return this.service.updateStatusAsRutero(
+        id,
+        dto.status,
+        req.user.sub,
+        dto.expectedVersion,
+      );
+    }
     return this.service.updateStatus(
       id,
       dto.status,
@@ -127,7 +145,7 @@ export class OrdersController {
   @Patch(':id/dispatch')
   @ApiOperation({ summary: 'Marcar pedido en entrega' })
   dispatch(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {
-    return this.service.updateStatus(id, 'EN_ENTREGA', dto.updatedBy);
+    return this.service.updateStatus(id, 'EN_RUTA', dto.updatedBy);
   }
 
   @Roles('master-admin', 'store-admin')

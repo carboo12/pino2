@@ -128,7 +128,7 @@ export default function ExpensesPage() {
               </div>
               <div className="md:col-span-2 flex justify-end space-x-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancelar</Button>
-                <Button type="submit">Guardar Gasto</Button>
+                <Button type="submit">Guardar</Button>
               </div>
             </form>
           </CardContent>

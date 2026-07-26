@@ -27,7 +27,7 @@ export default function DeliveryRoutePage() {
     const fetchDeliveries = async () => {
         if (!storeId || !user?.id) return;
         try {
-            const res = await apiClient.get('/pending-deliveries', { params: { storeId, status: 'Pendiente', ruteroId: user.id } });
+            const res = await apiClient.get('/pending-deliveries', { params: { storeId, status: 'PENDING', ruteroId: user.id } });
             setDeliveries(res.data || []);
         } catch (err) {
             console.error('Error fetching deliveries:', err);

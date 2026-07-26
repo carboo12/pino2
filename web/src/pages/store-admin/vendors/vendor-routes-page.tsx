@@ -90,7 +90,7 @@ export default function VendorRoutesPage() {
   const fetchDeliveries = async () => {
     setDeliveryLoading(true);
     try {
-      const res = await apiClient.get('/pending-deliveries', { params: { storeId, status: 'Pendiente', unassigned: true } });
+      const res = await apiClient.get('/pending-deliveries', { params: { storeId, status: 'PENDING', unassigned: true } });
       setDeliveries(res.data || []);
     } catch (err) {
       logError(err, { location: 'dispatch-fetch' });
@@ -107,7 +107,7 @@ export default function VendorRoutesPage() {
   async function onSubmitVisitPlan(values: z.infer<typeof routeFormSchema>) {
     setIsSaving(true);
     try {
-      await apiClient.post('/routes', { ...values, storeId, status: 'pending' });
+      await apiClient.post('/routes', { ...values, storeId, status: 'PENDING' });
       toast.success('Ruta Creada', 'La ruta ha sido asignada y el vendedor notificado.');
       form.reset({ date: new Date(), clientIds: [] });
     } catch (error) {

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import apiClient from '@/services/api-client';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 import { Briefcase, Plus, TrendingDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +52,7 @@ export default function EconomicGroupsPage() {
           <p className="text-muted-foreground">Grupos dueños de múltiples negocios (control de mora cruzada)</p>
         </div>
         <Button onClick={() => setIsOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> Nuevo Grupo
+          <Plus className="h-4 w-4" /> Crear Grupo
         </Button>
       </div>
 
@@ -74,11 +75,11 @@ export default function EconomicGroupsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-muted px-4 py-3 rounded-lg border flex flex-col">
                   <span className="text-xs text-muted-foreground font-semibold uppercase">Límite Global</span>
-                  <span className="text-xl font-black mt-1">C$ {parseFloat(g.limite_credito_global || 0).toLocaleString()}</span>
+                  <span className="text-xl font-black mt-1">{formatCurrency(Number(g.limite_credito_global || 0))}</span>
                 </div>
                 <div className="bg-red-50 text-red-900 px-4 py-3 rounded-lg border border-red-100 flex flex-col">
                   <span className="text-xs font-semibold uppercase flex items-center gap-1"><TrendingDown className="h-3 w-3" /> Deuda Actual Estimada</span>
-                  <span className="text-xl font-black mt-1">{g.saldo_total != null ? `C$ ${parseFloat(g.saldo_total).toLocaleString()}` : 'C$ 0'}</span>
+                  <span className="text-xl font-black mt-1">{g.saldo_total != null ? formatCurrency(Number(g.saldo_total)) : formatCurrency(0)}</span>
                 </div>
               </div>
               
@@ -120,7 +121,7 @@ export default function EconomicGroupsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmit}>Guardar Grupo</Button>
+            <Button onClick={handleSubmit}>Guardar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

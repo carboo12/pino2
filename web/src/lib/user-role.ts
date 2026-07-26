@@ -49,6 +49,7 @@ export const normalizeUserRole = (value?: string | null): NormalizedUserRole => 
     case 'gestor-de-ventas':
     case 'gestor-ventas':
     case 'sales-manager':
+    case 'preventa':
       return 'sales-manager';
     case 'auxiliar':
     case 'auxiliar-administrativo':

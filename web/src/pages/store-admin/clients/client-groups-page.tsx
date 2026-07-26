@@ -57,7 +57,7 @@ export default function ClientGroupsPage() {
           <p className="text-muted-foreground">Administre los grupos geográficos para ruteo</p>
         </div>
         <Button onClick={() => setIsOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" /> Nuevo Grupo
+          <Plus className="h-4 w-4" /> Crear Grupo
         </Button>
       </div>
 
@@ -108,7 +108,7 @@ export default function ClientGroupsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmit}>Guardar Grupo</Button>
+            <Button onClick={handleSubmit}>Guardar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

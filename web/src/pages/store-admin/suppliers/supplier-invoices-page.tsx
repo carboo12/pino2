@@ -707,7 +707,7 @@ export default function SupplierInvoicesPage() {
           </Button>
           <Button onClick={() => setCreateDialogOpen(true)}>
             <FilePlus2 className="mr-2 h-4 w-4" />
-            Nueva factura
+            Crear factura
           </Button>
         </div>
       </div>

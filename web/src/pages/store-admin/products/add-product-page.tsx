@@ -629,7 +629,7 @@ export default function AddProductPage() {
                   ) : (
                     <Save className="h-6 w-6" />
                   )}
-                  <span className="sr-only">Guardar Producto</span>
+                  <span className="sr-only">Guardar</span>
                 </Button>
               </form>
             </Form>

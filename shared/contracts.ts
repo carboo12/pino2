@@ -9,25 +9,59 @@ export type UserRole = typeof USER_ROLES[number];
 
 // ===== ORDER STATUSES =====
 export const ORDER_STATUSES = [
-  'PENDING', 'RECIBIDO', 'EN_PREPARACION', 'ALISTADO',
+  'PENDING', 'PENDIENTE_AUTORIZACION', 'RECIBIDO', 'EN_PREPARACION', 'ALISTADO',
   'CARGADO_CAMION', 'EN_RUTA', 'ENTREGADO',
-  'PARCIAL', 'CANCELADO', 'RECHAZADO', 'DEVUELTO',
+  'PARCIAL', 'CANCELADO', 'RECHAZADO', 'RECHAZO_TOTAL', 'DEVUELTO',
+  'LIQUIDADO', 'COMPLETED',
 ] as const;
 export type OrderStatus = typeof ORDER_STATUSES[number];
 
 export const CAN_TRANSITION: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ['RECIBIDO', 'CANCELADO'],
+  PENDIENTE_AUTORIZACION: ['RECIBIDO', 'CANCELADO'],
   RECIBIDO: ['EN_PREPARACION', 'CANCELADO'],
-  EN_PREPARACION: ['ALISTADO', 'RECIBIDO'],
+  EN_PREPARACION: ['ALISTADO', 'RECIBIDO', 'CANCELADO'],
   ALISTADO: ['CARGADO_CAMION'],
   CARGADO_CAMION: ['EN_RUTA'],
-  EN_RUTA: ['ENTREGADO', 'PARCIAL', 'CANCELADO'],
+  EN_RUTA: ['ENTREGADO', 'PARCIAL', 'RECHAZADO', 'RECHAZO_TOTAL', 'DEVUELTO', 'CANCELADO'],
   PARCIAL: ['ENTREGADO'],
   ENTREGADO: [],
   CANCELADO: [],
   RECHAZADO: [],
+  RECHAZO_TOTAL: [],
   DEVUELTO: [],
+  LIQUIDADO: [],
+  COMPLETED: [],
 };
+
+// ===== FIELD OPERATION STATUSES =====
+// These values cross NestJS, React, Flutter and PostgreSQL. Do not translate
+// persisted values in an individual client.
+export const ROUTE_STATUSES = [
+  'PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED',
+] as const;
+export type RouteStatus = typeof ROUTE_STATUSES[number];
+
+export const DELIVERY_STATUSES = [
+  'PENDING', 'ASSIGNED', 'EN_RUTA', 'ENTREGADO',
+  'PARCIAL', 'RECHAZADO', 'DEVUELTO', 'CANCELADO',
+] as const;
+export type DeliveryStatus = typeof DELIVERY_STATUSES[number];
+
+export const TRUCK_LOAD_STATUSES = [
+  'PLANNED', 'LOADING', 'READY', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED',
+] as const;
+export type TruckLoadStatus = typeof TRUCK_LOAD_STATUSES[number];
+
+export const ROUTE_LIQUIDATION_STATUSES = [
+  'PENDING', 'BALANCED', 'WITH_DIFFERENCE', 'APPROVED', 'CANCELLED',
+] as const;
+export type RouteLiquidationStatus = typeof ROUTE_LIQUIDATION_STATUSES[number];
+
+export const VISIT_STATUSES = [
+  'PENDING', 'VISITED', 'NO_SALE', 'SALE', 'SKIPPED',
+] as const;
+export type VisitStatus = typeof VISIT_STATUSES[number];
 
 // ===== CASH SHIFT STATUSES =====
 export const SHIFT_STATUSES = ['CERRADA', 'ABIERTA', 'EN_ARQUEO'] as const;

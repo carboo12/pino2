@@ -153,7 +153,7 @@ export default function InventoryValuationPage() {
                 onChange={e => setExchangeRate(e.target.value)}
               />
             </div>
-            <Button onClick={handleExport} disabled={inventoryProducts.length === 0}>
+            <Button onClick={handleExport} disabled={inventoryProducts.length === 0} title="No hay productos para exportar">
               <Download className="mr-2 h-4 w-4" />
               Exportar Excel
             </Button>

@@ -5,15 +5,24 @@
 // New code should use shared/contracts.ts directly.
 
 export enum OrderStatus {
+  PENDING = 'PENDING',
   PENDIENTE = 'PENDIENTE',
+  PENDIENTE_AUTORIZACION = 'PENDIENTE_AUTORIZACION',
   RECIBIDO = 'RECIBIDO',
+  EN_PREPARACION = 'EN_PREPARACION',
   ALISTADO = 'ALISTADO',
   CARGADO_CAMION = 'CARGADO_CAMION',
+  EN_RUTA = 'EN_RUTA',
+  // Compatibility alias accepted while old clients are upgraded.
   EN_ENTREGA = 'EN_ENTREGA',
   ENTREGADO = 'ENTREGADO',
+  PARCIAL = 'PARCIAL',
+  RECHAZADO = 'RECHAZADO',
+  RECHAZO_TOTAL = 'RECHAZO_TOTAL',
+  DEVUELTO = 'DEVUELTO',
   CANCELADO = 'CANCELADO',
-  PENDIENTE_AUTORIZACION = 'PENDIENTE_AUTORIZACION',
   LIQUIDADO = 'LIQUIDADO',
+  COMPLETED = 'COMPLETED',
 }
 
 export enum CashShiftStatus {
@@ -46,8 +55,11 @@ export enum PaymentStatus {
 }
 
 export enum LiquidacionStatus {
-  LIQUIDADO = 'LIQUIDADO',
-  CON_OBSERVACION = 'CON_OBSERVACION',
+  PENDING = 'PENDING',
+  BALANCED = 'BALANCED',
+  WITH_DIFFERENCE = 'WITH_DIFFERENCE',
+  APPROVED = 'APPROVED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum ChainStatus {
@@ -56,9 +68,30 @@ export enum ChainStatus {
 }
 
 export enum RouteStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
+  PENDING = 'PENDING',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum DeliveryStatus {
+  PENDING = 'PENDING',
+  ASSIGNED = 'ASSIGNED',
+  EN_RUTA = 'EN_RUTA',
+  ENTREGADO = 'ENTREGADO',
+  PARCIAL = 'PARCIAL',
+  RECHAZADO = 'RECHAZADO',
+  DEVUELTO = 'DEVUELTO',
+  CANCELADO = 'CANCELADO',
+}
+
+export enum TruckLoadStatus {
+  PLANNED = 'PLANNED',
+  LOADING = 'LOADING',
+  READY = 'READY',
+  IN_TRANSIT = 'IN_TRANSIT',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum PaymentMethod {

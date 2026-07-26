@@ -144,7 +144,7 @@ export default function CatalogWorkspacePage() {
           actions={
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={() => navigate(`/store/${storeId}/products/add`)}>
-                <Plus className="mr-1 h-4 w-4" /> Nuevo
+                <Plus className="mr-1 h-4 w-4" /> Crear
               </Button>
               <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/warehouse`)}>
                 <Boxes className="mr-1 h-4 w-4" /> Bodega

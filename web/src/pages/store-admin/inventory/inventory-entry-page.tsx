@@ -332,7 +332,7 @@ export default function InventoryEntryPage() {
                         <Label>Referencia (Opcional)</Label>
                         <Input placeholder="Ej: Lote recibido" value={entryReference} onChange={(e) => setEntryReference(e.target.value)} className="mt-1" />
                       </div>
-                      <Button className="w-full h-12" onClick={handleQuickEntry} disabled={isSaving || !entryQuantity}>
+                      <Button className="w-full h-12" onClick={handleQuickEntry} disabled={isSaving || !entryQuantity} title={!entryQuantity ? 'Ingrese una cantidad' : 'Guardando...'}>
                         {isSaving ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2" /> : <Check className="h-5 w-5 mr-2" />}
                         Registrar Entrada
                       </Button>
@@ -379,7 +379,7 @@ export default function InventoryEntryPage() {
                         <Label>Referencia (Opcional)</Label>
                         <Input placeholder="Ej: Devolución a bodega, abastecimiento semanal" value={transferReference} onChange={(e) => setTransferReference(e.target.value)} className="mt-1" />
                       </div>
-                      <Button className="w-full h-12" onClick={handleTransfer} disabled={isSaving || !transferQuantity || !transferOriginStore || !transferDestStore}>
+                      <Button className="w-full h-12" onClick={handleTransfer} disabled={isSaving || !transferQuantity || !transferOriginStore || !transferDestStore} title={!transferOriginStore || !transferDestStore ? 'Seleccione origen y destino' : !transferQuantity ? 'Ingrese una cantidad' : 'Guardando...'}>
                         {isSaving ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2" /> : <ArrowRightLeft className="h-5 w-5 mr-2" />}
                         Ejecutar Traslado
                       </Button>
@@ -401,7 +401,7 @@ export default function InventoryEntryPage() {
                         <Label>Razón de la Merma <span className="text-red-500">*</span></Label>
                         <Textarea placeholder="Ej: Producto vencido, caja dañada en bodega, etc." value={mermaReason} onChange={(e) => setMermaReason(e.target.value)} className="mt-1" rows={3} />
                       </div>
-                      <Button className="w-full h-12" variant="destructive" onClick={handleMerma} disabled={isSaving || !mermaQuantity || !mermaReason}>
+                      <Button className="w-full h-12" variant="destructive" onClick={handleMerma} disabled={isSaving || !mermaQuantity || !mermaReason} title={!mermaReason ? 'Describa la razón de la merma' : !mermaQuantity ? 'Ingrese una cantidad' : 'Guardando...'}>
                         {isSaving ? <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mr-2" /> : <Trash2 className="h-5 w-5 mr-2" />}
                         Registrar Merma
                       </Button>

@@ -18,6 +18,8 @@ export class AccountsReceivableService {
     pending?: boolean,
     status?: string,
     limit?: number,
+    actorRole?: string,
+    actorId?: string,
   ) {
     let sql = `SELECT ar.*, c.name as client_name,
                       CASE
@@ -29,6 +31,24 @@ export class AccountsReceivableService {
                LEFT JOIN clients c ON ar.client_id = c.id 
                WHERE ar.store_id = $1`;
     const params: any[] = [storeId];
+    if (actorRole === "sales-manager" && actorId) {
+      sql += ` AND EXISTS (
+        SELECT 1
+          FROM routes r
+         WHERE r.store_id = ar.store_id
+           AND r.vendor_id = $${params.push(actorId)}
+           AND COALESCE(r.client_ids, '[]'::jsonb) ? ar.client_id::text
+      )`;
+    } else if (actorRole === "rutero" && actorId) {
+      sql += ` AND EXISTS (
+        SELECT 1
+          FROM pending_deliveries pd
+         WHERE pd.store_id = ar.store_id
+           AND pd.rutero_id = $${params.push(actorId)}
+           AND pd.client_id = ar.client_id
+           AND pd.status NOT IN ('ENTREGADO', 'CANCELADO')
+      )`;
+    }
     if (pending) {
       sql += " AND ar.remaining_amount > 0";
     }
@@ -48,7 +68,27 @@ export class AccountsReceivableService {
     return res.rows.map(this.mapRow);
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, actorRole?: string, actorId?: string) {
+    const params: any[] = [id];
+    let accessSql = "";
+    if (actorRole === "sales-manager" && actorId) {
+      accessSql = ` AND EXISTS (
+        SELECT 1 FROM routes r
+         WHERE r.store_id = ar.store_id
+           AND r.vendor_id = $2
+           AND COALESCE(r.client_ids, '[]'::jsonb) ? ar.client_id::text
+      )`;
+      params.push(actorId);
+    } else if (actorRole === "rutero" && actorId) {
+      accessSql = ` AND EXISTS (
+        SELECT 1 FROM pending_deliveries pd
+         WHERE pd.store_id = ar.store_id
+           AND pd.rutero_id = $2
+           AND pd.client_id = ar.client_id
+           AND pd.status NOT IN ('ENTREGADO', 'CANCELADO')
+      )`;
+      params.push(actorId);
+    }
     const res = await this.db.query(
       `SELECT ar.*, c.name as client_name,
               CASE
@@ -57,8 +97,9 @@ export class AccountsReceivableService {
                 ELSE CURRENT_DATE - ar.due_date
               END as days_overdue
        FROM accounts_receivable ar
-       LEFT JOIN clients c ON ar.client_id = c.id WHERE ar.id = $1`,
-      [id],
+       LEFT JOIN clients c ON ar.client_id = c.id
+       WHERE ar.id = $1${accessSql}`,
+      params,
     );
     if (res.rowCount === 0) throw new NotFoundException("Cuenta no encontrada");
     return this.mapRow(res.rows[0]);
@@ -156,6 +197,7 @@ export class AccountsReceivableService {
       notes?: string;
       collectedBy?: string;
       externalId?: string;
+      requireRuteroAssignment?: boolean;
     },
   ) {
     if (Number(dto.amount) <= 0) {
@@ -171,6 +213,23 @@ export class AccountsReceivableService {
         throw new NotFoundException("Cuenta no encontrada");
 
       const account = accRes.rows[0];
+      if (dto.requireRuteroAssignment) {
+        const assignmentRes = await client.query(
+          `SELECT 1
+             FROM pending_deliveries
+            WHERE store_id = $1
+              AND rutero_id = $2
+              AND client_id = $3
+              AND status NOT IN ('ENTREGADO', 'CANCELADO')
+            LIMIT 1`,
+          [account.store_id, dto.collectedBy, account.client_id],
+        );
+        if (assignmentRes.rowCount !== 1) {
+          throw new NotFoundException(
+            "Cuenta no encontrada entre los clientes asignados al rutero",
+          );
+        }
+      }
       const amount = Math.round(Number(dto.amount) * 100) / 100;
       const currentRemaining =
         Math.round(parseFloat(account.remaining_amount) * 100) / 100;

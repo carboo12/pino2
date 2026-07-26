@@ -446,7 +446,7 @@ export default function WarehouseWorkspacePage() {
             <Button variant="outline" size="sm" onClick={() => setShowVendorSelect(false)}>
               Cancelar
             </Button>
-            <Button size="sm" disabled={!selectedVendorId || !selectedOrder} onClick={() => {
+            <Button size="sm" disabled={!selectedVendorId || !selectedOrder} title="Seleccione un proveedor y una orden" onClick={() => {
               if (selectedOrder) {
                 handleStatusChange(selectedOrder, 'CARGADO_CAMION', selectedVendorId);
               }

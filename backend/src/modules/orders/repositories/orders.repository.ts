@@ -553,7 +553,7 @@ export class OrdersRepository {
   ) {
     await client.query(
       `INSERT INTO pending_deliveries (store_id, order_id, client_id, address, status)
-       VALUES ($1, $2, $3, $4, 'Pendiente')`,
+       VALUES ($1, $2, $3, $4, 'PENDING')`,
       [data.storeId, data.orderId, data.clientId || null, data.address],
     );
   }

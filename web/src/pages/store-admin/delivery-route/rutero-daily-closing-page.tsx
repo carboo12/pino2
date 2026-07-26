@@ -91,7 +91,7 @@ export default function RuteroDailyClosingPage() {
   const stats = useMemo(() => {
     const delivered = deliveries.filter((d) => d.status === 'Entregado');
     const notDelivered = deliveries.filter((d) => d.status === 'No Entregado');
-    const pending = deliveries.filter((d) => d.status === 'Pendiente');
+    const pending = deliveries.filter((d) => ['PENDING', 'ASSIGNED'].includes(d.status));
 
     const totalSales = delivered.reduce((sum, d) => sum + (Number(d.total) || 0), 0);
     const totalReturns = returns.reduce((sum, r) => sum + (Number(r.total) || 0), 0);

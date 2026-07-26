@@ -200,7 +200,7 @@ export default function ArqueosPage() {
             <div className="flex justify-end gap-4">
                <Button variant="outline" onClick={() => setArqueoData(null)}>Cancelar</Button>
                <Button onClick={handleGuardar} size="lg" className="px-8 gap-2">
-                 <Save className="h-5 w-5" /> Guardar Arqueo
+                 <Save className="h-5 w-5" /> Guardar
                </Button>
             </div>
           </div>

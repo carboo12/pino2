@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency } from '@/lib/utils';
 import { FileText, Plus, ShieldCheck } from 'lucide-react';
 import { toast } from '@/lib/swalert';
 
@@ -77,7 +78,7 @@ export default function ContractsPage() {
                       <td className="p-3 font-medium">{c.contract_number}</td>
                       <td className="p-3">{c.client_name}</td>
                       <td className="p-3">{c.contract_type}</td>
-                      <td className="p-3 font-semibold">C$ {Number(c.credit_limit || 0).toFixed(2)}</td>
+                      <td className="p-3 font-semibold">{formatCurrency(Number(c.credit_limit || 0))}</td>
                       <td className="p-3">{c.payment_terms} días</td>
                       <td className="p-3">
                         <Badge variant={c.status === 'ACTIVE' ? 'default' : 'outline'}>{c.status}</Badge>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import apiClient from '@/services/api-client';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
 import { Package, Truck, Search, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,7 +137,7 @@ export default function DispatchPage() {
                   </div>
                   <h3 className="font-medium text-sm mb-1 line-clamp-1">{o.clientName || 'Cliente General'}</h3>
                   <div className="flex justify-between items-center text-xs text-muted-foreground mt-3">
-                    <span className="font-medium text-foreground">C$ {parseFloat(o.total as any).toFixed(2)}</span>
+                    <span className="font-medium text-foreground">{formatCurrency(Number(o.total))}</span>
                     <span className="flex items-center gap-1"><Package className="h-3 w-3" /> Info...</span>
                   </div>
                 </div>

@@ -18,15 +18,24 @@ const CAN_TRANSITION: Record<string, string[]> = {
     OrderStatus.RECIBIDO,
     OrderStatus.CANCELADO,
   ],
-  [OrderStatus.RECIBIDO]: ["EN_PREPARACION", OrderStatus.CANCELADO],
+  [OrderStatus.RECIBIDO]: [OrderStatus.EN_PREPARACION, OrderStatus.CANCELADO],
   EN_PREPARACION: [OrderStatus.ALISTADO, OrderStatus.CANCELADO],
   [OrderStatus.ALISTADO]: [OrderStatus.CARGADO_CAMION],
-  [OrderStatus.CARGADO_CAMION]: [OrderStatus.EN_ENTREGA],
+  [OrderStatus.CARGADO_CAMION]: [OrderStatus.EN_RUTA],
+  [OrderStatus.EN_RUTA]: [
+    OrderStatus.ENTREGADO,
+    OrderStatus.PARCIAL,
+    OrderStatus.DEVUELTO,
+    OrderStatus.RECHAZADO,
+    OrderStatus.RECHAZO_TOTAL,
+    OrderStatus.CANCELADO,
+  ],
+  // Read compatibility for orders already persisted by older clients.
   [OrderStatus.EN_ENTREGA]: [
     OrderStatus.ENTREGADO,
-    "DEVUELTO",
-    "RECHAZADO",
-    "RECHAZO_TOTAL",
+    OrderStatus.DEVUELTO,
+    OrderStatus.RECHAZADO,
+    OrderStatus.RECHAZO_TOTAL,
   ],
   PENDING: [OrderStatus.RECIBIDO, OrderStatus.CANCELADO],
 };
@@ -78,7 +87,10 @@ export class TransitionOrderUseCase {
       }
 
       const currentStatus = orderRow.status.toUpperCase();
-      const targetStatus = newStatus.toUpperCase();
+      const targetStatus =
+        newStatus.toUpperCase() === OrderStatus.EN_ENTREGA
+          ? OrderStatus.EN_RUTA
+          : newStatus.toUpperCase();
       const storeId = orderRow.storeId;
       let effectiveVendorId = orderRow.vendorId;
 

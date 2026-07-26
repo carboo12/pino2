@@ -31,11 +31,12 @@ export class ArqueosService {
           : [dto.storeId, dto.ruteroId],
       );
 
-      // Cobros credito del dia (usando payments/collections)
+      // Cobros a crédito recaudados en efectivo por el rutero.
       const cRes = await this.db.query(
-        `SELECT COALESCE(SUM(amount), 0) as_credito FROM payments 
-         WHERE store_id = $1 AND collected_by = $2 AND method = 'EFECTIVO'
-           ${dto.fecha ? 'AND DATE(payment_date) = $3' : 'AND DATE(payment_date) = CURRENT_DATE'}`,
+        `SELECT COALESCE(SUM(amount), 0) as_credito FROM collections
+         WHERE store_id = $1 AND rutero_id = $2
+           AND UPPER(payment_method) IN ('CASH', 'EFECTIVO')
+           ${dto.fecha ? 'AND created_at::date = $3::date' : 'AND created_at::date = CURRENT_DATE'}`,
         dto.fecha
           ? [dto.storeId, dto.ruteroId, dto.fecha]
           : [dto.storeId, dto.ruteroId],

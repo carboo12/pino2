@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -22,14 +23,19 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class RoutesController {
   constructor(private readonly service: RoutesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get()
   @ApiOperation({ summary: 'Listar rutas de vendedores' })
   findAll(
     @Query('storeId') storeId: string,
     @Query('vendorId') vendorId?: string,
+    @Req() req?: any,
   ) {
-    return this.service.findAll(storeId, vendorId);
+    const isFieldSeller = ['vendor', 'sales-manager'].includes(req?.user?.role);
+    return this.service.findAll(
+      storeId,
+      isFieldSeller ? req.user.sub : vendorId,
+    );
   }
 
   @Roles('master-admin', 'store-admin')

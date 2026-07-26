@@ -53,7 +53,7 @@ export class PendingDeliveriesService {
     if (filters.storeId)
       sql += ` AND pd.store_id = $${params.push(filters.storeId)}`;
     if (filters.status)
-      sql += ` AND pd.status = $${params.push(filters.status)}`;
+      sql += ` AND pd.status = $${params.push(filters.status.trim().toUpperCase())}`;
     if (filters.ruteroId)
       sql += ` AND pd.rutero_id = $${params.push(filters.ruteroId)}`;
     if (filters.unassigned) sql += ' AND pd.rutero_id IS NULL';
@@ -73,7 +73,7 @@ export class PendingDeliveriesService {
   }) {
     const res = await this.db.query(
       `INSERT INTO pending_deliveries (store_id, order_id, client_id, address, notes, status) 
-       VALUES ($1, $2, $3, $4, $5, 'Pendiente') RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5, 'PENDING') RETURNING *`,
       [
         dto.storeId,
         dto.orderId,
@@ -112,8 +112,8 @@ export class PendingDeliveriesService {
   async getStats(storeId: string) {
     const sql = `
       SELECT
-        (SELECT COUNT(*) FROM pending_deliveries WHERE store_id = $1 AND status = 'Entregado' AND created_at >= CURRENT_DATE) as daily_deliveries,
-        (SELECT COUNT(*) FROM pending_deliveries WHERE store_id = $1 AND status = 'Pendiente') as pending_deliveries,
+        (SELECT COUNT(*) FROM pending_deliveries WHERE store_id = $1 AND status = 'ENTREGADO' AND created_at >= CURRENT_DATE) as daily_deliveries,
+        (SELECT COUNT(*) FROM pending_deliveries WHERE store_id = $1 AND status IN ('PENDING', 'ASSIGNED')) as pending_deliveries,
         (SELECT COUNT(*) FROM orders WHERE store_id = $1 AND created_at >= CURRENT_DATE) as orders_today,
         (SELECT COALESCE(
           (SELECT sales_manager_name FROM orders WHERE store_id = $1 AND created_at >= date_trunc('month', CURRENT_DATE) AND sales_manager_name IS NOT NULL
@@ -138,7 +138,7 @@ export class PendingDeliveriesService {
     return await this.db.withTransaction(async (client) => {
       for (const deliveryId of dto.deliveryIds) {
         await client.query(
-          `UPDATE pending_deliveries SET rutero_id = $1, status = 'Pendiente', route_date = $2, updated_at = NOW() WHERE id = $3`,
+          `UPDATE pending_deliveries SET rutero_id = $1, status = 'ASSIGNED', route_date = $2, updated_at = NOW() WHERE id = $3`,
           [dto.ruteroId, dto.date || new Date().toISOString(), deliveryId],
         );
       }

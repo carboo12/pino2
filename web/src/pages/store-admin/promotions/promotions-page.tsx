@@ -69,7 +69,7 @@ export default function PromotionsPage() {
           <p className="text-sm text-muted-foreground">Descuentos automáticos aplicados en caja y ventas</p>
         </div>
         <Button onClick={() => setShowCreate(!showCreate)}>
-          <Plus className="w-4 h-4 mr-2" /> Nueva Promoción
+          <Plus className="w-4 h-4 mr-2" /> Crear Promoción
         </Button>
       </div>
 
@@ -136,7 +136,7 @@ export default function PromotionsPage() {
               </div>
               <div className="md:col-span-2 flex justify-end space-x-2 pt-2">
                 <Button type="button" variant="outline" onClick={() => setShowCreate(false)}>Cancelar</Button>
-                <Button type="submit">Guardar Promoción</Button>
+                <Button type="submit">Guardar</Button>
               </div>
             </form>
           </CardContent>

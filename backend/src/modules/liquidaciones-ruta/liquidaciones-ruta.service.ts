@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
-import { LiquidacionStatus, OrderStatus } from '../../common/constants/enums';
+import { LiquidacionStatus } from '../../common/constants/enums';
 
 @Injectable()
 export class LiquidacionesRutaService {
@@ -14,109 +14,141 @@ export class LiquidacionesRutaService {
     arqueoId?: string;
     notas?: string;
   }) {
-    // Calculamos totales
-    const params = [dto.storeId, dto.ruteroId, dto.fechaRuta];
+    return this.db.withTransaction(async (client) => {
+      const params = [dto.storeId, dto.ruteroId, dto.fechaRuta];
+      await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+        `liquidacion:${dto.storeId}:${dto.ruteroId}:${dto.fechaRuta}`,
+      ]);
 
-    // Pedidos asignados ese día
-    const pRes = await this.db.query(
-      `SELECT COUNT(*) as total_pedidos,
-              COUNT(CASE WHEN status = 'ENTREGADO' THEN 1 END) as entregados,
-              COUNT(CASE WHEN status = 'RECHAZO_TOTAL' THEN 1 END) as rechazados,
-              COALESCE(SUM(CASE WHEN status = 'ENTREGADO' AND payment_type = 'CONTADO' THEN total ELSE 0 END), 0) as total_contado
-       FROM orders 
-       WHERE store_id = $1 AND rutero_id = $2 AND DATE(updated_at) = $3`,
-      params,
-    );
-    const pData = pRes.rows[0];
-
-    // Cobros prestamo del dia
-    const cRes = await this.db.query(
-      `SELECT COALESCE(SUM(amount), 0) as total_credito
-       FROM payments 
-       WHERE store_id = $1 AND collected_by = $2 AND DATE(payment_date) = $3`,
-      params,
-    );
-    const cData = cRes.rows[0];
-
-    // Efectivo Esperado
-    const esperado =
-      parseFloat(pData.total_contado) + parseFloat(cData.total_credito);
-
-    // Arqueo Info (si existe)
-    let entregado = 0;
-    let diferencia = 0;
-    let status = 'PENDIENTE';
-
-    let arqueo = null;
-    if (dto.arqueoId) {
-      const aRes = await this.db.query(
-        'SELECT efectivo_contado FROM arqueos WHERE id = $1',
-        [dto.arqueoId],
-      );
-      if (aRes.rowCount > 0) {
-        entregado = parseFloat(aRes.rows[0].efectivo_contado);
-        diferencia = entregado - esperado;
-        status =
-          diferencia >= 0
-            ? LiquidacionStatus.LIQUIDADO
-            : LiquidacionStatus.CON_OBSERVACION;
-        arqueo = dto.arqueoId;
-      }
-    } else {
-      // Intentamos buscar arqueo del mismo día si no lo enviaron
-      const aRes = await this.db.query(
-        'SELECT id, efectivo_contado FROM arqueos WHERE store_id = $1 AND rutero_id = $2 AND fecha = $3 ORDER BY created_at DESC LIMIT 1',
+      const pRes = await client.query(
+        `SELECT COUNT(*) as total_pedidos,
+                COUNT(*) FILTER (WHERE status IN ('ENTREGADO', 'LIQUIDADO', 'COMPLETED')) as entregados,
+                COUNT(*) FILTER (WHERE status IN ('RECHAZADO', 'RECHAZO_TOTAL', 'DEVUELTO')) as rechazados,
+                COALESCE(SUM(total) FILTER (
+                  WHERE status IN ('ENTREGADO', 'LIQUIDADO', 'COMPLETED')
+                    AND payment_type = 'CONTADO'
+                ), 0) as total_contado
+           FROM orders
+          WHERE store_id = $1
+            AND rutero_id = $2
+            AND updated_at::date = $3::date`,
         params,
       );
-      if (aRes.rowCount > 0) {
-        arqueo = aRes.rows[0].id;
-        entregado = parseFloat(aRes.rows[0].efectivo_contado);
-        diferencia = entregado - esperado;
-        status =
-          diferencia >= 0
-            ? LiquidacionStatus.LIQUIDADO
-            : LiquidacionStatus.CON_OBSERVACION;
-      }
-    }
+      const pData = pRes.rows[0];
 
-    const insertRes = await this.db.query(
-      `INSERT INTO liquidaciones_ruta (
-         store_id, rutero_id, fecha_ruta, total_pedidos, total_entregados, total_rechazados,
-         total_cobrado_contado, total_cobrado_credito, efectivo_esperado, efectivo_entregado, diferencia,
-         arqueo_id, status, liquidado_por, notas
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
-      [
-        dto.storeId,
-        dto.ruteroId,
-        dto.fechaRuta,
-        parseInt(pData.total_pedidos),
-        parseInt(pData.entregados),
-        parseInt(pData.rechazados),
-        parseFloat(pData.total_contado),
-        parseFloat(cData.total_credito),
-        esperado,
-        entregado,
-        diferencia,
-        arqueo,
-        status,
-        dto.liquidadoPor,
-        dto.notas || null,
-      ],
-    );
-
-    // Marcar pedidos como LIQUIDADOs
-    if (
-      status === LiquidacionStatus.LIQUIDADO ||
-      status === LiquidacionStatus.CON_OBSERVACION
-    ) {
-      await this.db.query(
-        `UPDATE orders SET status = '${OrderStatus.LIQUIDADO}', updated_at = NOW() 
-         WHERE store_id = $1 AND rutero_id = $2 AND status = 'ENTREGADO' AND DATE(updated_at) = $3`,
+      const cRes = await client.query(
+        `SELECT COALESCE(SUM(amount), 0) as total_credito,
+                COALESCE(SUM(amount) FILTER (
+                  WHERE UPPER(payment_method) IN ('CASH', 'EFECTIVO')
+                ), 0) as credito_efectivo
+           FROM collections
+          WHERE store_id = $1
+            AND rutero_id = $2
+            AND created_at::date = $3::date`,
         params,
       );
-    }
+      const cData = cRes.rows[0];
 
-    return this.mapRow(insertRes.rows[0]);
+      const rRes = await client.query(
+        `SELECT COALESCE(SUM(total), 0) as total_devoluciones
+           FROM returns
+          WHERE store_id = $1
+            AND rutero_id = $2
+            AND created_at::date = $3::date`,
+        params,
+      );
+
+      const totalContado = Number(pData.total_contado || 0);
+      const totalCredito = Number(cData.total_credito || 0);
+      const esperado =
+        totalContado + Number(cData.credito_efectivo || 0);
+
+      const aRes = dto.arqueoId
+        ? await client.query(
+            `SELECT id, efectivo_contado
+               FROM arqueos
+              WHERE id = $1
+                AND store_id = $2
+                AND rutero_id = $3
+                AND fecha = $4::date
+              FOR SHARE`,
+            [dto.arqueoId, ...params],
+          )
+        : await client.query(
+            `SELECT id, efectivo_contado
+               FROM arqueos
+              WHERE store_id = $1
+                AND rutero_id = $2
+                AND fecha = $3::date
+              ORDER BY created_at DESC
+              LIMIT 1
+              FOR SHARE`,
+            params,
+          );
+
+      if (dto.arqueoId && aRes.rowCount !== 1) {
+        throw new NotFoundException(
+          'El arqueo no pertenece al rutero, tienda y fecha indicados',
+        );
+      }
+
+      const arqueo = aRes.rowCount === 1 ? aRes.rows[0].id : null;
+      const entregado =
+        aRes.rowCount === 1 ? Number(aRes.rows[0].efectivo_contado || 0) : 0;
+      const diferencia = entregado - esperado;
+      const status =
+        aRes.rowCount !== 1
+          ? LiquidacionStatus.PENDING
+          : Math.abs(diferencia) <= 0.01
+            ? LiquidacionStatus.BALANCED
+            : LiquidacionStatus.WITH_DIFFERENCE;
+
+      const insertRes = await client.query(
+        `INSERT INTO liquidaciones_ruta (
+           store_id, rutero_id, fecha_ruta, total_pedidos, total_entregados,
+           total_rechazados, total_cobrado_contado, total_cobrado_credito,
+           total_devoluciones, efectivo_esperado, efectivo_entregado,
+           diferencia, arqueo_id, status, liquidado_por, notas
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8,
+           $9, $10, $11, $12, $13, $14, $15, $16
+         )
+         ON CONFLICT (store_id, rutero_id, fecha_ruta)
+         DO UPDATE SET
+           total_pedidos = EXCLUDED.total_pedidos,
+           total_entregados = EXCLUDED.total_entregados,
+           total_rechazados = EXCLUDED.total_rechazados,
+           total_cobrado_contado = EXCLUDED.total_cobrado_contado,
+           total_cobrado_credito = EXCLUDED.total_cobrado_credito,
+           total_devoluciones = EXCLUDED.total_devoluciones,
+           efectivo_esperado = EXCLUDED.efectivo_esperado,
+           efectivo_entregado = EXCLUDED.efectivo_entregado,
+           diferencia = EXCLUDED.diferencia,
+           arqueo_id = EXCLUDED.arqueo_id,
+           status = EXCLUDED.status,
+           liquidado_por = EXCLUDED.liquidado_por,
+           notas = EXCLUDED.notas
+         RETURNING *`,
+        [
+          ...params,
+          Number(pData.total_pedidos || 0),
+          Number(pData.entregados || 0),
+          Number(pData.rechazados || 0),
+          totalContado,
+          totalCredito,
+          Number(rRes.rows[0].total_devoluciones || 0),
+          esperado,
+          entregado,
+          diferencia,
+          arqueo,
+          status,
+          dto.liquidadoPor,
+          dto.notas || null,
+        ],
+      );
+
+      return this.mapRow(insertRes.rows[0]);
+    });
   }
 
   async findAll(storeId: string, fecha?: string, ruteroId?: string) {

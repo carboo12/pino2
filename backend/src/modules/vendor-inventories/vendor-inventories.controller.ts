@@ -23,7 +23,7 @@ import { ProcessTransactionDto } from './vendor-inventories.dto';
 export class VendorInventoriesController {
   constructor(private readonly service: VendorInventoriesService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get(':vendorId/:productId')
   @ApiOperation({
     summary: 'Obtener inventario de un producto asignado a un vendedor',
@@ -31,15 +31,24 @@ export class VendorInventoriesController {
   getInventory(
     @Param('vendorId', ParseUUIDPipe) vendorId: string,
     @Param('productId', ParseUUIDPipe) productId: string,
+    @Req() req: any,
   ) {
-    return this.service.getInventory(vendorId, productId);
+    return this.service.getInventory(
+      req.user?.role === 'rutero' ? req.user.sub : vendorId,
+      productId,
+    );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero')
   @Get(':vendorId')
   @ApiOperation({ summary: 'Listar productos asignados a un vendedor' })
-  getVendorProducts(@Param('vendorId', ParseUUIDPipe) vendorId: string) {
-    return this.service.getVendorProducts(vendorId);
+  getVendorProducts(
+    @Param('vendorId', ParseUUIDPipe) vendorId: string,
+    @Req() req: any,
+  ) {
+    return this.service.getVendorProducts(
+      req.user?.role === 'rutero' ? req.user.sub : vendorId,
+    );
   }
 
   @Roles('master-admin', 'store-admin')
