@@ -96,7 +96,7 @@ const getMasterAdminNav = (): NavItem[] => [
 
 const getStoreAdminNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Caja', href: `/store/${storeId}/work/cash`, icon: WalletCards },
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
   { type: 'link', name: 'Ventas', href: `/store/${storeId}/work/sales`, icon: Route },
   { type: 'link', name: 'Finanzas', href: `/store/${storeId}/work/finance`, icon: Wallet },
   { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
@@ -105,7 +105,7 @@ const getStoreAdminNav = (storeId: string): NavItem[] => [
 
 // --- Simple role navs (already compact) ---
 const getBodegueroNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
   { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
 ];
 
@@ -115,11 +115,11 @@ const getCashierNav = (storeId: string): NavItem[] => [
 ];
 
 const getDespachoNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
 ];
 
 const getAuxiliarNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/work/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
   { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
 ];
 
