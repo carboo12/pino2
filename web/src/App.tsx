@@ -847,6 +847,17 @@ function App() {
                         }
                       />
                       <Route
+                        path="/store/:storeId/pos"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={SALES_TEAM_ROLES}
+                          >
+                            <VendorQuickSalePage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="/store/:storeId/vendors/quick-sale"
                         element={
                           <ProtectedRoute

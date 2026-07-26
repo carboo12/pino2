@@ -145,10 +145,18 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="default"
                 size="sm"
+                className="gap-1.5 font-bold shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
+                onClick={() => navigate(`/store/${storeId}/vendors/quick-sale`)}
+              >
+                <ShoppingCart className="h-4 w-4" /> ⚡ Venta Directa en POS
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-1.5 font-bold shadow-sm"
                 onClick={() => navigate(`/store/${storeId}/cash-register`)}
               >
-                <ShoppingCart className="h-4 w-4" /> Abrir POS / Caja
+                <ShoppingCart className="h-4 w-4 text-slate-500" /> 🔒 Arqueo / Cierre Caja
               </Button>
 
               <div className="relative">

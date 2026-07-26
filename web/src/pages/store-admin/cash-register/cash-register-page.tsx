@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useApiMutation } from '@/hooks/use-api';
 import { 
   Banknote, 
@@ -105,6 +105,7 @@ function DenominationGrid({
 
 export default function CashRegisterPage() {
   const { storeId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isOpeningShift, setIsOpeningShift] = useState(false);
@@ -272,6 +273,32 @@ export default function CashRegisterPage() {
         </div>
       ) : (
         <div className="space-y-8 animate-in fade-in duration-700">
+           {/* BANNER ACCION PRINCIPAL: FACTURAR / REALIZAR VENTA DIRECTA */}
+           <div className="bg-emerald-600 text-white p-6 rounded-[32px] shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+             <div className="flex items-center gap-4 text-left">
+               <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
+                 <ShoppingCart className="h-8 w-8" />
+               </div>
+               <div>
+                 <div className="flex items-center gap-2 mb-1">
+                   <span className="bg-white/20 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                     Turno Abierto & Listo
+                   </span>
+                 </div>
+                 <h2 className="text-xl font-extrabold">Terminal POS — Facturación & Venta Directa</h2>
+                 <p className="text-xs text-white/80">
+                   Busca productos, escanéa códigos de barra y cobra de contado o a crédito en tiempo real.
+                 </p>
+               </div>
+             </div>
+             <Button
+               onClick={() => navigate(`/store/${storeId}/vendors/quick-sale`)}
+               className="w-full sm:w-auto h-14 px-8 text-base font-extrabold bg-white text-emerald-800 hover:bg-white/95 rounded-2xl shadow-lg shrink-0 uppercase tracking-wider transition-transform hover:scale-105"
+             >
+               <ShoppingCart className="mr-2 h-5 w-5" /> Ir a Facturar Venta
+             </Button>
+           </div>
+
            {/* Resumen Superior */}
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className="border-none shadow-[20px_20px_40px_#ccced1,-20px_-20px_40px_#ffffff] bg-[#f0f2f5] rounded-[32px] p-6 group hover:translate-y-[-4px] transition-all">
