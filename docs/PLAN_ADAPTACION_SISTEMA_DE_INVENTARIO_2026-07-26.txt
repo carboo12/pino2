@@ -1,0 +1,1725 @@
+PLAN MAESTRO DE ADAPTACIÓN Y CONSOLIDACIÓN
+SISTEMA PINO -> sistema_de_inventario
+Fecha del diagnóstico: 2026-07-26
+Repositorio analizado: /opt/apps/pino2
+Commit base analizado: 82547b0 (main)
+
+===============================================================================
+0. INSTRUCCIÓN PRINCIPAL PARA EL AGENTE DE IA EJECUTOR
+===============================================================================
+
+OBJETIVO:
+Convertir sistema_de_inventario en la base operativa consolidada de Pino,
+conservando:
+
+1. Todo el histórico legacy que ya existe en sistema_de_inventario.
+2. Toda la operación reciente que todavía está en multitienda_db.
+3. Los UUID y relaciones existentes.
+4. Los datos de clientes, productos, ventas, pedidos, movimientos y finanzas.
+5. La capacidad futura de operar cuentas por cobrar, cuentas por pagar,
+   notas de crédito de proveedor y las tres entradas de inventario requeridas.
+
+REGLAS NO NEGOCIABLES:
+
+[ ] NO ejecutar backend/scripts/clone_to_sistema_inventario.js.
+    Ese script contiene DROP DATABASE IF EXISTS sistema_de_inventario.
+
+[ ] NO ejecutar backend/scripts/purge_all_test_seed_data.js.
+    Ese script elimina usuarios, turnos, ventas, pedidos, departamentos,
+    proveedores y relaciones que hoy son necesarias para recuperar la
+    operación reciente de multitienda_db.
+
+[ ] NO volver a ejecutar migrate_100_percent_coverage.js sobre una base
+    operativa. Borra sale_items, order_items, ventas/pedidos legacy,
+    autorizaciones, movimientos y gastos antes de recargarlos.
+
+[ ] NO cambiar DATABASE_NAME=sistema_de_inventario hasta completar la fusión,
+    reconciliación y validación funcional descritas aquí.
+
+[ ] NO crear cuentas por cobrar históricas suponiendo que toda venta marcada
+    CREDITO sigue pendiente. Eso resucitaría deudas posiblemente pagadas.
+
+[ ] NO aplicar automáticamente las 1,768 notas de crédito legacy a saldos
+    actuales. Primero deben vincularse de forma inequívoca y revisarse.
+
+[ ] NO eliminar ni sobrescribir filas de sistema_de_inventario para “hacer
+    coincidir” multitienda_db. La estrategia es unión controlada y reconciliada.
+
+[ ] Todo cambio de datos debe ejecutarse dentro de una transacción en el
+    destino, con modo dry-run previo, conteos antes/después y rollback ante
+    cualquier diferencia.
+
+[ ] Las credenciales de base no deben quedar escritas en scripts nuevos.
+    Usar variables de entorno ya previstas por NestJS.
+
+FUERA DE ALCANCE DE ESTE PLAN:
+
+- CI/CD.
+- Seguridad y permisos.
+- Suite automatizada de pruebas.
+- Documentación comercial.
+
+Sí están dentro de alcance las comprobaciones de integridad y reconciliación
+necesarias para garantizar que ningún dato del cliente se pierda.
+
+===============================================================================
+1. DIAGNÓSTICO DIRECTO Y PUNTUACIÓN MVP
+===============================================================================
+
+PUNTUACIÓN ACTUAL PARA USAR sistema_de_inventario COMO BASE DEL MVP: 3.5 / 10
+
+Desglose:
+
+- Preservación del histórico legacy:                 8.0 / 10
+- Integridad FK principal del histórico:              8.0 / 10
+- Preparación para sustituir multitienda_db:           3.0 / 10
+- Clientes realmente utilizables desde React/API:     1.5 / 10
+- Cuentas por cobrar con vencimiento:                 2.0 / 10
+- Cuentas por pagar y facturas de proveedor:          3.0 / 10
+- Notas de crédito de proveedor:                      1.0 / 10
+- Entradas de inventario por las tres vías:            5.0 / 10
+- Pantallas prácticas para operación rápida:          4.0 / 10
+- Compatibilidad de contratos backend/BD:             3.0 / 10
+
+CONCLUSIÓN:
+
+sistema_de_inventario es una buena BASE DE CONSOLIDACIÓN, pero todavía no es
+una BASE OPERATIVA lista para conectar al backend. El histórico está presente,
+pero faltan:
+
+1. La operación reciente de multitienda_db.
+2. La activación/corrección de la cartera real de clientes.
+3. El contrato correcto de cuentas por cobrar.
+4. La generación automática de CxC desde ventas a crédito.
+5. El flujo completo de compras -> recepción -> factura -> CxP.
+6. El flujo de devolución a proveedor -> nota de crédito -> reducción de CxP.
+7. La corrección de varios errores críticos entre SQL real y código NestJS.
+8. Rutas y pantallas React que hoy están ocultas o incompletas.
+
+PUNTUACIÓN ESPERADA DESPUÉS DE FASES P0 Y P1: 7.0 / 10 (MVP OPERABLE).
+PUNTUACIÓN ESPERADA DESPUÉS DE P2:           8.5 / 10 (MVP SÓLIDO).
+
+===============================================================================
+2. EVIDENCIA REAL DE LAS DOS BASES
+===============================================================================
+
+2.1 Tamaño y estructura
+
+sistema_de_inventario:
+
+- Tamaño medido por PostgreSQL: 544.26 MiB.
+- Tablas públicas: 80.
+- Filas estimadas por PostgreSQL: 1,646,805.
+- El comentario “1.2 GB” probablemente se refiere al volumen de registros.
+  La medida actual del motor es aproximadamente 544 MiB.
+- Firma de esquema:
+  06b08a4079b03ab041c299fc3c3b5dab9b260087d46929602125c861b2ea0ea3
+
+multitienda_db:
+
+- Tamaño medido por PostgreSQL: 13.24 MiB.
+- Tablas públicas: 74.
+- Filas estimadas: 3,614.
+- Firma de esquema:
+  d40f2ac764368d5189e8675571e8732e80e3c26f0af6248ed174ca875185516f
+
+Las seis tablas adicionales de sistema_de_inventario son:
+
+- legacy_audit_logs
+- legacy_cargos
+- legacy_cuadres_caja
+- legacy_mapping
+- legacy_notas_credito
+- legacy_operclit_ext
+
+No hay tablas presentes solo en multitienda_db. Por ello,
+sistema_de_inventario debe ser el destino final, no al revés.
+
+2.2 Volumen principal en sistema_de_inventario
+
+- stores:                     5
+- chains:                     2
+- users:                     17
+- departments:               54
+- suppliers:                 82
+- products:               3,560
+- product_barcodes:       1,584
+- clients:                4,289
+- sales:                 86,487
+- sale_items:           497,278
+- orders:                   654
+- order_items:            9,243
+- movements:            553,140
+- expenses:                5,320
+- returns:                 1,525
+- return_items:                0
+- legacy_mapping:         95,137
+- legacy_audit_logs:     322,110
+- legacy_operclit_ext:    41,162
+- legacy_cargos:          18,434
+- legacy_cuadres_caja:     2,438
+- legacy_notas_credito:    1,768
+
+2.3 Integridad encontrada
+
+No se detectaron huérfanos en:
+
+- sale_items -> sales
+- sale_items -> products
+- order_items -> orders
+- order_items -> products
+- movements -> products
+- accounts_receivable -> clients
+- accounts_payable -> suppliers
+
+No se detectaron claves duplicadas en legacy_mapping por:
+
+- entity_type
+- legacy_code
+
+No hay constraints inválidas en ninguna de las dos bases.
+
+2.4 Tablas grandes que condicionan rendimiento
+
+- movements:             233.75 MiB / 553,140 filas
+- sale_items:             97.08 MiB / 497,278 filas
+- sales:                  96.65 MiB / 86,487 filas
+- legacy_audit_logs:      60.85 MiB / 322,110 filas
+- legacy_mapping:         26.82 MiB / 95,137 filas
+
+Regla para el agente:
+ninguna pantalla debe solicitar estas tablas completas. Toda consulta de
+ventas, movimientos o auditoría debe usar paginación de servidor, filtros e
+índices.
+
+===============================================================================
+3. HALLAZGOS CRÍTICOS DE DATOS
+===============================================================================
+
+3.1 Clientes invisibles en la aplicación
+
+Datos reales en sistema_de_inventario:
+
+- Clientes totales:                            4,289
+- Clientes is_active=true:                         1
+- Clientes is_active=false:                    4,288
+- Clientes tipo CREDITO:                         242
+- Clientes con dias_credito=8:                   125
+- Clientes con dias_credito>8:                    87
+- Rango de dias_credito:                        0..30
+- Límite de crédito agregado:          C$ 26,991,630.50
+- saldo_pendiente agregado:                  C$ 0.00
+- Clientes distintos asociados a ventas:        1,598
+- Clientes activos asociados a ventas:               0
+- Ventas ligadas a clientes inactivos:          86,483
+
+El endpoint GET /clients usa:
+
+  WHERE store_id = $1 AND is_active = true
+
+Resultado práctico actual:
+React y Flutter solo pueden ver un cliente del catálogo legacy, aunque existen
+4,289 registros y 1,598 tienen ventas.
+
+Causa probable:
+migrate_master_catalogs.js interpreta:
+
+  parseInt(c.status || 0, 10) === 0
+
+como activo. La distribución real sugiere que la semántica de status fue
+interpretada al revés o que “status” no debe usarse como bandera de baja.
+
+ACCIÓN P0:
+
+[ ] No modificar masivamente todavía.
+[ ] Crear consulta de revisión con:
+    id, legacy_code, name, is_active, cantidad_ventas, última_venta,
+    type, dias_credito.
+[ ] Confirmar con el responsable del negocio qué representa status en el
+    sistema viejo.
+[ ] Si se confirma la inversión, activar los 4,288 clientes en una migración
+    específica, conservando una tabla de respaldo de id/is_active anterior.
+[ ] Si no puede confirmarse, activar primero:
+    - clientes con ventas;
+    - clientes tipo CREDITO;
+    - clientes asignados a vendedor;
+    dejando el resto en revisión.
+[ ] Nunca borrar clientes inactivos: solo corregir visibilidad.
+
+3.2 Histórico de crédito sin cartera operativa
+
+En sistema_de_inventario:
+
+- Ventas totales:                       86,487
+- Ventas con payment_method=CREDITO:     6,432
+- Monto histórico marcado crédito: C$ 246,005,188.48
+- Cuentas por cobrar:                        0
+- Pagos a cuentas por cobrar:                0
+- Cobros:                                    2
+- Cobros sin account_id:                     2
+
+No se puede concluir que C$ 246,005,188.48 esté pendiente. Es un monto
+histórico bruto, no un saldo.
+
+ACCIÓN:
+
+[ ] Conservar esas ventas como histórico.
+[ ] No transformarlas automáticamente a cuentas pendientes.
+[ ] Crear una cola/staging “legacy_receivables_review” con estado
+    HISTORICAL_UNKNOWN si se necesita exponerlas para conciliación.
+[ ] Para tener cartera inicial real se requiere una de estas fuentes:
+    A. Listado de facturas abiertas entregado por contabilidad.
+    B. Saldo de cierre por cliente/factura exportado del sistema anterior.
+    C. Autorización posterior para consultar las tablas de saldos originales.
+[ ] Solo después de reconciliar factura, abonos y notas de crédito se insertará
+    la apertura en accounts_receivable.
+
+3.3 Notas de crédito legacy
+
+- Notas de crédito legacy:                  1,768
+- Monto total:                    C$ 3,131,872.96
+- Referencias de factura vacías:               0
+- Referencias que coinciden con ticket:     1,536
+- Referencias no coincidentes:                232
+
+No existe integración con accounts_payable ni con accounts_receivable.
+La tabla solo preserva:
+
+- documento_nc
+- documento_factura
+- monto
+- fecha
+
+ACCIÓN:
+
+[ ] Preservar las 1,768 filas sin cambios.
+[ ] Indexar btrim(documento_factura) o normalizarla en una columna propia.
+[ ] Llevar las 232 no coincidentes a una cola de conciliación.
+[ ] No aplicar una nota cuando una referencia coincide con más de una factura.
+[ ] Diferenciar nota de crédito de cliente vs nota de crédito de proveedor.
+
+3.4 Devoluciones históricas incompletas
+
+- returns:       1,525
+- return_items:      0
+- Todas las devoluciones legacy están sin order_id.
+
+Se preservó el encabezado y el total, pero no el detalle de productos.
+
+ACCIÓN:
+
+[ ] No usar esas devoluciones para reponer o descontar stock nuevamente.
+[ ] Marcarlas como HISTORICAL_IMPORTED o equivalente.
+[ ] La devolución operativa nueva sí debe guardar items y movimiento de stock.
+[ ] La devolución a proveedor debe ser un flujo separado de la devolución de
+    venta/rutero.
+
+3.5 Inventario
+
+En sistema_de_inventario:
+
+- Productos:                        3,560
+- Productos activos:                3,560
+- Productos que usan inventario:    3,559
+- Productos con stock negativo:         2
+- Productos sin barcode principal:      0
+- Stock total en unidades:      1,080,637
+
+ACCIÓN:
+
+[ ] Identificar los dos productos negativos.
+[ ] No corregirlos con UPDATE directo.
+[ ] Crear un ajuste de inventario con referencia:
+    “Corrección apertura consolidada 2026-07-26”.
+[ ] Verificar que products.current_stock coincida con el último balance válido
+    de movements para cada producto antes del corte.
+
+===============================================================================
+4. DATOS DE multitienda_db QUE TODAVÍA FALTAN EN EL DESTINO
+===============================================================================
+
+El backend activo sigue configurado con:
+
+  DATABASE_NAME=multitienda_db
+
+El proceso PM2 pino-api-dev está online usando esa configuración.
+
+No debe cambiarse todavía.
+
+4.1 Filas activas que faltan por UUID en sistema_de_inventario
+
+- users:                    19 de 20
+- user_stores:              16 de 16
+- departments:               3 de 4
+- products:                170 de 170
+- product_barcodes:        114 de 114
+- clients:                   9 de 10
+- cash_shifts:               9 de 9
+- authorizations:            2 de 2
+- sales:                   477 de 477
+- sale_items:              477 de 477
+- orders:                  155 de 155
+- order_items:             160 de 160
+- order_status_history:    185 de 185
+- movements:               585 de 585
+- pending_deliveries:      146 de 146
+- accounts_receivable:       9 de 9
+- account_payments:          3 de 3
+- vendor_inventories:        2 de 2
+- device_tokens:             1 de 1
+
+Tablas compartidas ya coincidentes por UUID:
+
+- chains:                 2
+- stores:                 5
+- daily_closings:         1
+- error_logs:             1
+- grupos_clientes:        1
+- grupos_economicos:      2
+- licenses:               3
+- outbox_events:        655
+- pending_orders:         2
+- routes:                 1
+- store_zones:            1
+- collections:            2
+
+IMPORTANTE SOBRE collections:
+Las dos collections existen con el mismo UUID en ambas bases, pero en
+sistema_de_inventario quedaron con account_id=NULL; en multitienda_db están
+vinculadas a cuentas por cobrar. La fusión debe actualizar esas filas después
+de copiar accounts_receivable.
+
+4.2 Colisiones por clave natural
+
+Comparación real:
+
+- Productos de multitienda con mismo barcode en destino:       0
+- Productos con misma descripción/tienda:                      0
+- Ventas con mismo ticket/tienda:                               0
+- Ventas con mismo external_id:                                 0
+- Clientes con mismo nombre/tienda:                             1
+- Usuarios con mismo correo:                                    1
+
+Conclusión:
+Los 170 productos y las 477 ventas recientes se pueden incorporar preservando
+UUID sin colisiones naturales encontradas. El cliente y usuario coincidentes
+deben reconciliarse, no duplicarse.
+
+4.3 Distribución por tienda
+
+sistema_de_inventario concentra todo el legacy en:
+
+  Los Pinos - Central
+  clients=4,289, products=3,560, sales=86,487,
+  orders=654, movements=553,140.
+
+multitienda_db contiene:
+
+- Los Pinos - Central:
+  clients=10, products=117, sales=477, orders=155, movements=577.
+
+- Los Pinos - Norte:
+  products=1, movements=8.
+
+- Los Pinos - Sur:
+  products=50.
+
+- Tienda Test MVP:
+  products=2.
+
+Regla:
+Preservar store_id original en todas las filas recientes. No volver a usar
+SELECT id FROM stores LIMIT 1 para asignar datos.
+
+===============================================================================
+5. ESTRATEGIA DE FUSIÓN SIN PÉRDIDA
+===============================================================================
+
+DECISIÓN ARQUITECTÓNICA:
+
+- Fuente del histórico: sistema_de_inventario.
+- Fuente de operación reciente: multitienda_db.
+- Destino consolidado: sistema_de_inventario.
+- multitienda_db permanece intacta como fuente de rollback hasta cierre.
+
+5.1 Preparación
+
+[ ] Registrar la fecha/hora exacta de inicio.
+[ ] Crear respaldo lógico completo de ambas bases.
+[ ] Verificar que el respaldo pueda listar su contenido.
+[ ] Guardar conteos por tabla, sumas monetarias y min/max(created_at).
+[ ] Ejecutar el merge primero contra una copia temporal del destino.
+[ ] Ejecutar el merge real solo en una ventana de mantenimiento corta.
+[ ] Poner el backend en modo sin escrituras durante el corte final.
+
+5.2 Script nuevo requerido
+
+Crear:
+
+  backend/scripts/merge_multitienda_into_sistema.js
+
+Características obligatorias:
+
+[ ] Dos conexiones separadas:
+    SOURCE_DATABASE=multitienda_db
+    TARGET_DATABASE=sistema_de_inventario
+
+[ ] Validar por nombre exacto que nunca se inviertan fuente y destino.
+
+[ ] Fuente:
+    BEGIN TRANSACTION READ ONLY.
+
+[ ] Destino:
+    BEGIN;
+    SELECT pg_advisory_xact_lock(...);
+
+[ ] Argumentos:
+    --dry-run
+    --apply
+
+[ ] --dry-run debe:
+    - no insertar;
+    - generar conteos;
+    - listar colisiones;
+    - calcular qué filas se insertarían/actualizarían;
+    - terminar con ROLLBACK.
+
+[ ] --apply debe:
+    - conservar UUID;
+    - usar sentencias parametrizadas;
+    - procesar por lotes;
+    - verificar rowCount por tabla;
+    - hacer ROLLBACK ante una sola diferencia.
+
+[ ] No usar DROP, TRUNCATE ni DELETE.
+
+[ ] No usar ON CONFLICT DO NOTHING silencioso sin registrar qué conflicto
+    ocurrió.
+
+5.3 Orden exacto de fusión
+
+FASE A - Identidades compartidas
+
+[ ] chains: validar contenido; no duplicar.
+[ ] stores: validar contenido; no duplicar.
+[ ] licenses/config: validar; conservar configuración de destino salvo decisión
+    explícita por campo.
+
+FASE B - Catálogos y usuarios
+
+[ ] users: insertar 19 UUID faltantes.
+[ ] departments: insertar 3 UUID faltantes.
+[ ] clients: insertar 9 UUID faltantes; reconciliar el cliente compartido.
+[ ] products: insertar 170 UUID faltantes.
+[ ] product_barcodes: insertar 114 UUID faltantes.
+[ ] user_stores: insertar 16 relaciones faltantes.
+
+FASE C - Operación base
+
+[ ] cash_shifts: insertar 9.
+[ ] authorizations: insertar 2.
+[ ] vendor_inventories: insertar 2.
+
+FASE D - Pedidos
+
+[ ] orders: insertar 155.
+[ ] order_items: insertar 160.
+[ ] order_status_history: insertar 185.
+[ ] pending_deliveries: insertar 146.
+
+FASE E - Ventas e inventario
+
+[ ] sales: insertar 477.
+[ ] sale_items: insertar 477.
+[ ] movements: insertar 585.
+
+FASE F - Finanzas
+
+[ ] accounts_receivable: insertar 9.
+[ ] account_payments: insertar 3.
+[ ] collections:
+    - no insertar duplicados;
+    - actualizar los 2 account_id/client_id/rutero_id desde la fuente;
+    - verificar que el saldo de las 9 CxC coincida con pagos/cobros.
+
+FASE G - Auxiliares
+
+[ ] device_tokens: decidir si sigue siendo operativo; no bloquear el núcleo.
+[ ] No recargar outbox_events: los 655 UUID ya coinciden.
+[ ] No duplicar pending_orders/daily_closings compartidos.
+
+5.4 Patrón mínimo seguro del script
+
+Código de referencia para que el agente no confunda la dirección:
+
+  const SOURCE_DB = process.env.SOURCE_DATABASE;
+  const TARGET_DB = process.env.TARGET_DATABASE;
+
+  if (SOURCE_DB !== 'multitienda_db') {
+    throw new Error('SOURCE_DATABASE debe ser multitienda_db');
+  }
+  if (TARGET_DB !== 'sistema_de_inventario') {
+    throw new Error('TARGET_DATABASE debe ser sistema_de_inventario');
+  }
+
+  await source.query('BEGIN READ ONLY');
+  await target.query('BEGIN');
+  await target.query('SELECT pg_advisory_xact_lock($1)', [825472026]);
+
+  try {
+    // Insertar en el orden establecido, preservando id.
+    // Verificar cantidades luego de cada tabla.
+    if (dryRun) {
+      await target.query('ROLLBACK');
+    } else {
+      await target.query('COMMIT');
+    }
+  } catch (error) {
+    await target.query('ROLLBACK');
+    throw error;
+  } finally {
+    await source.query('ROLLBACK');
+  }
+
+5.5 Validaciones de cierre de fusión
+
+[ ] Las 19 identidades de usuarios faltantes existen por UUID.
+[ ] Las 170 identidades de productos existen por UUID.
+[ ] Los 114 códigos de barras apuntan al mismo product_id de la fuente.
+[ ] Las 477 ventas preservan cash_shift_id/cashier_id/store_id.
+[ ] Los 477 sale_items apuntan a las ventas y productos correctos.
+[ ] Los 155 pedidos preservan cliente, vendedor y tienda.
+[ ] Los 146 pending_deliveries preservan order_id.
+[ ] Los 585 movimientos preservan product_id, balance y referencia.
+[ ] Las 9 CxC preservan sus 3 pagos.
+[ ] Las 2 collections recuperan account_id.
+[ ] Cero huérfanos tras la fusión.
+[ ] Sumas monetarias de las filas copiadas iguales a la fuente.
+
+===============================================================================
+6. CUENTAS POR COBRAR: DISEÑO OBLIGATORIO
+===============================================================================
+
+6.1 Regla de negocio
+
+- Solo clientes a crédito generan CxC.
+- Plazo por defecto: 8 días.
+- El cliente puede tener un plazo mayor configurado en clients.dias_credito.
+- Contador o administrador puede establecer un vencimiento particular por
+  factura.
+- El plazo usado debe quedar congelado en la factura/CxC. Cambiar después el
+  cliente no debe cambiar facturas anteriores.
+- Cada CxC representa una factura/venta, no solo un saldo agregado del cliente.
+
+6.2 Error de esquema actual
+
+accounts_receivable real tiene:
+
+- order_id
+- total_amount
+- remaining_amount
+- status
+- created_at
+
+No tiene:
+
+- sale_id
+- due_date
+- fecha de emisión explícita
+- días de crédito congelados
+- número de factura
+
+Además:
+
+- Default DB del status: ACTIVE.
+- Backend crea PENDING/PARTIAL/PAID.
+- ClientsService filtra != PAID_IN_FULL.
+- React espera PENDING/PARTIAL/PAID.
+
+Hay cuatro vocabularios incompatibles.
+
+6.3 Error crítico del flujo de venta
+
+ProcessSaleUseCase recibe clientId/clientName, pero SalesRepository.insertSale
+no inserta esos campos. La evidencia lo confirma:
+
+- En multitienda_db las 477 ventas recientes tienen client_id=NULL.
+
+ProcessSaleUseCase tampoco llama insertAccountReceivable cuando
+paymentMethod=CREDITO.
+
+Existe un método muerto SalesRepository.insertAccountReceivable que intenta
+insertar columnas inexistentes:
+
+  sale_id, balance, due_date
+
+Si se llamara hoy, fallaría.
+
+6.4 Migración de esquema P0
+
+Crear una migración fechada nueva, no editar migraciones ya aplicadas.
+Ejemplo base:
+
+  BEGIN;
+
+  ALTER TABLE accounts_receivable
+    ADD COLUMN IF NOT EXISTS sale_id uuid REFERENCES sales(id),
+    ADD COLUMN IF NOT EXISTS invoice_number varchar(80),
+    ADD COLUMN IF NOT EXISTS issued_at timestamptz,
+    ADD COLUMN IF NOT EXISTS due_date date,
+    ADD COLUMN IF NOT EXISTS credit_days_snapshot integer,
+    ADD COLUMN IF NOT EXISTS credit_note_amount numeric(14,2)
+      NOT NULL DEFAULT 0;
+
+  UPDATE accounts_receivable
+  SET status = CASE upper(coalesce(status, ''))
+    WHEN 'ACTIVE' THEN 'PENDING'
+    WHEN 'PAID_IN_FULL' THEN 'PAID'
+    WHEN 'OVERDUE' THEN 'PENDING'
+    ELSE upper(status)
+  END;
+
+  ALTER TABLE accounts_receivable
+    ALTER COLUMN status SET DEFAULT 'PENDING';
+
+  CREATE UNIQUE INDEX IF NOT EXISTS uq_ar_sale
+    ON accounts_receivable(sale_id)
+    WHERE sale_id IS NOT NULL;
+
+  CREATE UNIQUE INDEX IF NOT EXISTS uq_ar_order
+    ON accounts_receivable(order_id)
+    WHERE order_id IS NOT NULL;
+
+  CREATE INDEX IF NOT EXISTS idx_ar_store_due_pending
+    ON accounts_receivable(store_id, due_date)
+    WHERE remaining_amount > 0;
+
+  CREATE INDEX IF NOT EXISTS idx_ar_client_pending
+    ON accounts_receivable(client_id, due_date)
+    WHERE remaining_amount > 0;
+
+  COMMIT;
+
+Luego agregar constraints mediante bloque DO para permitir re-ejecución segura:
+
+- credit_days_snapshot >= 0.
+- total_amount >= 0.
+- remaining_amount entre 0 y total_amount.
+- credit_note_amount entre 0 y total_amount.
+- status IN ('PENDING','PARTIAL','PAID','CANCELLED').
+- Debe existir sale_id u order_id para cuentas nuevas.
+
+6.5 Contrato único de respuesta
+
+AccountReceivable debe devolver:
+
+- id
+- storeId
+- clientId
+- clientName
+- saleId
+- orderId
+- invoiceNumber
+- totalAmount
+- creditNoteAmount
+- remainingAmount
+- status
+- issuedAt
+- dueDate
+- creditDays
+- daysOverdue
+- isOverdue
+- description
+- createdAt
+- updatedAt
+
+daysOverdue:
+
+  max(0, fecha_actual - dueDate)
+
+isOverdue:
+
+  remainingAmount > 0 AND dueDate < fecha_actual
+
+6.6 Código crítico para venta a crédito
+
+El agente debe modificar insertSale para guardar cliente:
+
+  INSERT INTO sales (
+    store_id,
+    cash_shift_id,
+    cashier_id,
+    ticket_number,
+    subtotal,
+    discount,
+    tax,
+    total,
+    payment_method,
+    external_id,
+    client_id,
+    client_name
+  ) VALUES (...)
+
+En ProcessSaleUseCase, dentro de LA MISMA TRANSACCIÓN:
+
+  const isCredit =
+    (dto.paymentMethod || '').trim().toUpperCase() === 'CREDITO';
+
+  if (isCredit) {
+    if (!dto.clientId) {
+      throw new BadRequestException(
+        'Una venta a crédito requiere un cliente'
+      );
+    }
+
+    const clientCredit = await this.salesRepo.findClientCreditForUpdate(
+      client,
+      dto.storeId,
+      dto.clientId,
+    );
+
+    if (!clientCredit) {
+      throw new NotFoundException('Cliente no encontrado en esta tienda');
+    }
+
+    const creditDays = Number.isInteger(dto.creditDaysOverride)
+      ? dto.creditDaysOverride
+      : Number(clientCredit.diasCredito || 8);
+
+    const dueDate = dto.dueDateOverride
+      ? new Date(dto.dueDateOverride)
+      : addDays(startOfDay(new Date()), creditDays);
+
+    await this.salesRepo.insertAccountReceivable(client, {
+      storeId: dto.storeId,
+      clientId: dto.clientId,
+      saleId: sale.id,
+      invoiceNumber: sale.ticketNumber || ticketNumber,
+      totalAmount: total,
+      remainingAmount: total,
+      issuedAt: sale.createdAt,
+      dueDate,
+      creditDaysSnapshot: creditDays,
+    });
+  }
+
+La sentencia SQL real del repositorio debe usar:
+
+  INSERT INTO accounts_receivable (
+    store_id, client_id, sale_id, invoice_number,
+    total_amount, remaining_amount, issued_at, due_date,
+    credit_days_snapshot, status
+  )
+  VALUES ($1,$2,$3,$4,$5,$5,$6,$7,$8,'PENDING')
+  ON CONFLICT (sale_id) WHERE sale_id IS NOT NULL DO NOTHING
+
+No usar las columnas antiguas “balance” ni una due_date inexistente.
+
+6.7 Cuándo crear CxC desde pedidos
+
+Hoy CreateOrderUseCase crea la CxC al crear el pedido.
+Eso no cumple la frase “facturas pendientes por pagar” y puede generar deuda de
+un pedido cancelado o nunca entregado.
+
+Refactor:
+
+[ ] Crear el pedido sin CxC.
+[ ] Al pasar a ENTREGADO o al generar la factura/venta definitiva:
+    - verificar payment_type=CREDITO;
+    - crear CxC idempotente;
+    - congelar fecha y plazo;
+    - no duplicar si el pedido ya tiene CxC.
+[ ] Si el pedido se cancela antes de entrega, no existe deuda.
+[ ] Si se cancela después de facturar, usar nota de crédito/reversión, no DELETE.
+
+6.8 Saldos
+
+Fuente de verdad:
+
+  accounts_receivable.remaining_amount
+
+clients.saldo_pendiente no debe actualizarse manualmente en varios servicios.
+Elegir una estrategia:
+
+A. Vista calculada por SUM(remaining_amount) para el MVP.
+B. Campo cacheado mantenido exclusivamente en la misma transacción.
+
+Recomendación MVP:
+usar vista/consulta agregada y dejar saldo_pendiente como dato derivado.
+
+6.9 Pagos
+
+Unificar dos rutas actuales:
+
+- account_payments: ledger financiero.
+- collections: evento de cobro operativo/rutero.
+
+Al cobrar:
+
+1. Bloquear CxC FOR UPDATE.
+2. Validar monto <= saldo.
+3. Insertar account_payment.
+4. Si proviene de ruta, insertar collection.
+5. Actualizar remaining_amount.
+6. Actualizar status:
+   - remaining=0 -> PAID
+   - remaining<total -> PARTIAL
+   - igual total -> PENDING
+7. Confirmar todo o nada.
+
+El backend no debe insertar un collection sin accountId para un abono a cartera.
+
+===============================================================================
+7. CUENTAS POR PAGAR, FACTURAS Y NOTAS DE CRÉDITO
+===============================================================================
+
+7.1 Estado actual
+
+En ambas bases:
+
+- accounts_payable:       0
+- payable_payments:       0
+- invoices:               0
+- invoice_items:          0
+- purchase_orders:        0
+- purchase_order_items:   0
+
+Hay estructura y pantallas, pero no evidencia de operación real.
+
+7.2 Errores críticos de InvoicesService
+
+ERROR 1:
+Calcula calculatedTotal después de insertar la factura, pero al crear la CxP
+usa dto.total y no calculatedTotal. Puede quedar factura y deuda con montos
+distintos.
+
+ERROR 2:
+Cuando el item no tiene productId y crea un producto nuevo, ejecuta continue.
+Eso provoca:
+
+- producto creado;
+- stock inicial agregado;
+- NO invoice_item;
+- NO movimiento de inventario;
+- factura sin ese detalle.
+
+ERROR 3:
+DELETE /invoices/:id borra la factura sin revertir:
+
+- stock;
+- movimientos;
+- cuenta por pagar;
+- pagos;
+- estado contable.
+
+ERROR 4:
+No existe unique para:
+
+  store_id + supplier_id + invoice_number
+
+ERROR 5:
+status acepta cualquier texto.
+
+7.3 Refactor obligatorio de factura de compra
+
+Orden correcto dentro de una sola transacción:
+
+1. Validar proveedor y tienda.
+2. Validar número de factura único por proveedor/tienda.
+3. Resolver todos los productos.
+4. Calcular subtotal de cada línea.
+5. Calcular total en backend.
+6. Insertar invoices con calculatedTotal.
+7. Insertar todos los invoice_items, incluso productos recién creados.
+8. Actualizar stock por producto con FOR UPDATE.
+9. Insertar movements con costo y referencia.
+10. Si pago=CREDITO, crear accounts_payable con calculatedTotal.
+11. Si pago=CONTADO, no crear CxP.
+12. Commit.
+
+Código crítico:
+
+  const preparedItems = [];
+
+  for (const item of dto.items) {
+    const productId = item.productId
+      ?? await resolveOrCreateProduct(client, dto.storeId, item);
+
+    preparedItems.push({
+      ...item,
+      productId,
+      subtotal: item.quantity * item.unitPrice,
+    });
+  }
+
+  const calculatedTotal = preparedItems.reduce(
+    (sum, item) => sum + item.subtotal,
+    0,
+  );
+
+  const invoice = await insertInvoice(client, {
+    ...dto,
+    total: calculatedTotal,
+  });
+
+  for (const item of preparedItems) {
+    await insertInvoiceItem(client, invoice.id, item);
+    await receiveStock(client, invoice, item);
+  }
+
+  if (isCredit(dto.paymentType)) {
+    await insertAccountPayable(client, {
+      invoiceId: invoice.id,
+      totalAmount: calculatedTotal,
+      remainingAmount: calculatedTotal,
+      dueDate: dto.dueDate,
+    });
+  }
+
+No debe existir continue después de crear un producto.
+
+7.4 Borrado de factura
+
+Para MVP:
+
+[ ] Deshabilitar DELETE de factura POSTEADA/RECIBIDA.
+[ ] Permitir cancelar solo si no tiene pagos ni notas aplicadas.
+[ ] La cancelación debe generar movimientos inversos y estado CANCELLED.
+[ ] Nunca borrar físicamente una factura que afectó inventario o CxP.
+
+7.5 Nota de crédito de proveedor
+
+Regla:
+
+Una nota de crédito de proveedor representa productos devueltos de una factura
+de compra. Debe:
+
+- reducir el inventario;
+- reducir el saldo a pagar;
+- conservar número/fecha/motivo;
+- conservar items y cantidades;
+- no permitir devolver más de lo comprado menos lo ya devuelto;
+- poder aplicarse total o parcialmente a una CxP.
+
+Tablas nuevas recomendadas:
+
+  supplier_credit_notes
+  ---------------------
+  id uuid PK
+  store_id uuid FK
+  supplier_id uuid FK
+  invoice_id uuid FK
+  account_payable_id uuid FK
+  credit_note_number varchar(80)
+  issue_date date
+  total_amount numeric(14,2)
+  applied_amount numeric(14,2)
+  status varchar(20) -- DRAFT, POSTED, APPLIED, CANCELLED
+  reason text
+  created_by uuid
+  created_at timestamptz
+
+  supplier_credit_note_items
+  --------------------------
+  id uuid PK
+  credit_note_id uuid FK
+  invoice_item_id uuid FK
+  product_id uuid FK
+  quantity numeric
+  unit_cost numeric(14,2)
+  subtotal numeric(14,2)
+
+  payable_adjustments
+  -------------------
+  id uuid PK
+  account_payable_id uuid FK
+  source_type varchar(30) -- SUPPLIER_CREDIT_NOTE
+  source_id uuid
+  amount numeric(14,2)
+  created_at timestamptz
+
+Índices/únicos:
+
+- unique(store_id, supplier_id, credit_note_number)
+- index(account_payable_id, status)
+- index(invoice_id)
+- unique(source_type, source_id, account_payable_id)
+
+7.6 Transacción crítica de nota de crédito
+
+Pseudocódigo obligatorio:
+
+  return db.withTransaction(async (client) => {
+    const payable = await lockPayable(client, dto.accountPayableId);
+    const invoice = await lockInvoice(client, dto.invoiceId);
+
+    const preparedItems = await validateReturnableQuantities(
+      client,
+      invoice.id,
+      dto.items,
+    );
+
+    const creditTotal = sum(preparedItems.subtotal);
+
+    if (creditTotal > payable.remainingAmount) {
+      throw new BadRequestException(
+        'La nota no puede superar el saldo pendiente'
+      );
+    }
+
+    const note = await insertSupplierCreditNote(client, creditTotal, dto);
+
+    for (const item of preparedItems) {
+      await insertSupplierCreditNoteItem(client, note.id, item);
+      await decreaseProductStockForSupplierReturn(client, item);
+      await insertMovement(client, {
+        type: 'SUPPLIER_RETURN_OUT',
+        quantity: item.quantity,
+        reference: `NC proveedor ${note.creditNoteNumber}`,
+      });
+    }
+
+    await insertPayableAdjustment(client, payable.id, note.id, creditTotal);
+
+    const remaining = payable.remainingAmount - creditTotal;
+    await updatePayableBalanceAndStatus(client, payable.id, remaining);
+
+    return note;
+  });
+
+No reutilizar ReturnsService para esto: ese servicio representa devoluciones
+de venta/rutero y repone inventario. Una devolución al proveedor hace la
+operación contraria.
+
+===============================================================================
+8. ÓRDENES DE COMPRA Y RECEPCIÓN
+===============================================================================
+
+8.1 Estado actual
+
+Backend:
+
+- POST /purchase-orders existe.
+- GET /purchase-orders existe.
+- GET /purchase-orders/:id existe.
+- PATCH /purchase-orders/:id/status existe.
+
+React:
+
+- La página lista órdenes.
+- showCreateModal y notes están declarados pero no se usan.
+- No existe formulario real de creación.
+- “Marcar Completada” solo cambia status.
+
+Falta:
+
+- recepción parcial;
+- recepción total;
+- aumento de inventario;
+- movimiento de kárdex;
+- vínculo con factura;
+- generación de CxP.
+
+8.2 Flujo objetivo
+
+ESTADOS:
+
+DRAFT -> APPROVED -> SENT -> PARTIALLY_RECEIVED -> RECEIVED/CLOSED
+                                        \-> CANCELLED
+
+No usar COMPLETED como sustituto de recepción física.
+
+Agregar:
+
+  purchase_receipts
+  purchase_receipt_items
+
+Flujo:
+
+1. Crear orden con proveedor e items.
+2. Aprobar.
+3. Registrar recepción:
+   - cantidades recibidas;
+   - lote/fecha si aplica;
+   - costo recibido;
+   - número de documento.
+4. Incrementar stock solo por cantidad recibida.
+5. Actualizar received_quantity.
+6. Crear movements.
+7. Cambiar a PARTIALLY_RECEIVED o RECEIVED.
+8. Asociar posteriormente factura del proveedor.
+9. Crear CxP únicamente cuando exista factura a crédito.
+
+Endpoint nuevo:
+
+  POST /purchase-orders/:id/receipts
+
+Payload:
+
+  {
+    "storeId": "uuid",
+    "supplierInvoiceNumber": "texto opcional",
+    "receivedAt": "ISO",
+    "items": [
+      {
+        "purchaseOrderItemId": "uuid",
+        "quantityReceived": 10,
+        "unitCost": 25.50
+      }
+    ]
+  }
+
+===============================================================================
+9. TRES FORMAS DE ENTRADA DE ITEMS/INVENTARIO
+===============================================================================
+
+9.1 Importación Excel/CSV
+
+Ya existe:
+
+- React ImportProductsDialog.
+- CSV con PapaParse.
+- Excel con xlsx.
+- POST /products/import.
+
+Problemas:
+
+- No hay preview validado por backend.
+- No se valida realmente el límite anunciado de 5 MB.
+- No se detectan duplicados antes de importar.
+- supplierName se envía desde React, pero backend usa supplierId y no resuelve
+  supplierName.
+- Una sola fila inválida revierte toda la importación.
+- Puede duplicar productos al reimportar.
+- No hay batch_id ni reporte persistente.
+- El progreso visual salta de 0 a 100.
+- Si usesInventory viene indefinido, se crea producto con inventario, pero el
+  movimiento inicial puede no insertarse por la condición actual.
+
+Diseño requerido:
+
+ETAPA 1 - Preview
+
+  POST /products/import/preview
+
+- Normalizar encabezados.
+- Normalizar barcode como texto, sin notación científica.
+- Validar descripción, cantidades, costos y precios.
+- Resolver departamento/proveedor.
+- Clasificar fila:
+  CREATE / UPDATE / SKIP / ERROR.
+- Devolver resumen y errores por número de fila.
+
+ETAPA 2 - Commit
+
+  POST /products/import/:batchId/commit
+
+- Revalidar batch.
+- Upsert por store_id + barcode cuando exista.
+- Para producto sin barcode usar una clave de importación explícita, no solo
+  descripción.
+- Insertar movimiento de apertura por diferencia de stock, no UPDATE silencioso.
+- Evitar duplicar barcodes alternativos.
+- Registrar conteos:
+  creados, actualizados, omitidos, errores.
+
+La importación de catálogo NO debe crear factura ni CxP.
+
+9.2 Factura de compra
+
+Debe usar el flujo de la sección 7:
+
+- crea/actualiza catálogo si hace falta;
+- agrega invoice_item;
+- recibe stock;
+- crea movement;
+- crea CxP si es crédito.
+
+9.3 Formulario de producto nuevo
+
+Debe permitir:
+
+- código/barcode;
+- descripción;
+- departamento/subdepartamento;
+- proveedor;
+- costo;
+- precios;
+- impuesto;
+- unidad de medida;
+- maneja bulto;
+- unidades por bulto;
+- stock mínimo;
+- usa inventario;
+- stock inicial opcional.
+
+Si stock inicial > 0:
+
+[ ] Insertar producto.
+[ ] Insertar movement tipo OPENING_BALANCE o INITIAL_ENTRY.
+[ ] Guardar balance resultante.
+[ ] Hacerlo en la misma transacción.
+
+No insertar current_stock sin movimiento de trazabilidad.
+
+===============================================================================
+10. CAMBIOS REACT: PÁGINAS RÁPIDAS Y PRÁCTICAS
+===============================================================================
+
+Objetivo UX:
+un usuario de bodega/administración debe completar la tarea principal con el
+menor número de clics, ver el estado inmediatamente y no desplazarse por
+formularios innecesariamente largos.
+
+10.1 Cuentas por cobrar
+
+Archivo actual:
+web/src/pages/store-admin/finance/receivables-page.tsx
+
+Conservar:
+
+- resumen;
+- pestaña cartera/cobros;
+- pago rápido;
+- exportación;
+- actualización en tiempo real.
+
+Corregir:
+
+[ ] Agrupar por clientId, no por clientName.
+[ ] Mostrar número de factura, no UUID recortado del pedido.
+[ ] Mostrar:
+    emitida, vence, días restantes/días vencidos.
+[ ] Orden por prioridad:
+    vencida > vence hoy > próximos 3 días > vigente.
+[ ] Buscador fijo por cliente, factura, teléfono o código legacy.
+[ ] Filtros de un toque:
+    Todas / Vencidas / Hoy / Próximas / Parciales.
+[ ] Botón Abonar siempre visible a la derecha.
+[ ] En móvil usar tarjetas compactas, no tabla horizontal.
+[ ] Modal de pago:
+    saldo, monto, método, referencia, nota.
+[ ] Permitir “pagar total” con un botón.
+[ ] No precargar automáticamente un monto si puede provocar cobro accidental;
+    ofrecer “Saldo completo” explícito.
+
+10.2 Aging
+
+Archivo:
+web/src/pages/store-admin/finance/aging-report-page.tsx
+
+Error:
+calcula antigüedad usando createdAt y rangos 30/60/90.
+
+Para este negocio:
+
+- la deuda vence según dueDate;
+- el plazo base es 8 días.
+
+Corregir:
+
+[ ] Usar dueDate.
+[ ] Buckets recomendados:
+    Vigente
+    Vence hoy
+    1-7 días vencida
+    8-30 días vencida
+    Más de 30 días
+[ ] Backend devuelve daysOverdue; React no recalcula reglas financieras.
+[ ] Clic en bucket filtra la tabla.
+
+10.3 Cuentas por pagar
+
+Existe:
+web/src/pages/store-admin/finance/payables-page.tsx
+
+Pero:
+
+- no está importada ni registrada en App.tsx;
+- MVP_FEATURES.payables=false;
+- FinanceWorkspace navega a una ruta inexistente cuando se habilite.
+
+Acción:
+
+[ ] Importar PayablesPage con lazy.
+[ ] Agregar:
+    /store/:storeId/finance/payables
+[ ] Activar MVP_FEATURES.payables solo después del backend corregido.
+[ ] Mostrar:
+    proveedor, factura, emisión, vencimiento, saldo, notas aplicadas.
+[ ] Acciones:
+    Pagar, Aplicar NC, Ver factura.
+[ ] Indicadores:
+    vence hoy, vencido, próximos 7 días, total pendiente.
+
+10.4 Facturas de proveedor
+
+Archivo:
+web/src/pages/store-admin/suppliers/supplier-invoices-page.tsx
+
+La base visual es útil, pero debe cambiar:
+
+[ ] Wizard corto:
+    1. Proveedor y factura.
+    2. Productos/cantidades/costos.
+    3. Resumen y confirmar.
+[ ] Escaneo/búsqueda rápida de producto.
+[ ] Botón “Producto nuevo” dentro de la línea.
+[ ] Mostrar subtotal por línea y total fijo en pie.
+[ ] Crédito exige fecha de vencimiento.
+[ ] Después de guardar mostrar:
+    Inventario actualizado / CxP creada.
+[ ] Quitar borrado físico de factura posteada.
+[ ] Agregar “Devolución / Nota de crédito”.
+
+10.5 Órdenes de compra
+
+Archivo:
+web/src/pages/store-admin/purchase-orders/purchase-orders-page.tsx
+
+Completar:
+
+[ ] Botón Nueva orden.
+[ ] Modal/drawer con proveedor, fecha esperada e items.
+[ ] Detalle de orden.
+[ ] Acción Recibir mercancía.
+[ ] Recepción parcial por item.
+[ ] Barra de progreso recibido/ordenado.
+[ ] No usar “Marcar completada” sin registrar cantidades.
+
+10.6 Importación
+
+[ ] Preview de primeras filas.
+[ ] Resumen con colores:
+    verdes creadas, azules actualizadas, amarillas omitidas, rojas error.
+[ ] Descarga del archivo de errores.
+[ ] Validar tamaño antes de leer.
+[ ] Mantener encabezado y botones visibles durante listas largas.
+
+10.7 Catálogo de clientes
+
+[ ] Corregir primero is_active.
+[ ] Paginación de servidor.
+[ ] Búsqueda por código legacy, nombre, teléfono, documento fiscal.
+[ ] Chip Crédito/Contado.
+[ ] Mostrar plazo: “8 días”, “15 días”, etc.
+[ ] Edición rápida del plazo por administrador/contador.
+[ ] No cargar los 4,289 clientes completos en cada página.
+
+10.8 Rendimiento visual
+
+[ ] Paginación de servidor en clientes, ventas, movimientos y productos.
+[ ] No renderizar 86,487 ventas ni 553,140 movimientos en memoria.
+[ ] Debounce de búsqueda 250-350 ms.
+[ ] Skeleton solo para el área que carga.
+[ ] Estado vacío con acción concreta.
+[ ] Errores visibles; no catch vacío.
+[ ] Botones primarios con texto de acción: Cobrar, Pagar, Recibir, Guardar.
+
+===============================================================================
+11. CAMBIOS FLUTTER NECESARIOS
+===============================================================================
+
+Flutter ya tiene:
+
+- módulo collections;
+- modelo ReceivableAccount;
+- caché Drift de CxC;
+- operación offline de cobros.
+
+Faltan campos del contrato nuevo:
+
+- saleId
+- invoiceNumber
+- issuedAt
+- dueDate
+- creditDays
+- daysOverdue
+- isOverdue
+
+Acción:
+
+[ ] Ampliar ReceivableAccount.
+[ ] Ampliar tabla Drift de cuentas cacheadas.
+[ ] Crear migración local de Drift.
+[ ] Mantener compatibilidad al leer campos ausentes durante transición.
+[ ] Ordenar la ruta de cobros por vencimiento.
+[ ] Mostrar “vence hoy / vencida N días”.
+[ ] El cobro offline debe conservar:
+    accountId, amount, method, externalId y collectedAt.
+[ ] Backend debe aplicar idempotencia por externalId.
+[ ] Flutter no necesita administrar CxP para este MVP; CxP queda en React.
+
+===============================================================================
+12. MATRIZ DE ENDPOINTS EXISTENTES Y CAMBIOS
+===============================================================================
+
+CUENTAS POR COBRAR
+
+[EXISTE] GET  /accounts-receivable
+[EXISTE] GET  /accounts-receivable/:id
+[EXISTE] POST /accounts-receivable
+[EXISTE] POST /accounts-receivable/:id/payments
+
+[CAMBIAR] GET /accounts-receivable:
+
+Query:
+- storeId obligatorio
+- clientId
+- status
+- pending
+- overdue
+- dueFrom
+- dueTo
+- search
+- page
+- limit
+
+Respuesta paginada:
+
+  {
+    data: AccountReceivable[],
+    page,
+    limit,
+    total,
+    summary: {
+      pendingAmount,
+      overdueAmount,
+      dueTodayAmount
+    }
+  }
+
+[NUEVO] GET /accounts-receivable/aging
+[NUEVO] POST /accounts-receivable/:id/adjustments
+
+CUENTAS POR PAGAR
+
+[EXISTE] GET  /accounts-payable
+[EXISTE] GET  /accounts-payable/:id
+[EXISTE] POST /accounts-payable
+[EXISTE] POST /accounts-payable/:id/payment
+
+[CAMBIAR]
+- paginación;
+- dueFrom/dueTo/overdue;
+- factura y notas aplicadas;
+- status único.
+
+FACTURAS DE PROVEEDOR
+
+[EXISTE] GET    /invoices
+[EXISTE] GET    /invoices/:id
+[EXISTE] POST   /invoices
+[EXISTE] PATCH  /invoices/:id
+[PELIGRO] DELETE /invoices/:id
+
+[CAMBIAR]
+- POST transaccional corregido;
+- PATCH con transición de estado válida;
+- DELETE reemplazado por POST /invoices/:id/cancel.
+
+NOTAS DE CRÉDITO DE PROVEEDOR
+
+[NUEVO] POST /supplier-credit-notes
+[NUEVO] GET  /supplier-credit-notes
+[NUEVO] GET  /supplier-credit-notes/:id
+[NUEVO] POST /supplier-credit-notes/:id/cancel
+
+ÓRDENES DE COMPRA
+
+[EXISTE] POST  /purchase-orders
+[EXISTE] GET   /purchase-orders
+[EXISTE] GET   /purchase-orders/:id
+[EXISTE] PATCH /purchase-orders/:id/status
+[NUEVO]  POST  /purchase-orders/:id/receipts
+
+PRODUCTOS/INVENTARIO
+
+[EXISTE] POST /products
+[EXISTE] POST /products/import
+[EXISTE] POST /inventory/quick-entry
+[EXISTE] POST /inventory/adjust
+
+[NUEVO] POST /products/import/preview
+[NUEVO] POST /products/import/:batchId/commit
+
+VENTAS
+
+[EXISTE] POST /sales/process
+
+[CAMBIAR]
+- guardar client_id/client_name;
+- exigir cliente para crédito;
+- crear CxC en la misma transacción;
+- congelar vencimiento.
+
+===============================================================================
+13. ÍNDICES NECESARIOS PARA LOS DATOS GRANDES
+===============================================================================
+
+Antes de conectar React al histórico:
+
+[ ] sales(store_id, created_at DESC)
+[ ] sales(store_id, payment_method, created_at DESC)
+[ ] sales(store_id, client_id, created_at DESC)
+[ ] sales(store_id, ticket_number)
+[ ] índice normalizado para legacy_doc_number si se consulta.
+[ ] sale_items(sale_id)
+[ ] movements(store_id, created_at DESC)
+[ ] movements(store_id, product_id, created_at DESC)
+[ ] clients(store_id, is_active, name)
+[ ] clients(store_id, legacy_code)
+[ ] products(store_id, is_active, description)
+[ ] products(store_id, barcode)
+[ ] legacy_notas_credito(documento_factura)
+[ ] accounts_receivable(store_id, due_date) WHERE remaining_amount > 0
+[ ] accounts_payable(store_id, due_date) WHERE remaining_amount > 0
+[ ] invoices(store_id, supplier_id, invoice_number) UNIQUE
+
+Usar CREATE INDEX CONCURRENTLY para tablas grandes fuera de una transacción de
+migración normal, en una ventana controlada.
+
+===============================================================================
+14. ORDEN DE IMPLEMENTACIÓN PARA OTRA IA
+===============================================================================
+
+FASE P0 - BLOQUEANTES DE DATOS
+
+[ ] 1. Crear respaldo verificable de ambas bases.
+[ ] 2. Generar reporte dry-run de la fusión.
+[ ] 3. Crear migración de accounts_receivable.
+[ ] 4. Crear tablas de nota de crédito de proveedor.
+[ ] 5. Crear índices críticos.
+[ ] 6. Corregir/validar is_active de clientes legacy.
+[ ] 7. Fusionar multitienda_db -> sistema_de_inventario en copia temporal.
+[ ] 8. Reconciliar conteos, montos y FK.
+[ ] 9. Repetir fusión final con backend sin escrituras.
+[ ] 10. Mantener multitienda_db intacta.
+
+FASE P1 - NÚCLEO OPERATIVO
+
+[ ] 11. Corregir SalesRepository.insertSale.
+[ ] 12. Crear CxC al finalizar venta a crédito.
+[ ] 13. Mover CxC de pedido a entrega/facturación.
+[ ] 14. Unificar statuses financieros.
+[ ] 15. Corregir InvoicesService.
+[ ] 16. Bloquear borrado físico de factura.
+[ ] 17. Implementar nota de crédito de proveedor.
+[ ] 18. Implementar recepción de orden de compra.
+[ ] 19. Corregir importación masiva.
+[ ] 20. Corregir stock negativo mediante movimientos.
+
+FASE P2 - REACT/FLUTTER
+
+[ ] 21. Corregir cartera y aging por dueDate.
+[ ] 22. Registrar ruta React de payables.
+[ ] 23. Habilitar payables.
+[ ] 24. Completar creación/recepción de órdenes.
+[ ] 25. Agregar UI de nota de crédito.
+[ ] 26. Agregar preview de importación.
+[ ] 27. Paginación de servidor en datos grandes.
+[ ] 28. Ampliar CxC offline Flutter.
+
+FASE P3 - CAMBIO DE BASE
+
+[ ] 29. Configurar backend temporal de validación apuntando a
+        sistema_de_inventario.
+[ ] 30. Verificar flujos manuales críticos.
+[ ] 31. Confirmar que usuarios y tiendas recientes acceden a sus datos.
+[ ] 32. Cambiar DATABASE_NAME del proceso principal.
+[ ] 33. Reiniciar backend.
+[ ] 34. Confirmar escrituras nuevas solo en sistema_de_inventario.
+[ ] 35. Mantener multitienda_db sin borrar durante el período de observación.
+
+===============================================================================
+15. VALIDACIONES DE ACEPTACIÓN DEL MVP
+===============================================================================
+
+DATOS
+
+[ ] 4,289 clientes preservados.
+[ ] Cliente legacy visible según estado corregido.
+[ ] 3,560 productos legacy preservados.
+[ ] 170 productos recientes incorporados.
+[ ] 86,487 ventas legacy preservadas.
+[ ] 477 ventas recientes incorporadas.
+[ ] 497,278 sale_items legacy preservados.
+[ ] 477 sale_items recientes incorporados.
+[ ] 553,140 movimientos legacy preservados.
+[ ] 585 movimientos recientes incorporados.
+[ ] 155 pedidos recientes incorporados.
+[ ] 9 CxC recientes y 3 pagos preservados.
+[ ] 1,768 notas de crédito legacy preservadas.
+[ ] Cero huérfanos.
+
+CLIENTES/CXC
+
+[ ] Venta contado no crea CxC.
+[ ] Venta crédito exige cliente.
+[ ] Plazo default es 8 días.
+[ ] Plazo personalizado del cliente se usa.
+[ ] Override de factura queda congelado.
+[ ] Pago parcial cambia a PARTIAL.
+[ ] Pago total cambia a PAID.
+[ ] Aging usa dueDate.
+[ ] Un pedido cancelado antes de entrega no genera deuda.
+
+CXP/COMPRAS
+
+[ ] Factura contado incrementa inventario y no crea CxP.
+[ ] Factura crédito incrementa inventario y crea CxP.
+[ ] Total de factura y CxP son idénticos al cálculo backend.
+[ ] Producto nuevo dentro de factura crea invoice_item y movement.
+[ ] Nota de crédito reduce stock y CxP.
+[ ] No se puede devolver más de lo comprado.
+[ ] No se puede pagar más del saldo.
+[ ] Factura posteada no se borra físicamente.
+
+INVENTARIO
+
+[ ] Importación puede previsualizar errores.
+[ ] Reimportar no duplica barcode.
+[ ] Formulario con stock inicial crea movement.
+[ ] Recepción parcial de orden solo suma lo recibido.
+[ ] Cada cambio de stock tiene movimiento.
+
+UX
+
+[ ] CxC muestra vencimiento y prioridad.
+[ ] CxP tiene ruta accesible.
+[ ] Orden de compra se puede crear y recibir.
+[ ] Nota de crédito se puede registrar desde la factura/CxP.
+[ ] Listas grandes responden mediante paginación de servidor.
+
+===============================================================================
+16. CRITERIO FINAL DE CORTE
+===============================================================================
+
+NO cambiar la base activa si cualquiera de estas condiciones sigue presente:
+
+- clientes legacy visibles <= 1 sin decisión de negocio;
+- faltan usuarios recientes;
+- faltan productos recientes;
+- faltan ventas/pedidos recientes;
+- CxC sigue sin due_date;
+- venta a crédito no guarda client_id;
+- venta a crédito no crea CxC;
+- InvoicesService conserva el continue del producto nuevo;
+- una factura puede borrarse sin reversión;
+- nota de crédito de proveedor no reduce CxP de forma transaccional;
+- existen huérfanos o diferencias de sumas.
+
+CAMBIO APROBABLE:
+
+sistema_de_inventario puede convertirse en DATABASE_NAME principal cuando:
+
+1. Histórico y operación reciente estén unidos.
+2. Los clientes estén visibles correctamente.
+3. Los contratos SQL de NestJS coincidan con el esquema real.
+4. CxC implemente plazo de 8 días y excepciones.
+5. CxP use factura, vencimiento y notas de crédito.
+6. Las tres vías de entrada de inventario generen trazabilidad.
+7. React permita operar los flujos sin rutas ocultas ni botones ficticios.
+8. Flutter pueda cobrar CxC con vencimiento e idempotencia.
+
+FIN DEL PLAN.
