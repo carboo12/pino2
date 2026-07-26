@@ -1,0 +1,116 @@
+REGISTRO DE CAMBIOS — 2026-07-26
+CONSOLIDACIÓN DE ROLES: 13 → 6 CANÓNICOS
+==============================================
+
+QUÉ SE HIZO
+----------------------------------------------
+
+Se consolidaron los 13 roles legacy del sistema a 6 roles
+canónicos alineados con los procesos de negocio reales.
+
+ROLES ELIMINADOS (7)
+----------------------------------------------
+
+Los siguientes roles ya no existen como tales. Fueron
+mapeados a los nuevos roles canónicos:
+
+- master-admin     → admin (JEFE/ENCARGADO DE BODEGA)
+- owner            → super-admin (ADMINISTRADOR GENERAL)
+- chain-admin      → admin
+- store-admin      → admin
+- cashier          → admin
+- dispatcher       → auxiliar
+- supervisor-caja  → admin
+- supervisor-pasillo → admin
+- vendor           → gestor
+- sales-manager    → gestor
+
+ROLES CONSERVADOS (6)
+----------------------------------------------
+
+1. admin          — JEFE/ENCARGADO DE BODEGA (web total)
+2. super-admin    — ADMINISTRADOR GENERAL
+3. auxiliar       — AUXILIAR DE RECEPCIÓN Y DESPACHO
+4. inventory      — ANALISTA DE INVENTARIO (bodeguero)
+5. gestor         — GESTOR DE VENTAS (App móvil)
+6. rutero         — RUTERO (App móvil)
+
+ARCHIVOS MODIFICADOS
+----------------------------------------------
+
+1. shared/contracts.ts
+   - Definición de 6 roles canónicos
+   - LEGACY_ROLE_MAP para migración
+
+2. web/src/lib/user-role.ts
+   - normalizeUserRole mapea cualquier alias legacy
+   - isGlobalAdminRole → role === 'super-admin'
+
+3. web/src/App.tsx
+   - MASTER_ROLES → ['admin', 'super-admin']
+   - STORE_ADMIN_ROLES → ['admin']
+   - CASHIER_ROLES → ['admin']
+   - INVENTORY_ROLES → ['inventory', 'admin']
+   - DISPATCH_ROLES → ['auxiliar', 'admin']
+   - DELIVERY_ROLES → ['rutero', 'admin', 'gestor']
+   - SALES_TEAM_ROLES → ['gestor', 'admin']
+   - SALES_ADMIN_ROLES → ['gestor', 'admin']
+
+4. web/src/lib/redirect-logic.ts
+   - Switch de roles actualizado a los 6 canónicos
+
+5. web/src/components/app-layout.tsx
+   - NavItems por rol actualizados
+
+6. web/src/components/global-alert-provider.tsx
+   - canManageAuthorizations → admin/super-admin
+
+7. web/src/components/auth/admin-auth-dialog.tsx
+   - Privilegios actualizados
+
+8. web/src/pages/login-page.tsx
+   - rolePathMap simplificado
+
+9. web/src/pages/master-admin/master-users-page.tsx
+   - Impersonación usa admin/gestor
+
+10. web/src/pages/store-admin/vendors/*.tsx
+    - vendor → gestor
+
+11. backend/src/modules/**/*.controller.ts (44 archivos)
+    - @Roles() decorators actualizados con nuevos nombres
+
+12. backend/src/common/utils/user-role.util.ts
+    - CANONICAL_USER_ROLES actualizado
+    - ROLE_ALIASES mapea todos los legacy
+
+13. backend/src/common/guards/store-access.guard.ts
+    - master-admin/owner → admin/super-admin
+
+14. backend/src/common/gateways/events.gateway.ts
+    - master-admin → admin|super-admin
+
+DATABASE
+----------------------------------------------
+
+- UPDATE users SET password_hash = bcrypt('123')  → todos los usuarios
+- UPDATE users SET role = 'admin' WHERE role IN ('master-admin','store-admin','cashier')
+- UPDATE users SET role = 'super-admin' WHERE role = 'owner'
+- UPDATE users SET role = 'gestor' WHERE role IN ('vendor','sales-manager')
+- UPDATE users SET role = 'auxiliar' WHERE role = 'dispatcher'
+- UPDATE users SET is_active = false → 30 usuarios duplicados
+
+USUARIOS ACTIVOS (1 POR ROL)
+----------------------------------------------
+
+  admin       dueno@lospinos.com       123
+  super-admin admin@multitienda.com    123
+  inventory   bodeg@lospinos.com       123
+  auxiliar    cajero@tienda.com        123
+  gestor      gestor@lospinos.com      123
+  rutero      rute@lospinos.com        123
+
+COMMIT
+----------------------------------------------
+
+5f5af97 refactor: consolidated 13 legacy roles to 6 canonical roles
