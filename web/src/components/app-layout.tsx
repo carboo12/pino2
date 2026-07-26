@@ -14,7 +14,7 @@ import {
   ShoppingCart, ClipboardCheck, AreaChart, UsersRound, Truck, HandCoins,
   ShieldCheck, SendToBack, Route, DollarSign, ListOrdered, PackagePlus, ReceiptText, Boxes, Wallet, Undo2,
   ChevronDown, PanelLeftClose, PanelLeft, Command, TreePine, ShoppingBag, ArrowDownRight,
-  ShieldAlert, UserCheck, UserCog, FileCheck
+  ShieldAlert, UserCheck, UserCog, FileCheck, Tag
 } from 'lucide-react';
 
 // --- Nav Item Types ---
@@ -107,6 +107,7 @@ const getStoreAdminNav = (storeId: string): NavItem[] => [
     { type: 'link', name: 'Preventas & Flujo de Pedidos', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
     { type: 'link', name: 'Ventas & Facturación', href: `/store/${storeId}/work/sales`, icon: Route },
     { type: 'link', name: 'Clientes & Cartera', href: `/store/${storeId}/vendors/clients`, icon: Users },
+    { type: 'link', name: 'Promociones & Descuentos', href: `/store/${storeId}/promotions`, icon: Tag },
   ]},
   { type: 'group', name: 'Inventario & Bodega', icon: Boxes, children: [
     { type: 'link', name: 'Catálogo & Factor X', href: `/store/${storeId}/products`, icon: Package },
