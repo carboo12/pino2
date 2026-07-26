@@ -63,10 +63,7 @@ export class CashShiftsController {
     @Query('userId') userId?: string,
   ) {
     const shift = await this.service.getActiveShift(storeId, userId);
-    if (!shift) {
-      throw new NotFoundException('No hay un turno de caja activo');
-    }
-    return shift;
+    return shift || null;
   }
 
   @Roles('admin')
