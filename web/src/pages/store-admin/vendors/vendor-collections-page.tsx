@@ -1,5 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  WorkspaceShell,
+  WorkspaceTopBar,
+  EmptyState,
+  ErrorState,
+  LoadingRows,
+} from '@/components/workspace';
 import {
   CircleDollarSign,
   HandCoins,
@@ -8,18 +16,22 @@ import {
   Search,
   UserRound,
   Wallet,
+  RefreshCw,
+  FileSpreadsheet,
+  CheckCircle2,
+  ReceiptText,
 } from 'lucide-react';
 
 import apiClient from '@/services/api-client';
 import { useAuth } from '@/contexts/auth-context';
-import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatCurrency } from '@/lib/utils';
+import { toast } from '@/lib/swalert';
+import { exportToExcel } from '@/lib/export-excel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -43,52 +55,37 @@ interface Account {
   orderId?: string;
 }
 
-type PaymentMethod = 'Efectivo' | 'Transferencia';
+type PaymentMethod = 'Efectivo' | 'Transferencia' | 'Cheque';
 
 export default function VendorCollectionsPage() {
   const { storeId } = useParams<{ storeId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] =
-    useState<PaymentMethod>('Efectivo');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Efectivo');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const fetchAccounts = async () => {
-    try {
-      setLoading(true);
+  // React Query with 60s cache
+  const { data: accounts = [], isLoading: loading, isError, refetch } = useQuery({
+    queryKey: ['accounts-receivable-collections', storeId],
+    queryFn: async () => {
       const res = await apiClient.get('/accounts-receivable', {
         params: { storeId, pending: true },
       });
-      setAccounts(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'No se pudieron cargar las cuentas pendientes.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (storeId) {
-      void fetchAccounts();
-    }
-  }, [storeId]);
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    enabled: !!storeId,
+    staleTime: 60_000,
+  });
 
   const visibleAccounts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
-    const sorted = [...accounts].sort(
-      (a, b) => b.pendingAmount - a.pendingAmount,
-    );
+    const sorted = [...accounts].sort((a, b) => b.pendingAmount - a.pendingAmount);
 
     if (!normalizedSearch) {
       return sorted;
@@ -104,16 +101,12 @@ export default function VendorCollectionsPage() {
   }, [accounts, search]);
 
   const totalPending = useMemo(
-    () => accounts.reduce((sum, account) => sum + account.pendingAmount, 0),
+    () => accounts.reduce((sum, account) => sum + (account.pendingAmount || 0), 0),
     [accounts],
   );
 
   const largestPending = useMemo(
-    () =>
-      accounts.reduce(
-        (max, account) => Math.max(max, account.pendingAmount),
-        0,
-      ),
+    () => accounts.reduce((max, account) => Math.max(max, account.pendingAmount || 0), 0),
     [accounts],
   );
 
@@ -128,16 +121,8 @@ export default function VendorCollectionsPage() {
     if (!selectedAccount || !user || !paymentAmount) return;
 
     const amount = parseFloat(paymentAmount);
-    if (
-      Number.isNaN(amount) ||
-      amount <= 0 ||
-      amount > selectedAccount.pendingAmount
-    ) {
-      toast({
-        variant: 'destructive',
-        title: 'Monto inválido',
-        description: 'Revisa el monto antes de registrar el cobro.',
-      });
+    if (Number.isNaN(amount) || amount <= 0 || amount > selectedAccount.pendingAmount) {
+      toast.error('Monto Inválido', 'Verifica el monto abonado antes de procesar el pago.');
       return;
     }
 
@@ -150,262 +135,282 @@ export default function VendorCollectionsPage() {
         vendorName: user.name,
       });
 
-      toast({
-        title: 'Pago registrado',
-        description: `Abono de C$ ${amount.toFixed(2)} para ${selectedAccount.clientName}.`,
-      });
+      toast.success(
+        'Cobro Registrado',
+        `Se ha registrado el abono de ${formatCurrency(amount)} a favor de ${selectedAccount.clientName}.`,
+      );
       setIsDialogOpen(false);
       setSelectedAccount(null);
       setPaymentAmount('');
-      await fetchAccounts();
+      queryClient.invalidateQueries({ queryKey: ['accounts-receivable-collections', storeId] });
     } catch {
-      toast({
-        variant: 'destructive',
-        title: 'Error al pagar',
-        description: 'No se pudo registrar el cobro.',
-      });
+      toast.error('Error al Procesar Cobro', 'No se pudo registrar el pago. Inténtalo nuevamente.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-lime-700 p-6 text-white shadow-xl">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">
-                Cobranza en ruta
-              </h1>
-            </div>
-          </div>
+  const handleExportExcel = () => {
+    const headers = ['ID Cuenta', 'Cliente', 'Referencia / Pedido', 'Saldo Pendiente (C$)'];
+    const rows = visibleAccounts.map((a) => [
+      a.id,
+      a.clientName,
+      a.description || a.orderId || 'Cobro de Crédito',
+      a.pendingAmount || 0,
+    ]);
+    exportToExcel('Cartera_Cobranza_Campo', headers, rows);
+    toast.success('Excel Generado', 'La cartera de clientes pendientes ha sido exportada.');
+  };
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard
-              label="Cuentas"
-              value={`${accounts.length}`}
-              icon={UserRound}
-            />
-            <MetricCard
-              label="Pendiente total"
-              value={`C$ ${totalPending.toFixed(2)}`}
-              icon={Wallet}
-            />
-            <MetricCard
-              label="Saldo mayor"
-              value={`C$ ${largestPending.toFixed(2)}`}
-              icon={CircleDollarSign}
-            />
-          </div>
+  return (
+    <WorkspaceShell
+      topbar={
+        <WorkspaceTopBar
+          title="Gestión & Cobranza en Ruta"
+          storeName={user?.storeName}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                className="rounded-xl font-bold text-xs"
+              >
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Actualizar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportExcel}
+                className="h-9 font-bold rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300 text-xs"
+              >
+                <FileSpreadsheet className="mr-1.5 h-4 w-4 text-emerald-700" /> Exportar a Excel
+              </Button>
+            </div>
+          }
+        />
+      }
+    >
+      <div className="p-4 space-y-4 max-w-6xl mx-auto">
+        {/* CARDS METRICAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Card className="rounded-2xl border bg-card shadow-xs">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Clientes con Deuda</p>
+                <p className="text-2xl font-extrabold text-foreground font-mono mt-0.5">
+                  {accounts.length}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                <UserRound className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border bg-card shadow-xs">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Total Cartera Pendiente</p>
+                <p className="text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">
+                  {formatCurrency(totalPending)}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-700">
+                <Wallet className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-2xl border bg-card shadow-xs">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground">Mayor Saldo Individual</p>
+                <p className="text-2xl font-extrabold text-amber-600 font-mono mt-0.5">
+                  {formatCurrency(largestPending)}
+                </p>
+              </div>
+              <div className="p-3 rounded-2xl bg-amber-100 text-amber-700">
+                <CircleDollarSign className="h-6 w-6" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="mt-5">
-          <div className="relative max-w-md">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/65" />
+        {/* BUSCADOR */}
+        <div className="bg-card p-3 rounded-2xl border border-[#DDE2E8] flex items-center justify-between gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar cliente o referencia..."
-              className="h-12 rounded-xl border-white/20 bg-white/10 pl-11 text-white placeholder:text-white/65"
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar cliente, número de factura o pedido..."
+              className="pl-9 text-xs h-10 rounded-xl"
             />
           </div>
         </div>
-      </section>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-4">
-          {loading ? (
-            <Card className="border-dashed">
-              <CardContent className="flex min-h-40 items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </CardContent>
-            </Card>
-          ) : visibleAccounts.length === 0 ? (
-            <Alert className="rounded-2xl border-emerald-200 bg-emerald-50">
-              <Info className="h-4 w-4" />
-              <AlertTitle>Todo al día</AlertTitle>
-              <AlertDescription>
-                No hay cuentas pendientes para el filtro actual.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            visibleAccounts.map((account) => (
+        {/* LISTADO DE CUENTAS PENDIENTES */}
+        {loading ? (
+          <LoadingRows rows={5} />
+        ) : isError ? (
+          <ErrorState message="Error al obtener las cuentas por cobrar" onRetry={() => refetch()} />
+        ) : visibleAccounts.length === 0 ? (
+          <EmptyState
+            title={search ? 'Sin coincidencias' : '¡Cartera al día!'}
+            description={
+              search
+                ? 'No se encontraron clientes que coincidan con el filtro.'
+                : 'No hay saldos ni créditos pendientes por cobrar en esta tienda.'
+            }
+            icon={CheckCircle2}
+          />
+        ) : (
+          <div className="space-y-3">
+            {visibleAccounts.map((account) => (
               <Card
                 key={account.id}
-                className="overflow-hidden rounded-3xl border-slate-200 shadow-sm transition-shadow hover:shadow-md"
+                className="overflow-hidden rounded-2xl border-[#DDE2E8] bg-card shadow-xs hover:shadow-md transition-shadow"
               >
-                <CardContent className="p-0">
-                  <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="secondary" className="rounded-full">
-                          Cuenta pendiente
+                <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className="bg-rose-100 text-rose-800 border-rose-300 font-bold text-[10px]">
+                        Deuda Pendiente
+                      </Badge>
+                      {account.orderId && (
+                        <Badge variant="outline" className="font-mono text-[10px] rounded-lg">
+                          Pedido #{account.orderId.slice(0, 8)}
                         </Badge>
-                        {account.orderId ? (
-                          <Badge variant="outline" className="rounded-full">
-                            Pedido {account.orderId.slice(0, 8)}
-                          </Badge>
-                        ) : null}
-                      </div>
+                      )}
+                    </div>
+                    <h3 className="text-base font-extrabold text-foreground">
+                      {account.clientName}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {account.description || 'Cobro registrado en cartera de crédito.'}
+                    </p>
+                  </div>
 
-                      <div>
-                        <h2 className="text-lg font-black tracking-tight text-slate-900">
-                          {account.clientName}
-                        </h2>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {account.description || 'Cobro pendiente por pedido o crédito registrado.'}
-                        </p>
-                      </div>
+                  <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                        Saldo Pendiente
+                      </p>
+                      <p className="text-xl font-extrabold text-foreground font-mono">
+                        {formatCurrency(account.pendingAmount || 0)}
+                      </p>
                     </div>
 
-                    <div className="flex min-w-[220px] flex-col gap-3 lg:items-end">
-                      <div className="rounded-2xl bg-slate-50 px-4 py-3 text-right">
-                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                          Saldo pendiente
-                        </p>
-                        <p className="text-2xl font-black text-slate-950">
-                          C$ {account.pendingAmount.toFixed(2)}
-                        </p>
-                      </div>
-
-                      <Button
-                        size="lg"
-                        className="w-full rounded-2xl font-bold lg:w-auto"
-                        onClick={() => handleCollect(account)}
-                      >
-                        <HandCoins className="mr-2 h-4 w-4" />
-                        Cobrar ahora
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleCollect(account)}
+                      className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white h-10 px-4"
+                    >
+                      <HandCoins className="mr-1.5 h-4 w-4" /> Registrar Cobro
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-        </div>
-
+            ))}
+          </div>
+        )}
       </div>
 
+      {/* MODAL REGISTRAR COBRO */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="rounded-3xl sm:max-w-xl">
+        <DialogContent className="rounded-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black tracking-tight">
-              Registrar cobro
+            <DialogTitle className="text-lg font-extrabold tracking-tight flex items-center gap-2">
+              <ReceiptText className="h-5 w-5 text-emerald-600" /> Registrar Abono / Cobro
             </DialogTitle>
-            <DialogDescription>
-              Confirma el monto y el método para {selectedAccount?.clientName}.
+            <DialogDescription className="text-xs">
+              Ingresa el monto recibido para <strong>{selectedAccount?.clientName}</strong>.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-5 py-2">
-            <div className="rounded-2xl border bg-slate-50 p-4">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Saldo actual
+          <div className="space-y-4 py-2">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-3 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+                Saldo Total Pendiente
               </p>
-              <p className="mt-2 text-3xl font-black text-slate-950">
-                C$ {selectedAccount?.pendingAmount.toFixed(2)}
+              <p className="text-2xl font-extrabold text-emerald-700 font-mono mt-0.5">
+                {formatCurrency(selectedAccount?.pendingAmount || 0)}
               </p>
             </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="paymentAmount">Monto a cobrar</Label>
+            <div className="space-y-2">
+              <Label htmlFor="paymentAmount" className="text-xs font-bold">Monto del Abono (C$)</Label>
               <Input
                 id="paymentAmount"
                 type="number"
                 value={paymentAmount}
                 onChange={(event) => setPaymentAmount(event.target.value)}
-                className="h-14 text-xl font-bold"
+                className="h-11 text-lg font-extrabold font-mono rounded-xl"
               />
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 pt-1">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() =>
-                    setPaymentAmount(
-                      selectedAccount?.pendingAmount.toFixed(2) || '',
-                    )
-                  }
+                  size="sm"
+                  onClick={() => setPaymentAmount(selectedAccount?.pendingAmount.toFixed(2) || '')}
+                  className="rounded-xl text-xs font-bold flex-1"
                 >
-                  Saldo completo
+                  Saldo Completo
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() =>
-                    setPaymentAmount(
-                      ((selectedAccount?.pendingAmount || 0) / 2).toFixed(2),
-                    )
-                  }
+                  size="sm"
+                  onClick={() => setPaymentAmount(((selectedAccount?.pendingAmount || 0) / 2).toFixed(2))}
+                  className="rounded-xl text-xs font-bold flex-1"
                 >
-                  Mitad
+                  50% Mitad
                 </Button>
               </div>
             </div>
 
             <Separator />
 
-            <div className="space-y-3">
-              <Label>Método de pago</Label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {(['Efectivo', 'Transferencia'] as PaymentMethod[]).map(
-                  (method) => (
-                    <Button
-                      key={method}
-                      type="button"
-                      variant={
-                        paymentMethod === method ? 'default' : 'outline'
-                      }
-                      className="h-12 justify-start rounded-2xl font-semibold"
-                      onClick={() => setPaymentMethod(method)}
-                    >
-                      {method}
-                    </Button>
-                  ),
-                )}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold">Método de Pago</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['Efectivo', 'Transferencia', 'Cheque'] as PaymentMethod[]).map((method) => (
+                  <Button
+                    key={method}
+                    type="button"
+                    variant={paymentMethod === method ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-xl font-bold text-xs"
+                    onClick={() => setPaymentMethod(method)}
+                  >
+                    {method}
+                  </Button>
+                ))}
               </div>
             </div>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>
+            <Button variant="ghost" size="sm" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">
               Cancelar
             </Button>
-            <Button onClick={processPayment} disabled={isProcessing}>
+            <Button
+              size="sm"
+              onClick={processPayment}
+              disabled={isProcessing}
+              className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
               {isProcessing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <HandCoins className="mr-2 h-4 w-4" />
               )}
-              Confirmar cobro
+              Confirmar Cobro
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ElementType;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.18em] text-white/70">
-          {label}
-        </p>
-        <Icon className="h-4 w-4 text-white/75" />
-      </div>
-      <p className="mt-3 text-2xl font-black tracking-tight text-white">
-        {value}
-      </p>
-    </div>
+    </WorkspaceShell>
   );
 }
