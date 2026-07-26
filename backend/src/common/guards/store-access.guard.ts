@@ -22,10 +22,10 @@ export class StoreAccessGuard implements CanActivate {
     if (!user) throw new ForbiddenException('No autenticado');
 
     // Get storeId from header, params, query, or body
+    // Only use params.storeId (not params.id) because :id is used for many different resources
     const storeId =
       request.headers?.['x-store-id'] ||
       request.params?.storeId ||
-      request.params?.id ||
       request.query?.storeId ||
       request.body?.storeId;
 

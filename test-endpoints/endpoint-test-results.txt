@@ -1,7 +1,7 @@
 
 ========================================
 PINO2 — Endpoint Test Results
-Date: Sun 26 Jul 2026 01:40:56 AM UTC
+Date: Sun 26 Jul 2026 02:33:52 AM UTC
 ========================================
 
 ----------------------------------------
@@ -136,15 +136,15 @@ Individual Endpoint Results:
 ⚠ ACCEPTABLE | PATCH | /pending-orders/:id/status | 404 | src/modules/pending-orders/pending-orders.controller.ts
 ✅ PASS | POST | /pending-orders | 200 | src/modules/pending-orders/pending-orders.controller.ts
 ⚠ ACCEPTABLE | POST | /pending-orders/dispatch | 404 | src/modules/pending-orders/pending-orders.controller.ts
-⚠ ACCEPTABLE | DELETE | /products/barcodes/:barcodeId | 404 | src/modules/product-barcodes/product-barcodes.controller.ts
+✅ PASS | DELETE | /products/barcodes/:barcodeId | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
 ✅ PASS | GET | /product-barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
 ✅ PASS | GET | /products/:id/barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
-⚠ ACCEPTABLE | PATCH | /products/barcodes/:barcodeId/primary | 404 | src/modules/product-barcodes/product-barcodes.controller.ts
+✅ PASS | PATCH | /products/barcodes/:barcodeId/primary | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
 ✅ PASS | POST | /products/:id/barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
 ⚠ ACCEPTABLE | DELETE | /products/:id | 404 | src/modules/products/products.controller.ts
 ✅ PASS | GET | /products | 200 | src/modules/products/products.controller.ts
 ⚠ ACCEPTABLE | GET | /products/:id | 404 | src/modules/products/products.controller.ts
-⚠ ACCEPTABLE | GET | /products/barcode/:barcode | 404 | src/modules/products/products.controller.ts
+✅ PASS | GET | /products/barcode/:barcode | 200 | src/modules/products/products.controller.ts
 ⚠ ACCEPTABLE | PATCH | /products/:id | 404 | src/modules/products/products.controller.ts
 ✅ PASS | POST | /products | 200 | src/modules/products/products.controller.ts
 ⚠ ACCEPTABLE | POST | /products/import | 400 | src/modules/products/products.controller.ts
@@ -228,5 +228,5 @@ Total: 213
 Pass:  213
 Fail:  0
 Skip:  0
-Date:  Sun 26 Jul 2026 01:41:03 AM UTC
+Date:  Sun 26 Jul 2026 02:33:59 AM UTC
 ========================================

@@ -126,7 +126,7 @@ while IFS='|' read -r idx method path file; do
     url="$BASE_URL/product-barcodes/$PRD_ID/barcodes"
   fi
   if [[ "$path" == *"barcode"*":"* ]]; then
-    url="$BASE_URL/products/barcode/test123?storeId=$SID"
+    url="$BASE_URL/products/barcode/74120007?storeId=$SID"
   fi
   
   # Execute request

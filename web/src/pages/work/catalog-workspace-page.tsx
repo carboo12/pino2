@@ -82,7 +82,8 @@ export default function CatalogWorkspacePage() {
   }, [activeTab, loadCriticalStock, loadMovements]);
 
   const searchProducts = useCallback(async (q: string) => {
-    if (!storeId || q.length < 2) {
+    if (!storeId) return;
+    if (q.length < 2) {
       setProducts([]);
       return;
     }
@@ -101,9 +102,21 @@ export default function CatalogWorkspacePage() {
   }, [storeId]);
 
   useEffect(() => {
-    const timer = setTimeout(() => searchProducts(searchTerm), 300);
-    return () => clearTimeout(timer);
+    if (searchTerm.length >= 2) {
+      const timer = setTimeout(() => searchProducts(searchTerm), 300);
+      return () => clearTimeout(timer);
+    }
   }, [searchTerm, searchProducts]);
+
+  useEffect(() => {
+    if (storeId && searchTerm.length < 2) {
+      setLoading(true);
+      apiClient.get('/products', { params: { storeId, limit: 50 } })
+        .then(res => setProducts(Array.isArray(res.data) ? res.data : res.data?.data || []))
+        .catch(() => setError('Error al cargar productos'))
+        .finally(() => setLoading(false));
+    }
+  }, [storeId]);
 
   const handleScan = useCallback(async (code: string) => {
     if (!storeId) return;

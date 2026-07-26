@@ -51,7 +51,7 @@ export class ProductsController {
     return this.productsService.importBulk(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get()
   @ApiQuery({ name: 'storeId', required: true })
   @ApiQuery({ name: 'search', required: false })
@@ -99,7 +99,7 @@ export class ProductsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get('barcode/:barcode')
   @ApiOperation({ summary: 'Buscar producto por código de barras' })
   findByBarcode(
@@ -109,7 +109,7 @@ export class ProductsController {
     return this.productsService.findByBarcode(storeId, barcode);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un producto' })
   @ApiOkResponse({ type: ProductResponseDto })
