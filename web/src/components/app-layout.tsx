@@ -143,7 +143,7 @@ const getBodegueroNav = (storeId: string): NavItem[] => [
 const getAuxiliarNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Recepción Compras', href: `/store/${storeId}/supplier-invoices`, icon: ArrowDownRight },
   { type: 'link', name: 'Armado Carga Camión', href: `/store/${storeId}/routes`, icon: Truck },
-  { type: 'link', name: 'Devoluciones Campo', href: `/store/${storeId}/warehouse`, icon: Undo2 },
+  { type: 'link', name: 'Devoluciones Campo', href: `/store/${storeId}/vendors/returns`, icon: Undo2 },
 ];
 
 const getSupervisorCajaNav = (storeId: string): NavItem[] => [

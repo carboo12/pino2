@@ -906,7 +906,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={[...SALES_TEAM_ROLES, "rutero"]}
+                            allowedRoles={[...SALES_TEAM_ROLES, "rutero", "auxiliar", "inventory"]}
                           >
                             <VendorReturnsPage />
                           </ProtectedRoute>
