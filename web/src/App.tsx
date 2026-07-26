@@ -728,7 +728,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={[...STORE_ADMIN_ROLES, "cajero", "auxiliar", "gestor", "inventory", "rutero"]}
+                            allowedRoles={[...STORE_ADMIN_ROLES, "auxiliar", "gestor", "inventory", "rutero"]}
                           >
                             <ReceivablesPage />
                           </ProtectedRoute>
@@ -739,7 +739,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={[...STORE_ADMIN_ROLES, "cajero", "auxiliar", "gestor", "inventory", "rutero"]}
+                            allowedRoles={[...STORE_ADMIN_ROLES, "auxiliar", "gestor", "inventory", "rutero"]}
                           >
                             <ReceivablesPage />
                           </ProtectedRoute>

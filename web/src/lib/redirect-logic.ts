@@ -29,9 +29,6 @@ export function getRedirectPath(user: User | null): string | null {
 
     // Roles específicos de tienda
     switch (role) {
-        case 'cajero':
-        case 'cashier':
-            return `/store/${effectiveStoreId}/work/cash`;
         case 'inventory':
             return `/store/${effectiveStoreId}/warehouse`;
         case 'auxiliar':

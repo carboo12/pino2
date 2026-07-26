@@ -144,6 +144,7 @@ const getAuxiliarNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Recepción Compras', href: `/store/${storeId}/supplier-invoices`, icon: ArrowDownRight },
   { type: 'link', name: 'Armado Carga Camión', href: `/store/${storeId}/routes`, icon: Truck },
   { type: 'link', name: 'Devoluciones Campo', href: `/store/${storeId}/vendors/returns`, icon: Undo2 },
+  { type: 'link', name: 'Cuentas por Cobrar', href: `/store/${storeId}/cxc`, icon: HandCoins },
 ];
 
 const getSupervisorCajaNav = (storeId: string): NavItem[] => [
