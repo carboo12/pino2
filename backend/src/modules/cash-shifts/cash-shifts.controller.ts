@@ -52,7 +52,7 @@ export class CashShiftsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'cashier')
   @Get('active')
   @ApiOperation({
     summary:
@@ -69,7 +69,7 @@ export class CashShiftsController {
     return shift;
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'cashier')
   @Get('stats/:id')
   @ApiOperation({ summary: 'Obtener estadísticas (totales) de un turno' })
   getStats(@Param('id') id: string) {

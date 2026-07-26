@@ -6,6 +6,7 @@ class ExpenseModel {
     required this.description,
     this.paymentMethod = 'CASH',
     this.registeredByName,
+    this.receiptNumber,
     this.createdAt,
   });
 
@@ -15,6 +16,7 @@ class ExpenseModel {
   final String description;
   final String paymentMethod;
   final String? registeredByName;
+  final String? receiptNumber;
   final DateTime? createdAt;
 
   factory ExpenseModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class ExpenseModel {
       description: json['description']?.toString() ?? '',
       paymentMethod: json['payment_method']?.toString() ?? 'CASH',
       registeredByName: json['registered_by_name']?.toString(),
+      receiptNumber: json['receipt_number']?.toString(),
       createdAt: json['created_at'] != null
           ? DateTime.tryParse('${json['created_at']}')
           : null,

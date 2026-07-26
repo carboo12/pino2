@@ -21,13 +21,13 @@ export function GlobalAlertProvider() {
     }, []);
 
     useEffect(() => {
-        if (!user || !canManageAuthorizations) return;
+        if (!user || !canManageAuthorizations || !storeId) return;
 
         const fetchAlerts = async () => {
             try {
                 const res = await apiClient.get('/authorizations', {
                     params: {
-                        ...(storeId ? { storeId } : {}),
+                        storeId,
                         status: 'PENDING',
                     },
                 });

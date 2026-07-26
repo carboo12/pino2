@@ -57,7 +57,7 @@ export class OrdersController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un pedido' })
   @ApiOkResponse({ type: OrderResponseDto })
@@ -81,7 +81,7 @@ export class OrdersController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Actualizar status de un pedido' })
   updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusBodyDto) {
@@ -94,21 +94,21 @@ export class OrdersController {
     );
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory')
   @Patch(':id/prepare')
   @ApiOperation({ summary: 'Marcar pedido en preparación' })
   prepare(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {
     return this.service.updateStatus(id, 'EN_PREPARACION', dto.updatedBy);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory')
   @Patch(':id/stage')
   @ApiOperation({ summary: 'Marcar pedido como alistado' })
   stage(@Param('id') id: string, @Body() dto: { updatedBy?: string }) {
     return this.service.updateStatus(id, 'ALISTADO', dto.updatedBy);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory')
   @Patch(':id/load-truck')
   @ApiOperation({ summary: 'Marcar pedido como cargado al camión' })
   loadTruck(

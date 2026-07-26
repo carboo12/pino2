@@ -1,0 +1,2602 @@
+﻿================================================================================
+LEGACY DATABASE SCHEMA (pino_legacy_db)
+================================================================================
+
+--- adminss.cliempre (124 columnas, 4288 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(20)     nullable:NO
+  nombre                         character(100)            nullable:NO
+  cedula                         character varying(14)     nullable:NO
+  nrorif                         character varying(25)     nullable:YES
+  nronit                         character varying(25)     nullable:YES
+  referenc1                      character varying(20)     nullable:YES
+  referenc2                      character varying(20)     nullable:YES
+  direccion                      character varying(200)    nullable:YES
+  telefonos                      character varying(150)    nullable:YES
+  telefono_movil                 character varying(150)    nullable:YES
+  numerofax                      character varying(150)    nullable:YES
+  fecha                          date                      nullable:NO
+  perscont                       character varying(50)     nullable:YES
+  limite                         numeric                   nullable:NO
+  dias                           numeric                   nullable:NO
+  precio                         numeric                   nullable:NO
+  status                         numeric                   nullable:NO
+  nota                           text                      nullable:YES
+  credito                        character varying(1)      nullable:YES
+  sector                         character varying(6)      nullable:YES
+  formafis                       numeric                   nullable:NO
+  historia                       text                      nullable:YES
+  email                          character varying(1024)   nullable:YES
+  wwwcli                         character varying(150)    nullable:YES
+  descuento                      numeric                   nullable:NO
+  vendedor                       character varying(8)      nullable:YES
+  motsuspend                     character varying(60)     nullable:YES
+  flotante                       numeric                   nullable:NO
+  tolerancia                     numeric                   nullable:NO
+  tipo                           character varying(3)      nullable:YES
+  codigocont                     character varying(40)     nullable:YES
+  direccobro                     text                      nullable:YES
+  direcenvio                     text                      nullable:YES
+  formaenvio                     character varying(40)     nullable:YES
+  sexo                           numeric                   nullable:NO
+  nacionalidad                   character varying(20)     nullable:YES
+  fechanac                       date                      nullable:NO
+  edocivil                       numeric                   nullable:NO
+  telhabitacion                  character varying(60)     nullable:YES
+  celular                        character varying(40)     nullable:YES
+  anivbodas                      character varying(5)      nullable:YES
+  habcasa                        character varying(20)     nullable:YES
+  habtorre                       character varying(20)     nullable:YES
+  habpiso                        character varying(20)     nullable:YES
+  habapto                        character varying(20)     nullable:YES
+  habcalleav                     character varying(40)     nullable:YES
+  haburb                         character varying(40)     nullable:YES
+  trabempresa                    character varying(50)     nullable:YES
+  trabcargo                      character varying(40)     nullable:YES
+  trabcasaedif                   character varying(20)     nullable:YES
+  trabtorre                      character varying(20)     nullable:YES
+  trabpiso                       character varying(20)     nullable:YES
+  traboficina                    character varying(20)     nullable:YES
+  trabcalle                      character varying(20)     nullable:YES
+  traburb                        character varying(40)     nullable:YES
+  trabtelefono                   character varying(50)     nullable:YES
+  parentesco1                    character varying(20)     nullable:YES
+  parentesco2                    character varying(20)     nullable:YES
+  parentesco3                    character varying(20)     nullable:YES
+  parentesco4                    character varying(20)     nullable:YES
+  parentesco5                    character varying(20)     nullable:YES
+  nomapell1                      character varying(40)     nullable:YES
+  nomapell2                      character varying(40)     nullable:YES
+  nomapell3                      character varying(40)     nullable:YES
+  nomapell4                      character varying(40)     nullable:YES
+  nomapell5                      character varying(40)     nullable:YES
+  fechanac1                      date                      nullable:NO
+  fechanac2                      date                      nullable:NO
+  fechanac3                      date                      nullable:NO
+  fechanac4                      date                      nullable:NO
+  fechanac5                      date                      nullable:NO
+  profesion1                     character varying(20)     nullable:YES
+  profesion2                     character varying(20)     nullable:YES
+  profesion3                     character varying(20)     nullable:YES
+  profesion4                     character varying(20)     nullable:YES
+  profesion5                     character varying(20)     nullable:YES
+  diario                         character varying(30)     nullable:YES
+  emisoraradio                   character varying(30)     nullable:YES
+  mediovisto                     character varying(30)     nullable:YES
+  sucursal                       character varying(15)     nullable:YES
+  contribespecial                numeric                   nullable:NO
+  domiciliado                    numeric                   nullable:NO
+  excentomora                    numeric                   nullable:NO
+  moneda                         character varying(3)      nullable:YES
+  campo1                         character varying(40)     nullable:YES
+  campo2                         character varying(40)     nullable:YES
+  campo3                         character varying(40)     nullable:YES
+  campo4                         character varying(40)     nullable:YES
+  campo5                         character varying(40)     nullable:YES
+  codconvenio                    character varying(6)      nullable:YES
+  tipopersona                    numeric                   nullable:NO
+  codban_beneficiario            character varying(3)      nullable:YES
+  codban_intermediario           character varying(3)      nullable:YES
+  nombre_beneficiario            character varying(60)     nullable:YES
+  cuenta_beneficiario            character varying(60)     nullable:YES
+  tipo_cuenta_beneficiario       character varying(25)     nullable:YES
+  codigo_swift_beneficiario      character varying(25)     nullable:YES
+  codigo_iban_beneficiario       character varying(25)     nullable:YES
+  checapend                      numeric                   nullable:NO
+  noacepchk                      numeric                   nullable:NO
+  nota_cuenta_beneficiario       text                      nullable:YES
+  idtercero                      character varying(15)     nullable:YES
+  frog                           numeric                   nullable:NO
+  codpais                        character varying(3)      nullable:YES
+  masinfo                        text                      nullable:YES
+  tipoid                         numeric                   nullable:NO
+  regimen                        numeric                   nullable:NO
+  departamento                   character varying(50)     nullable:NO
+  subdivision                    character varying(50)     nullable:NO
+  ciudad                         character varying(50)     nullable:NO
+  subcodigo                      character varying(6)      nullable:NO
+  hashtag                        text                      nullable:YES
+  barrio                         character varying(50)     nullable:NO
+  esplantilla                    integer                   nullable:NO
+  actividad                      character varying(15)     nullable:YES
+  datos_xml                      text                      nullable:YES
+  datos_xml_hotspot              text                      nullable:YES
+  latitud                        character varying(40)     nullable:YES
+  longitud                       character varying(40)     nullable:YES
+  coddescuento                   character varying(6)      nullable:YES
+  fechacrea                      timestamp without time zone nullable:NO
+  fechamodifi                    timestamp without time zone nullable:NO
+
+--- adminss.articulo (198 columnas, 3556 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  grupo                          character varying(6)      nullable:NO
+  subgrupo                       character varying(6)      nullable:NO
+  nombre                         character(150)            nullable:NO
+  nombrecorto                    character varying(20)     nullable:NO
+  referencia                     character varying(20)     nullable:NO
+  marca                          character varying(20)     nullable:NO
+  unidad                         character varying(15)     nullable:NO
+  usaexist                       numeric                   nullable:NO
+  para_web                       numeric                   nullable:NO
+  costo                          numeric                   nullable:NO
+  precio1                        numeric                   nullable:NO
+  precio2                        numeric                   nullable:NO
+  precio3                        numeric                   nullable:NO
+  precio4                        numeric                   nullable:NO
+  precio5                        numeric                   nullable:NO
+  precio6                        numeric                   nullable:NO
+  precio7                        numeric                   nullable:NO
+  precio8                        numeric                   nullable:NO
+  preciofin1                     numeric                   nullable:NO
+  preciofin2                     numeric                   nullable:NO
+  preciofin3                     numeric                   nullable:NO
+  preciofin4                     numeric                   nullable:NO
+  preciofin5                     numeric                   nullable:NO
+  preciofin6                     numeric                   nullable:NO
+  preciofin7                     numeric                   nullable:NO
+  preciofin8                     numeric                   nullable:NO
+  existencia                     numeric                   nullable:NO
+  rotacionvta                    numeric                   nullable:NO
+  inactiva                       numeric                   nullable:NO
+  comprometido                   numeric                   nullable:NO
+  minimo                         numeric                   nullable:NO
+  maximo                         numeric                   nullable:NO
+  origen                         numeric                   nullable:NO
+  impuesto                       numeric                   nullable:NO
+  usaserial                      numeric                   nullable:NO
+  comision1                      numeric                   nullable:NO
+  comision2                      numeric                   nullable:NO
+  comision3                      numeric                   nullable:NO
+  comision4                      numeric                   nullable:NO
+  comision5                      numeric                   nullable:NO
+  comision6                      numeric                   nullable:NO
+  comision7                      numeric                   nullable:NO
+  comision8                      numeric                   nullable:NO
+  util1                          numeric                   nullable:NO
+  util2                          numeric                   nullable:NO
+  util3                          numeric                   nullable:NO
+  util4                          numeric                   nullable:NO
+  util5                          numeric                   nullable:NO
+  util6                          numeric                   nullable:NO
+  util7                          numeric                   nullable:NO
+  util8                          numeric                   nullable:NO
+  formato                        character varying(10)     nullable:NO
+  decimales                      numeric                   nullable:NO
+  compuesto                      numeric                   nullable:NO
+  cfob                           numeric                   nullable:NO
+  cnacionali                     numeric                   nullable:NO
+  prcnac                         numeric                   nullable:NO
+  cflete                         numeric                   nullable:NO
+  prcflete                       numeric                   nullable:NO
+  carancel                       numeric                   nullable:NO
+  prcarancel                     numeric                   nullable:NO
+  cgastoper                      numeric                   nullable:NO
+  prccosoper                     numeric                   nullable:NO
+  cotroscos                      numeric                   nullable:NO
+  ccostocyf                      numeric                   nullable:NO
+  costoex                        numeric                   nullable:NO
+  costoref                       numeric                   nullable:NO
+  precio1ex                      numeric                   nullable:NO
+  precio2ex                      numeric                   nullable:NO
+  precio3ex                      numeric                   nullable:NO
+  precio4ex                      numeric                   nullable:NO
+  precio5ex                      numeric                   nullable:NO
+  precio6ex                      numeric                   nullable:NO
+  precio7ex                      numeric                   nullable:NO
+  precio8ex                      numeric                   nullable:NO
+  factor                         numeric                   nullable:NO
+  garantia                       numeric                   nullable:NO
+  empaque                        numeric                   nullable:NO
+  unidadgrp                      character varying(15)     nullable:NO
+  cntgrp                         numeric                   nullable:NO
+  costgrp                        numeric                   nullable:NO
+  precio1grp                     numeric                   nullable:NO
+  precio2grp                     numeric                   nullable:NO
+  precio3grp                     numeric                   nullable:NO
+  precio4grp                     numeric                   nullable:NO
+  precio5grp                     numeric                   nullable:NO
+  precio6grp                     numeric                   nullable:NO
+  precio7grp                     numeric                   nullable:NO
+  precio8grp                     numeric                   nullable:NO
+  prcgrp1                        numeric                   nullable:NO
+  prcgrp2                        numeric                   nullable:NO
+  prcgrp3                        numeric                   nullable:NO
+  prcgrp4                        numeric                   nullable:NO
+  prcgrp5                        numeric                   nullable:NO
+  prcgrp6                        numeric                   nullable:NO
+  prcgrp7                        numeric                   nullable:NO
+  prcgrp8                        numeric                   nullable:NO
+  creadopor                      character varying(8)      nullable:NO
+  modifpor                       character varying(8)      nullable:NO
+  margenpor                      character varying(1)      nullable:NO
+  costo_ant                      numeric                   nullable:NO
+  costo_prom                     numeric                   nullable:NO
+  impuesto1                      numeric                   nullable:NO
+  impuesto2                      numeric                   nullable:NO
+  impuesto3                      numeric                   nullable:NO
+  impuesto4                      numeric                   nullable:NO
+  impuesto5                      numeric                   nullable:NO
+  impuesto6                      numeric                   nullable:NO
+  rutafoto                       character varying(200)    nullable:NO
+  detalles                       text                      nullable:YES
+  contraindi                     text                      nullable:YES
+  usointerno                     numeric                   nullable:NO
+  aux1                           numeric                   nullable:NO
+  aux2                           numeric                   nullable:NO
+  aux3                           numeric                   nullable:NO
+  simbolo                        character varying(20)     nullable:NO
+  modelo                         character varying(20)     nullable:NO
+  discont                        numeric                   nullable:NO
+  flotante                       numeric                   nullable:NO
+  cimpuesto1                     numeric                   nullable:NO
+  cimpuesto2                     numeric                   nullable:NO
+  cimpuesto3                     numeric                   nullable:NO
+  cimpuesto4                     numeric                   nullable:NO
+  cimpuesto5                     numeric                   nullable:NO
+  cimpuesto6                     numeric                   nullable:NO
+  fechacrea                      date                      nullable:NO
+  cuentacont                     character varying(40)     nullable:NO
+  metodo                         numeric                   nullable:NO
+  sevence                        numeric                   nullable:NO
+  usalotes                       numeric                   nullable:NO
+  controlado                     numeric                   nullable:NO
+  volumen                        numeric                   nullable:NO
+  peso                           numeric                   nullable:NO
+  diametro                       character varying(15)     nullable:NO
+  usabalanza                     numeric                   nullable:NO
+  topeminvent                    numeric                   nullable:NO
+  topemaxvent                    numeric                   nullable:NO
+  forma                          character varying(15)     nullable:NO
+  esvehiculo                     numeric                   nullable:NO
+  aceptadscto                    numeric                   nullable:NO
+  aceptacred                     numeric                   nullable:NO
+  metodoround                    numeric                   nullable:NO
+  unidinamica                    numeric                   nullable:NO
+  campo1                         character varying(100)    nullable:NO
+  campo2                         character varying(100)    nullable:NO
+  campo3                         character varying(100)    nullable:NO
+  campo4                         character varying(100)    nullable:NO
+  campo5                         character varying(100)    nullable:NO
+  campo6                         character varying(100)    nullable:NO
+  campo7                         character varying(100)    nullable:NO
+  campo8                         character varying(100)    nullable:NO
+  campo9                         character varying(100)    nullable:NO
+  campo10                        character varying(100)    nullable:NO
+  imp_nacional                   numeric                   nullable:NO
+  imp_producc                    numeric                   nullable:NO
+  gimp_nacional                  numeric                   nullable:NO
+  gimp_producc                   numeric                   nullable:NO
+  ctacontinv                     character varying(40)     nullable:NO
+  ctacontcostos                  character varying(40)     nullable:NO
+  ctacontingresos                character varying(40)     nullable:NO
+  ctacontdevolucion              character varying(40)     nullable:NO
+  blocked                        numeric                   nullable:NO
+  usatallacolor                  numeric                   nullable:NO
+  deposito_in                    character varying(2)      nullable:NO
+  deposito_out                   character varying(2)      nullable:NO
+  und_simpleagrupado             numeric                   nullable:NO
+  usa_servidor                   smallint                  nullable:NO
+  secompra                       numeric                   nullable:NO
+  dadicart01                     character varying(100)    nullable:NO
+  dadicart02                     character varying(100)    nullable:NO
+  dadicart03                     character varying(100)    nullable:NO
+  discontc                       numeric                   nullable:NO
+  artcolor                       numeric                   nullable:NO
+  codarancel                     character varying(16)     nullable:NO
+  recargast                      smallint                  nullable:NO
+  exislr                         smallint                  nullable:NO
+  fechamodifi                    timestamp without time zone nullable:NO
+  esdinamico                     smallint                  nullable:NO
+  usa_escala                     smallint                  nullable:NO
+  usacanjepuntos                 integer                   nullable:NO
+  usabulto                       smallint                  nullable:NO
+  cantbulto                      numeric                   nullable:NO
+  nousaweb                       numeric                   nullable:NO
+  codcont_cmxp                   character varying(40)     nullable:NO
+  ctacontdevcomp                 character varying(40)     nullable:NO
+  garantiac                      numeric                   nullable:NO
+  hashtag                        text                      nullable:YES
+  ctacontdescuen                 character varying(40)     nullable:NO
+  codigotipomed                  character varying(3)      nullable:NO
+  codigotipoprod                 character varying(10)     nullable:NO
+  datos_xml                      text                      nullable:YES
+  formato2                       character varying(25)     nullable:NO
+  moneda                         character varying(3)      nullable:NO
+  formato3                       character varying(25)     nullable:NO
+  sec_orden                      numeric                   nullable:NO
+
+--- adminss.operclit (50 columnas, 42684 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  caja                           character varying(3)      nullable:NO
+  tiporec                        character(1)              nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  referencia                     character varying(3)      nullable:NO
+  nomcliente                     character varying(100)    nullable:NO
+  codcli                         character varying(20)     nullable:NO
+  recibo                         character varying(8)      nullable:NO
+  fecha                          date                      nullable:NO
+  emifac                         date                      nullable:NO
+  ncredito                       numeric                   nullable:NO
+  monto                          numeric                   nullable:NO
+  concepto                       character varying(200)    nullable:NO
+  bcocheqcod                     character varying(3)      nullable:NO
+  bcocheqnom                     character varying(30)     nullable:NO
+  bcocheqmto                     numeric                   nullable:NO
+  bcocheqnro                     character varying(20)     nullable:NO
+  codigotar                      character varying(3)      nullable:NO
+  bancotar                       character varying(30)     nullable:NO
+  mtotarjeta                     numeric                   nullable:NO
+  nrotarjeta                     character varying(20)     nullable:NO
+  efectivo                       numeric                   nullable:NO
+  tardebcod                      character varying(3)      nullable:NO
+  tardebnom                      character varying(30)     nullable:NO
+  tardebnum                      character varying(20)     nullable:NO
+  tardebmto                      numeric                   nullable:NO
+  otrotipo                       numeric                   nullable:NO
+  otroreferencia                 character varying(20)     nullable:NO
+  cobrador                       character varying(10)     nullable:NO
+  prc_comi                       numeric                   nullable:NO
+  procedecre                     numeric                   nullable:NO
+  mto_comi                       numeric                   nullable:NO
+  estatusrec                     character(1)              nullable:NO
+  operac                         character varying(8)      nullable:NO
+  motanul                        character varying(100)    nullable:NO
+  user_emi                       character varying(30)     nullable:NO
+  user_anul                      character varying(30)     nullable:NO
+  fechaanul                      date                      nullable:NO
+  horadocum                      character varying(5)      nullable:NO
+  ampm                           numeric                   nullable:NO
+  porcredito                     numeric                   nullable:NO
+  turno                          character varying(2)      nullable:NO
+  cortecaja                      character varying(8)      nullable:NO
+  fechayhora                     timestamp without time zone nullable:NO
+  idvalidacion                   character varying(12)     nullable:NO
+  frog                           numeric                   nullable:NO
+  codmon                         character varying(3)      nullable:NO
+  factor                         numeric                   nullable:NO
+
+--- adminss.operclim (26 columnas, 8312 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tiporec                        character(1)              nullable:YES
+  recibo                         character varying(8)      nullable:NO
+  monto                          numeric                   nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  saldo                          numeric                   nullable:NO
+  documento                      character varying(8)      nullable:NO
+  tranferido                     numeric                   nullable:NO
+  procedecre                     numeric                   nullable:NO
+  integrado                      numeric                   nullable:NO
+  fac_emi                        date                      nullable:NO
+  reci_emi                       date                      nullable:NO
+  almacen                        character varying(2)      nullable:YES
+  vendedor                       character varying(8)      nullable:YES
+  cliente                        character varying(20)     nullable:YES
+  sector                         character varying(2)      nullable:YES
+  horadocum                      character varying(5)      nullable:YES
+  ampm                           numeric                   nullable:NO
+  caja                           character varying(3)      nullable:YES
+  statusrec                      character(1)              nullable:YES
+  turno                          character varying(2)      nullable:YES
+  fechayhora                     timestamp without time zone nullable:NO
+  frog                           numeric                   nullable:NO
+  xrequest                       text                      nullable:YES
+  xresponse                      text                      nullable:YES
+
+--- adminss.operti (148 columnas, 87142 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  subtipodoc                     character varying(2)      nullable:NO
+  moneda                         character varying(3)      nullable:YES
+  documento                      character varying(8)      nullable:NO
+  codcliente                     character varying(20)     nullable:NO
+  nombrecli                      character varying(100)    nullable:YES
+  contacto                       character varying(50)     nullable:YES
+  comprador                      character varying(20)     nullable:YES
+  rif                            character varying(25)     nullable:YES
+  nit                            character varying(25)     nullable:YES
+  direccion                      character varying(200)    nullable:YES
+  telefonos                      character varying(50)     nullable:YES
+  tipoprecio                     numeric                   nullable:NO
+  orden                          character varying(15)     nullable:YES
+  emision                        date                      nullable:NO
+  recepcion                      date                      nullable:NO
+  vence                          date                      nullable:NO
+  ult_interes                    date                      nullable:NO
+  fechacrea                      date                      nullable:NO
+  totcosto                       numeric                   nullable:NO
+  totcomi                        numeric                   nullable:NO
+  totbruto                       numeric                   nullable:NO
+  totneto                        numeric                   nullable:NO
+  totpagos                       numeric                   nullable:NO
+  totalfinal                     numeric                   nullable:NO
+  totimpuest                     numeric                   nullable:NO
+  totdescuen                     numeric                   nullable:NO
+  impuesto1                      numeric                   nullable:NO
+  impuesto2                      numeric                   nullable:NO
+  impuesto3                      numeric                   nullable:NO
+  impuesto4                      numeric                   nullable:NO
+  impuesto5                      numeric                   nullable:NO
+  impuesto6                      numeric                   nullable:NO
+  recargos                       numeric                   nullable:NO
+  dsctoend1                      numeric                   nullable:NO
+  dsctoend2                      numeric                   nullable:NO
+  dsctolinea                     numeric                   nullable:NO
+  notas                          text                      nullable:YES
+  estatusdoc                     character varying(1)      nullable:YES
+  ultimopag                      date                      nullable:NO
+  diascred                       numeric                   nullable:NO
+  vendedor                       character varying(8)      nullable:YES
+  factorcamb                     numeric                   nullable:NO
+  multi_div                      numeric                   nullable:NO
+  factorreferencial              numeric                   nullable:NO
+  fechanul                       date                      nullable:NO
+  uanulador                      character varying(30)     nullable:YES
+  uemisor                        character varying(30)     nullable:YES
+  estacion                       character varying(3)      nullable:YES
+  sinimpuest                     numeric                   nullable:NO
+  almacen                        character varying(2)      nullable:YES
+  sector                         character varying(6)      nullable:YES
+  formafis                       numeric                   nullable:NO
+  al_libro                       numeric                   nullable:NO
+  codigoret                      character varying(3)      nullable:YES
+  retencion                      numeric                   nullable:NO
+  aux1                           numeric                   nullable:NO
+  aux2                           numeric                   nullable:NO
+  aplicadoa                      character varying(11)     nullable:YES
+  referencia                     character varying(20)     nullable:YES
+  refmanual                      character varying(20)     nullable:YES
+  doc_class_id                   character varying(30)     nullable:YES
+  operac                         character varying(8)      nullable:YES
+  motanul                        text                      nullable:YES
+  seimporto                      numeric                   nullable:NO
+  dbcr                           numeric                   nullable:NO
+  horadocum                      character varying(5)      nullable:YES
+  ampm                           numeric                   nullable:NO
+  tranferido                     numeric                   nullable:NO
+  procedecre                     numeric                   nullable:NO
+  entregado                      numeric                   nullable:NO
+  vuelto                         numeric                   nullable:NO
+  integrado                      numeric                   nullable:NO
+  escredito                      numeric                   nullable:NO
+  seq_nodo                       character varying(10)     nullable:YES
+  tipo_nc                        character varying(3)      nullable:YES
+  porbackord                     numeric                   nullable:NO
+  chequedev                      numeric                   nullable:NO
+  ordentrab                      character varying(8)      nullable:YES
+  compcont                       character varying(20)     nullable:YES
+  planillacob                    character varying(8)      nullable:YES
+  nodoremoto                     character varying(3)      nullable:YES
+  turno                          character varying(2)      nullable:YES
+  codvend_a                      character varying(8)      nullable:YES
+  codvend_b                      character varying(8)      nullable:YES
+  codvend_c                      character varying(8)      nullable:YES
+  codvend_d                      character varying(8)      nullable:YES
+  baseimpo1                      numeric                   nullable:NO
+  baseimpo2                      numeric                   nullable:NO
+  baseimpo3                      numeric                   nullable:NO
+  iddocumento                    character varying(8)      nullable:YES
+  imp_nacional                   numeric                   nullable:NO
+  imp_producc                    numeric                   nullable:NO
+  retencioniva                   numeric                   nullable:NO
+  fechayhora                     timestamp without time zone nullable:NO
+  tipopersona                    numeric                   nullable:NO
+  idvalidacion                   character varying(50)     nullable:YES
+  nosujeto                       numeric                   nullable:NO
+  serialprintf                   character varying(25)     nullable:YES
+  documentofiscal                character varying(12)     nullable:YES
+  numeroz                        character varying(8)      nullable:NO
+  ubica                          character varying(30)     nullable:YES
+  usa_despacho                   numeric                   nullable:NO
+  despachador                    character varying(15)     nullable:YES
+  despacho_nro                   character varying(8)      nullable:NO
+  checkin                        character varying(12)     nullable:YES
+  nureserva                      character varying(12)     nullable:YES
+  grandocnum                     character varying(8)      nullable:NO
+  agenciant                      character varying(3)      nullable:NO
+  tipodocant                     character varying(3)      nullable:NO
+  documant                       character varying(8)      nullable:NO
+  uemisorant                     character varying(30)     nullable:YES
+  estacioant                     character varying(3)      nullable:YES
+  emisionant                     date                      nullable:NO
+  fchyhrant                      timestamp without time zone nullable:NO
+  frog                           numeric                   nullable:NO
+  apa_nc                         numeric                   nullable:NO
+  documentolocal                 character varying(20)     nullable:NO
+  comanda_movil                  smallint                  nullable:NO
+  comanda_kmonitor               smallint                  nullable:NO
+  para_llevar                    smallint                  nullable:NO
+  notimbrar                      smallint                  nullable:NO
+  antipo                         character varying(3)      nullable:NO
+  antdoc                         character varying(8)      nullable:NO
+  xrequest                       text                      nullable:YES
+  xresponse                      text                      nullable:YES
+  parcialidad                    numeric                   nullable:NO
+  cedcompra                      character varying(14)     nullable:YES
+  subcodigo                      character varying(8)      nullable:NO
+  cprefijoserie                  character varying(4)      nullable:NO
+  contingencia                   smallint                  nullable:NO
+  precta_movil                   smallint                  nullable:NO
+  tipodocfiscal                  smallint                  nullable:NO
+  cprefijodeserie                character varying(4)      nullable:NO
+  cserie                         character varying(2)      nullable:NO
+  serieIncluyeimpuesto           smallint                  nullable:NO
+  serieauto                      smallint                  nullable:NO
+  opemail                        character varying(150)    nullable:NO
+  refmanual2                     character varying(30)     nullable:YES
+  baseimpo4                      numeric                   nullable:NO
+  baseimpo5                      numeric                   nullable:NO
+  baseimpo6                      numeric                   nullable:NO
+  exonerado                      numeric                   nullable:NO
+  cntimpresion                   smallint                  nullable:NO
+  fechayhoraultimp               timestamp without time zone nullable:NO
+  codactividad                   character varying(15)     nullable:YES
+
+--- adminss.opermv (102 columnas, 506521 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  grupo                          character varying(6)      nullable:YES
+  subgrupo                       character varying(6)      nullable:YES
+  origen                         numeric                   nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  codhijo                        character varying(25)     nullable:NO
+  pid                            character varying(12)     nullable:NO
+  nombre                         character varying(150)    nullable:YES
+  costounit                      numeric                   nullable:NO
+  preciounit                     numeric                   nullable:NO
+  diferencia                     numeric                   nullable:NO
+  dsctounit                      numeric                   nullable:NO
+  coddescuento                   character varying(6)      nullable:YES
+  dsctoprc                       numeric                   nullable:NO
+  dsctoendm                      numeric                   nullable:NO
+  dsctomtolinea                  numeric                   nullable:NO
+  dsctoendp                      numeric                   nullable:NO
+  preciofin                      numeric                   nullable:NO
+  prcrecargo                     numeric                   nullable:NO
+  recargounit                    numeric                   nullable:NO
+  preciooriginal                 numeric                   nullable:NO
+  cantidad                       numeric                   nullable:NO
+  cntdevuelt                     numeric                   nullable:NO
+  unidevuelt                     numeric                   nullable:NO
+  cntentrega                     numeric                   nullable:NO
+  tallas                         character varying(3)      nullable:YES
+  colores                        character varying(3)      nullable:YES
+  montoneto                      numeric                   nullable:NO
+  montototal                     numeric                   nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  proveedor                      character varying(20)     nullable:YES
+  fechadoc                       date                      nullable:NO
+  impuesto1                      numeric                   nullable:NO
+  impuesto2                      numeric                   nullable:NO
+  impuesto3                      numeric                   nullable:NO
+  impuesto4                      numeric                   nullable:NO
+  impuesto5                      numeric                   nullable:NO
+  impuesto6                      numeric                   nullable:NO
+  timpueprc                      numeric                   nullable:NO
+  impu_mto                       numeric                   nullable:NO
+  comision                       numeric                   nullable:NO
+  comisprc                       numeric                   nullable:NO
+  vendedor                       character varying(8)      nullable:YES
+  emisor                         character varying(30)     nullable:YES
+  usaserial                      numeric                   nullable:NO
+  tipoprecio                     numeric                   nullable:NO
+  unidad                         character varying(25)     nullable:YES
+  agrupado                       numeric                   nullable:NO
+  cntagrupada                    numeric                   nullable:NO
+  seimporto                      numeric                   nullable:NO
+  desdeimpor                     character varying(11)     nullable:YES
+  notas                          text                      nullable:YES
+  oferta                         numeric                   nullable:NO
+  compuesto                      numeric                   nullable:NO
+  usaexist                       numeric                   nullable:NO
+  marca                          numeric                   nullable:NO
+  aux1                           numeric                   nullable:NO
+  estacion                       character varying(3)      nullable:YES
+  estacionfac                    character varying(3)      nullable:YES
+  clasifica                      numeric                   nullable:NO
+  cuentacont                     character varying(40)     nullable:YES
+  placa                          character varying(20)     nullable:YES
+  placaod                        character varying(20)     nullable:YES
+  udinamica                      numeric                   nullable:NO
+  cantref                        numeric                   nullable:NO
+  unidadref                      character varying(15)     nullable:YES
+  baseimpo1                      numeric                   nullable:NO
+  baseimpo2                      numeric                   nullable:NO
+  baseimpo3                      numeric                   nullable:NO
+  lote                           character varying(30)     nullable:YES
+  imp_nacional                   numeric                   nullable:NO
+  imp_producc                    numeric                   nullable:NO
+  se_imprimio                    numeric                   nullable:NO
+  ofertaconvenio                 numeric                   nullable:NO
+  cod_servidor                   character varying(8)      nullable:YES
+  prc_comi_servidor              numeric                   nullable:YES
+  mto_comi_servidor              numeric                   nullable:YES
+  checkin                        character varying(12)     nullable:YES
+  habi_nro                       character varying(12)     nullable:YES
+  idvalidacion                   character varying(12)     nullable:YES
+  idoferta                       character varying(8)      nullable:YES
+  agenciant                      character varying(3)      nullable:NO
+  tipodocant                     character varying(3)      nullable:NO
+  documant                       character varying(8)      nullable:NO
+  uemisorant                     character varying(30)     nullable:YES
+  estacioant                     character varying(3)      nullable:YES
+  fechadocant                    date                      nullable:NO
+  fechayhora                     timestamp without time zone nullable:NO
+  frog                           numeric                   nullable:NO
+  documentolocal                 character varying(20)     nullable:NO
+  linbloq                        smallint                  nullable:NO
+  enviado_kmonitor               smallint                  nullable:NO
+  se_guardo                      smallint                  nullable:NO
+  codpadre                       character varying(25)     nullable:NO
+  notas_comanda                  character varying(150)    nullable:YES
+  orden                          character varying(12)     nullable:YES
+  baseimpo4                      numeric                   nullable:NO
+  baseimpo5                      numeric                   nullable:NO
+  baseimpo6                      numeric                   nullable:NO
+
+--- adminss.kardex (27 columnas, 553140 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:YES
+  documento                      character varying(8)      nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  hora                           character varying(8)      nullable:YES
+  grupo                          character varying(6)      nullable:NO
+  origen                         character varying(3)      nullable:NO
+  lote                           character varying(30)     nullable:NO
+  concepto                       character varying(100)    nullable:YES
+  cantidad                       numeric                   nullable:NO
+  estacion                       character varying(3)      nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  sumaresta                      numeric                   nullable:NO
+  emisor                         character varying(20)     nullable:YES
+  fecha                          date                      nullable:NO
+  aux1                           numeric                   nullable:NO
+  aux2                           numeric                   nullable:NO
+  aux3                           numeric                   nullable:NO
+  tipo_resta                     numeric                   nullable:NO
+  pid                            character varying(12)     nullable:NO
+  idvalidacion                   character varying(20)     nullable:YES
+  costo                          numeric                   nullable:NO
+  costoprom                      numeric                   nullable:NO
+  exist_ant                      numeric                   nullable:NO
+  costoprompbl                   numeric                   nullable:NO
+  costoex_adic                   numeric                   nullable:NO
+  incrcosprom                    numeric                   nullable:NO
+
+--- adminss.existenc (13 columnas, 2451 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  grupo                          character varying(6)      nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  existencia                     numeric                   nullable:NO
+  ubicacion                      character varying(20)     nullable:YES
+  pid_ubica                      character varying(12)     nullable:YES
+  usuario                        character varying(10)     nullable:YES
+  documento                      character varying(8)      nullable:YES
+  tipodoc                        character varying(3)      nullable:YES
+  fechacrea                      date                      nullable:NO
+  fechamodifi                    timestamp without time zone nullable:NO
+
+--- adminss.suplidor (68 columnas, 82 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(20)     nullable:NO
+  nombre                         character(150)            nullable:NO
+  nrorif                         character varying(20)     nullable:YES
+  nronit                         character varying(20)     nullable:YES
+  cedula                         character varying(20)     nullable:YES
+  perscont                       character varying(40)     nullable:YES
+  direccion                      character varying(200)    nullable:YES
+  telefonos                      character varying(150)    nullable:YES
+  celular                        character varying(150)    nullable:YES
+  nrofax                         character varying(150)    nullable:YES
+  dias                           numeric                   nullable:NO
+  fecha                          date                      nullable:NO
+  notas                          character varying(40)     nullable:YES
+  sector                         character varying(6)      nullable:YES
+  banco                          character varying(3)      nullable:YES
+  cuenta                         character varying(25)     nullable:YES
+  email                          character varying(1024)   nullable:YES
+  wwwsite                        character varying(150)    nullable:YES
+  tipo                           character varying(3)      nullable:YES
+  cuentacont                     character varying(45)     nullable:YES
+  clase                          numeric                   nullable:NO
+  exento                         numeric                   nullable:NO
+  flotante                       numeric                   nullable:NO
+  pagaex                         numeric                   nullable:NO
+  moneda                         character varying(3)      nullable:YES
+  campo1                         character varying(40)     nullable:YES
+  campo2                         character varying(40)     nullable:YES
+  campo3                         character varying(40)     nullable:YES
+  campo4                         character varying(40)     nullable:YES
+  campo5                         character varying(40)     nullable:YES
+  codban_beneficiario            character varying(3)      nullable:YES
+  codban_intermediario           character varying(3)      nullable:YES
+  nombre_beneficiario            character varying(60)     nullable:YES
+  cuenta_beneficiario            character varying(60)     nullable:YES
+  tipo_cuenta_beneficiario       character varying(25)     nullable:YES
+  codigo_swift_beneficiario      character varying(25)     nullable:YES
+  codigo_iban_beneficiario       character varying(25)     nullable:YES
+  nota_cuenta_beneficiario       character varying(60)     nullable:NO
+  esagretesp                     integer                   nullable:NO
+  suppertrs                      integer                   nullable:NO
+  idtercero                      character varying(15)     nullable:YES
+  historia                       text                      nullable:YES
+  masinfo                        text                      nullable:YES
+  subcodigo                      character varying(6)      nullable:NO
+  hashtag                        text                      nullable:YES
+  tipoid                         numeric                   nullable:NO
+  departamento                   character varying(50)     nullable:NO
+  subdivision                    character varying(50)     nullable:NO
+  ciudad                         character varying(50)     nullable:NO
+  barrio                         character varying(50)     nullable:NO
+  tiporegex                      numeric                   nullable:NO
+  codpaisex                      character varying(3)      nullable:NO
+  codparaisofis                  character varying(3)      nullable:NO
+  regpreferente                  character varying(3)      nullable:NO
+  dobletribut                    numeric                   nullable:NO
+  pagoextret                     numeric                   nullable:NO
+  cod_pais                       character varying(7)      nullable:NO
+  cod_estado                     character varying(7)      nullable:NO
+  cod_ciudad                     character varying(6)      nullable:NO
+  actividad                      character varying(15)     nullable:YES
+  datos_xml                      text                      nullable:YES
+  creadopor                      character varying(30)     nullable:NO
+  modifpor                       character varying(30)     nullable:NO
+  fechamodifi                    timestamp without time zone nullable:NO
+  status                         numeric                   nullable:NO
+  motsuspend                     character varying(60)     nullable:YES
+
+--- adminss.listvend (96 columnas, 16 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(8)      nullable:NO
+  nombre                         character varying(54)     nullable:YES
+  direccion                      character varying(74)     nullable:YES
+  comision                       numeric                   nullable:NO
+  sector                         character varying(6)      nullable:YES
+  fecha                          date                      nullable:NO
+  cedula                         character varying(21)     nullable:YES
+  telefonos                      character varying(100)    nullable:YES
+  telefono_movil                 character varying(100)    nullable:YES
+  cobranza                       numeric                   nullable:NO
+  expediente                     text                      nullable:YES
+  codigocont                     character varying(40)     nullable:YES
+  activcomi                      numeric                   nullable:NO
+  desde1                         numeric                   nullable:NO
+  desde2                         numeric                   nullable:NO
+  desde3                         numeric                   nullable:NO
+  desde4                         numeric                   nullable:NO
+  desde5                         numeric                   nullable:NO
+  desde6                         numeric                   nullable:NO
+  hasta1                         numeric                   nullable:NO
+  hasta2                         numeric                   nullable:NO
+  hasta3                         numeric                   nullable:NO
+  hasta4                         numeric                   nullable:NO
+  hasta5                         numeric                   nullable:NO
+  hasta6                         numeric                   nullable:NO
+  prccomi1                       numeric                   nullable:NO
+  prccomi2                       numeric                   nullable:NO
+  prccomi3                       numeric                   nullable:NO
+  prccomi4                       numeric                   nullable:NO
+  prccomi5                       numeric                   nullable:NO
+  prccomi6                       numeric                   nullable:NO
+  bono1                          numeric                   nullable:NO
+  bono2                          numeric                   nullable:NO
+  bono3                          numeric                   nullable:NO
+  bono4                          numeric                   nullable:NO
+  bono5                          numeric                   nullable:NO
+  bono6                          numeric                   nullable:NO
+  utilvent                       numeric                   nullable:NO
+  aplicaramendoc                 numeric                   nullable:NO
+  cobdesde1                      numeric                   nullable:NO
+  cobdesde2                      numeric                   nullable:NO
+  cobdesde3                      numeric                   nullable:NO
+  cobdesde4                      numeric                   nullable:NO
+  cobdesde5                      numeric                   nullable:NO
+  cobdesde6                      numeric                   nullable:NO
+  cobhasta1                      numeric                   nullable:NO
+  cobhasta2                      numeric                   nullable:NO
+  cobhasta3                      numeric                   nullable:NO
+  cobhasta4                      numeric                   nullable:NO
+  cobhasta5                      numeric                   nullable:NO
+  cobhasta6                      numeric                   nullable:NO
+  cobprccomi1                    numeric                   nullable:NO
+  cobprccomi2                    numeric                   nullable:NO
+  cobprccomi3                    numeric                   nullable:NO
+  cobprccomi4                    numeric                   nullable:NO
+  cobprccomi5                    numeric                   nullable:NO
+  cobprccomi6                    numeric                   nullable:NO
+  cobbono1                       numeric                   nullable:NO
+  cobbono2                       numeric                   nullable:NO
+  cobbono3                       numeric                   nullable:NO
+  cobbono4                       numeric                   nullable:NO
+  cobbono5                       numeric                   nullable:NO
+  cobbono6                       numeric                   nullable:NO
+  valoraporcent                  numeric                   nullable:NO
+  no_comi_art                    numeric                   nullable:NO
+  art_prc_1                      numeric                   nullable:NO
+  art_prc_2                      numeric                   nullable:NO
+  art_prc_3                      numeric                   nullable:NO
+  art_prc_4                      numeric                   nullable:NO
+  art_prc_5                      numeric                   nullable:NO
+  art_prc_6                      numeric                   nullable:NO
+  art_prc_7                      numeric                   nullable:NO
+  email                          character varying(200)    nullable:YES
+  campo1                         character varying(40)     nullable:YES
+  campo2                         character varying(40)     nullable:YES
+  campo3                         character varying(40)     nullable:YES
+  campo4                         character varying(40)     nullable:YES
+  campo5                         character varying(40)     nullable:YES
+  claverest                      character varying(8)      nullable:YES
+  es_servidor                    smallint                  nullable:NO
+  status                         numeric                   nullable:NO
+  masinfo                        text                      nullable:YES
+  subcodigo                      character varying(6)      nullable:NO
+  hashtag                        text                      nullable:YES
+  superves                       numeric                   nullable:NO
+  supervpor                      character varying(8)      nullable:NO
+  nivgcial                       numeric                   nullable:NO
+  rutafoto                       character varying(200)    nullable:YES
+  uso_exclusivo                  smallint                  nullable:NO
+  opciones_especiales            character varying(20)     nullable:NO
+  mto_transacc                   numeric                   nullable:NO
+  idtelegram                     character varying(50)     nullable:NO
+  vcto_emision                   smallint                  nullable:NO
+  referencia                     character varying(40)     nullable:NO
+
+--- adminss.gastarti (128 columnas, 5320 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  subtipodoc                     character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  pid                            character varying(10)     nullable:NO
+  ordentrab                      character varying(8)      nullable:NO
+  codcliente                     character varying(20)     nullable:NO
+  nombrecli                      character varying(150)    nullable:NO
+  contacto                       character varying(50)     nullable:NO
+  rif                            character varying(20)     nullable:NO
+  nit                            character varying(20)     nullable:NO
+  tipoprecio                     numeric                   nullable:NO
+  orden                          character varying(10)     nullable:NO
+  emision                        date                      nullable:NO
+  vence                          date                      nullable:NO
+  recepcion                      date                      nullable:NO
+  totcosto                       numeric                   nullable:NO
+  totcomi                        numeric                   nullable:NO
+  totbruto                       numeric                   nullable:NO
+  totneto                        numeric                   nullable:NO
+  totpagos                       numeric                   nullable:NO
+  totalfinal                     numeric                   nullable:NO
+  totimpuest                     numeric                   nullable:NO
+  totdescuen                     numeric                   nullable:NO
+  impuesto1                      numeric                   nullable:NO
+  impuesto2                      numeric                   nullable:NO
+  impuesto3                      numeric                   nullable:NO
+  impuesto4                      numeric                   nullable:NO
+  impuesto5                      numeric                   nullable:NO
+  impuesto6                      numeric                   nullable:NO
+  recargos                       numeric                   nullable:NO
+  dsctoend1                      numeric                   nullable:NO
+  dsctoend2                      numeric                   nullable:NO
+  dsctolinea                     numeric                   nullable:NO
+  notas                          text                      nullable:YES
+  estatusdoc                     character varying(1)      nullable:NO
+  ultimopag                      date                      nullable:NO
+  diascred                       numeric                   nullable:NO
+  vendedor                       character varying(8)      nullable:NO
+  factorcamb                     numeric                   nullable:NO
+  fechanul                       date                      nullable:NO
+  uanulador                      character varying(30)     nullable:NO
+  uemisor                        character varying(30)     nullable:NO
+  estacion                       character varying(3)      nullable:NO
+  sinimpuest                     numeric                   nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  sector                         character varying(6)      nullable:NO
+  formafis                       numeric                   nullable:NO
+  al_libro                       numeric                   nullable:NO
+  codigoret                      character varying(3)      nullable:NO
+  retencion                      numeric                   nullable:NO
+  retencioniva                   numeric                   nullable:NO
+  aux1                           numeric                   nullable:NO
+  aux2                           numeric                   nullable:NO
+  aplicadoa                      character varying(8)      nullable:NO
+  referencia                     character varying(50)     nullable:NO
+  doc_class_id                   character varying(30)     nullable:NO
+  operac                         character varying(8)      nullable:NO
+  escredito                      numeric                   nullable:NO
+  motanul                        text                      nullable:YES
+  seimporto                      numeric                   nullable:NO
+  dbcr                           numeric                   nullable:NO
+  horadocum                      character varying(5)      nullable:NO
+  ampm                           numeric                   nullable:NO
+  tranferido                     numeric                   nullable:NO
+  procedecre                     numeric                   nullable:NO
+  entregado                      numeric                   nullable:NO
+  vuelto                         numeric                   nullable:NO
+  gasto                          numeric                   nullable:NO
+  requisicio                     character varying(8)      nullable:NO
+  firaprob                       character varying(20)     nullable:NO
+  entrega                        date                      nullable:NO
+  modalidad                      numeric                   nullable:NO
+  cuentacon                      character varying(40)     nullable:NO
+  integrado                      numeric                   nullable:NO
+  f_monedaex                     numeric                   nullable:NO
+  compcont                       character varying(20)     nullable:NO
+  turno                          character varying(2)      nullable:NO
+  nrocontrol                     character varying(20)     nullable:NO
+  baseimpo1                      numeric                   nullable:NO
+  baseimpo2                      numeric                   nullable:NO
+  baseimpo3                      numeric                   nullable:NO
+  sumaexislr                     numeric                   nullable:NO
+  imp_nacional                   numeric                   nullable:NO
+  imp_producc                    numeric                   nullable:NO
+  altbasimpo1                    numeric                   nullable:NO
+  altbasimpo2                    numeric                   nullable:NO
+  altbasimpo3                    numeric                   nullable:NO
+  altimpu2                       numeric                   nullable:NO
+  altimpu3                       numeric                   nullable:NO
+  altimpu4                       numeric                   nullable:NO
+  impuesto1tnc                   numeric                   nullable:NO
+  impuesto2tnc                   numeric                   nullable:NO
+  impuesto3tnc                   numeric                   nullable:NO
+  go_flete                       numeric                   nullable:NO
+  go_seguro                      numeric                   nullable:NO
+  tipodoc_ret                    character varying(3)      nullable:NO
+  idvalidacion                   character varying(50)     nullable:NO
+  ubica                          character varying(30)     nullable:NO
+  nosujeto                       numeric                   nullable:NO
+  porbackord                     numeric                   nullable:NO
+  operbrs                        smallint                  nullable:NO
+  suppertrs                      smallint                  nullable:NO
+  se_imprimio                    smallint                  nullable:NO
+  se_aprobo                      smallint                  nullable:NO
+  subcodigo                      character varying(8)      nullable:NO
+  seriedoc                       character varying(25)     nullable:NO
+  altbasimpo4                    numeric                   nullable:NO
+  altbasimpo5                    numeric                   nullable:NO
+  altbasimpo6                    numeric                   nullable:NO
+  baseimpo4                      numeric                   nullable:NO
+  baseimpo5                      numeric                   nullable:NO
+  baseimpo6                      numeric                   nullable:NO
+  impuesto4tnc                   numeric                   nullable:NO
+  impuesto5tnc                   numeric                   nullable:NO
+  impuesto6tnc                   numeric                   nullable:NO
+  altimpu5                       numeric                   nullable:NO
+  altimpu6                       numeric                   nullable:NO
+  xmlfactura                     text                      nullable:YES
+  xmlestatus                     text                      nullable:YES
+  xmlenviado                     text                      nullable:YES
+  xmlrespuesta                   text                      nullable:YES
+  xmlconfirmar                   text                      nullable:YES
+  codsustento                    character varying(2)      nullable:NO
+  fechayhora                     timestamp without time zone nullable:NO
+  factorcamb_ref                 numeric                   nullable:NO
+  rutafoto                       character varying(200)    nullable:NO
+
+--- adminss.opergast (43 columnas, 1591 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  caja                           character varying(3)      nullable:YES
+  tiporec                        character varying(1)      nullable:YES
+  tipodoc                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  recibo                         character varying(8)      nullable:NO
+  fecha                          date                      nullable:NO
+  monto                          numeric                   nullable:NO
+  concepto                       text                      nullable:YES
+  bcocheqcod                     character varying(3)      nullable:YES
+  bcocheqnom                     character varying(30)     nullable:YES
+  bcocheqmto                     numeric                   nullable:NO
+  bcocheqnro                     character varying(20)     nullable:YES
+  codigotar                      character varying(3)      nullable:YES
+  bancotar                       character varying(35)     nullable:YES
+  mtotarjeta                     numeric                   nullable:NO
+  nrotarjeta                     character varying(20)     nullable:YES
+  efectivo                       numeric                   nullable:NO
+  tardebcod                      character varying(3)      nullable:YES
+  tardebnom                      character varying(35)     nullable:YES
+  tardebnum                      character varying(20)     nullable:YES
+  tardebmto                      numeric                   nullable:NO
+  codcli                         character varying(20)     nullable:YES
+  nomcliente                     character varying(100)    nullable:YES
+  cobrador                       character varying(8)      nullable:YES
+  fechaanul                      date                      nullable:NO
+  user_anul                      character varying(15)     nullable:YES
+  prc_comi                       numeric                   nullable:NO
+  mto_comi                       numeric                   nullable:NO
+  estatusrec                     character varying(1)      nullable:YES
+  operac                         character varying(8)      nullable:YES
+  motanul                        text                      nullable:YES
+  user_emi                       character varying(30)     nullable:YES
+  procedecre                     numeric                   nullable:NO
+  integrado                      numeric                   nullable:NO
+  horadocum                      character varying(10)     nullable:YES
+  ampm                           numeric                   nullable:NO
+  turno                          character varying(2)      nullable:YES
+  otraforma                      character varying(30)     nullable:YES
+  mto_otraforma                  numeric                   nullable:NO
+  notadeb                        character varying(14)     nullable:YES
+  mtonotadeb                     numeric                   nullable:NO
+
+--- adminss.devolti (96 columnas, 1525 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  moneda                         character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  subtipodoc                     character varying(2)      nullable:NO
+  codcliente                     character varying(20)     nullable:NO
+  nombrecli                      character varying(100)    nullable:NO
+  contacto                       character varying(30)     nullable:NO
+  comprador                      character varying(20)     nullable:NO
+  rif                            character varying(14)     nullable:NO
+  nit                            character varying(14)     nullable:NO
+  direccion                      character varying(200)    nullable:NO
+  telefonos                      character varying(50)     nullable:NO
+  tipoprecio                     numeric                   nullable:NO
+  orden                          character varying(15)     nullable:NO
+  emision                        date                      nullable:NO
+  recepcion                      date                      nullable:NO
+  vence                          date                      nullable:NO
+  ult_intere                     date                      nullable:NO
+  fechacrea                      date                      nullable:NO
+  totcosto                       numeric                   nullable:NO
+  totcomi                        numeric                   nullable:NO
+  totbruto                       numeric                   nullable:NO
+  totneto                        numeric                   nullable:NO
+  totpagos                       numeric                   nullable:NO
+  totalfinal                     numeric                   nullable:NO
+  totimpuest                     numeric                   nullable:NO
+  totdescuen                     numeric                   nullable:NO
+  impuesto1                      numeric                   nullable:NO
+  impuesto2                      numeric                   nullable:NO
+  impuesto3                      numeric                   nullable:NO
+  impuesto4                      numeric                   nullable:NO
+  impuesto5                      numeric                   nullable:NO
+  impuesto6                      numeric                   nullable:NO
+  recargos                       numeric                   nullable:NO
+  dsctoend1                      numeric                   nullable:NO
+  dsctoend2                      numeric                   nullable:NO
+  dsctolinea                     numeric                   nullable:NO
+  notas                          text                      nullable:YES
+  estatusdoc                     character(1)              nullable:NO
+  ultimopag                      date                      nullable:NO
+  diascred                       numeric                   nullable:NO
+  vendedor                       character varying(8)      nullable:NO
+  factorcamb                     numeric                   nullable:NO
+  multi_div                      numeric                   nullable:NO
+  factorreferencial              numeric                   nullable:NO
+  fechanul                       date                      nullable:NO
+  uanulador                      character varying(30)     nullable:NO
+  uemisor                        character varying(30)     nullable:NO
+  estacion                       character varying(3)      nullable:NO
+  sinimpuest                     numeric                   nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  sector                         character varying(6)      nullable:NO
+  formafis                       numeric                   nullable:NO
+  al_libro                       numeric                   nullable:NO
+  codigoret                      character varying(3)      nullable:NO
+  retencion                      numeric                   nullable:NO
+  aux1                           numeric                   nullable:NO
+  aux2                           numeric                   nullable:NO
+  aplicadoa                      character varying(11)     nullable:NO
+  referencia                     character varying(20)     nullable:NO
+  operac                         character varying(8)      nullable:NO
+  motanul                        text                      nullable:YES
+  seimporto                      numeric                   nullable:NO
+  dbcr                           numeric                   nullable:NO
+  horadocum                      character varying(5)      nullable:NO
+  ampm                           numeric                   nullable:NO
+  tranferido                     numeric                   nullable:NO
+  procedecre                     numeric                   nullable:NO
+  entregado                      numeric                   nullable:NO
+  vuelto                         numeric                   nullable:NO
+  integrado                      numeric                   nullable:NO
+  escredito                      numeric                   nullable:NO
+  seq_nodo                       character varying(10)     nullable:NO
+  tipo_nc                        character varying(3)      nullable:NO
+  porbackord                     numeric                   nullable:NO
+  chequedev                      numeric                   nullable:NO
+  ordentrab                      character varying(8)      nullable:NO
+  compcont                       character varying(20)     nullable:NO
+  planillaco                     character varying(8)      nullable:NO
+  nodoremoto                     character varying(3)      nullable:NO
+  turno                          character varying(2)      nullable:NO
+  baseimpo1                      numeric                   nullable:NO
+  baseimpo2                      numeric                   nullable:NO
+  baseimpo3                      numeric                   nullable:NO
+  imp_nacional                   numeric                   nullable:NO
+  imp_producc                    numeric                   nullable:NO
+  fechayhora                     timestamp without time zone nullable:NO
+  idvalidacion                   character varying(12)     nullable:NO
+  totalfactu                     numeric                   nullable:NO
+  frog                           numeric                   nullable:NO
+  baseimpo4                      numeric                   nullable:NO
+  baseimpo5                      numeric                   nullable:NO
+  baseimpo6                      numeric                   nullable:NO
+  subcodigo                      character varying(8)      nullable:NO
+
+--- adminss.devolmv (88 columnas, 1892 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  grupo                          character varying(6)      nullable:NO
+  subgrupo                       character varying(6)      nullable:NO
+  origen                         numeric                   nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  codhijo                        character varying(25)     nullable:NO
+  pid                            character varying(12)     nullable:NO
+  nombre                         character varying(80)     nullable:NO
+  costounit                      numeric                   nullable:NO
+  preciounit                     numeric                   nullable:NO
+  diferencia                     numeric                   nullable:NO
+  dsctounit                      numeric                   nullable:NO
+  coddescuento                   character varying(6)      nullable:YES
+  dsctoprc                       numeric                   nullable:NO
+  dsctoendm                      numeric                   nullable:NO
+  dsctoendp                      numeric                   nullable:NO
+  dscto1prc                      numeric                   nullable:NO
+  dscto2prc                      numeric                   nullable:NO
+  dscto3prc                      numeric                   nullable:NO
+  dscto4prc                      numeric                   nullable:NO
+  dscto5prc                      numeric                   nullable:NO
+  preciofin                      numeric                   nullable:NO
+  prcrecargo                     numeric                   nullable:NO
+  recargouni                     numeric                   nullable:NO
+  precioorig                     numeric                   nullable:NO
+  cantidad                       numeric                   nullable:NO
+  cntdevuelt                     numeric                   nullable:NO
+  cntentrega                     numeric                   nullable:NO
+  tallas                         character varying(3)      nullable:NO
+  colores                        character varying(3)      nullable:NO
+  montoneto                      numeric                   nullable:NO
+  montototal                     numeric                   nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  proveedor                      character varying(20)     nullable:NO
+  fechadoc                       date                      nullable:NO
+  impuesto1                      numeric                   nullable:NO
+  impuesto2                      numeric                   nullable:NO
+  impuesto3                      numeric                   nullable:NO
+  impuesto4                      numeric                   nullable:NO
+  impuesto5                      numeric                   nullable:NO
+  impuesto6                      numeric                   nullable:NO
+  timpueprc                      numeric                   nullable:NO
+  impu_mto                       numeric                   nullable:NO
+  unidad                         character varying(15)     nullable:NO
+  comision                       numeric                   nullable:NO
+  comisprc                       numeric                   nullable:NO
+  vendedor                       character varying(8)      nullable:NO
+  emisor                         character varying(8)      nullable:NO
+  usaserial                      numeric                   nullable:NO
+  tipoprecio                     numeric                   nullable:NO
+  agrupado                       numeric                   nullable:NO
+  seimporto                      numeric                   nullable:NO
+  desdeimpor                     character varying(11)     nullable:NO
+  notas                          text                      nullable:YES
+  oferta                         numeric                   nullable:NO
+  compuesto                      numeric                   nullable:NO
+  usaexist                       numeric                   nullable:NO
+  marca                          numeric                   nullable:NO
+  aux1                           numeric                   nullable:NO
+  estacion                       character varying(3)      nullable:NO
+  clasifica                      numeric                   nullable:NO
+  cuentacont                     character varying(40)     nullable:NO
+  turno                          character varying(2)      nullable:NO
+  cntagrupada                    numeric                   nullable:NO
+  udinamica                      numeric                   nullable:NO
+  cantref                        numeric                   nullable:NO
+  unidadref                      character varying(15)     nullable:NO
+  baseimpo1                      numeric                   nullable:NO
+  baseimpo2                      numeric                   nullable:NO
+  baseimpo3                      numeric                   nullable:NO
+  lote                           character varying(30)     nullable:NO
+  imp_nacional                   numeric                   nullable:NO
+  imp_producc                    numeric                   nullable:NO
+  sinimpuest                     numeric                   nullable:NO
+  isrma                          numeric                   nullable:NO
+  serialesrma                    text                      nullable:YES
+  almacenrma                     character varying(2)      nullable:NO
+  ofertaconvenio                 numeric                   nullable:NO
+  cod_servidor                   character varying(8)      nullable:NO
+  prc_comi_servidor              numeric                   nullable:NO
+  mto_comi_servidor              numeric                   nullable:NO
+  frog                           numeric                   nullable:NO
+  baseimpo4                      numeric                   nullable:NO
+  baseimpo5                      numeric                   nullable:NO
+  baseimpo6                      numeric                   nullable:NO
+
+--- adminss.cargoenc (18 columnas, 2179 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  ordentrab                      character varying(8)      nullable:NO
+  requisicio                     character varying(8)      nullable:NO
+  cargado                        numeric                   nullable:NO
+  status                         numeric                   nullable:NO
+  realizador                     character varying(30)     nullable:NO
+  emisor                         character varying(30)     nullable:NO
+  motivo                         character varying(100)    nullable:NO
+  fecha                          date                      nullable:NO
+  hora                           character varying(8)      nullable:NO
+  estacion                       character varying(3)      nullable:NO
+  tipoentradasalida              character varying(6)      nullable:NO
+  traex_nro                      character varying(12)     nullable:NO
+  traex_replica                  integer                   nullable:NO
+  proveedor                      character varying(20)     nullable:NO
+  idvalidacion                   character varying(50)     nullable:NO
+
+--- adminss.cargodet (31 columnas, 18434 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  status                         numeric                   nullable:NO
+  ordentrab                      character varying(8)      nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  idcampo                        character varying(12)     nullable:NO
+  nombre                         character varying(61)     nullable:NO
+  grupo                          character varying(6)      nullable:NO
+  subgrupo                       character varying(6)      nullable:NO
+  proceso                        numeric                   nullable:NO
+  cantidad                       numeric                   nullable:NO
+  tallas                         character varying(3)      nullable:NO
+  colores                        character varying(3)      nullable:NO
+  fecha                          date                      nullable:NO
+  almacen                        character varying(2)      nullable:NO
+  emisor                         character varying(8)      nullable:NO
+  estacion                       character varying(3)      nullable:NO
+  usaserial                      numeric                   nullable:NO
+  seriales                       text                      nullable:YES
+  ubicacion                      character varying(20)     nullable:NO
+  almacenhas                     character varying(2)      nullable:NO
+  precio                         numeric                   nullable:NO
+  fechanul                       date                      nullable:NO
+  useranul                       character varying(15)     nullable:NO
+  motivoanul                     text                      nullable:YES
+  lote                           character varying(30)     nullable:NO
+  costo                          numeric                   nullable:NO
+  costopromfecha                 numeric                   nullable:NO
+  factor                         numeric                   nullable:NO
+  tipo                           numeric                   nullable:NO
+
+--- adminss.tranuser (8 columnas, 322110 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:YES
+  clave                          character varying(10)     nullable:YES
+  usuario                        character varying(30)     nullable:YES
+  operacion                      text                      nullable:YES
+  fecha                          date                      nullable:NO
+  hora                           character varying(10)     nullable:YES
+  estacion                       character varying(3)      nullable:YES
+
+--- adminss.usuarios (198 columnas, 17 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  nombre                         character varying(30)     nullable:YES
+  cedula                         character varying(10)     nullable:YES
+  direccion                      character varying(70)     nullable:YES
+  telefono                       character varying(50)     nullable:YES
+  email                          character varying(200)    nullable:YES
+  website                        character varying(70)     nullable:YES
+  username                       character varying(30)     nullable:NO
+  nickname                       character varying(10)     nullable:YES
+  userid                         character varying(40)     nullable:YES
+  fechanac                       date                      nullable:NO
+  uaddinfo                       numeric                   nullable:NO
+  umodinfo                       numeric                   nullable:NO
+  ukillinfo                      numeric                   nullable:NO
+  uversalban                     numeric                   nullable:NO
+  uaccecosto                     numeric                   nullable:NO
+  uaccdepina                     numeric                   nullable:NO
+  ualterprec                     numeric                   nullable:NO
+  ualtnomart                     numeric                   nullable:NO
+  uimpordocv                     numeric                   nullable:NO
+  uimpordocc                     numeric                   nullable:NO
+  ucreclient                     numeric                   nullable:NO
+  ucambvend                      numeric                   nullable:NO
+  umodipre                       numeric                   nullable:NO
+  useltippre                     numeric                   nullable:NO
+  uconsimpu                      numeric                   nullable:NO
+  uperfsuper                     numeric                   nullable:NO
+  uacceconf                      numeric                   nullable:NO
+  ucreauser                      numeric                   nullable:NO
+  umodiform                      numeric                   nullable:NO
+  useldeposi                     numeric                   nullable:NO
+  uprecio1                       numeric                   nullable:NO
+  uprecio2                       numeric                   nullable:NO
+  uprecio3                       numeric                   nullable:NO
+  uprecio4                       numeric                   nullable:NO
+  uprecio5                       numeric                   nullable:NO
+  uprecio6                       numeric                   nullable:NO
+  uprecio7                       numeric                   nullable:NO
+  uprecio8                       numeric                   nullable:NO
+  udesl1                         numeric                   nullable:NO
+  udesl2                         numeric                   nullable:NO
+  udesl3                         numeric                   nullable:NO
+  udesl4                         numeric                   nullable:NO
+  udesl5                         numeric                   nullable:NO
+  udesl6                         numeric                   nullable:NO
+  udesl7                         numeric                   nullable:NO
+  udesl8                         numeric                   nullable:NO
+  novaldscto                     numeric                   nullable:NO
+  udesfin1                       numeric                   nullable:NO
+  udesfin2                       numeric                   nullable:NO
+  uautoriza                      numeric                   nullable:NO
+  ufacnoexis                     numeric                   nullable:NO
+  ulimitever                     numeric                   nullable:NO
+  urecargos                      numeric                   nullable:NO
+  unombcli                       numeric                   nullable:NO
+  urif                           numeric                   nullable:NO
+  unit                           numeric                   nullable:NO
+  uperscont                      numeric                   nullable:NO
+  ufechaemi                      numeric                   nullable:NO
+  unumord                        numeric                   nullable:NO
+  udiascred                      numeric                   nullable:NO
+  uimprirec                      numeric                   nullable:NO
+  uinivend                       numeric                   nullable:NO
+  uavisreord                     numeric                   nullable:NO
+  ureferenc                      numeric                   nullable:NO
+  cliente                        character varying(20)     nullable:YES
+  vendedor                       character varying(8)      nullable:YES
+  almacen                        character varying(2)      nullable:YES
+  clavborrar                     numeric                   nullable:NO
+  clavmodif                      numeric                   nullable:NO
+  clavaborta                     numeric                   nullable:NO
+  pregcantid                     numeric                   nullable:NO
+  pregconcep                     numeric                   nullable:NO
+  numpuertovisor                 numeric                   nullable:NO
+  portvisor                      character varying(100)    nullable:YES
+  numpuerto                      numeric                   nullable:NO
+  portgaveta                     character varying(100)    nullable:YES
+  formatofac                     character varying(25)     nullable:NO
+  formatofac2                    character varying(25)     nullable:NO
+  multicomis                     numeric                   nullable:NO
+  upushenter                     numeric                   nullable:NO
+  upushvend                      numeric                   nullable:NO
+  rutainv                        character varying(100)    nullable:YES
+  pagagas                        numeric                   nullable:NO
+  imprimefac                     numeric                   nullable:NO
+  tipoconsul                     numeric                   nullable:NO
+  serialcall                     numeric                   nullable:NO
+  serialcallc                    numeric                   nullable:NO
+  serialval                      numeric                   nullable:NO
+  consefac                       numeric                   nullable:NO
+  umanualfac                     numeric                   nullable:NO
+  opc_cxc                        character varying(10)     nullable:YES
+  opc_cxp                        character varying(10)     nullable:YES
+  integracob                     numeric                   nullable:NO
+  cobracombi                     numeric                   nullable:NO
+  udet_impu                      numeric                   nullable:NO
+  metodobus                      numeric                   nullable:NO
+  sale_pven                      numeric                   nullable:NO
+  deja_pend                      numeric                   nullable:NO
+  validacont                     numeric                   nullable:NO
+  opc_cyber                      character varying(14)     nullable:YES
+  vigenciadesde                  date                      nullable:NO
+  vigenciahasta                  date                      nullable:NO
+  sevence                        numeric                   nullable:NO
+  desactivo                      numeric                   nullable:NO
+  hacedevolucion                 numeric                   nullable:NO
+  cargainv                       numeric                   nullable:NO
+  descargainv                    numeric                   nullable:NO
+  abonaespera                    numeric                   nullable:NO
+  veraexistencia                 numeric                   nullable:NO
+  gennotaent                     numeric                   nullable:NO
+  usatutor                       numeric                   nullable:NO
+  hablatutor                     numeric                   nullable:NO
+  rutatutor                      character varying(100)    nullable:YES
+  editatotlin                    numeric                   nullable:NO
+  topeajuste                     numeric                   nullable:NO
+  espguardar                     numeric                   nullable:NO
+  espsinefecto                   numeric                   nullable:NO
+  espprint                       numeric                   nullable:NO
+  esptotalizar                   numeric                   nullable:NO
+  esptrasladar                   numeric                   nullable:NO
+  serie_b                        numeric                   nullable:NO
+  serie_c                        numeric                   nullable:NO
+  serie_d                        numeric                   nullable:NO
+  serie_e                        numeric                   nullable:NO
+  serie_1_fac                    numeric                   nullable:NO
+  serie_2_fac                    numeric                   nullable:NO
+  usaunidagrup                   numeric                   nullable:NO
+  usauniddinamica                numeric                   nullable:NO
+  pregdatoscli                   numeric                   nullable:NO
+  dejarsinefecto                 numeric                   nullable:NO
+  cerrarespera                   numeric                   nullable:NO
+  maxvuelto                      numeric                   nullable:NO
+  keyinscreen                    numeric                   nullable:NO
+  rest_precios                   numeric                   nullable:NO
+  rest_saldos                    numeric                   nullable:NO
+  rest_gaveta                    numeric                   nullable:NO
+  rest_reportes                  numeric                   nullable:NO
+  rest_guardar                   numeric                   nullable:NO
+  rest_aborta                    numeric                   nullable:NO
+  rest_print                     numeric                   nullable:NO
+  rest_trasladar                 numeric                   nullable:NO
+  rest_totalizar                 numeric                   nullable:NO
+  validabancos                   numeric                   nullable:NO
+  vende_agrup                    numeric                   nullable:NO
+  compra_agrup                   numeric                   nullable:NO
+  transacesp                     numeric                   nullable:NO
+  nroseriepven                   numeric                   nullable:NO
+  auditapven                     numeric                   nullable:NO
+  btnpven                        character varying(20)     nullable:YES
+  copiasfac                      numeric                   nullable:NO
+  copiasfac2                     numeric                   nullable:NO
+  tipopven                       numeric                   nullable:NO
+  cobroelectron                  numeric                   nullable:NO
+  printpinpad                    numeric                   nullable:NO
+  habcobroelec                   numeric                   nullable:NO
+  resumlineas                    numeric                   nullable:NO
+  printcomandas                  numeric                   nullable:NO
+  comandacortegrupo              numeric                   nullable:NO
+  formatorec                     character varying(200)    nullable:YES
+  formatoneg                     character varying(200)    nullable:YES
+  empresa                        character varying(6)      nullable:YES
+  agencia                        character varying(3)      nullable:YES
+  agenciausu                     character varying(3)      nullable:YES
+  grupodefault                   character varying(6)      nullable:YES
+  omitiroferta                   numeric                   nullable:NO
+  cliente_espera                 numeric                   nullable:NO
+  omitirconvenioscli             numeric                   nullable:NO
+  rutaquery                      character varying(200)    nullable:YES
+  rutareporte                    character varying(200)    nullable:YES
+  ctrl_legal_vta                 numeric                   nullable:NO
+  ordentouch                     numeric                   nullable:YES
+  ocultabotonsearchinv           numeric                   nullable:YES
+  lineasfac                      numeric                   nullable:NO
+  mail_servidor                  character varying(80)     nullable:YES
+  mail_puerto                    numeric                   nullable:NO
+  mail_login                     character varying(60)     nullable:YES
+  mail_password                  character varying(60)     nullable:YES
+  mail_autenticacion             numeric                   nullable:NO
+  deskfinancial                  numeric                   nullable:NO
+  aplicaranc                     numeric                   nullable:NO
+  printcomandafiscal             numeric                   nullable:NO
+  printcomandaunica              numeric                   nullable:NO
+  frmcomanda                     character varying(25)     nullable:NO
+  copiascomanda                  numeric                   nullable:NO
+  activavencimientoalerta        numeric                   nullable:NO
+  serie_fac_normal               character varying(6)      nullable:YES
+  serie_fac_pven                 character varying(6)      nullable:YES
+  serie_fac_fiscal               character varying(6)      nullable:YES
+  serie_fac_timbrar              character varying(6)      nullable:YES
+  no_espera_timbrar              character varying(6)      nullable:YES
+  descuentainvdespues            numeric                   nullable:NO
+  uapa_mtomin                    numeric                   nullable:NO
+  uapa_mtomax                    numeric                   nullable:NO
+  uapa_unimin                    numeric                   nullable:NO
+  uapa_unimax                    numeric                   nullable:NO
+  omiteretenc                    numeric                   nullable:NO
+  rutafoto                       character varying(200)    nullable:YES
+
+--- adminss.bonifven (27 columnas, 695 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  relacion                       character varying(8)      nullable:YES
+  vendedor                       character varying(8)      nullable:NO
+  agencia                        character varying(3)      nullable:YES
+  tipodoc                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  codcli                         character varying(20)     nullable:YES
+  cliente                        character varying(50)     nullable:YES
+  fecha                          date                      nullable:NO
+  grupo                          character varying(6)      nullable:YES
+  codigo                         character varying(25)     nullable:NO
+  nombre                         character varying(150)    nullable:YES
+  monto                          numeric                   nullable:NO
+  prccomi                        numeric                   nullable:NO
+  comision                       numeric                   nullable:NO
+  fpago                          date                      nullable:NO
+  mtopagado                      numeric                   nullable:NO
+  status                         character varying(1)      nullable:YES
+  tipoprecio                     numeric                   nullable:NO
+  seleccion                      numeric                   nullable:NO
+  id                             character varying(12)     nullable:NO
+  frog                           numeric                   nullable:NO
+  comi_art                       numeric                   nullable:NO
+  comi_dis                       numeric                   nullable:NO
+  util_ven                       numeric                   nullable:NO
+  factorcamb                     numeric                   nullable:NO
+  noaplicaislr                   numeric                   nullable:NO
+
+--- adminss.tarifas (11 columnas, 1586 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  habti_cod                      character varying(12)     nullable:NO
+  tariti_cod                     character varying(12)     nullable:NO
+  tarifa_lun                     numeric                   nullable:NO
+  tarifa_mar                     numeric                   nullable:NO
+  tarifa_mie                     numeric                   nullable:NO
+  tarifa_jue                     numeric                   nullable:NO
+  tarifa_vie                     numeric                   nullable:NO
+  tarifa_sab                     numeric                   nullable:NO
+  tarifa_dom                     numeric                   nullable:NO
+
+--- adminss.grupos (41 columnas, 53 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(6)      nullable:NO
+  nombre                         character varying(80)     nullable:YES
+  tcantidad                      numeric                   nullable:NO
+  tfacturado                     numeric                   nullable:NO
+  usatalla                       numeric                   nullable:NO
+  usacolor                       numeric                   nullable:NO
+  prcutil                        numeric                   nullable:NO
+  descuento                      numeric                   nullable:NO
+  formato                        character varying(25)     nullable:YES
+  ctacontinv                     character varying(40)     nullable:YES
+  ctacontcostos                  character varying(40)     nullable:YES
+  ctacontingresos                character varying(40)     nullable:YES
+  ctacontdevolucion              character varying(40)     nullable:YES
+  oculto_restaurant              numeric                   nullable:NO
+  noaplicarecargos               numeric                   nullable:NO
+  rutafoto                       character varying(200)    nullable:YES
+  nombre_corto                   character varying(16)     nullable:YES
+  grpcolor                       numeric                   nullable:NO
+  prcarancel                     numeric                   nullable:NO
+  eslicores                      smallint                  nullable:NO
+  fechamodifi                    timestamp without time zone nullable:NO
+  ctacontdevcomp                 character varying(40)     nullable:YES
+  codcont_cmxp                   character varying(40)     nullable:YES
+  formato2                       character varying(25)     nullable:YES
+  hereda_prop                    numeric                   nullable:NO
+  imp_mto_cmd_fmt1               numeric                   nullable:NO
+  imp_mto_cmd_fmt2               numeric                   nullable:NO
+  delimitador_cod                character varying(1)      nullable:NO
+  longitud_cod                   numeric                   nullable:NO
+  referencia                     character varying(25)     nullable:NO
+  nousaweb                       numeric                   nullable:NO
+  notas                          text                      nullable:YES
+  sec_orden                      numeric                   nullable:NO
+  imp_copiaf1                    numeric                   nullable:NO
+  imp_copiaf2                    numeric                   nullable:NO
+  formato3                       character varying(25)     nullable:YES
+  imp_copiaf3                    numeric                   nullable:NO
+  imp_mto_cmd_fmt3               numeric                   nullable:NO
+  fechacrea                      timestamp without time zone nullable:NO
+
+--- adminss.subgrupos (20 columnas, 1 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(6)      nullable:NO
+  subcodigo                      character varying(6)      nullable:NO
+  nombre                         character varying(80)     nullable:YES
+  ctacontinv                     character varying(25)     nullable:YES
+  ctacontcostos                  character varying(40)     nullable:YES
+  ctacontingresos                character varying(40)     nullable:YES
+  rutafoto                       character varying(200)    nullable:YES
+  nombre_corto                   character varying(16)     nullable:YES
+  subgrpcolor                    numeric                   nullable:NO
+  fechamodifi                    timestamp without time zone nullable:NO
+  oculto_restaurant              numeric                   nullable:NO
+  delimitador_cod                character varying(1)      nullable:NO
+  longitud_cod                   numeric                   nullable:NO
+  nousaweb                       numeric                   nullable:NO
+  notas                          text                      nullable:YES
+  sec_orden                      numeric                   nullable:NO
+  referencia                     character varying(25)     nullable:NO
+  fechacrea                      timestamp without time zone nullable:NO
+
+--- adminss.invcodalternativo (4 columnas, 2367 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  codalternativo                 character varying(25)     nullable:NO
+
+--- adminss.notascre_aplic (11 columnas, 1768 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  tipodoc                        character varying(3)      nullable:NO
+  documento                      character varying(8)      nullable:NO
+  fecha_aplic                    timestamp without time zone nullable:NO
+  monto_aplic                    numeric                   nullable:NO
+  id_empresa_h                   character varying(6)      nullable:NO
+  agencia_h                      character varying(3)      nullable:NO
+  tipodoc_h                      character varying(3)      nullable:NO
+  documento_h                    character varying(8)      nullable:NO
+  recibo                         character varying(8)      nullable:NO
+
+--- adminss.artiprov (11 columnas, 0 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(25)     nullable:NO
+  proveedor                      character varying(20)     nullable:NO
+  nombre                         character varying(35)     nullable:NO
+  costonac                       numeric                   nullable:NO
+  costoex                        numeric                   nullable:NO
+  fechalista                     date                      nullable:NO
+  referencia                     character varying(25)     nullable:NO
+  marca                          numeric                   nullable:NO
+  ptj_merma                      numeric                   nullable:NO
+
+--- adminss.monedas (18 columnas, 2 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(3)      nullable:NO
+  nombre                         character varying(30)     nullable:NO
+  sigular                        character varying(20)     nullable:NO
+  plural                         character varying(20)     nullable:NO
+  simbolo                        character varying(6)      nullable:NO
+  tipo                           numeric                   nullable:NO
+  multi_div                      numeric                   nullable:NO
+  ultimacotizacion               numeric                   nullable:NO
+  rutaicono                      character varying(150)    nullable:NO
+  iso4217                        character varying(3)      nullable:NO
+  predeter                       numeric                   nullable:NO
+  apl_igtf                       numeric                   nullable:NO
+  inactiva                       numeric                   nullable:NO
+  gen_ndadmin                    numeric                   nullable:NO
+  operac_ndadmin                 character varying(8)      nullable:YES
+  cantdecultcot                  numeric                   nullable:NO
+
+--- adminss.impuestos (22 columnas, 5 filas) ---
+  impu_codigo                    character varying(4)      nullable:NO
+  impu_nombre                    character varying(30)     nullable:NO
+  impu_prc_monto                 numeric                   nullable:NO
+  impu_prc                       numeric                   nullable:NO
+  impu_monto                     numeric                   nullable:NO
+  impu_aplica                    numeric                   nullable:NO
+  impu_min                       numeric                   nullable:NO
+  impu_max                       numeric                   nullable:NO
+  impu_condi                     text                      nullable:YES
+  impu_inac                      numeric                   nullable:NO
+  impu_tipo                      numeric                   nullable:NO
+  impu_show                      numeric                   nullable:NO
+  impu_compras                   numeric                   nullable:NO
+  impu_ventas                    numeric                   nullable:NO
+  cuentacont                     character varying(40)     nullable:NO
+  tipotributo                    character varying(4)      nullable:NO
+  cuentacontc                    character varying(40)     nullable:NO
+  exento                         numeric                   nullable:NO
+  ice                            numeric                   nullable:NO
+  unidadmedidatributo            numeric                   nullable:NO
+  valortributariounidad          numeric                   nullable:NO
+  tipounidadmedida               character varying(10)     nullable:NO
+
+--- adminss.sectores (8 columnas, 79 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  codigo                         character varying(6)      nullable:NO
+  zona                           character varying(50)     nullable:NO
+  predeter                       numeric                   nullable:NO
+  zona_color                     numeric                   nullable:NO
+  referencia                     character varying(40)     nullable:NO
+  nousaweb                       numeric                   nullable:NO
+
+--- adminss.operclit_ext (15 columnas, 41162 filas) ---
+  id_empresa                     character varying(6)      nullable:NO
+  agencia                        character varying(3)      nullable:NO
+  recibo                         character varying(8)      nullable:NO
+  codigo                         character varying(3)      nullable:NO
+  tipopago                       numeric                   nullable:NO
+  idvalidacion                   character varying(12)     nullable:NO
+  monto                          numeric                   nullable:NO
+  codigoorigen                   character varying(3)      nullable:NO
+  codigodestino                  character varying(3)      nullable:NO
+  nomforma                       character varying(100)    nullable:NO
+  nroforma                       character varying(20)     nullable:NO
+  codmon                         character varying(3)      nullable:NO
+  factor                         numeric                   nullable:NO
+  multi_div                      numeric                   nullable:NO
+  fechayhora                     timestamp without time zone nullable:NO
+
+
+================================================================================
+PINO DATABASE SCHEMA (multitienda_db)
+================================================================================
+
+--- public.account_payments (7 columnas, 3 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  account_id                     uuid                      nullable:YES default:-
+  amount                         numeric                   nullable:YES default:-
+  payment_method                 character varying(50)     nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  collected_by                   character varying(255)    nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.accounts_payable (11 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  supplier_id                    uuid                      nullable:YES default:-
+  invoice_id                     uuid                      nullable:YES default:-
+  total_amount                   numeric                   nullable:NO default:-
+  remaining_amount               numeric                   nullable:NO default:-
+  description                    text                      nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'PENDING'::character varying
+  due_date                       timestamp without time zone nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.accounts_receivable (10 columnas, 9 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  client_id                      uuid                      nullable:YES default:-
+  order_id                       uuid                      nullable:YES default:-
+  total_amount                   numeric                   nullable:YES default:-
+  remaining_amount               numeric                   nullable:YES default:-
+  description                    text                      nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:'ACTIVE'::character varying
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.arqueos (13 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  rutero_id                      uuid                      nullable:NO default:-
+  realizado_por                  uuid                      nullable:NO default:-
+  fecha                          date                      nullable:NO default:CURRENT_DATE
+  efectivo_declarado             numeric                   nullable:NO default:0
+  efectivo_contado               numeric                   nullable:NO default:0
+  diferencia                     numeric                   nullable:YES default:0
+  cheques                        numeric                   nullable:YES default:0
+  depositos                      numeric                   nullable:YES default:0
+  notas                          text                      nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'PENDIENTE'::character varying
+  created_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.authorizations (7 columnas, 2 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  requester_id                   uuid                      nullable:YES default:-
+  type                           character varying(50)     nullable:NO default:-
+  details                        jsonb                     nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'PENDING'::character varying
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.cargas_camion (11 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  rutero_id                      uuid                      nullable:NO default:-
+  camion_placa                   character varying(20)     nullable:YES default:-
+  fecha_carga                    date                      nullable:NO default:CURRENT_DATE
+  fecha_salida                   timestamp without time zone nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'ALISTANDO'::character varying
+  total_pedidos                  integer                   nullable:YES default:0
+  total_bultos                   integer                   nullable:YES default:0
+  total_unidades_sueltas         integer                   nullable:YES default:0
+  created_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.cash_shifts (13 columnas, 9 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  opened_by                      uuid                      nullable:YES default:-
+  closed_by                      uuid                      nullable:YES default:-
+  opened_at                      timestamp without time zone nullable:NO default:CURRENT_TIMESTAMP
+  closed_at                      timestamp without time zone nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'OPEN'::character varying
+  starting_cash                  numeric                   nullable:NO default:-
+  expected_cash                  numeric                   nullable:YES default:-
+  actual_cash                    numeric                   nullable:YES default:-
+  difference                     numeric                   nullable:YES default:-
+  opening_denominations          jsonb                     nullable:YES default:-
+  closing_denominations          jsonb                     nullable:YES default:-
+
+--- public.chains (8 columnas, 2 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  name                           character varying(100)    nullable:NO default:-
+  logo_url                       text                      nullable:YES default:-
+  owner_name                     character varying(100)    nullable:YES default:-
+  owner_email                    character varying(100)    nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'active'::character varying
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.client_contracts (17 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:NO default:-
+  client_id                      uuid                      nullable:NO default:-
+  contract_number                character varying(50)     nullable:NO default:-
+  contract_type                  character varying(30)     nullable:NO default:-
+  credit_limit                   numeric                   nullable:YES default:0
+  payment_terms                  integer                   nullable:YES default:30
+  interest_rate                  numeric                   nullable:YES default:0
+  start_date                     date                      nullable:NO default:-
+  end_date                       date                      nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'ACTIVE'::character varying
+  notes                          text                      nullable:YES default:-
+  signed_by_client               boolean                   nullable:YES default:false
+  document_url                   character varying(500)    nullable:YES default:-
+  created_by                     uuid                      nullable:YES default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  updated_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.clients (23 columnas, 10 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  name                           character varying(150)    nullable:NO default:-
+  email                          character varying(150)    nullable:YES default:-
+  phone                          character varying(20)     nullable:YES default:-
+  address                        text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  grupo_economico_id             uuid                      nullable:YES default:-
+  grupo_cliente_id               uuid                      nullable:YES default:-
+  preventa_id                    uuid                      nullable:YES default:-
+  zona                           character varying(100)    nullable:YES default:-
+  limite_credito                 numeric                   nullable:YES default:0
+  saldo_pendiente                numeric                   nullable:YES default:0
+  dias_credito                   integer                   nullable:YES default:8
+  frecuencia_visita              character varying(50)     nullable:YES default:'semanal'::character varying
+  dia_visita                     character varying(20)     nullable:YES default:-
+  notas_entrega                  text                      nullable:YES default:-
+  is_active                      boolean                   nullable:YES default:true
+  lat                            numeric                   nullable:YES default:-
+  lng                            numeric                   nullable:YES default:-
+  type                           character varying(50)     nullable:YES default:'NORMAL'::character varying
+  version                        bigint                    nullable:NO default:1
+  deleted_at                     timestamp with time zone  nullable:YES default:-
+
+--- public.collections (11 columnas, 2 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  account_id                     uuid                      nullable:YES default:-
+  rutero_id                      uuid                      nullable:YES default:-
+  client_id                      uuid                      nullable:YES default:-
+  amount                         numeric                   nullable:NO default:-
+  payment_method                 character varying(30)     nullable:YES default:'CASH'::character varying
+  notes                          text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  external_id                    uuid                      nullable:YES default:-
+  cash_shift_id                  uuid                      nullable:YES default:-
+
+--- public.commission_rates (8 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:NO default:-
+  role                           character varying(30)     nullable:NO default:-
+  product_category               character varying(50)     nullable:YES default:-
+  commission_percent             numeric                   nullable:NO default:0
+  min_sale_amount                numeric                   nullable:YES default:0
+  active                         boolean                   nullable:YES default:true
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.config (3 columnas, 2 filas) ---
+  key                            character varying(255)    nullable:NO default:-
+  value                          jsonb                     nullable:YES default:-
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.consultasql (5 columnas, 1 filas) ---
+  id                             smallint                  nullable:NO default:1
+  activo                         boolean                   nullable:NO default:false
+  umbral_ms                      integer                   nullable:NO default:200
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.consultasql_historial (9 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  operacion                      character varying(20)     nullable:YES default:-
+  origen                         character varying(30)     nullable:NO default:'pool'::character varying
+  duracion_ms                    integer                   nullable:NO default:-
+  row_count                      integer                   nullable:YES default:-
+  consulta                       text                      nullable:NO default:-
+  parametros                     jsonb                     nullable:YES default:-
+  error_message                  text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.daily_closings (10 columnas, 1 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  rutero_id                      uuid                      nullable:YES default:-
+  total_sales                    numeric                   nullable:YES default:0
+  total_collections              numeric                   nullable:YES default:0
+  total_returns                  numeric                   nullable:YES default:0
+  cash_total                     numeric                   nullable:YES default:0
+  closing_date                   date                      nullable:NO default:-
+  notes                          text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.departments (7 columnas, 4 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  name                           character varying(100)    nullable:NO default:-
+  description                    text                      nullable:YES default:-
+  is_active                      boolean                   nullable:YES default:true
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  parent_id                      uuid                      nullable:YES default:-
+
+--- public.device_tokens (6 columnas, 1 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  user_id                        uuid                      nullable:NO default:-
+  token                          text                      nullable:NO default:-
+  platform                       character varying(20)     nullable:NO default:-
+  created_at                     timestamp with time zone  nullable:YES default:now()
+  updated_at                     timestamp with time zone  nullable:YES default:now()
+
+--- public.error_logs (8 columnas, 1 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  message                        text                      nullable:YES default:-
+  stack                          text                      nullable:YES default:-
+  location                       text                      nullable:YES default:-
+  user_id                        uuid                      nullable:YES default:-
+  store_id                       uuid                      nullable:YES default:-
+  additional_info                jsonb                     nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.expenses (8 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  cash_shift_id                  uuid                      nullable:YES default:-
+  amount                         numeric                   nullable:YES default:-
+  description                    text                      nullable:YES default:-
+  category                       character varying(100)    nullable:YES default:-
+  created_by                     uuid                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.grupos_clientes (8 columnas, 1 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  nombre                         character varying(200)    nullable:NO default:-
+  descripcion                    text                      nullable:YES default:-
+  color                          character varying(20)     nullable:YES default:'#3B82F6'::character varying
+  is_active                      boolean                   nullable:YES default:true
+  created_at                     timestamp without time zone nullable:YES default:now()
+  updated_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.grupos_economicos (8 columnas, 2 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  nombre                         character varying(200)    nullable:NO default:-
+  limite_credito_global          numeric                   nullable:YES default:0
+  notas                          text                      nullable:YES default:-
+  is_active                      boolean                   nullable:YES default:true
+  created_at                     timestamp without time zone nullable:YES default:now()
+  updated_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.historial_asignacion_clientes (7 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  client_id                      uuid                      nullable:NO default:-
+  preventa_anterior_id           uuid                      nullable:YES default:-
+  preventa_nuevo_id              uuid                      nullable:YES default:-
+  motivo                         text                      nullable:YES default:-
+  realizado_por                  uuid                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.inventory_adjustments (5 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  product_id                     uuid                      nullable:YES default:-
+  quantity                       integer                   nullable:YES default:0
+  reason                         text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.inventory_ledger (12 columnas, 0 filas) ---
+  id                             bigint                    nullable:NO default:nextval('inventory_ledger_id_seq'::regclass)
+  store_id                       uuid                      nullable:NO default:-
+  operation_id                   uuid                      nullable:NO default:-
+  product_id                     uuid                      nullable:NO default:-
+  location_type                  character varying(20)     nullable:NO default:-
+  location_id                    uuid                      nullable:NO default:-
+  movement_type                  character varying(40)     nullable:NO default:-
+  quantity                       integer                   nullable:NO default:-
+  balance_after                  integer                   nullable:NO default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  handles_bulk_snapshot          boolean                   nullable:YES default:-
+  units_per_bulk_snapshot        integer                   nullable:YES default:-
+
+--- public.invoice_items (7 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  invoice_id                     uuid                      nullable:YES default:-
+  product_id                     uuid                      nullable:YES default:-
+  description                    text                      nullable:YES default:-
+  quantity                       numeric                   nullable:YES default:-
+  unit_price                     numeric                   nullable:YES default:-
+  subtotal                       numeric                   nullable:YES default:-
+
+--- public.invoices (11 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  supplier_id                    uuid                      nullable:YES default:-
+  invoice_number                 character varying(255)    nullable:YES default:-
+  payment_type                   character varying(50)     nullable:YES default:-
+  due_date                       timestamp without time zone nullable:YES default:-
+  total                          numeric                   nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:-
+  cashier_name                   character varying(255)    nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.licenses (10 columnas, 3 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  license_key                    character varying(255)    nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:'active'::character varying
+  type                           character varying(50)     nullable:YES default:-
+  start_date                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  end_date                       timestamp without time zone nullable:YES default:-
+  max_users                      integer                   nullable:YES default:5
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.liquidaciones_ruta (18 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  rutero_id                      uuid                      nullable:NO default:-
+  fecha_ruta                     date                      nullable:NO default:-
+  total_pedidos                  integer                   nullable:YES default:0
+  total_entregados               integer                   nullable:YES default:0
+  total_rechazados               integer                   nullable:YES default:0
+  total_cobrado_contado          numeric                   nullable:YES default:0
+  total_cobrado_credito          numeric                   nullable:YES default:0
+  total_devoluciones             numeric                   nullable:YES default:0
+  efectivo_esperado              numeric                   nullable:YES default:0
+  efectivo_entregado             numeric                   nullable:YES default:0
+  diferencia                     numeric                   nullable:YES default:0
+  arqueo_id                      uuid                      nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'PENDIENTE'::character varying
+  liquidado_por                  uuid                      nullable:YES default:-
+  notas                          text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.movements (15 columnas, 585 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  product_id                     uuid                      nullable:YES default:-
+  user_id                        uuid                      nullable:YES default:-
+  type                           character varying(20)     nullable:NO default:-
+  quantity                       integer                   nullable:NO default:-
+  balance                        integer                   nullable:NO default:-
+  reference                      character varying(100)    nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  quantity_bulks                 integer                   nullable:YES default:0
+  quantity_units                 integer                   nullable:YES default:0
+  balance_bulks                  integer                   nullable:YES default:0
+  balance_units                  integer                   nullable:YES default:0
+  handles_bulk_snapshot          boolean                   nullable:YES default:-
+  units_per_bulk_snapshot        integer                   nullable:YES default:-
+
+--- public.notifications (9 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  user_id                        uuid                      nullable:YES default:-
+  type                           character varying(50)     nullable:YES default:'info'::character varying
+  title                          character varying(255)    nullable:YES default:-
+  message                        text                      nullable:YES default:-
+  metadata                       jsonb                     nullable:YES default:'{}'::jsonb
+  read                           boolean                   nullable:YES default:false
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.order_items (13 columnas, 160 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  order_id                       uuid                      nullable:YES default:-
+  product_id                     uuid                      nullable:YES default:-
+  quantity                       numeric                   nullable:YES default:-
+  unit_price                     numeric                   nullable:YES default:-
+  subtotal                       numeric                   nullable:YES default:-
+  presentation                   character varying(10)     nullable:YES default:'UNIT'::character varying
+  price_level                    integer                   nullable:YES default:1
+  quantity_bulks                 integer                   nullable:NO default:0
+  quantity_units                 integer                   nullable:NO default:0
+  units_per_bulk_snapshot        integer                   nullable:NO default:1
+  handles_bulk_snapshot          boolean                   nullable:NO default:false
+  bulk_price                     numeric                   nullable:NO default:0
+
+--- public.order_status_history (5 columnas, 185 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  order_id                       uuid                      nullable:YES default:-
+  status                         character varying(50)     nullable:NO default:-
+  user_id                        uuid                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.orders (26 columnas, 155 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  client_id                      uuid                      nullable:YES default:-
+  client_name                    character varying(255)    nullable:YES default:-
+  vendor_id                      uuid                      nullable:YES default:-
+  sales_manager_name             character varying(255)    nullable:YES default:-
+  total                          numeric                   nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:'PENDING'::character varying
+  updated_by                     uuid                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  payment_type                   character varying(20)     nullable:YES default:'CONTADO'::character varying
+  price_level                    integer                   nullable:YES default:1
+  external_id                    uuid                      nullable:YES default:-
+  tipo_pedido                    character varying(30)     nullable:YES default:'VENTA_ESTANDAR'::character varying
+  requiere_cobro                 boolean                   nullable:YES default:true
+  requiere_autorizacion          boolean                   nullable:YES default:false
+  autorizado_por                 uuid                      nullable:YES default:-
+  fecha_autorizacion             timestamp without time zone nullable:YES default:-
+  rutero_id                      uuid                      nullable:YES default:-
+  camion_id                      character varying(100)    nullable:YES default:-
+  fecha_entrega_programada       date                      nullable:YES default:-
+  grupo_carga_id                 uuid                      nullable:YES default:-
+  version                        bigint                    nullable:NO default:1
+  deleted_at                     timestamp with time zone  nullable:YES default:-
+
+--- public.outbox_events (10 columnas, 655 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  aggregate_type                 character varying(50)     nullable:NO default:-
+  aggregate_id                   uuid                      nullable:NO default:-
+  store_id                       uuid                      nullable:NO default:-
+  event_type                     character varying(80)     nullable:NO default:-
+  payload                        jsonb                     nullable:NO default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  published_at                   timestamp with time zone  nullable:YES default:-
+  attempts                       integer                   nullable:NO default:0
+  last_error                     text                      nullable:YES default:-
+
+--- public.payable_payments (7 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  account_id                     uuid                      nullable:YES default:-
+  amount                         numeric                   nullable:NO default:-
+  payment_method                 character varying(30)     nullable:YES default:'TRANSFER'::character varying
+  notes                          text                      nullable:YES default:-
+  paid_by                        uuid                      nullable:YES default:-
+  paid_at                        timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.pending_deliveries (12 columnas, 146 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  order_id                       uuid                      nullable:YES default:-
+  client_id                      uuid                      nullable:YES default:-
+  address                        text                      nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:'Pendiente'::character varying
+  rutero_id                      uuid                      nullable:YES default:-
+  route_date                     timestamp without time zone nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  deleted_at                     timestamp with time zone  nullable:YES default:-
+
+--- public.pending_orders (13 columnas, 2 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  client_id                      uuid                      nullable:YES default:-
+  client_name                    character varying(255)    nullable:YES default:-
+  items                          jsonb                     nullable:YES default:-
+  total                          numeric                   nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  payment_method                 character varying(50)     nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:'Pendiente'::character varying
+  dispatched_by                  character varying(255)    nullable:YES default:-
+  dispatched_at                  timestamp without time zone nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.product_barcodes (8 columnas, 114 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  product_id                     uuid                      nullable:NO default:-
+  store_id                       uuid                      nullable:NO default:-
+  barcode                        character varying(100)    nullable:NO default:-
+  label                          character varying(100)    nullable:YES default:-
+  is_primary                     boolean                   nullable:YES default:false
+  created_at                     timestamp without time zone nullable:YES default:now()
+  updated_at                     timestamp without time zone nullable:YES default:now()
+
+--- public.products (33 columnas, 170 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  department_id                  uuid                      nullable:YES default:-
+  barcode                        character varying(100)    nullable:YES default:-
+  description                    text                      nullable:NO default:-
+  sale_price                     numeric                   nullable:NO default:-
+  cost_price                     numeric                   nullable:YES default:0
+  current_stock                  integer                   nullable:NO default:0
+  is_active                      boolean                   nullable:YES default:true
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  uses_inventory                 boolean                   nullable:YES default:true
+  min_stock                      integer                   nullable:NO default:0
+  brand                          character varying(100)    nullable:YES default:-
+  wholesale_price                numeric                   nullable:YES default:0
+  price1                         numeric                   nullable:YES default:0
+  price2                         numeric                   nullable:YES default:0
+  price3                         numeric                   nullable:YES default:0
+  price4                         numeric                   nullable:YES default:0
+  price5                         numeric                   nullable:YES default:0
+  supplier_id                    uuid                      nullable:YES default:-
+  sub_department                 character varying(100)    nullable:YES default:-
+  units_per_bulk                 integer                   nullable:NO default:1
+  bulk_price_1                   numeric                   nullable:YES default:0
+  bulk_price_2                   numeric                   nullable:YES default:0
+  bulk_price_3                   numeric                   nullable:YES default:0
+  bulk_price_4                   numeric                   nullable:YES default:0
+  bulk_price_5                   numeric                   nullable:YES default:0
+  version                        bigint                    nullable:NO default:1
+  deleted_at                     timestamp with time zone  nullable:YES default:-
+  handles_bulk                   boolean                   nullable:NO default:false
+  stock_bulks                    integer                   nullable:YES default:-
+  stock_units                    integer                   nullable:YES default:-
+
+--- public.promotion_products (3 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  promotion_id                   uuid                      nullable:NO default:-
+  product_id                     uuid                      nullable:NO default:-
+
+--- public.promotions (14 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:NO default:-
+  name                           character varying(200)    nullable:NO default:-
+  description                    text                      nullable:YES default:-
+  discount_type                  character varying(20)     nullable:NO default:-
+  discount_value                 numeric                   nullable:NO default:-
+  start_date                     timestamp with time zone  nullable:NO default:-
+  end_date                       timestamp with time zone  nullable:NO default:-
+  status                         character varying(20)     nullable:YES default:'SCHEDULED'::character varying
+  max_uses                       integer                   nullable:YES default:-
+  current_uses                   integer                   nullable:YES default:0
+  created_by                     uuid                      nullable:YES default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  updated_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.purchase_order_items (8 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  purchase_order_id              uuid                      nullable:NO default:-
+  product_id                     uuid                      nullable:NO default:-
+  ordered_quantity               integer                   nullable:NO default:-
+  received_quantity              integer                   nullable:YES default:0
+  unit_cost                      numeric                   nullable:NO default:-
+  total_cost                     numeric                   nullable:NO default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.purchase_orders (12 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:NO default:-
+  supplier_id                    uuid                      nullable:YES default:-
+  order_number                   character varying(50)     nullable:NO default:-
+  status                         character varying(30)     nullable:NO default:'PENDING'::character varying
+  expected_date                  date                      nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  created_by                     uuid                      nullable:YES default:-
+  approved_by                    uuid                      nullable:YES default:-
+  total_amount                   numeric                   nullable:YES default:0
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  updated_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.return_items (7 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  return_id                      uuid                      nullable:YES default:-
+  product_id                     uuid                      nullable:YES default:-
+  quantity_bulks                 integer                   nullable:YES default:0
+  quantity_units                 integer                   nullable:YES default:0
+  unit_price                     numeric                   nullable:YES default:0
+  subtotal                       numeric                   nullable:YES default:0
+
+--- public.returns (8 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  order_id                       uuid                      nullable:YES default:-
+  rutero_id                      uuid                      nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  total                          numeric                   nullable:YES default:0
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  external_id                    uuid                      nullable:YES default:-
+
+--- public.route_clients (5 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  route_id                       uuid                      nullable:NO default:-
+  client_id                      uuid                      nullable:NO default:-
+  visit_order                    integer                   nullable:YES default:0
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.routes (9 columnas, 1 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  vendor_id                      uuid                      nullable:YES default:-
+  client_ids                     jsonb                     nullable:YES default:'[]'::jsonb
+  route_date                     timestamp without time zone nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:'pending'::character varying
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.sale_items (12 columnas, 477 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  sale_id                        uuid                      nullable:YES default:-
+  product_id                     uuid                      nullable:YES default:-
+  quantity                       integer                   nullable:NO default:-
+  unit_price                     numeric                   nullable:NO default:-
+  subtotal                       numeric                   nullable:NO default:-
+  returned_quantity              integer                   nullable:NO default:0
+  quantity_bulks                 integer                   nullable:NO default:0
+  quantity_units                 integer                   nullable:NO default:0
+  units_per_bulk_snapshot        integer                   nullable:NO default:1
+  handles_bulk_snapshot          boolean                   nullable:NO default:false
+  bulk_price                     numeric                   nullable:NO default:0
+
+--- public.sales (19 columnas, 477 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  cash_shift_id                  uuid                      nullable:YES default:-
+  cashier_id                     uuid                      nullable:YES default:-
+  ticket_number                  character varying(50)     nullable:NO default:-
+  subtotal                       numeric                   nullable:NO default:-
+  tax                            numeric                   nullable:NO default:-
+  total                          numeric                   nullable:NO default:-
+  payment_method                 character varying(50)     nullable:YES default:'CASH'::character varying
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  external_id                    uuid                      nullable:YES default:-
+  client_id                      uuid                      nullable:YES default:-
+  client_name                    character varying(200)    nullable:YES default:-
+  cashier_name                   character varying(200)    nullable:YES default:-
+  payment_currency               character varying(10)     nullable:YES default:'NIO'::character varying
+  amount_received                numeric                   nullable:YES default:0
+  change_given                   numeric                   nullable:YES default:0
+  version                        bigint                    nullable:NO default:1
+  deleted_at                     timestamp with time zone  nullable:YES default:-
+
+--- public.sales_commissions (11 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:NO default:-
+  user_id                        uuid                      nullable:NO default:-
+  sale_id                        uuid                      nullable:YES default:-
+  order_id                       uuid                      nullable:YES default:-
+  commission_rate_id             uuid                      nullable:YES default:-
+  sale_amount                    numeric                   nullable:NO default:-
+  commission_amount              numeric                   nullable:NO default:-
+  status                         character varying(20)     nullable:YES default:'PENDING'::character varying
+  paid_at                        timestamp with time zone  nullable:YES default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.schema_migrations (2 columnas, 14 filas) ---
+  filename                       text                      nullable:NO default:-
+  applied_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.store_zones (8 columnas, 1 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  name                           character varying(255)    nullable:NO default:-
+  color                          character varying(50)     nullable:YES default:-
+  description                    text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  visit_day                      character varying(30)     nullable:YES default:'Ninguno'::character varying
+
+--- public.stores (10 columnas, 5 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  chain_id                       uuid                      nullable:YES default:-
+  name                           character varying(100)    nullable:NO default:-
+  address                        text                      nullable:YES default:-
+  phone                          character varying(20)     nullable:YES default:-
+  settings                       jsonb                     nullable:YES default:'{}'::jsonb
+  is_active                      boolean                   nullable:YES default:true
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  store_type                     character varying(50)     nullable:YES default:'SUPERMERCADO'::character varying
+
+--- public.sub_zones (6 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  zone_id                        uuid                      nullable:YES default:-
+  name                           character varying(255)    nullable:YES default:-
+  description                    text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.suppliers (8 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  chain_id                       uuid                      nullable:YES default:-
+  name                           character varying(150)    nullable:NO default:-
+  contact_name                   character varying(150)    nullable:YES default:-
+  email                          character varying(150)    nullable:YES default:-
+  phone                          character varying(20)     nullable:YES default:-
+  address                        text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.sync_cursors (5 columnas, 0 filas) ---
+  node_id                        uuid                      nullable:NO default:-
+  store_id                       uuid                      nullable:NO default:-
+  stream                         character varying(50)     nullable:NO default:-
+  last_event_id                  bigint                    nullable:NO default:0
+  updated_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.sync_idempotency_log (5 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  external_id                    uuid                      nullable:NO default:-
+  entity_type                    character varying(50)     nullable:NO default:-
+  created_at                     timestamp with time zone  nullable:YES default:now()
+
+--- public.sync_inbox (16 columnas, 332 filas) ---
+  id                             bigint                    nullable:NO default:nextval('sync_inbox_id_seq'::regclass)
+  store_id                       uuid                      nullable:NO default:-
+  operation_id                   uuid                      nullable:NO default:-
+  source_node_id                 uuid                      nullable:NO default:-
+  operation_type                 character varying(80)     nullable:NO default:-
+  aggregate_type                 character varying(50)     nullable:NO default:-
+  aggregate_id                   uuid                      nullable:YES default:-
+  expected_version               bigint                    nullable:YES default:-
+  payload                        jsonb                     nullable:NO default:-
+  payload_hash                   character varying(64)     nullable:NO default:-
+  status                         character varying(20)     nullable:NO default:'RECEIVED'::character varying
+  result                         jsonb                     nullable:YES default:-
+  error_code                     character varying(80)     nullable:YES default:-
+  error_message                  text                      nullable:YES default:-
+  received_at                    timestamp with time zone  nullable:NO default:now()
+  processed_at                   timestamp with time zone  nullable:YES default:-
+
+--- public.sync_logs (5 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:YES default:-
+  payload                        jsonb                     nullable:YES default:-
+  status                         character varying(50)     nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.sync_nodes (7 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:-
+  store_id                       uuid                      nullable:NO default:-
+  node_type                      character varying(10)     nullable:NO default:-
+  name                           character varying(100)    nullable:NO default:-
+  enabled                        boolean                   nullable:NO default:true
+  last_seen_at                   timestamp with time zone  nullable:YES default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.sync_outbox (14 columnas, 226 filas) ---
+  id                             bigint                    nullable:NO default:nextval('sync_outbox_id_seq'::regclass)
+  store_id                       uuid                      nullable:NO default:-
+  operation_id                   uuid                      nullable:NO default:-
+  target_node_id                 uuid                      nullable:YES default:-
+  event_type                     character varying(80)     nullable:NO default:-
+  aggregate_type                 character varying(50)     nullable:NO default:-
+  aggregate_id                   uuid                      nullable:NO default:-
+  aggregate_version              bigint                    nullable:NO default:-
+  payload                        jsonb                     nullable:NO default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  available_at                   timestamp with time zone  nullable:NO default:now()
+  published_at                   timestamp with time zone  nullable:YES default:-
+  attempts                       integer                   nullable:NO default:0
+  last_error                     text                      nullable:YES default:-
+
+--- public.sync_status (6 columnas, 0 filas) ---
+  store_id                       uuid                      nullable:NO default:-
+  last_sync                      timestamp with time zone  nullable:YES default:now()
+  status                         character varying(20)     nullable:YES default:'IDLE'::character varying
+  last_error                     text                      nullable:YES default:-
+  ops_count                      integer                   nullable:YES default:0
+  duplicates_avoided             integer                   nullable:YES default:0
+
+--- public.user_stores (3 columnas, 16 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  user_id                        uuid                      nullable:YES default:-
+  store_id                       uuid                      nullable:YES default:-
+
+--- public.users (11 columnas, 20 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  email                          character varying(150)    nullable:NO default:-
+  password_hash                  text                      nullable:NO default:-
+  name                           character varying(150)    nullable:NO default:-
+  role                           character varying(50)     nullable:NO default:-
+  refresh_token_hash             text                      nullable:YES default:-
+  is_active                      boolean                   nullable:YES default:true
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  permisos                       jsonb                     nullable:YES default:'[]'::jsonb
+  comision_porcentaje            numeric                   nullable:YES default:0
+
+--- public.vehicle_accidents (13 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  vehicle_id                     uuid                      nullable:NO default:-
+  driver_id                      uuid                      nullable:YES default:-
+  accident_date                  timestamp with time zone  nullable:NO default:now()
+  location                       text                      nullable:YES default:-
+  description                    text                      nullable:NO default:-
+  vehicle_damage_cost            numeric                   nullable:YES default:0
+  cargo_damage_cost              numeric                   nullable:YES default:0
+  third_party_damage             numeric                   nullable:YES default:0
+  police_report_ref              character varying(50)     nullable:YES default:-
+  insurance_claim_ref            character varying(50)     nullable:YES default:-
+  status                         character varying(20)     nullable:YES default:'REPORTED'::character varying
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.vehicle_fuel_log (10 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  vehicle_id                     uuid                      nullable:NO default:-
+  driver_id                      uuid                      nullable:YES default:-
+  liters                         numeric                   nullable:NO default:-
+  cost_per_liter                 numeric                   nullable:NO default:-
+  total_cost                     numeric                   nullable:NO default:-
+  mileage                        integer                   nullable:YES default:-
+  station                        character varying(100)    nullable:YES default:-
+  fueled_at                      timestamp with time zone  nullable:NO default:now()
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.vehicle_maintenance (12 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  vehicle_id                     uuid                      nullable:NO default:-
+  maintenance_type               character varying(30)     nullable:NO default:-
+  description                    text                      nullable:NO default:-
+  cost                           numeric                   nullable:NO default:0
+  mileage_at_service             integer                   nullable:YES default:-
+  service_date                   date                      nullable:NO default:CURRENT_DATE
+  provider                       character varying(100)    nullable:YES default:-
+  invoice_ref                    character varying(50)     nullable:YES default:-
+  next_maintenance_km            integer                   nullable:YES default:-
+  notes                          text                      nullable:YES default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.vehicles (16 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:NO default:-
+  plate                          character varying(20)     nullable:NO default:-
+  brand                          character varying(50)     nullable:NO default:-
+  model                          character varying(50)     nullable:YES default:-
+  year                           integer                   nullable:YES default:-
+  type                           character varying(30)     nullable:NO default:'TRUCK'::character varying
+  capacity_kg                    numeric                   nullable:YES default:-
+  fuel_type                      character varying(20)     nullable:YES default:'DIESEL'::character varying
+  status                         character varying(20)     nullable:NO default:'ACTIVE'::character varying
+  last_maintenance_km            integer                   nullable:YES default:0
+  next_maintenance_km            integer                   nullable:YES default:5000
+  insurance_expiry               date                      nullable:YES default:-
+  technical_inspection_expiry    date                      nullable:YES default:-
+  created_at                     timestamp with time zone  nullable:NO default:now()
+  updated_at                     timestamp with time zone  nullable:NO default:now()
+
+--- public.vendor_inventories (13 columnas, 2 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  vendor_id                      uuid                      nullable:YES default:-
+  product_id                     uuid                      nullable:YES default:-
+  store_id                       uuid                      nullable:YES default:-
+  assigned_quantity              numeric                   nullable:YES default:0
+  sold_quantity                  numeric                   nullable:YES default:0
+  current_quantity               numeric                   nullable:YES default:0
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  assigned_bulks                 integer                   nullable:YES default:0
+  assigned_units                 integer                   nullable:YES default:0
+  current_bulks                  integer                   nullable:YES default:0
+  current_units                  integer                   nullable:YES default:0
+  deleted_at                     timestamp with time zone  nullable:YES default:-
+
+--- public.vendor_route_clients (5 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  vendor_route_id                uuid                      nullable:NO default:-
+  client_id                      uuid                      nullable:NO default:-
+  visit_order                    integer                   nullable:YES default:0
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.vendor_routes (9 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:uuid_generate_v4()
+  store_id                       uuid                      nullable:YES default:-
+  vendor_id                      uuid                      nullable:YES default:-
+  client_ids                     jsonb                     nullable:YES default:'[]'::jsonb
+  route_date                     date                      nullable:YES default:-
+  status                         character varying(30)     nullable:YES default:'PLANNED'::character varying
+  notes                          text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.visit_logs (8 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  store_id                       uuid                      nullable:NO default:-
+  vendor_id                      uuid                      nullable:NO default:-
+  client_id                      uuid                      nullable:NO default:-
+  notes                          text                      nullable:YES default:-
+  latitude                       numeric                   nullable:YES default:-
+  longitude                      numeric                   nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+
+--- public.zones (6 columnas, 0 filas) ---
+  id                             uuid                      nullable:NO default:gen_random_uuid()
+  name                           character varying(255)    nullable:YES default:-
+  store_id                       uuid                      nullable:YES default:-
+  description                    text                      nullable:YES default:-
+  created_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
+  updated_at                     timestamp without time zone nullable:YES default:CURRENT_TIMESTAMP
