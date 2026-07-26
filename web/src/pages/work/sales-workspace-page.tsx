@@ -35,6 +35,7 @@ import {
   Plus,
   ExternalLink,
   RefreshCw,
+  Users,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import apiClient from '@/services/api-client';
@@ -61,6 +62,7 @@ export default function SalesWorkspacePage() {
   const [activeTab, setActiveTab] = useState<'clientes' | 'orders' | 'cxc' | 'contracts'>('clientes');
   const [searchTerm, setSearchTerm] = useState('');
   const [clients, setClients] = useState<ClientSummary[]>([]);
+  const [totalClientCount, setTotalClientCount] = useState<number>(0);
   const [loadingClients, setLoadingClients] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientSummary | null>(null);
 
@@ -70,17 +72,19 @@ export default function SalesWorkspacePage() {
   const [receivables, setReceivables] = useState<any[]>([]);
   const [loadingReceivables, setLoadingReceivables] = useState(false);
 
-  // Search clients
+  // Search clients with allClients: 'true' fallback so sellers get store clients
   const searchClients = useCallback(
     async (q: string) => {
       if (!storeId) return;
       setLoadingClients(true);
       try {
         const res = await apiClient.get('/clients', {
-          params: { storeId, search: q || undefined, limit: 50 },
+          params: { storeId, search: q || undefined, limit: 100, page: 1, pageSize: 100, allClients: 'true' },
         });
         const list = extractData<ClientSummary>(res.data);
+        const total = res.data?.total || list.length;
         setClients(list);
+        setTotalClientCount(total);
         if (list.length > 0 && !selectedClient) {
           setSelectedClient(list[0]);
         }
@@ -99,9 +103,9 @@ export default function SalesWorkspacePage() {
     setLoadingOrders(true);
     try {
       const res = await apiClient.get('/orders', {
-        params: { storeId, status: 'ALISTADO,EN_PREPARACION,RECIBIDO', limit: 20 },
+        params: { storeId, status: 'ALISTADO,EN_PREPARACION,RECIBIDO', limit: 50 },
       });
-      setPendingOrders(Array.isArray(res.data) ? res.data : []);
+      setPendingOrders(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch {
       setPendingOrders([]);
     } finally {
@@ -115,7 +119,7 @@ export default function SalesWorkspacePage() {
     setLoadingReceivables(true);
     try {
       const res = await apiClient.get('/accounts-receivable', {
-        params: { storeId, status: 'ACTIVA' },
+        params: { storeId, status: 'ACTIVA', limit: 50 },
       });
       setReceivables(Array.isArray(res.data) ? res.data : res.data?.data || []);
     } catch {
@@ -125,8 +129,9 @@ export default function SalesWorkspacePage() {
     }
   }, [storeId]);
 
+  // Fetch initial clients on mount or search
   useEffect(() => {
-    const t = setTimeout(() => searchClients(searchTerm), 300);
+    const t = setTimeout(() => searchClients(searchTerm), 200);
     return () => clearTimeout(t);
   }, [searchTerm, searchClients]);
 
@@ -145,7 +150,7 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="default"
                 size="sm"
-                className="gap-1.5 font-bold shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="gap-1.5 font-bold shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl"
                 onClick={() => navigate(`/store/${storeId}/vendors/quick-sale`)}
               >
                 <ShoppingCart className="h-4 w-4" /> ⚡ Venta Directa en POS
@@ -153,7 +158,7 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 font-bold shadow-sm"
+                className="gap-1.5 font-bold shadow-sm rounded-xl"
                 onClick={() => navigate(`/store/${storeId}/cash-register`)}
               >
                 <ShoppingCart className="h-4 w-4 text-slate-500" /> 🔒 Arqueo / Cierre Caja
@@ -165,7 +170,7 @@ export default function SalesWorkspacePage() {
                   placeholder="Buscar cliente por nombre..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="h-8 w-52 pl-8 text-xs rounded-lg"
+                  className="h-9 w-56 pl-8 text-xs rounded-xl"
                 />
               </div>
             </div>
@@ -177,9 +182,9 @@ export default function SalesWorkspacePage() {
           <div className="flex h-full flex-col bg-card">
             <div className="border-b px-4 py-3 flex items-center justify-between bg-muted/20">
               <div>
-                <h2 className="text-sm font-bold">{selectedClient.name}</h2>
+                <h2 className="text-sm font-bold text-foreground">{selectedClient.name}</h2>
                 {selectedClient.code && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground font-mono">
                     Código: {selectedClient.code}
                   </p>
                 )}
@@ -195,17 +200,17 @@ export default function SalesWorkspacePage() {
             <div className="flex-1 space-y-3 p-4">
               {selectedClient.phone && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Phone className="h-3.5 w-3.5 text-primary" /> {selectedClient.phone}
+                  <Phone className="h-3.5 w-3.5 text-primary shrink-0" /> {selectedClient.phone}
                 </div>
               )}
               {selectedClient.address && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5 text-primary" /> {selectedClient.address}
+                  <MapPin className="h-3.5 w-3.5 text-primary shrink-0" /> {selectedClient.address}
                 </div>
               )}
               {(selectedClient.creditLimit !== undefined || selectedClient.limiteCredito !== undefined) && (
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
-                  <DollarSign className="h-3.5 w-3.5" /> Límite de Crédito:{' '}
+                  <DollarSign className="h-3.5 w-3.5 shrink-0" /> Límite de Crédito:{' '}
                   {formatCurrency(selectedClient.creditLimit ?? selectedClient.limiteCredito ?? 0)}
                 </div>
               )}
@@ -217,7 +222,7 @@ export default function SalesWorkspacePage() {
                       : 'text-muted-foreground'
                   }`}
                 >
-                  <CreditCard className="h-3.5 w-3.5" /> Saldo CxC:{' '}
+                  <CreditCard className="h-3.5 w-3.5 shrink-0" /> Saldo CxC:{' '}
                   {formatCurrency(selectedClient.balance ?? selectedClient.saldoPendiente ?? 0)}
                 </div>
               )}
@@ -225,7 +230,7 @@ export default function SalesWorkspacePage() {
               <div className="space-y-2 pt-4 border-t">
                 <Button
                   size="sm"
-                  className="w-full justify-start font-bold gap-2"
+                  className="w-full justify-start font-bold gap-2 rounded-xl bg-primary text-white"
                   onClick={() =>
                     navigate(
                       `/store/${storeId}/vendors/quick-sale?clientId=${selectedClient.id}`,
@@ -237,7 +242,7 @@ export default function SalesWorkspacePage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="w-full justify-start font-medium gap-2"
+                  className="w-full justify-start font-medium gap-2 rounded-xl"
                   onClick={() =>
                     navigate(
                       `/store/${storeId}/vendors/collections?clientId=${selectedClient.id}`,
@@ -249,7 +254,7 @@ export default function SalesWorkspacePage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="w-full justify-start font-medium gap-2"
+                  className="w-full justify-start font-medium gap-2 rounded-xl"
                   onClick={() =>
                     navigate(
                       `/store/${storeId}/vendors/returns?clientId=${selectedClient.id}`,
@@ -270,10 +275,10 @@ export default function SalesWorkspacePage() {
             </div>
           </div>
         ) : (
-          <div className="p-6 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full">
-            <UserCheck className="h-8 w-8 mb-2 opacity-30 text-primary" />
-            <p className="font-bold">Selecciona un cliente</p>
-            <p className="text-[11px] mt-1">
+          <div className="p-6 text-center text-xs text-muted-foreground flex flex-col items-center justify-center h-full space-y-2">
+            <UserCheck className="h-10 w-10 opacity-30 text-primary" />
+            <p className="font-bold text-sm">Selecciona un cliente</p>
+            <p className="text-xs text-muted-foreground">
               Verás su límite de crédito, saldo pendiente y acciones rápidas de facturación.
             </p>
           </div>
@@ -281,10 +286,10 @@ export default function SalesWorkspacePage() {
       }
     >
       <div className="flex-1 overflow-auto p-4 space-y-4">
-        {/* TARJETAS INTERACTIVAS (CAMBIAN PESTAÑA AL INSTANTE SIN RECARGAR) */}
+        {/* TARJETAS INTERACTIVAS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <Card
-            className={`transition-all cursor-pointer ${
+            className={`transition-all cursor-pointer rounded-2xl ${
               activeTab === 'clientes'
                 ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
                 : 'hover:border-primary/50'
@@ -298,18 +303,18 @@ export default function SalesWorkspacePage() {
                 </div>
                 <div>
                   <p className="text-xs font-bold">POS & Clientes</p>
-                  <p className="text-[11px] text-muted-foreground">Venta y directorio</p>
+                  <p className="text-[11px] text-muted-foreground">Venta y directorio ({totalClientCount || clients.length})</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                className="h-7 w-7 text-muted-foreground hover:text-primary rounded-lg"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/store/${storeId}/cash-register`);
+                  navigate(`/store/${storeId}/vendors/clients`);
                 }}
-                title="Abrir en pantalla completa"
+                title="Abrir directorio completo"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
               </Button>
@@ -317,7 +322,7 @@ export default function SalesWorkspacePage() {
           </Card>
 
           <Card
-            className={`transition-all cursor-pointer ${
+            className={`transition-all cursor-pointer rounded-2xl ${
               activeTab === 'orders'
                 ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
                 : 'hover:border-primary/50'
@@ -337,7 +342,7 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                className="h-7 w-7 text-muted-foreground hover:text-primary rounded-lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/store/${storeId}/pending-orders`);
@@ -350,7 +355,7 @@ export default function SalesWorkspacePage() {
           </Card>
 
           <Card
-            className={`transition-all cursor-pointer ${
+            className={`transition-all cursor-pointer rounded-2xl ${
               activeTab === 'cxc'
                 ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
                 : 'hover:border-primary/50'
@@ -370,7 +375,7 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                className="h-7 w-7 text-muted-foreground hover:text-primary rounded-lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/store/${storeId}/finance/receivables`);
@@ -383,7 +388,7 @@ export default function SalesWorkspacePage() {
           </Card>
 
           <Card
-            className={`transition-all cursor-pointer ${
+            className={`transition-all cursor-pointer rounded-2xl ${
               activeTab === 'contracts'
                 ? 'border-primary ring-2 ring-primary/20 bg-primary/5'
                 : 'hover:border-primary/50'
@@ -403,7 +408,7 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-primary"
+                className="h-7 w-7 text-muted-foreground hover:text-primary rounded-lg"
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(`/store/${storeId}/vendors/clients`);
@@ -416,7 +421,7 @@ export default function SalesWorkspacePage() {
           </Card>
         </div>
 
-        {/* PESTAÑAS PRINCIPALES DEL WORKBENCH (VISTA RÁPIDA EN LÍNEA) */}
+        {/* PESTAÑAS PRINCIPALES DEL WORKBENCH */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full space-y-4">
           <TabsList className="grid grid-cols-4 p-1 bg-muted rounded-xl">
             <TabsTrigger value="clientes" className="font-bold gap-2 text-xs">
@@ -442,10 +447,10 @@ export default function SalesWorkspacePage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs font-bold"
+                className="h-7 text-xs font-bold rounded-lg"
                 onClick={() => navigate(`/store/${storeId}/vendors/clients`)}
               >
-                Ver todos los 3,554 clientes
+                Ver todos los {totalClientCount > 0 ? totalClientCount.toLocaleString() : '3,554'} clientes
               </Button>
             </div>
 
@@ -469,7 +474,7 @@ export default function SalesWorkspacePage() {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-bold truncate">{c.name}</p>
+                      <p className="text-sm font-bold truncate text-foreground">{c.name}</p>
                       <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     </div>
 
@@ -478,9 +483,9 @@ export default function SalesWorkspacePage() {
                       {c.phone && <span>Tel: {c.phone}</span>}
                     </div>
 
-                    {(c.balance ?? c.saldoPendiente ?? 0) > 0 && (
-                      <p className="mt-1 text-xs font-bold text-destructive">
-                        Saldo CxC: {formatCurrency(c.balance ?? c.saldoPendiente ?? 0)}
+                    {c.address && (
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                        {c.address}
                       </p>
                     )}
                   </button>
@@ -489,73 +494,70 @@ export default function SalesWorkspacePage() {
             )}
           </TabsContent>
 
-          {/* TAB 2: PREVENTAS & COMANDAS EN VIVO */}
+          {/* TAB 2: COMANDAS & PREVENTAS */}
           <TabsContent value="orders" className="space-y-3 mt-0">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold flex items-center gap-2">
-                <ClipboardCheck className="h-4 w-4 text-blue-600" />
-                Comandas en Proceso ({pendingOrders.length})
+              <h3 className="text-sm font-bold flex items-center gap-1.5">
+                <ClipboardCheck className="h-4 w-4 text-primary" /> Comandas Activas & Preventas
               </h3>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={loadPendingOrders}>
-                  <RefreshCw className="h-3.5 w-3.5 mr-1" /> Actualizar
-                </Button>
-                <Button
-                  size="sm"
-                  className="h-7 text-xs font-bold"
-                  onClick={() => navigate(`/store/${storeId}/pending-orders`)}
-                >
-                  Ir al Embudo Completo
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs font-bold rounded-lg"
+                onClick={loadPendingOrders}
+              >
+                <RefreshCw className="h-3.5 w-3.5 mr-1" /> Recargar
+              </Button>
             </div>
 
             {loadingOrders ? (
               <LoadingRows rows={4} />
             ) : pendingOrders.length === 0 ? (
-              <div className="text-center py-10 border rounded-xl bg-muted/20">
-                <ClipboardCheck className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                <p className="font-bold text-sm">No hay comandas pendientes en este momento</p>
-                <p className="text-xs text-muted-foreground">
-                  Todas las preventas han sido facturadas o despachadas.
-                </p>
-              </div>
+              <EmptyState
+                title="No hay comandas activas pendientes"
+                icon={ClipboardCheck}
+              />
             ) : (
               <div className="border rounded-xl overflow-hidden bg-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-center">Acción</TableHead>
+                      <TableHead className="text-xs font-bold">N° Pedido / Comanda</TableHead>
+                      <TableHead className="text-xs font-bold">Cliente</TableHead>
+                      <TableHead className="text-xs font-bold">Fecha</TableHead>
+                      <TableHead className="text-xs font-bold text-right">Total</TableHead>
+                      <TableHead className="text-xs font-bold text-center">Estado</TableHead>
+                      <TableHead className="text-xs font-bold text-right">Acción</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {pendingOrders.map((o) => (
-                      <TableRow key={o.id}>
+                    {pendingOrders.map((ord) => (
+                      <TableRow key={ord.id} className="hover:bg-muted/40">
+                        <TableCell className="font-mono font-bold text-xs">
+                          {ord.orderNumber || ord.id.slice(0, 8)}
+                        </TableCell>
                         <TableCell className="text-xs font-medium">
-                          {format(new Date(o.createdAt), 'dd/MM/yyyy HH:mm')}
+                          {ord.clientName || ord.client?.name || 'Cliente de Mostrador'}
                         </TableCell>
-                        <TableCell className="font-bold text-sm">
-                          {o.clientName || o.client?.name || 'Cliente Mostrador'}
+                        <TableCell className="text-xs text-muted-foreground font-mono">
+                          {ord.createdAt ? format(new Date(ord.createdAt), 'dd/MM/yyyy HH:mm') : '-'}
                         </TableCell>
-                        <TableCell>
-                          <Badge className="bg-amber-100 text-amber-800">
-                            {o.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right font-mono font-bold text-emerald-600">
-                          C$ {Number(o.total || 0).toFixed(2)}
+                        <TableCell className="text-xs font-extrabold text-right">
+                          {formatCurrency(Number(ord.totalAmount || ord.total || 0))}
                         </TableCell>
                         <TableCell className="text-center">
+                          <Badge variant="outline" className="font-bold text-[10px]">
+                            {ord.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
                           <Button
                             size="sm"
-                            className="h-7 text-xs font-bold"
-                            onClick={() => navigate(`/store/${storeId}/cash-register?orderId=${o.id}`)}
+                            variant="ghost"
+                            className="h-7 text-xs font-bold text-primary"
+                            onClick={() => navigate(`/store/${storeId}/pending-orders`)}
                           >
-                            Facturar en POS
+                            Ver / Cobrar
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -566,67 +568,65 @@ export default function SalesWorkspacePage() {
             )}
           </TabsContent>
 
-          {/* TAB 3: CUENTAS POR COBRAR (CXC) */}
+          {/* TAB 3: CARTERA CXC */}
           <TabsContent value="cxc" className="space-y-3 mt-0">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold flex items-center gap-2">
-                <CreditCard className="h-4 w-4 text-amber-600" />
-                Facturas y Cuentas Activas ({receivables.length})
+              <h3 className="text-sm font-bold flex items-center gap-1.5">
+                <CreditCard className="h-4 w-4 text-primary" /> Cartera de Cuentas por Cobrar (CxC)
               </h3>
               <Button
+                variant="outline"
                 size="sm"
-                className="h-7 text-xs font-bold"
-                onClick={() => navigate(`/store/${storeId}/finance/receivables`)}
+                className="h-7 text-xs font-bold rounded-lg"
+                onClick={loadReceivables}
               >
-                Abrir Módulo de Cobranza CxC
+                <RefreshCw className="h-3.5 w-3.5 mr-1" /> Recargar
               </Button>
             </div>
 
             {loadingReceivables ? (
               <LoadingRows rows={4} />
             ) : receivables.length === 0 ? (
-              <div className="text-center py-10 border rounded-xl bg-muted/20">
-                <CreditCard className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
-                <p className="font-bold text-sm">No hay facturas con saldo pendiente</p>
-                <p className="text-xs text-muted-foreground">
-                  La cartera de clientes está al día en esta sucursal.
-                </p>
-              </div>
+              <EmptyState title="No hay saldos pendientes en CxC" icon={CreditCard} />
             ) : (
               <div className="border rounded-xl overflow-hidden bg-card">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Factura / Ref</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead className="text-right">Monto Original</TableHead>
-                      <TableHead className="text-right">Saldo Pendiente</TableHead>
-                      <TableHead className="text-center">Acción</TableHead>
+                      <TableHead className="text-xs font-bold">Cliente</TableHead>
+                      <TableHead className="text-xs font-bold">Factura / Ref</TableHead>
+                      <TableHead className="text-xs font-bold text-right">Monto Original</TableHead>
+                      <TableHead className="text-xs font-bold text-right">Saldo Pendiente</TableHead>
+                      <TableHead className="text-xs font-bold text-right">Acción</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {receivables.map((r) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="font-bold">
-                          {r.invoiceNumber || `#${r.id.substring(0, 8)}`}
+                      <TableRow key={r.id} className="hover:bg-muted/40">
+                        <TableCell className="text-xs font-bold">
+                          {r.clientName || r.client?.name || 'Cliente'}
                         </TableCell>
-                        <TableCell className="font-bold text-sm">
-                          {r.clientName || 'Cliente'}
+                        <TableCell className="text-xs font-mono text-muted-foreground">
+                          {r.invoiceNumber || r.id.slice(0, 8)}
                         </TableCell>
-                        <TableCell className="text-right font-mono text-xs">
-                          C$ {Number(r.totalAmount || 0).toFixed(2)}
+                        <TableCell className="text-xs text-right font-mono">
+                          {formatCurrency(Number(r.amount || r.montoOriginal || 0))}
                         </TableCell>
-                        <TableCell className="text-right font-mono font-bold text-destructive">
-                          C$ {Number(r.currentBalance || 0).toFixed(2)}
+                        <TableCell className="text-xs text-right font-extrabold text-rose-600 font-mono">
+                          {formatCurrency(Number(r.balance || r.saldoPendiente || 0))}
                         </TableCell>
-                        <TableCell className="text-center">
+                        <TableCell className="text-right">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-7 text-xs font-bold gap-1"
-                            onClick={() => navigate(`/store/${storeId}/vendors/collections?clientId=${r.clientId}`)}
+                            className="h-7 text-xs font-bold"
+                            onClick={() =>
+                              navigate(
+                                `/store/${storeId}/vendors/collections?clientId=${r.clientId}`,
+                              )
+                            }
                           >
-                            <HandCoins className="h-3.5 w-3.5 text-emerald-600" /> Cobrar
+                            Cobrar
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -637,64 +637,27 @@ export default function SalesWorkspacePage() {
             )}
           </TabsContent>
 
-          {/* TAB 4: CONTRATOS & LÍMITES DE CRÉDITO */}
+          {/* TAB 4: CONTRATOS & CREDITO */}
           <TabsContent value="contracts" className="space-y-3 mt-0">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold flex items-center gap-2">
-                <FileText className="h-4 w-4 text-indigo-600" />
-                Configuración de Crédito y Contratos
+              <h3 className="text-sm font-bold flex items-center gap-1.5">
+                <FileText className="h-4 w-4 text-primary" /> Contratos & Acuerdos de Crédito
               </h3>
               <Button
+                variant="outline"
                 size="sm"
-                className="h-7 text-xs font-bold"
+                className="h-7 text-xs font-bold rounded-lg"
                 onClick={() => navigate(`/store/${storeId}/vendors/clients`)}
               >
-                Gestionar Límites en Clientes
+                <Users className="h-3.5 w-3.5 mr-1" /> Ir al Directorio 360°
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="rounded-2xl border bg-card p-5 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-emerald-100 text-emerald-700">
-                    <DollarSign className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">Asignación de Límites de Crédito</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Define los montos máximos a crédito por cliente y días de vencimiento.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  className="w-full font-bold text-xs"
-                  onClick={() => navigate(`/store/${storeId}/vendors/clients`)}
-                >
-                  Editar Créditos por Cliente
-                </Button>
-              </Card>
-
-              <Card className="rounded-2xl border bg-card p-5 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl bg-amber-100 text-amber-700">
-                    <CreditCard className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm">Cobranza y Recuperación</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Genera recibos de caja y aplica abonos a facturas pendientes.
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full font-bold text-xs"
-                  onClick={() => navigate(`/store/${storeId}/vendors/collections`)}
-                >
-                  Registrar Cobro / Abono
-                </Button>
-              </Card>
-            </div>
+            <EmptyState
+              title="Módulo de Contratos y Acuerdos de Crédito"
+              description="Gestiona términos de crédito, plazos de pago y líneas asignadas desde el Directorio de Clientes."
+              icon={FileText}
+            />
           </TabsContent>
         </Tabs>
       </div>
