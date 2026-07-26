@@ -350,8 +350,9 @@ SUBFASE N0.1 - Congelar el estado operativo actual
 [X][C][IA-NÚCLEO] N0.1.2 Backups antes/después del corte verificados.
 [X][C][IA-NÚCLEO] N0.1.3 PM2/Nginx/API/DB responden correctamente.
 [X][C][IA-NÚCLEO] N0.1.4 Cero huérfanos críticos.
-[ ][C][IA-NÚCLEO] N0.1.5 Crear un commit base controlado con los cambios del
+[X][C][IA-NÚCLEO] N0.1.5 Crear un commit base controlado con los cambios del
                          corte antes de integrar trabajo paralelo.
+                         Commit base: 9c57d91.
 
 CRITERIO DE SALIDA N0.1:
 
@@ -541,6 +542,27 @@ IA-NÚCLEO debe publicar antes de liberar P1:
 5. Campos opcionales/obligatorios.
 6. Ejemplos JSON.
 7. Regla de error recuperable.
+
+ESTADO CONTRACT-FREEZE-1 AL 2026-07-26 04:35 UTC:
+
+[ ] NO LIBERADO.
+
+Motivo:
+
+- N1 tiene un puente funcional compilado y migrado, pero todavía no constituye
+  el contrato final de N2/N3.
+- Falta route_clients canónico.
+- Falta modelo de carga y aceptación por custodia.
+- Falta entrega parcial por item e idempotencia de cierre.
+- Falta devolución IN_TRANSIT/RECEIVED.
+- Falta publicar los DTO y ejemplos finales.
+
+Regla para IA-PARALELA:
+
+- Puede continuar P0 con componentes puros.
+- No debe integrar API, estados ni payloads en páginas existentes.
+- El commit ccf1611 avanzó tareas visuales P2.3 antes del freeze; no ampliar
+  esa integración hasta que IA-NÚCLEO publique el contrato final.
 
 -------------------------------------------------------------------------------
 FASE N4 - CIERRE, COMPRAS E INTEGRIDAD RESTANTE
@@ -3292,5 +3314,165 @@ encima de 7/10 mientras exista cualquiera de estos cuatro bloqueantes:
 2. Rutero no puede completar entrega parcial con persistencia real.
 3. No existe aceptación de carga/inventario por custodia.
 4. Liquidación sigue consultando payments o no concilia inventario y efectivo.
+
+===============================================================================
+20. CORTE DE EJECUCIÓN IA-NÚCLEO - 2026-07-26 04:35 UTC
+===============================================================================
+
+LEYENDA:
+
+[X] terminado y verificado.
+[P] implementado parcialmente; no cumple aún todo el criterio de salida.
+[D] diferido expresamente para la máquina Flutter.
+[ ] pendiente.
+
+BASE OPERATIVA:
+
+[X] Base activa: sistema_de_inventario.
+[X] Backend/.env.dev apunta a sistema_de_inventario.
+[X] multitienda_db queda sólo para reversión; no es base operativa.
+[X] Commit base del corte: 9c57d91.
+[X] Commit concurrente que incorporó N1 + trabajo visual paralelo: ccf1611.
+
+N1.1 - ESTADOS Y VOCABULARIO:
+
+[X] shared/contracts.ts amplió estados de order, route, delivery, truck load,
+    route liquidation y visit.
+[X] backend/src/common/constants/enums.ts quedó alineado como puente.
+[X] React normaliza preventa -> sales-manager.
+[X] PostgreSQL normalizó routes: pending -> PENDING.
+[X] PostgreSQL normalizó 145 pending_deliveries: Pendiente -> PENDING.
+[X] PostgreSQL conservó 1 pending_delivery EN_RUTA.
+[X] Constraints de routes, pending_deliveries y liquidaciones_ruta validados.
+[P] Estados de carga final aún no están implementados en cargas_camion.
+[P] Los estados actuales son puente; el contrato final se publica con N2/N3.
+[D] Flutter todavía no consume estos contratos; hacerlo en otra máquina.
+
+N1.2 - CONTRATOS DE CAMPO:
+
+[X] POST /orders permite vendor/sales-manager y fuerza vendorId=req.user.sub.
+[X] GET /orders fuerza vendorId=req.user.sub para vendor/sales-manager.
+[X] GET /routes permite Gestor y fuerza vendorId=req.user.sub.
+[X] GET /pending-deliveries permite Rutero y fuerza ruteroId=req.user.sub.
+[X] GET /vendor-inventories/:vendorId permite Rutero y sustituye el parámetro
+    por req.user.sub.
+[X] PATCH /orders/:id/status permite al Rutero sólo ENTREGADO o RECHAZO_TOTAL,
+    y sólo cuando orders.rutero_id coincide con req.user.sub.
+[X] CxC de Gestor se filtra por clientes incluidos en sus routes.client_ids.
+[X] CxC de Rutero se filtra por clientes de pending_deliveries asignadas.
+[X] Cobros y resúmenes fuerzan ruteroId=req.user.sub.
+[P] Falta GET de carga aceptable por Rutero; vendor-inventories sólo cubre el
+    inventario ya transferido.
+[P] Falta entrega parcial por item.
+[P] Falta devolución IN_TRANSIT y recepción física.
+[P] Smoke de roles con token temporal devolvió HTTP 400; no se repitió por
+    instrucción del usuario. Build y arranque sí quedaron correctos.
+[D] Eliminar fallback Flutter que muestra todos los clientes cuando no hay
+    ruta. Archivo: flutter/lib/features/preventa/presentation/screens/
+    preventa_route_screen.dart.
+[D] Flutter debe dejar de confiar en vendorId/ruteroId enviados por pantalla.
+
+N1.3 - LIQUIDACIÓN:
+
+[X] Eliminada toda consulta operativa a la tabla inexistente payments en
+    liquidaciones-ruta y arqueos.
+[X] Ventas contado se calculan desde orders entregadas del Rutero.
+[X] Cobros a crédito se calculan desde collections.
+[X] Efectivo esperado suma sólo CONTADO + collections CASH/EFECTIVO.
+[X] TRANSFER/CHECK no se mezclan en efectivo esperado.
+[X] Devoluciones se totalizan desde returns.
+[X] create usa una sola transacción y advisory lock por
+    tienda/rutero/fecha.
+[X] Índice único evita liquidaciones duplicadas por tienda/rutero/fecha.
+[X] Reejecución usa UPSERT.
+[X] Un arqueo explícito debe coincidir con tienda, Rutero y fecha.
+[X] No se destruye el estado ENTREGADO del pedido al liquidar.
+[P] Falta flujo submit/review/approve y conciliación física de inventario.
+
+EVIDENCIA TÉCNICA DEL CORTE:
+
+[X] npm run build backend: correcto.
+[X] npm run build web: correcto.
+[X] Migración aplicada en sistema_de_inventario con COMMIT.
+[X] Misma migración aplicada en multitienda_db sólo para reversión coherente.
+[X] PM2 pino-api-dev reiniciado desde backend/dist/src/main.js.
+[X] Nest inició y registró los endpoints modificados.
+[X] /api/health respondió healthy, db=ok una vez después del reinicio.
+[ ] CONTRACT-FREEZE-1: NO LIBERADO.
+
+SIGUIENTE TRABAJO IA-NÚCLEO:
+
+1. N2.1 route_clients, route_type e historial de asignación.
+2. N2.2 tablas detalle de carga y custodia.
+3. N2.3 resultados de entrega por item.
+4. N2.4 devolución IN_TRANSIT/RECEIVED.
+5. N3.2 aceptación de carga idempotente.
+6. N3.3 complete de entrega transaccional.
+7. N3.4 idempotencia transversal.
+8. Publicar endpoints/DTO/JSON y liberar CONTRACT-FREEZE-1.
+
+===============================================================================
+21. FASE FLUTTER DIFERIDA - EJECUTAR EN OTRA MÁQUINA
+===============================================================================
+
+No ejecutar Flutter en este VPS. La máquina Flutter debe comenzar sólo después
+de recibir el aviso literal: CONTRACT-FREEZE-1 LIBERADO.
+
+SUBFASE F-M0 - PREPARACIÓN
+
+[ ] Hacer checkout del commit de freeze indicado por IA-NÚCLEO.
+[ ] Ejecutar flutter pub get.
+[ ] Ejecutar dart format únicamente en archivos Flutter modificados.
+[ ] Confirmar URL/basePath del API para el ambiente de la nueva máquina.
+[ ] No copiar credenciales ni DATABASE_URL dentro de Dart.
+
+SUBFASE F-M1 - ROLES Y CONTRATOS
+
+[ ] En flutter/lib/core/utils/role_utils.dart normalizar preventa a
+    AppRole.salesManager.
+[ ] No tratar preventa como rol persistido independiente.
+[ ] Crear flutter/lib/core/contracts/field_contracts.dart con los valores
+    exactos publicados en CONTRACT-FREEZE-1.
+[ ] Mapear errores recuperables de offline sin traducir los códigos.
+
+SUBFASE F-M2 - GESTOR
+
+[ ] En preventa_route_screen.dart filtrar rutas por session.user.id y fecha.
+[ ] Si no existe ruta asignada, mostrar lista vacía.
+[ ] Eliminar definitivamente: routeClientIds.isEmpty ? clients : ...
+[ ] Mostrar mensaje práctico: "No tienes una ruta asignada para hoy".
+[ ] POST /orders conserva externalId UUID local.
+[ ] No usar vendorId de un selector; usar sesión sólo como dato visual.
+[ ] Mantener el pedido en outbox hasta respuesta definitiva/idempotente.
+
+SUBFASE F-M3 - RUTERO
+
+[ ] GET de carga/entregas no debe enviar IDs seleccionables de otro Rutero.
+[ ] Implementar aceptar carga con externalId.
+[ ] Guardar snapshot de unidades/bultos aceptados en Drift.
+[ ] Entrega completa y parcial envían resultados por item.
+[ ] Rechazo crea devolución en tránsito; no repone bodega desde Flutter.
+[ ] Cobro usa externalId y conserva CASH/TRANSFER/CHECK.
+[ ] Cierre de ruta queda en outbox hasta confirmación del backend.
+
+SUBFASE F-M4 - DRIFT/OFFLINE
+
+[ ] Migración aditiva; no borrar tablas ni colas locales existentes.
+[ ] Unique local por externalId + operationType.
+[ ] Estados: pending, processing, synced, retryable_error, conflict.
+[ ] Un HTTP 4xx de negocio no se elimina de la cola.
+[ ] Un timeout posterior al commit se reintenta con el mismo externalId.
+[ ] Sincronización nunca cambia clientId/vendorId/ruteroId por datos de UI.
+
+SUBFASE F-M5 - SALIDA
+
+[ ] flutter analyze sin errores nuevos.
+[ ] APK debug instala y abre.
+[ ] Gestor sin ruta ve cero clientes.
+[ ] Gestor con ruta ve únicamente su cartera.
+[ ] Rutero ve sólo su carga y entregas.
+[ ] Modo avión conserva pedido/cobro/entrega.
+[ ] Reconexión no duplica ninguna operación.
+[ ] Entregar commit Flutter separado, sin editar backend, SQL o React.
 
 FIN DEL PLAN.
