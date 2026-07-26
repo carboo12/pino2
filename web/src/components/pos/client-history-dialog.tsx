@@ -349,9 +349,12 @@ export function ClientHistoryDialog({
                   </Table>
                 </div>
               ) : (
-                <div className="py-4 text-center flex flex-col items-center text-muted-foreground">
-                  <Package className="h-8 w-8 mb-2 opacity-30" />
-                  <p>Sin detalle de líneas de producto.</p>
+                <div className="py-6 px-4 text-center flex flex-col items-center justify-center border rounded-xl bg-muted/20 space-y-2">
+                  <Package className="h-8 w-8 opacity-40 text-primary" />
+                  <p className="font-bold text-sm">Comprobante de Resumen Legacy (Factura Consolidada)</p>
+                  <p className="text-xs text-muted-foreground max-w-md">
+                    Este registro histórico fue importado desde el sistema anterior como una factura de monto total consolidado (C$ {Number(detailOrder.total || 0).toFixed(2)}) por lo que no posee desglose individual de SKUs en el sistema origen.
+                  </p>
                 </div>
               )}
 
