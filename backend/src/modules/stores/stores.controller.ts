@@ -46,7 +46,7 @@ export class StoresController {
     return this.storesService.findAll(chainId);
   }
 
-  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get(':id')
   @ApiOperation({ summary: 'Detalle de una tienda específica' })
   findOne(@Param('id') id: string) {

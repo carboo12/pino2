@@ -102,7 +102,7 @@ while IFS='|' read -r idx method path file; do
   url_raw="$BASE_URL$path"
   
   # Replace path params with test values (only within path, not https://)
-  url=$(echo "$url_raw" | sed "s/:storeId/$SID/g" | sed "s/:id/$SID/g" | sed "s/:orderId/$ORD_ID/g" | sed "s/:productId/$PRD_ID/g" | sed "s/:clientId/$CLT_ID/g" | sed "s/:userId/$USR_ID/g" | sed "s/:vendorId/$USR_ID/g" | sed "s/:ruteroId/$USR_ID/g")
+  url=$(echo "$url_raw" | sed "s/:storeId/$SID/g" | sed "s/:id/$SID/g" | sed "s/:orderId/$ORD_ID/g" | sed "s/:productId/$PRD_ID/g" | sed "s/:clientId/$CLT_ID/g" | sed "s/:userId/$USR_ID/g" | sed "s/:vendorId/$USR_ID/g" | sed "s/:ruteroId/$USR_ID/g" | sed "s/:barcodeId/95e08cc6-31ad-4526-9a80-585fd53c8a5e/g" | sed "s/:barcode/74120007/g" | sed "s/:key/test_key/g")
   
   # Count remaining colon params (skip https://)
   remaining=$(echo "$url" | grep -o "/:[a-zA-Z]" | wc -l)

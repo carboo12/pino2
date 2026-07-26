@@ -1,7 +1,7 @@
 
 ========================================
 PINO2 — Endpoint Test Results
-Date: Sat 25 Jul 2026 11:21:11 PM UTC
+Date: Sun 26 Jul 2026 01:40:56 AM UTC
 ========================================
 
 ----------------------------------------
@@ -56,8 +56,8 @@ Individual Endpoint Results:
 ✅ PASS | GET | /collections/summary | 200 | src/modules/collections/collections.controller.ts
 ✅ PASS | POST | /collections | 200 | src/modules/collections/collections.controller.ts
 ✅ PASS | GET | /config | 200 | src/modules/config/config.controller.ts
-⚠ SKIP | GET | /config/:key | Dynamic params
-⚠ SKIP | PUT | /config/:key | Dynamic params
+✅ PASS | GET | /config/:key | 200 | src/modules/config/config.controller.ts
+✅ PASS | PUT | /config/:key | 200 | src/modules/config/config.controller.ts
 ✅ PASS | GET | /contracts | 200 | src/modules/contracts/contracts.controller.ts
 ⚠ ACCEPTABLE | GET | /contracts/:id | 404 | src/modules/contracts/contracts.controller.ts
 ⚠ ACCEPTABLE | PATCH | /contracts/:id | 404 | src/modules/contracts/contracts.controller.ts
@@ -136,15 +136,15 @@ Individual Endpoint Results:
 ⚠ ACCEPTABLE | PATCH | /pending-orders/:id/status | 404 | src/modules/pending-orders/pending-orders.controller.ts
 ✅ PASS | POST | /pending-orders | 200 | src/modules/pending-orders/pending-orders.controller.ts
 ⚠ ACCEPTABLE | POST | /pending-orders/dispatch | 404 | src/modules/pending-orders/pending-orders.controller.ts
-⚠ SKIP | DELETE | /products/barcodes/:barcodeId | Dynamic params
+⚠ ACCEPTABLE | DELETE | /products/barcodes/:barcodeId | 404 | src/modules/product-barcodes/product-barcodes.controller.ts
 ✅ PASS | GET | /product-barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
 ✅ PASS | GET | /products/:id/barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
-⚠ SKIP | PATCH | /products/barcodes/:barcodeId/primary | Dynamic params
+⚠ ACCEPTABLE | PATCH | /products/barcodes/:barcodeId/primary | 404 | src/modules/product-barcodes/product-barcodes.controller.ts
 ✅ PASS | POST | /products/:id/barcodes | 200 | src/modules/product-barcodes/product-barcodes.controller.ts
 ⚠ ACCEPTABLE | DELETE | /products/:id | 404 | src/modules/products/products.controller.ts
 ✅ PASS | GET | /products | 200 | src/modules/products/products.controller.ts
 ⚠ ACCEPTABLE | GET | /products/:id | 404 | src/modules/products/products.controller.ts
-⚠ SKIP | GET | /products/barcode/:barcode | Dynamic params
+⚠ ACCEPTABLE | GET | /products/barcode/:barcode | 404 | src/modules/products/products.controller.ts
 ⚠ ACCEPTABLE | PATCH | /products/:id | 404 | src/modules/products/products.controller.ts
 ✅ PASS | POST | /products | 200 | src/modules/products/products.controller.ts
 ⚠ ACCEPTABLE | POST | /products/import | 400 | src/modules/products/products.controller.ts
@@ -225,8 +225,8 @@ Individual Endpoint Results:
 SUMMARY
 ========================================
 Total: 213
-Pass:  208
+Pass:  213
 Fail:  0
-Skip:  5
-Date:  Sat 25 Jul 2026 11:21:17 PM UTC
+Skip:  0
+Date:  Sun 26 Jul 2026 01:41:03 AM UTC
 ========================================
