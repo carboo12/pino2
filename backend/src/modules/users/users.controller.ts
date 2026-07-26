@@ -32,7 +32,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier')
   @ApiOperation({ summary: 'Listar usuarios con filtros opcionales' })
   findAll(@Query('storeId') storeId?: string, @Query('role') role?: string, @Query('limit') limit?: string) {
     return this.service.findAll(storeId, role, limit ? parseInt(limit, 10) : undefined);

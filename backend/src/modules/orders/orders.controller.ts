@@ -32,7 +32,7 @@ export class OrdersController {
     return this.service.create(dto);
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory')
   @Get()
   @ApiOperation({ summary: 'Listar pedidos con filtros' })
   findAll(
