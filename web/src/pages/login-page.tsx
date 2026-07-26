@@ -35,16 +35,19 @@ export default function LoginPage() {
   if (user) {
     const role = normalizeUserRole(user.role);
     const storeId = user.storeIds?.[0];
-    const workspaceMap: Record<string, string> = {
-      'store-admin': 'admin', cashier: 'cash', inventory: 'warehouse',
-      dispatcher: 'warehouse', vendor: 'sales', 'sales-manager': 'sales', rutero: 'sales',
+    const rolePathMap: Record<string, string> = {
+      'master-admin': '/master-admin/dashboard',
+      owner: '/master-admin/dashboard',
+      'chain-admin': '/chain-admin/dashboard',
+      'store-admin': '/master-admin/dashboard',
+      cashier: `/store/${storeId}/billing`,
+      inventory: `/store/${storeId}/warehouse`,
+      dispatcher: `/store/${storeId}/dispatcher`,
+      vendor: `/store/${storeId}/vendors/quick-sale`,
+      'sales-manager': `/store/${storeId}/vendors/dashboard`,
+      rutero: `/store/${storeId}/delivery-route`,
     };
-    let redirectPath = '/master-admin/dashboard';
-    if (role === 'master-admin' || role === 'owner') {
-      redirectPath = '/master-admin/dashboard';
-    } else if (storeId) {
-      redirectPath = `/store/${storeId}/work/${workspaceMap[role] || 'cash'}`;
-    }
+    const redirectPath = rolePathMap[role] || '/master-admin/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
