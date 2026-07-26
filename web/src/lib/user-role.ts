@@ -32,7 +32,6 @@ export const normalizeUserRole = (value?: string | null): NormalizedUserRole => 
     case 'inventory':
     case 'warehouse':
     case 'bodeguero':
-    case 'ayudante-de-bodega':
       return 'inventory';
     case 'dispatcher':
     case 'despacho':
@@ -53,6 +52,7 @@ export const normalizeUserRole = (value?: string | null): NormalizedUserRole => 
       return 'sales-manager';
     case 'auxiliar':
     case 'auxiliar-administrativo':
+    case 'ayudante-de-bodega':
       return 'auxiliar';
     case 'supervisor-caja':
     case 'supervisor-de-caja':

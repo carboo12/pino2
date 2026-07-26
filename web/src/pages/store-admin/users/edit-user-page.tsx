@@ -53,11 +53,13 @@ const AVAILABLE_PERMISSIONS = [
 ];
 
 const STORE_ROLE_OPTIONS = [
-  { value: 'Cashier', label: 'CAJERO' },
-  { value: 'Bodeguero', label: 'BODEGUERO' },
-  { value: 'Ayudante de Bodega', label: 'AYUDANTE DE BODEGA' },
-  { value: 'auxiliar', label: 'AUXILIAR ADMIN' },
-  { value: 'store-admin', label: 'ADMINISTRADOR DE TIENDA' },
+  { value: 'cashier', label: 'CAJERO' },
+  { value: 'inventory', label: 'ANALISTA / AUDITOR DE INVENTARIO' },
+  { value: 'auxiliar', label: 'AUXILIAR DE RECEPCIÓN Y DESPACHO' },
+  { value: 'store-admin', label: 'JEFE / ENCARGADO DE BODEGA' },
+  { value: 'vendor', label: 'VENDEDOR (COMPATIBILIDAD)' },
+  { value: 'sales-manager', label: 'GESTOR DE VENTAS' },
+  { value: 'rutero', label: 'RUTERO / REPARTIDOR' },
   { value: 'supervisor-caja', label: 'SUPERVISOR DE CAJA' },
   { value: 'supervisor-pasillo', label: 'SUPERVISOR DE PASILLO' },
 ];
@@ -66,9 +68,6 @@ const MASTER_ROLE_OPTIONS = [
   { value: 'master-admin', label: 'MASTER ADMIN' },
   { value: 'chain-admin', label: 'CHAIN ADMIN' },
   ...STORE_ROLE_OPTIONS,
-  { value: 'Vendedor Ambulante', label: 'VENDEDOR AMBULANTE' },
-  { value: 'Gestor de Ventas', label: 'GESTOR DE VENTAS' },
-  { value: 'Rutero', label: 'RUTERO' },
 ];
 
 export default function EditUserPage() {
@@ -88,7 +87,7 @@ export default function EditUserPage() {
     defaultValues: {
       name: '',
       email: '',
-      role: 'Cashier',
+      role: 'cashier',
       permissions: [],
     },
   });
@@ -102,7 +101,7 @@ export default function EditUserPage() {
         form.reset({
           name: data.name || '',
           email: data.email || '',
-          role: data.role as any || 'Cashier',
+          role: data.role as any || 'cashier',
           permissions: data.permissions || [],
         });
         setAssignedStores(data.stores || []);

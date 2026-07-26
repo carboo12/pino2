@@ -107,6 +107,7 @@ const getStoreAdminNav = (storeId: string): NavItem[] => [
 // --- Simple role navs (already compact) ---
 const getBodegueroNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Conteo ciego', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
   { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
 ];
 
@@ -121,7 +122,6 @@ const getDespachoNav = (storeId: string): NavItem[] => [
 
 const getAuxiliarNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
 ];
 
 const getSupervisorCajaNav = (storeId: string): NavItem[] => [

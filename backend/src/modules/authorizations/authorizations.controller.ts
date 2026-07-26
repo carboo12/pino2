@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -14,6 +15,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { CreateAuthorizationDto } from './authorizations.dto';
 
 @ApiTags('Authorizations')
 @ApiBearerAuth()
@@ -22,19 +24,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class AuthorizationsController {
   constructor(private readonly service: AuthorizationsService) {}
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'inventory')
   @Post()
   @ApiOperation({ summary: 'Crear solicitud de autorización' })
-  create(
-    @Body()
-    dto: {
-      storeId: string;
-      requesterId: string;
-      type: string;
-      details: any;
-    },
-  ) {
-    return this.service.create(dto);
+  create(@Body() dto: CreateAuthorizationDto, @Req() req: any) {
+    return this.service.create({
+      ...dto,
+      requesterId: req.user.sub,
+    });
   }
 
   @Roles('master-admin', 'store-admin')
@@ -49,8 +46,18 @@ export class AuthorizationsController {
   @ApiOperation({ summary: 'Aprobar o rechazar autorización' })
   updateStatus(
     @Param('id') id: string,
-    @Body() dto: { status: 'APPROVED' | 'REJECTED' },
+    @Body()
+    dto: {
+      status: 'APPROVED' | 'REJECTED';
+      resolutionNote?: string;
+    },
+    @Req() req: any,
   ) {
-    return this.service.updateStatus(id, dto.status);
+    return this.service.updateStatus(
+      id,
+      dto.status,
+      req.user.sub,
+      dto.resolutionNote,
+    );
   }
 }

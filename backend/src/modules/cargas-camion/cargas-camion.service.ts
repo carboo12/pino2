@@ -363,13 +363,16 @@ export class CargasCamionService {
   }
 
   async findAll(storeId: string, fecha?: string, ruteroId?: string) {
-    let sql = 'SELECT * FROM cargas_camion WHERE store_id = $1';
+    let sql = `SELECT cc.*, u.name AS rutero_name
+               FROM cargas_camion cc
+               LEFT JOIN users u ON u.id = cc.rutero_id
+               WHERE cc.store_id = $1`;
     const params: any[] = [storeId];
     if (fecha)
-      sql += ` AND fecha_carga = $${params.push(fecha)}::date`;
+      sql += ` AND cc.fecha_carga = $${params.push(fecha)}::date`;
     if (ruteroId)
-      sql += ` AND rutero_id = $${params.push(ruteroId)}`;
-    sql += ' ORDER BY created_at DESC';
+      sql += ` AND cc.rutero_id = $${params.push(ruteroId)}`;
+    sql += ' ORDER BY cc.created_at DESC';
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }
@@ -456,6 +459,147 @@ export class CargasCamionService {
       );
       await this.insertEvent(client, id, 'ACCEPTANCE_RECONCILED', actorId, {});
     });
+    return this.findOne(id);
+  }
+
+  async reassign(
+    id: string,
+    newRuteroId: string,
+    reason: string,
+    actorId: string,
+  ) {
+    const cleanReason = String(reason || '').trim();
+    if (cleanReason.length < 3) {
+      throw new BadRequestException(
+        'Debe indicar el motivo de la reasignación',
+      );
+    }
+
+    await this.db.withTransaction(async (client) => {
+      const carga = await this.lockLoad(client, id);
+      const allowedStatuses = [
+        'PLANNED',
+        'PICKING',
+        'LOADED',
+        'PENDING_ACCEPTANCE',
+        'ACCEPTED',
+        'EN_ROUTE',
+      ];
+      if (!allowedStatuses.includes(carga.status)) {
+        throw new ConflictException(
+          `La carga no puede reasignarse desde ${carga.status}`,
+        );
+      }
+      if (carga.rutero_id === newRuteroId) {
+        throw new ConflictException('La carga ya pertenece a este Rutero');
+      }
+
+      const target = await client.query(
+        `SELECT u.id
+         FROM users u
+         JOIN user_stores us ON us.user_id = u.id
+         WHERE u.id = $1 AND us.store_id = $2
+           AND u.role = 'rutero' AND u.is_active = true`,
+        [newRuteroId, carga.store_id],
+      );
+      if (target.rowCount !== 1) {
+        throw new BadRequestException(
+          'El nuevo Rutero no está activo en esta tienda',
+        );
+      }
+
+      if (['ACCEPTED', 'EN_ROUTE'].includes(carga.status)) {
+        const remaining = await client.query(
+          `SELECT ci.product_id,
+                  ci.units_per_bulk_snapshot,
+                  GREATEST(
+                    ci.accepted_units -
+                    COALESCE(SUM(dir.delivered_units), 0),
+                    0
+                  )::int AS remaining_units
+           FROM carga_camion_items ci
+           LEFT JOIN pending_deliveries pd
+             ON pd.carga_id = ci.carga_id
+           LEFT JOIN delivery_item_results dir
+             ON dir.delivery_id = pd.id
+            AND dir.product_id = ci.product_id
+           WHERE ci.carga_id = $1
+           GROUP BY ci.id, ci.product_id, ci.units_per_bulk_snapshot,
+                    ci.accepted_units
+           ORDER BY ci.product_id`,
+          [id],
+        );
+
+        for (const item of remaining.rows) {
+          const units = Number(item.remaining_units);
+          if (units <= 0) continue;
+          const unitsPerBulk = Math.max(
+            Number(item.units_per_bulk_snapshot),
+            1,
+          );
+          const source = await client.query(
+            `UPDATE vendor_inventories
+             SET assigned_quantity = assigned_quantity - $1,
+                 assigned_bulks = (assigned_quantity - $1)::int / $2,
+                 assigned_units = (assigned_quantity - $1)::int % $2,
+                 current_quantity = current_quantity - $1,
+                 current_bulks = (current_quantity - $1)::int / $2,
+                 current_units = (current_quantity - $1)::int % $2,
+                 updated_at = NOW()
+             WHERE store_id = $3 AND vendor_id = $4 AND product_id = $5
+               AND current_quantity >= $1 AND assigned_quantity >= $1
+             RETURNING id`,
+            [
+              units,
+              unitsPerBulk,
+              carga.store_id,
+              carga.rutero_id,
+              item.product_id,
+            ],
+          );
+          if (source.rowCount !== 1) {
+            throw new ConflictException(
+              `El inventario en custodia del Rutero anterior no permite transferir ${item.product_id}`,
+            );
+          }
+          await this.addVendorInventory(
+            client,
+            carga.store_id,
+            newRuteroId,
+            item.product_id,
+            units,
+            unitsPerBulk,
+          );
+        }
+      }
+
+      await client.query(
+        `UPDATE cargas_camion
+         SET rutero_id = $2, version = version + 1, updated_at = NOW()
+         WHERE id = $1`,
+        [id, newRuteroId],
+      );
+      await client.query(
+        `UPDATE orders
+         SET rutero_id = $2, updated_at = NOW()
+         WHERE grupo_carga_id = $1`,
+        [id, newRuteroId],
+      );
+      await client.query(
+        `UPDATE pending_deliveries
+         SET rutero_id = $2, updated_at = NOW()
+         WHERE carga_id = $1
+           AND status NOT IN ('DELIVERED', 'PARTIAL', 'REJECTED', 'CANCELLED')`,
+        [id, newRuteroId],
+      );
+      await this.insertEvent(client, id, 'REASSIGNED', actorId, {
+        fromRuteroId: carga.rutero_id,
+        toRuteroId: newRuteroId,
+        reason: cleanReason,
+        status: carga.status,
+      });
+    });
+
     return this.findOne(id);
   }
 
@@ -652,6 +796,7 @@ export class CargasCamionService {
       id: row.id,
       storeId: row.store_id,
       ruteroId: row.rutero_id,
+      ruteroName: row.rutero_name,
       camionPlaca: row.camion_placa,
       fechaCarga: row.fecha_carga,
       fechaSalida: row.fecha_salida,

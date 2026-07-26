@@ -72,6 +72,9 @@ const InventoryMovementsPage = lazy(
 const InventoryAdjustmentsPage = lazy(
   () => import("@/pages/store-admin/inventory/inventory-adjustments-page"),
 );
+const InventoryCountsPage = lazy(
+  () => import("@/pages/store-admin/inventory/inventory-counts-page"),
+);
 const SuppliersPage = lazy(
   () => import("@/pages/store-admin/suppliers/suppliers-page"),
 );
@@ -281,6 +284,12 @@ const MASTER_ROLES: NormalizedUserRole[] = ["master-admin", "owner"];
 const STORE_ADMIN_ROLES: NormalizedUserRole[] = ["store-admin"];
 const CASHIER_ROLES: NormalizedUserRole[] = ["cashier", "store-admin"];
 const INVENTORY_ROLES: NormalizedUserRole[] = ["inventory", "store-admin"];
+const AUXILIAR_ROLES: NormalizedUserRole[] = ["auxiliar", "store-admin"];
+const WAREHOUSE_ROLES: NormalizedUserRole[] = [
+  "inventory",
+  "auxiliar",
+  "store-admin",
+];
 const DISPATCH_ROLES: NormalizedUserRole[] = [
   "dispatcher",
   "store-admin",
@@ -383,7 +392,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <ProductsPage />
                           </ProtectedRoute>
@@ -394,7 +403,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <AddProductPage />
                           </ProtectedRoute>
@@ -405,7 +414,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <ImportProductsPage />
                           </ProtectedRoute>
@@ -416,7 +425,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <EditProductPage />
                           </ProtectedRoute>
@@ -427,7 +436,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <DepartmentsPage />
                           </ProtectedRoute>
@@ -438,7 +447,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <SubDepartmentsPage />
                           </ProtectedRoute>
@@ -494,9 +503,20 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <InventoryAdjustmentsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/inventory/counts"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={INVENTORY_ROLES}
+                          >
+                            <InventoryCountsPage />
                           </ProtectedRoute>
                         }
                       />
@@ -505,7 +525,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={AUXILIAR_ROLES}
                           >
                             <InventoryEntryPage />
                           </ProtectedRoute>
@@ -593,7 +613,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={STORE_ADMIN_ROLES}
+                            allowedRoles={AUXILIAR_ROLES}
                           >
                             <CargasPage />
                           </ProtectedRoute>
@@ -604,7 +624,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={STORE_ADMIN_ROLES}
+                            allowedRoles={AUXILIAR_ROLES}
                           >
                             <SettlementPage />
                           </ProtectedRoute>
@@ -659,7 +679,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={WAREHOUSE_ROLES}
                           >
                             <WarehouseDashboardPage />
                           </ProtectedRoute>
@@ -913,7 +933,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={WAREHOUSE_ROLES}
                           >
                             <WarehouseWorkspacePage />
                           </ProtectedRoute>
@@ -1068,7 +1088,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={INVENTORY_ROLES}
+                            allowedRoles={WAREHOUSE_ROLES}
                           >
                             <PurchaseOrdersPage />
                           </ProtectedRoute>

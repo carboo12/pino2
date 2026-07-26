@@ -51,6 +51,8 @@ export default function CatalogWorkspacePage() {
   const { storeId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const role = normalizeUserRole(user?.role);
+  const canManageCatalog = ['master-admin', 'owner', 'store-admin'].includes(role);
   const [searchTerm, setSearchTerm] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -147,9 +149,11 @@ export default function CatalogWorkspacePage() {
           storeName={user?.storeName}
           actions={
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={() => navigate(`/store/${storeId}/products/add`)}>
-                <Plus className="mr-1 h-4 w-4" /> Crear
-              </Button>
+              {canManageCatalog && (
+                <Button size="sm" onClick={() => navigate(`/store/${storeId}/products/add`)}>
+                  <Plus className="mr-1 h-4 w-4" /> Crear
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/warehouse`)}>
                 <Boxes className="mr-1 h-4 w-4" /> Bodega
               </Button>
@@ -288,9 +292,11 @@ export default function CatalogWorkspacePage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-semibold text-[#DC2626]">{p.stockDisplay?.formatted || calculateStockDisplay(p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}</span>
-                    <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/inventory/adjustments?productId=${p.id}`)}>
-                      Ajustar
-                    </Button>
+                    {canManageCatalog && (
+                      <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/inventory/adjustments?productId=${p.id}`)}>
+                        Ajustar
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

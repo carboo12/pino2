@@ -39,6 +39,41 @@ import {
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  private hideFinancialFields(value: any): any {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.hideFinancialFields(item));
+    }
+    if (!value || typeof value !== 'object') return value;
+
+    const sanitized: Record<string, any> = {};
+    const blocked = new Set([
+      'costPrice',
+      'cost_price',
+      'salePrice',
+      'sale_price',
+      'wholesalePrice',
+      'wholesale_price',
+      'averageCost',
+      'average_cost',
+      'margin',
+      'price1',
+      'price2',
+      'price3',
+      'price4',
+      'price5',
+    ]);
+    for (const [key, child] of Object.entries(value)) {
+      if (!blocked.has(key)) {
+        sanitized[key] = this.hideFinancialFields(child);
+      }
+    }
+    return sanitized;
+  }
+
+  private productResponseForRole(value: any, role?: string) {
+    return role === 'auxiliar' ? this.hideFinancialFields(value) : value;
+  }
+
   @Roles('master-admin', 'store-admin')
   @Post()
   @ApiOperation({ summary: 'Crear un producto en la tienda' })
@@ -83,7 +118,7 @@ export class ProductsController {
   @ApiOperation({
     summary: 'Listar productos con filtro de búsqueda y categorías',
   })
-  findAll(
+  async findAll(
     @Query('storeId') storeId: string,
     @Query('search') search?: string,
     @Query('departmentId') departmentId?: string,
@@ -94,11 +129,12 @@ export class ProductsController {
     @Query('pageSize') pageSize?: string,
     @Query('usesInventory') usesInventory?: string,
     @Query('stockCritical') stockCritical?: string,
+    @Req() req?: any,
   ) {
     const usesInventoryFilter = usesInventory !== undefined ? usesInventory === 'true' : undefined;
     const stockCriticalFilter = stockCritical !== undefined ? stockCritical === 'true' : undefined;
     if (page) {
-      return this.productsService.findPaginated(
+      const result = await this.productsService.findPaginated(
         storeId,
         search,
         departmentId,
@@ -112,8 +148,9 @@ export class ProductsController {
         usesInventoryFilter,
         stockCriticalFilter,
       );
+      return this.productResponseForRole(result, req?.user?.role);
     }
-    return this.productsService.findAll(
+    const result = await this.productsService.findAll(
       storeId,
       search,
       departmentId,
@@ -123,24 +160,31 @@ export class ProductsController {
       usesInventoryFilter,
       stockCriticalFilter,
     );
+    return this.productResponseForRole(result, req?.user?.role);
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get('barcode/:barcode')
   @ApiOperation({ summary: 'Buscar producto por código de barras' })
-  findByBarcode(
+  async findByBarcode(
     @Query('storeId') storeId: string,
     @Param('barcode') barcode: string,
+    @Req() req: any,
   ) {
-    return this.productsService.findByBarcode(storeId, barcode);
+    const result = await this.productsService.findByBarcode(storeId, barcode);
+    return this.productResponseForRole(result, req.user?.role);
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un producto' })
   @ApiOkResponse({ type: ProductResponseDto })
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productsService.findOne(id);
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
+    const result = await this.productsService.findOne(id);
+    return this.productResponseForRole(result, req.user?.role);
   }
 
   @Roles('master-admin', 'store-admin')

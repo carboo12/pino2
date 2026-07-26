@@ -108,3 +108,38 @@ export class AjusteDto {
   @IsOptional()
   reference?: string;
 }
+
+export class CreateInventoryCountDto {
+  @IsUUID('all')
+  storeId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @IsString()
+  @IsOptional()
+  zoneLabel?: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
+}
+
+export class RecordInventoryCountItemDto {
+  @IsUUID('all')
+  productId!: string;
+
+  @IsInt()
+  @Min(0)
+  countedUnits!: number;
+}
+
+export class RequestInventoryAdjustmentDto {
+  @IsUUID('all')
+  productId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  reason!: string;
+}

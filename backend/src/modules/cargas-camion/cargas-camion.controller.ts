@@ -14,6 +14,7 @@ import {
   AcceptCargaDto,
   ConfirmCargaDto,
   CreateCargaCamionDto,
+  ReassignCargaDto,
 } from './cargas-camion.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
@@ -55,7 +56,7 @@ export class CargasCamionController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('master-admin', 'store-admin', 'auxiliar')
   @Put(':id/confirm-load')
   confirmLoad(
     @Param('id') id: string,
@@ -80,10 +81,20 @@ export class CargasCamionController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('master-admin', 'store-admin', 'auxiliar')
   @Put(':id/reconcile')
   reconcile(@Param('id') id: string, @Req() req: any) {
     return this.service.reconcileAcceptanceDifference(id, req.user.sub);
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Put(':id/reassign')
+  reassign(
+    @Param('id') id: string,
+    @Body() dto: ReassignCargaDto,
+    @Req() req: any,
+  ) {
+    return this.service.reassign(id, dto.ruteroId, dto.reason, req.user.sub);
   }
 
   @Roles('master-admin', 'store-admin')

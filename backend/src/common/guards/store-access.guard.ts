@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { normalizeUserRole } from '../utils/user-role.util';
 
 export type RequestContext = {
   userId: string;
@@ -29,8 +30,11 @@ export class StoreAccessGuard implements CanActivate {
       request.query?.storeId ||
       request.body?.storeId;
 
-    // Master admins can access any store (must provide storeId explicitly)
-    if (user.role === 'master-admin') {
+    const normalizedRole = normalizeUserRole(user.role);
+    if (normalizedRole) user.role = normalizedRole;
+
+    // Global admins can access any store (must provide storeId explicitly)
+    if (normalizedRole === 'master-admin' || normalizedRole === 'owner') {
       if (storeId) {
         request.context = { userId: user.sub, role: user.role, storeIds: user.storeIds || [], activeStoreId: storeId };
       }

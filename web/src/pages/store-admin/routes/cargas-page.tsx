@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { useAuth } from '@/contexts/auth-context';
+import { normalizeUserRole } from '@/lib/user-role';
+import { extractData } from '@/lib/paginated-fetch';
 
 interface CargaItem {
   id: string; productId: string; plannedUnits: number; loadedUnits: number;
@@ -17,7 +20,13 @@ interface CargaItem {
 interface Carga {
   id: string; storeId: string; ruteroId: string; ruteroName?: string;
   camionPlaca: string; status: string; version: number;
-  orderIds: string[]; fechaEntrega: string; items: CargaItem[];
+  totalPedidos: number; fechaCarga: string;
+}
+
+interface Rutero {
+  id: string;
+  name: string;
+  role: string;
 }
 
 const statusLabels: Record<string, string> = {
@@ -35,12 +44,20 @@ const statusColors: Record<string, string> = {
 
 export default function CargasPage() {
   const { storeId } = useParams<{ storeId: string }>();
+  const { user } = useAuth();
+  const canReassign = ['master-admin', 'owner', 'store-admin'].includes(
+    normalizeUserRole(user?.role),
+  );
   const [cargas, setCargas] = useState<Carga[]>([]);
+  const [ruteros, setRuteros] = useState<Rutero[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [search, setSearch] = useState('');
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [reassigning, setReassigning] = useState<string | null>(null);
+  const [targetRutero, setTargetRutero] = useState<Record<string, string>>({});
+  const [reassignReason, setReassignReason] = useState<Record<string, string>>({});
 
   const fetchCargas = useCallback(async () => {
     if (!storeId) return;
@@ -52,6 +69,14 @@ export default function CargasPage() {
   }, [storeId]);
 
   useEffect(() => { fetchCargas(); }, [fetchCargas]);
+
+  useEffect(() => {
+    if (!storeId || !canReassign) return;
+    apiClient
+      .get('/users', { params: { storeId, role: 'rutero', limit: 200 } })
+      .then((res) => setRuteros(extractData<Rutero>(res.data)))
+      .catch(() => setRuteros([]));
+  }, [storeId, canReassign]);
 
   const handleConfirmLoad = async (cargaId: string) => {
     setConfirming(cargaId);
@@ -71,6 +96,30 @@ export default function CargasPage() {
       fetchCargas();
     } catch (err: any) {
       toast.error('Error', err?.response?.data?.message || 'No se pudo autorizar');
+    }
+  };
+
+  const handleReassign = async (cargaId: string) => {
+    const ruteroId = targetRutero[cargaId];
+    const reason = (reassignReason[cargaId] || '').trim();
+    if (!ruteroId || reason.length < 3) {
+      toast.error('Datos incompletos', 'Selecciona el Rutero e indica el motivo');
+      return;
+    }
+    setReassigning(cargaId);
+    try {
+      await apiClient.put(`/cargas-camion/${cargaId}/reassign`, {
+        ruteroId,
+        reason,
+      });
+      toast.success('Carga reasignada', 'Pedidos, entregas y custodia fueron transferidos');
+      setTargetRutero((current) => ({ ...current, [cargaId]: '' }));
+      setReassignReason((current) => ({ ...current, [cargaId]: '' }));
+      await fetchCargas();
+    } catch (err: any) {
+      toast.error('Error', err?.response?.data?.message || 'No se pudo reasignar');
+    } finally {
+      setReassigning(null);
     }
   };
 
@@ -122,7 +171,7 @@ export default function CargasPage() {
                   <div>
                     <p className="text-sm font-medium">{c.camionPlaca}</p>
                     <p className="text-xs text-muted-foreground">
-                      Rutero: {c.ruteroName || c.ruteroId.slice(0, 8)} · {new Date(c.fechaEntrega).toLocaleDateString()}
+                      Rutero: {c.ruteroName || c.ruteroId.slice(0, 8)} · {new Date(c.fechaCarga).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
@@ -130,8 +179,52 @@ export default function CargasPage() {
               </div>
 
               <div className="text-xs text-muted-foreground">
-                {c.items.length} productos · {c.orderIds.length} pedidos · v{c.version}
+                {c.totalPedidos} pedidos · v{c.version}
               </div>
+
+              {canReassign && !['RETURNED', 'CLOSED', 'CANCELLED'].includes(c.status) && (
+                <div className="grid gap-2 rounded-lg border bg-muted/20 p-3 md:grid-cols-[minmax(180px,1fr)_minmax(220px,2fr)_auto]">
+                  <select
+                    value={targetRutero[c.id] || ''}
+                    onChange={(event) =>
+                      setTargetRutero((current) => ({
+                        ...current,
+                        [c.id]: event.target.value,
+                      }))
+                    }
+                    className="h-10 rounded-md border bg-background px-3 text-sm"
+                  >
+                    <option value="">Nuevo Rutero</option>
+                    {ruteros
+                      .filter((rutero) => rutero.id !== c.ruteroId)
+                      .map((rutero) => (
+                        <option key={rutero.id} value={rutero.id}>
+                          {rutero.name}
+                        </option>
+                      ))}
+                  </select>
+                  <Input
+                    value={reassignReason[c.id] || ''}
+                    onChange={(event) =>
+                      setReassignReason((current) => ({
+                        ...current,
+                        [c.id]: event.target.value,
+                      }))
+                    }
+                    placeholder="Motivo: ausencia, avería, emergencia..."
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => handleReassign(c.id)}
+                    disabled={reassigning === c.id}
+                  >
+                    {reassigning === c.id && (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    )}
+                    Reasignar
+                  </Button>
+                </div>
+              )}
 
               {c.status === 'PLANNED' && (
                 <div className="flex gap-2">

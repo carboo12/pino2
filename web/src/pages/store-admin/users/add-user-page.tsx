@@ -45,14 +45,13 @@ const userFormSchema = z.object({
 });
 
 const STORE_ROLES = [
-  { value: 'Cashier', label: 'CAJERO' },
-  { value: 'Bodeguero', label: 'BODEGUERO' },
-  { value: 'Ayudante de Bodega', label: 'AYUDANTE DE BODEGA' },
-  { value: 'store-admin', label: 'ADMINISTRADOR DE TIENDA' },
-  { value: 'Vendedor Ambulante', label: 'VENDEDOR AMBULANTE' },
-  { value: 'Gestor de Ventas', label: 'GESTOR DE VENTAS' },
-  { value: 'Rutero', label: 'RUTERO' },
-  { value: 'auxiliar', label: 'AUXILIAR ADMINISTRATIVO' },
+  { value: 'cashier', label: 'CAJERO' },
+  { value: 'inventory', label: 'ANALISTA / AUDITOR DE INVENTARIO' },
+  { value: 'auxiliar', label: 'AUXILIAR DE RECEPCIÓN Y DESPACHO' },
+  { value: 'store-admin', label: 'JEFE / ENCARGADO DE BODEGA' },
+  { value: 'vendor', label: 'VENDEDOR (COMPATIBILIDAD)' },
+  { value: 'sales-manager', label: 'GESTOR DE VENTAS' },
+  { value: 'rutero', label: 'RUTERO / REPARTIDOR' },
   { value: 'supervisor-caja', label: 'SUPERVISOR DE CAJA' },
   { value: 'supervisor-pasillo', label: 'SUPERVISOR DE PASILLO' },
 ] as const;
@@ -85,7 +84,7 @@ export default function AddUserPage() {
       name: '',
       email: '',
       password: '',
-      role: 'Cashier',
+      role: 'cashier',
       assignedStoreId: storeId || '',
     },
   });

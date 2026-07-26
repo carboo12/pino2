@@ -29,11 +29,23 @@ export class OrdersController {
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo pedido' })
   @ApiOkResponse({ type: OrderResponseDto })
-  create(@Body() dto: CreateOrderDto, @Req() req: any) {
+  async create(@Body() dto: CreateOrderDto, @Req() req: any) {
     const isFieldSeller = ['vendor', 'sales-manager'].includes(req.user?.role);
     if (isFieldSeller && !dto.externalId) {
       throw new BadRequestException(
         'externalId es obligatorio para pedidos creados en ruta',
+      );
+    }
+    if (isFieldSeller) {
+      if (!dto.clientId) {
+        throw new BadRequestException(
+          'clientId es obligatorio para pedidos de preventa',
+        );
+      }
+      await this.service.assertClientAssignedToSeller(
+        dto.storeId,
+        dto.clientId,
+        req.user.sub,
       );
     }
     return this.service.create({

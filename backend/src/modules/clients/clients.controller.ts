@@ -12,7 +12,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
-import { CreateClientDto, UpdateClientDto } from './clients.dto';
+import {
+  CreateClientDto,
+  ReassignClientsDto,
+  UpdateClientDto,
+} from './clients.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -44,7 +48,9 @@ export class ClientsController {
     @Query('preventaId') preventaId?: string,
     @Query('grupoClienteId') grupoClienteId?: string,
     @Query('sinAsignar') sinAsignar?: string,
+    @Req() req?: any,
   ) {
+    const isFieldSeller = ['vendor', 'sales-manager'].includes(req?.user?.role);
     return this.service.findAll(storeId, {
       search,
       limit: limit ? parseInt(limit, 10) : undefined,
@@ -53,21 +59,30 @@ export class ClientsController {
       preventaId,
       grupoClienteId,
       sinAsignar: sinAsignar === 'true',
+      assignedVendorId: isFieldSeller ? req.user.sub : undefined,
     });
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un cliente por ID' })
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const isFieldSeller = ['vendor', 'sales-manager'].includes(req.user?.role);
+    return this.service.findOne(
+      id,
+      isFieldSeller ? req.user.sub : undefined,
+    );
   }
 
   @Roles('master-admin', 'store-admin', 'vendor', 'sales-manager')
   @Get(':id/estado-cuenta')
   @ApiOperation({ summary: 'Obtener el estado de cuenta de un cliente' })
-  estadoCuenta(@Param('id') id: string) {
-    return this.service.estadoCuenta(id);
+  estadoCuenta(@Param('id') id: string, @Req() req: any) {
+    const isFieldSeller = ['vendor', 'sales-manager'].includes(req.user?.role);
+    return this.service.estadoCuenta(
+      id,
+      isFieldSeller ? req.user.sub : undefined,
+    );
   }
 
   @Roles('master-admin', 'store-admin')
@@ -82,6 +97,23 @@ export class ClientsController {
   @ApiOperation({ summary: 'Eliminar un cliente' })
   remove(@Param('id') id: string) {
     return this.service.remove(id);
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Post('reassign-bulk')
+  @ApiOperation({ summary: 'Reasignar varios clientes a otro Gestor' })
+  reassignBulk(
+    @Body() dto: ReassignClientsDto,
+    @Query('storeId') storeId: string,
+    @Req() req: any,
+  ) {
+    return this.service.reasignarMany(
+      storeId,
+      dto.clientIds,
+      dto.preventaId,
+      dto.motivo,
+      req.user.sub,
+    );
   }
 
   @Roles('master-admin', 'store-admin')

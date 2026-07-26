@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowRightLeft, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { normalizeUserRole } from '@/lib/user-role';
 
 export default function ClientReassignPage() {
   const { storeId } = useParams();
@@ -16,12 +17,17 @@ export default function ClientReassignPage() {
   const [targetPreventa, setTargetPreventa] = useState('');
   const [search, setSearch] = useState('');
   const [motivo, setMotivo] = useState('');
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [moving, setMoving] = useState(false);
 
   const loadData = async () => {
     try {
       const uRes = await apiClient.get(`/users?storeId=${storeId}`);
-      // Asumiendo vendor o rutero levantan pedidos
-      setPreventas(uRes.data.filter((u: any) => u.role === 'vendor' || u.role === 'rutero'));
+      setPreventas(
+        (uRes.data || []).filter((u: any) =>
+          ['sales-manager', 'vendor'].includes(normalizeUserRole(u.role)),
+        ),
+      );
     } catch (e: any) {
       toast({ title: 'Error cargando usuarios', description: e.message, variant: 'destructive' });
     }
@@ -30,11 +36,13 @@ export default function ClientReassignPage() {
   const loadClients = async () => {
     if (!sourcePreventa) {
       setClients([]);
+      setSelectedClientIds([]);
       return;
     }
     try {
       const cRes = await apiClient.get(`/clients?storeId=${storeId}&preventaId=${sourcePreventa}`);
       setClients(cRes.data);
+      setSelectedClientIds([]);
     } catch (e: any) {
       toast({ title: 'Error cargando clientes', description: e.message, variant: 'destructive' });
     }
@@ -48,7 +56,7 @@ export default function ClientReassignPage() {
     loadClients();
   }, [sourcePreventa, storeId]);
 
-  const handleReassign = async (clientId: string) => {
+  const handleReassign = async (clientIds: string[]) => {
     if (!targetPreventa) {
       toast({ title: 'Atención', description: 'Selecciona el preventa de destino', variant: 'destructive' });
       return;
@@ -58,16 +66,39 @@ export default function ClientReassignPage() {
       return;
     }
 
+    if (clientIds.length === 0) {
+      toast({ title: 'Atención', description: 'Selecciona al menos un cliente', variant: 'destructive' });
+      return;
+    }
+
+    setMoving(true);
     try {
-      await apiClient.post(`/clients/${clientId}/reasignar`, {
-        preventaId: targetPreventa,
-        motivo
+      const response = await apiClient.post(
+        `/clients/reassign-bulk?storeId=${storeId}`,
+        { clientIds, preventaId: targetPreventa, motivo },
+      );
+      toast({
+        title: 'Reasignación completada',
+        description: `${response.data?.reassignedCount || clientIds.length} cliente(s) fueron trasladados.`,
       });
-      toast({ title: 'Cliente reasignado exitosamente' });
       loadClients();
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setMoving(false);
     }
+  };
+
+  const visibleClients = clients.filter(c =>
+    c.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const toggleClient = (clientId: string) => {
+    setSelectedClientIds((current) =>
+      current.includes(clientId)
+        ? current.filter((id) => id !== clientId)
+        : [...current, clientId],
+    );
   };
 
   return (
@@ -101,11 +132,40 @@ export default function ClientReassignPage() {
                  onChange={e => setSearch(e.target.value)}
               />
             </div>
+            {visibleClients.length > 0 && (
+              <div className="mt-3 flex items-center justify-between">
+                <button
+                  type="button"
+                  className="text-xs font-medium text-primary hover:underline"
+                  onClick={() =>
+                    setSelectedClientIds(
+                      selectedClientIds.length === visibleClients.length
+                        ? []
+                        : visibleClients.map((client) => client.id),
+                    )
+                  }
+                >
+                  {selectedClientIds.length === visibleClients.length
+                    ? 'Quitar selección'
+                    : 'Seleccionar visibles'}
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {selectedClientIds.length} seleccionados
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(c => (
+            {visibleClients.map(c => (
               <div key={c.id} className="border rounded-lg p-3 flex justify-between items-center bg-background shadow-sm hover:border-primary transition-colors group">
                 <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedClientIds.includes(c.id)}
+                    onChange={() => toggleClient(c.id)}
+                    aria-label={`Seleccionar ${c.name}`}
+                    className="h-4 w-4 rounded border-input"
+                  />
                   <div className="bg-primary/10 p-2 rounded-full text-primary">
                      <User className="h-4 w-4" />
                   </div>
@@ -115,7 +175,7 @@ export default function ClientReassignPage() {
                   </div>
                 </div>
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                   <Button size="sm" onClick={() => handleReassign(c.id)} className="gap-1 h-8">
+                   <Button size="sm" onClick={() => handleReassign([c.id])} disabled={moving} className="gap-1 h-8">
                       Mover <ArrowRightLeft className="h-3 w-3" />
                    </Button>
                 </div>
@@ -155,6 +215,16 @@ export default function ClientReassignPage() {
             <div className="mt-8 text-center text-sm text-muted-foreground bg-white/50 p-4 rounded-lg border border-blue-100 border-dashed">
                Seleccione el preventa origen, luego el destino y escriba un motivo. Finalmente, haga clic en "Mover" en cada cliente que desee transferir.
             </div>
+            <Button
+              className="mt-4 h-12"
+              disabled={moving || selectedClientIds.length === 0}
+              onClick={() => handleReassign(selectedClientIds)}
+            >
+              <ArrowRightLeft className="mr-2 h-4 w-4" />
+              {moving
+                ? 'Reasignando...'
+                : `Reasignar ${selectedClientIds.length} cliente(s)`}
+            </Button>
           </div>
         </div>
       </div>

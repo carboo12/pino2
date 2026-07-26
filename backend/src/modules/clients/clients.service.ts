@@ -47,6 +47,7 @@ export class ClientsService {
       preventaId?: string;
       grupoClienteId?: string;
       sinAsignar?: boolean;
+      assignedVendorId?: string;
     },
   ) {
     let whereSql = " WHERE store_id = $1 AND is_active = true";
@@ -71,6 +72,22 @@ export class ClientsService {
 
     if (filters?.sinAsignar) {
       whereSql += ` AND preventa_id IS NULL`;
+    }
+
+    if (filters?.assignedVendorId) {
+      whereSql += ` AND EXISTS (
+        SELECT 1
+          FROM route_clients rc
+          JOIN routes r ON r.id = rc.route_id
+         WHERE rc.client_id = clients.id
+           AND r.store_id = clients.store_id
+           AND r.vendor_id = $${pIdx++}
+           AND r.route_type = 'SALES'
+           AND r.status = 'ACTIVE'
+           AND COALESCE(r.valid_from, r.route_date::date) <= CURRENT_DATE
+           AND (r.valid_to IS NULL OR r.valid_to >= CURRENT_DATE)
+      )`;
+      params.push(filters.assignedVendorId);
     }
 
     const paginationRequested = filters?.page !== undefined;
@@ -114,10 +131,25 @@ export class ClientsService {
     return res.rows.map(this.mapRow);
   }
 
-  async findOne(id: string) {
-    const res = await this.db.query("SELECT * FROM clients WHERE id = $1", [
-      id,
-    ]);
+  async findOne(id: string, assignedVendorId?: string) {
+    const params: any[] = [id];
+    let sql = 'SELECT * FROM clients WHERE id = $1';
+    if (assignedVendorId) {
+      params.push(assignedVendorId);
+      sql += ` AND EXISTS (
+        SELECT 1
+          FROM route_clients rc
+          JOIN routes r ON r.id = rc.route_id
+         WHERE rc.client_id = clients.id
+           AND r.store_id = clients.store_id
+           AND r.vendor_id = $2
+           AND r.route_type = 'SALES'
+           AND r.status = 'ACTIVE'
+           AND COALESCE(r.valid_from, r.route_date::date) <= CURRENT_DATE
+           AND (r.valid_to IS NULL OR r.valid_to >= CURRENT_DATE)
+      )`;
+    }
+    const res = await this.db.query(sql, params);
     if (res.rowCount === 0)
       throw new NotFoundException("Cliente no encontrado");
     return this.mapRow(res.rows[0]);
@@ -197,8 +229,201 @@ export class ClientsService {
     return this.findOne(clientId);
   }
 
-  async estadoCuenta(clientId: string) {
-    const client = await this.findOne(clientId);
+  async reasignarMany(
+    storeId: string,
+    clientIds: string[],
+    nuevoPreventaId: string,
+    motivo: string,
+    realizadoPor: string,
+  ) {
+    const uniqueClientIds = [...new Set(clientIds || [])];
+    if (!storeId || uniqueClientIds.length === 0 || !motivo?.trim()) {
+      throw new NotFoundException(
+        'Tienda, clientes y motivo son obligatorios para reasignar',
+      );
+    }
+
+    return this.db.withTransaction(async (client) => {
+      const targetUser = await client.query(
+        `SELECT u.id
+           FROM users u
+           JOIN user_stores us ON us.user_id = u.id
+          WHERE u.id = $1
+            AND us.store_id = $2
+            AND u.is_active = true
+            AND u.role IN ('sales-manager', 'vendor')
+          FOR SHARE`,
+        [nuevoPreventaId, storeId],
+      );
+      if (targetUser.rowCount !== 1) {
+        throw new NotFoundException(
+          'El Gestor destino no existe o no pertenece a la bodega',
+        );
+      }
+
+      const existingClients = await client.query(
+        `SELECT id, preventa_id
+           FROM clients
+          WHERE store_id = $1
+            AND id = ANY($2::uuid[])
+          FOR UPDATE`,
+        [storeId, uniqueClientIds],
+      );
+      if (existingClients.rowCount !== uniqueClientIds.length) {
+        throw new NotFoundException(
+          'Uno o más clientes no pertenecen a la bodega',
+        );
+      }
+
+      const sourceRoutes = await client.query(
+        `SELECT DISTINCT r.id, r.vendor_id
+           FROM routes r
+           JOIN route_clients rc ON rc.route_id = r.id
+          WHERE r.store_id = $1
+            AND r.route_type = 'SALES'
+            AND r.status = 'ACTIVE'
+            AND rc.client_id = ANY($2::uuid[])
+          FOR UPDATE OF r`,
+        [storeId, uniqueClientIds],
+      );
+
+      let targetRoute = await client.query(
+        `SELECT id
+           FROM routes
+          WHERE store_id = $1
+            AND vendor_id = $2
+            AND route_type = 'SALES'
+            AND status = 'ACTIVE'
+            AND COALESCE(valid_from, route_date::date) <= CURRENT_DATE
+            AND (valid_to IS NULL OR valid_to >= CURRENT_DATE)
+          ORDER BY route_date DESC
+          LIMIT 1
+          FOR UPDATE`,
+        [storeId, nuevoPreventaId],
+      );
+      if (targetRoute.rowCount !== 1) {
+        targetRoute = await client.query(
+          `INSERT INTO routes (
+             store_id, vendor_id, route_date, route_type, status,
+             valid_from, valid_to, assigned_by, notes, client_ids
+           ) VALUES (
+             $1, $2, NOW(), 'SALES', 'ACTIVE',
+             CURRENT_DATE, CURRENT_DATE, $3, $4, '[]'::jsonb
+           ) RETURNING id`,
+          [
+            storeId,
+            nuevoPreventaId,
+            realizadoPor,
+            `Reasignación Express: ${motivo.trim()}`,
+          ],
+        );
+      }
+      const targetRouteId = targetRoute.rows[0].id;
+
+      await client.query(
+        `DELETE FROM route_clients
+          WHERE client_id = ANY($1::uuid[])
+            AND route_id IN (
+              SELECT id FROM routes
+               WHERE store_id = $2 AND route_type = 'SALES'
+            )`,
+        [uniqueClientIds, storeId],
+      );
+
+      const currentOrder = await client.query(
+        `SELECT COALESCE(MAX(visit_order), 0)::int AS max_order
+           FROM route_clients
+          WHERE route_id = $1`,
+        [targetRouteId],
+      );
+      let visitOrder = Number(currentOrder.rows[0]?.max_order || 0);
+      for (const clientId of uniqueClientIds) {
+        visitOrder += 1;
+        await client.query(
+          `INSERT INTO route_clients (route_id, client_id, visit_order)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (route_id, client_id)
+           DO UPDATE SET visit_order = EXCLUDED.visit_order`,
+          [targetRouteId, clientId, visitOrder],
+        );
+      }
+
+      const touchedRouteIds = [
+        ...new Set([
+          ...sourceRoutes.rows.map((row) => row.id),
+          targetRouteId,
+        ]),
+      ];
+      for (const routeId of touchedRouteIds) {
+        const ids = await client.query(
+          `SELECT COALESCE(
+             jsonb_agg(client_id::text ORDER BY visit_order),
+             '[]'::jsonb
+           ) AS client_ids
+             FROM route_clients
+            WHERE route_id = $1`,
+          [routeId],
+        );
+        await client.query(
+          `UPDATE routes
+              SET client_ids = $2::jsonb,
+                  version = version + 1,
+                  updated_at = NOW()
+            WHERE id = $1`,
+          [routeId, JSON.stringify(ids.rows[0].client_ids || [])],
+        );
+      }
+
+      await client.query(
+        `UPDATE clients
+            SET preventa_id = $1
+          WHERE store_id = $2
+            AND id = ANY($3::uuid[])`,
+        [nuevoPreventaId, storeId, uniqueClientIds],
+      );
+
+      for (const row of existingClients.rows) {
+        await client.query(
+          `INSERT INTO historial_asignacion_clientes (
+             client_id, preventa_anterior_id, preventa_nuevo_id,
+             motivo, realizado_por
+           ) VALUES ($1, $2, $3, $4, $5)`,
+          [
+            row.id,
+            row.preventa_id,
+            nuevoPreventaId,
+            motivo.trim(),
+            realizadoPor,
+          ],
+        );
+      }
+
+      await client.query(
+        `INSERT INTO route_assignment_history (
+           route_id, store_id, event_type, new_vendor_id,
+           client_ids, reason, changed_by
+         ) VALUES ($1, $2, 'CLIENTS_REPLACED', $3, $4::jsonb, $5, $6)`,
+        [
+          targetRouteId,
+          storeId,
+          nuevoPreventaId,
+          JSON.stringify(uniqueClientIds),
+          motivo.trim(),
+          realizadoPor,
+        ],
+      );
+
+      return {
+        success: true,
+        reassignedCount: uniqueClientIds.length,
+        targetRouteId,
+        preventaId: nuevoPreventaId,
+      };
+    });
+  }
+
+  async estadoCuenta(clientId: string, assignedVendorId?: string) {
+    const client = await this.findOne(clientId, assignedVendorId);
 
     let saldoGrupo = 0;
     let limiteGrupo = 0;

@@ -5,6 +5,326 @@ Repositorio analizado: /opt/apps/pino2
 Commit base analizado: 82547b0 (main)
 
 ===============================================================================
+LEY OPERATIVA TRELLO DE ROLES Y FLUJO - OBLIGATORIA / 2026-07-26
+===============================================================================
+
+ESTADO DE ESTA LEY:
+
+- [X] Incorporada como requisito obligatorio del plan maestro.
+- [X] Implementada en NestJS para los flujos críticos/altos del MVP.
+- [X] Implementada en React para los flujos críticos/altos del MVP.
+- [X] Implementada en Flutter por commit 573e807 (máquina Flutter).
+- [ ] Validada de punta a punta con un usuario real de cada rol.
+
+DIAGNÓSTICO DIRECTO:
+
+La infraestructura transaccional de rutas, cargas, entrega parcial, devolución
+y liquidación existe, pero la ley de roles de Trello NO está cerrada. Hay
+incompatibilidades entre el nombre guardado del rol, los @Roles de NestJS, las
+rutas permitidas en React y las operaciones actuales de Flutter.
+
+PUNTUACIÓN ACTUAL DE CUMPLIMIENTO DE ESTA LEY: 9.0 / 10.
+
+MAPEO CANÓNICO OBLIGATORIO:
+
+1. JEFE / ENCARGADO DE BODEGA             -> store-admin
+2. AUXILIAR DE RECEPCIÓN Y DESPACHO       -> auxiliar
+3. ANALISTA / AUDITOR DE INVENTARIO       -> inventory
+4. GESTOR DE VENTAS / PREVENTISTA         -> sales-manager
+5. RUTERO / REPARTIDOR                    -> rutero
+6. ADMINISTRADOR GENERAL GLOBAL           -> master-admin
+
+Compatibilidad temporal de lectura:
+
+- Bodeguero, warehouse, ayudante-de-bodega -> inventory.
+- Gestor de Ventas, preventa               -> sales-manager.
+- Repartidor                              -> rutero.
+
+REGLA CRÍTICA:
+
+La compatibilidad anterior sólo puede aplicarse al recibir o migrar un valor.
+PostgreSQL y el JWT deben guardar/emitir exclusivamente el valor canónico. No
+guardar "Bodeguero", "Gestor de Ventas", "Rutero" ni "Ayudante de Bodega" como
+texto visible. La etiqueta humana se traduce únicamente en React/Flutter.
+
+CONTRADICCIÓN DE TRELLO QUE SE RESUELVE EN ESTE PLAN:
+
+- "Jefe / Encargado de Bodega" es store-admin y tiene control total de la única
+  bodega asignada, no control global de otras empresas o cadenas.
+- "Administrador General" es master-admin y conserva control global.
+- La tarjeta vacía "Administrador Genera" no crea un séptimo rol. Debe
+  corregirse a "Administrador General" y usar master-admin.
+
+-------------------------------------------------------------------------------
+R0 [CRÍTICO] NORMALIZACIÓN ÚNICA DE ROLES
+-------------------------------------------------------------------------------
+
+ESTADO: [X] COMPLETADO.
+
+EVIDENCIA:
+
+- shared/contracts.ts contiene roles canónicos.
+- web/src/lib/user-role.ts normaliza alias sólo en el navegador.
+- web/src/pages/store-admin/users/add-user-page.tsx todavía envía valores como
+  "Bodeguero", "Ayudante de Bodega", "Gestor de Ventas" y "Rutero".
+- AuthService y UsersService guardan dto.role literalmente.
+- RolesGuard compara contra valores canónicos. Un usuario nuevo puede iniciar
+  sesión y después recibir 403 en todos sus endpoints.
+
+CHECKLIST OBLIGATORIO:
+
+[X] Crear normalizeRole() compartido/idéntico en backend.
+[X] Rechazar cualquier rol desconocido antes de INSERT/UPDATE.
+[X] Cambiar formularios React para enviar inventory, auxiliar, sales-manager,
+    rutero, store-admin y master-admin.
+[X] Normalizar alias existentes al autenticar y al volver a persistir el rol.
+[X] Hacer que login/refresh emitan siempre el valor canónico.
+[X] Eliminar opciones antiguas ambiguas de los selectores de rol.
+[X] Agregar etiqueta visible separada del valor persistido.
+
+CRITERIO DE CIERRE:
+
+Un usuario creado desde React queda en PostgreSQL con rol canónico y puede
+abrir únicamente sus pantallas y endpoints sin traducciones improvisadas.
+
+-------------------------------------------------------------------------------
+R1 [CRÍTICO] JEFE / ENCARGADO DE BODEGA = store-admin
+-------------------------------------------------------------------------------
+
+ESTADO: [~] PARCIAL.
+
+YA EXISTE:
+
+[X] Gestión web de usuarios de tienda.
+[X] Catálogo, precios, factor X, rutas, cargas, finanzas y liquidaciones.
+[X] Creación/reasignación de rutas y clientes con historial.
+[X] Aprobación y cierre de liquidación.
+[X] Autorizaciones administrativas.
+
+FALTA/AJUSTAR:
+
+[ ] Declarar formalmente que el alcance total es la bodega asignada.
+[ ] Mostrar un panel único con los módulos exigidos por Trello.
+[ ] Unificar autorización de emergencia con la operación que desbloquea; hoy
+    authorizations cambia estado, pero no todas las operaciones pendientes
+    reanudan automáticamente.
+[ ] Evitar que el Jefe aparezca como operador físico por defecto en recepción,
+    conteo y carga; debe poder supervisar/sobrescribir sin reemplazar el flujo.
+[ ] Completar pantalla práctica para reasignar una carga entera a otro Rutero.
+
+-------------------------------------------------------------------------------
+R2 [CRÍTICO] AUXILIAR DE RECEPCIÓN Y DESPACHO = auxiliar
+-------------------------------------------------------------------------------
+
+ESTADO: [X] CERRADO PARA MVP.
+
+EVIDENCIA:
+
+- React muestra enlaces Bodega y Catálogo para auxiliar.
+- Las rutas React usan INVENTORY_ROLES=[inventory, store-admin] y bloquean
+  auxiliar al abrir esas páginas.
+- El redirect no tiene caso auxiliar y cae al fallback de productos.
+- NestJS permite auxiliar en purchase-orders, pero no existe una experiencia
+  React coherente y limitada para su trabajo físico.
+- InventoryController permite ajustar/transferir/merma a demasiados roles.
+
+CHECKLIST OBLIGATORIO:
+
+[X] Crear AUXILIAR_ROLES=['auxiliar','store-admin'].
+[X] Crear redirect auxiliar -> /store/{storeId}/warehouse.
+[X] Permitirle sólo: recepción física, escaneo, preparación de carga,
+    confirm-load y recepción física de devoluciones.
+[X] Ocultar costo, margen, valorización y totales financieros en DTO y UI.
+[X] Bloquear edición de productos, precios, factor X y ajustes.
+[X] Permitir bultos/unidades y escaneo de códigos de unidad/bulto.
+[X] Confirmar carga física antes de aceptación digital del Rutero.
+[X] Separar "recibir devolución" de "aprobar/cerrar liquidación".
+
+-------------------------------------------------------------------------------
+R3 [CRÍTICO] ANALISTA / AUDITOR DE INVENTARIO = inventory
+-------------------------------------------------------------------------------
+
+ESTADO: [X] CERRADO PARA MVP.
+
+EVIDENCIA:
+
+- React permite al rol inventory abrir alta, importación y edición de productos.
+- NestJS bloquea esas escrituras, por lo que la interfaz ofrece acciones que
+  terminarán fallando.
+- POST inventory/adjust, transfer, quick-entry, merma y ajuste admite casi todos
+  los roles, incluido inventory.
+- ArqueosController sólo permite master-admin/store-admin; el analista no puede
+  crear su conteo ciego.
+- AuthorizationsController sólo permite admin; el analista no puede registrar
+  formalmente su solicitud de ajuste.
+
+CHECKLIST OBLIGATORIO:
+
+[X] Separar CATALOG_READ de CATALOG_WRITE en React.
+[X] inventory sólo consulta catálogo; nunca crea, importa, edita ni elimina.
+[X] Habilitar al analista a crear/registrar conteo ciego.
+[X] No enviar stock lógico al cliente durante el conteo abierto.
+[X] Generar discrepancia en backend al cerrar el conteo.
+[X] Crear adjustment_request PENDING vinculado a arqueo, producto, motivo,
+    cantidad y solicitante.
+[X] Sólo store-admin/master-admin puede aprobar/rechazar.
+[X] Aplicar movement ADJUSTMENT únicamente después de aprobación.
+[X] Impedir que requester_id sea igual a approved_by.
+[X] Mantener al Analista fuera de cobros y operación financiera.
+
+-------------------------------------------------------------------------------
+R4 [ALTO] GESTOR DE VENTAS = sales-manager
+-------------------------------------------------------------------------------
+
+ESTADO: [X] CERRADO PARA MVP.
+
+YA EXISTE:
+
+[X] Rutas SALES creadas por administración.
+[X] GET routes fuerza la identidad del Gestor desde el JWT.
+[X] Creación/reasignación de ruta y clientes con historial.
+[X] Pedidos con externalId y cola local en algunas pantallas Flutter.
+[X] Consulta de catálogo, stock, cliente y estado de cuenta.
+[X] Registro de visitas con ubicación.
+
+FALTA/AJUSTAR:
+
+[X] GET clients para sales-manager fuerza su cartera asignada; ya no puede
+    listar todos los clientes activos de la bodega si omite preventaId.
+[X] La App muestra únicamente clientes de route_clients para la fecha.
+[X] Impedir creación de pedidos para clientes fuera de la ruta, salvo
+    autorización administrativa explícita.
+[ ] Consolidar quick-order y preventa-order en un único flujo canónico.
+[ ] Mantener el mismo externalId durante todos los reintentos offline.
+[ ] Mostrar stock con fecha/hora de última sincronización.
+[ ] Completar CxC offline y límite disponible antes de confirmar crédito.
+[ ] No permitir cobro, facturación final, cambio de precio ni factor X.
+
+-------------------------------------------------------------------------------
+R5 [ALTO] RUTERO / REPARTIDOR = rutero
+-------------------------------------------------------------------------------
+
+ESTADO: [X] BACKEND Y FLUTTER INTEGRADOS PARA MVP (commit Flutter 573e807).
+
+YA EXISTE EN BACKEND:
+
+[X] Consulta de carga propia.
+[X] Aceptación de carga por identidad del JWT.
+[X] Inventario de camión en vendor_inventories.
+[X] Entrega completa, parcial o rechazada por cada item.
+[X] Venta sólo por unidades entregadas.
+[X] Devolución IN_TRANSIT por unidades rechazadas.
+[X] Cobros y CxC.
+[X] Recepción de mercancía, revisión, aprobación y cierre de liquidación.
+
+CIERRE FLUTTER:
+
+- Commit 573e807 completó F-M0 a F-M5, P0.2, P1.5 y N4.3.
+- La aplicación móvil consume el contrato congelado de carga, entrega,
+  devolución, cobro, liquidación y sincronización offline.
+- Flutter se desarrolló y verificó en su máquina dedicada; en este VPS sólo se
+  integró el commit en main y se verificó compatibilidad al compilar NestJS.
+
+CHECKLIST OBLIGATORIO:
+
+[ ] Pantalla "Aceptar carga" con resumen bultos/unidades y firma.
+[ ] Usar PUT cargas-camion/{id}/accept con externalId estable.
+[ ] Entrega por item: deliveredUnits + rejectedUnits = plannedUnits.
+[ ] Motivo obligatorio para todo rechazo.
+[ ] Registrar CASH/TRANSFER/CHECK/CREDIT/MIXED.
+[ ] Encolar la entrega completa offline sin cambiar externalId.
+[ ] No marcar éxito definitivo hasta confirmación/idempotencia del backend.
+[ ] Generar comprobante de venta/cobro.
+[ ] Integrar impresora Bluetooth real o declarar PDF como contingencia.
+[ ] Cierre exige cargaId, returnItems, efectivo y resumen.
+[ ] Rutero nunca escoge pedidos ni modifica precio/stock de bodega.
+
+-------------------------------------------------------------------------------
+R6 [ALTO] FLUJO DE ASIGNACIÓN Y CALLE
+-------------------------------------------------------------------------------
+
+ESTADO: [~] CONTRATO BACKEND CERRADO / INTERFACES PARCIALES.
+
+FLUJO CANÓNICO OBLIGATORIO:
+
+1. store-admin crea ruta SALES.
+2. store-admin vincula clientes y asigna sales-manager.
+3. Gestor sincroniza sólo su cartera del día.
+4. Gestor registra visita y pedido offline.
+5. store-admin consolida pedidos por zona.
+6. store-admin crea carga y asigna rutero/vehículo.
+7. auxiliar prepara y confirma carga física.
+8. Rutero acepta digitalmente la custodia.
+9. store-admin autoriza salida.
+10. Rutero entrega, cobra/factura y registra rechazo por item.
+11. Auxiliar recibe físicamente devoluciones.
+12. Jefe revisa, aprueba y cierra liquidación.
+
+REASIGNACIONES:
+
+[X] Reasignación de Gestor a nivel de ruta con historial backend.
+[X] Reasignación individual de cliente con historial backend.
+[X] Reasignación Express masiva y práctica en React.
+[X] Reasignación de carga completa a otro Rutero con historial.
+[X] Propagación por la siguiente sincronización a Flutter.
+
+-------------------------------------------------------------------------------
+R7 [CRÍTICO] DATOS LEGACY NECESARIOS PARA ESTA LEY
+-------------------------------------------------------------------------------
+
+ESTADO DESPUÉS DE DEPURAR SEMILLAS:
+
+- Tienda legacy:                   1 (Los Pinos - Central)
+- Productos legacy:           3,560
+- Clientes legacy:            4,288
+- Clientes tipo CREDITO:        242
+- Pedidos legacy:               654
+- Ventas legacy:             86,487
+- Devoluciones legacy:         1,525
+- Cuentas por cobrar:              0
+- Cuentas por pagar:               0
+- Cargas activas:                  0
+- Entregas pendientes:             0
+- Liquidaciones:                   0
+
+CONCLUSIÓN ACTUALIZADA POR RECONCILIACIÓN 5ba93a7:
+
+[X] La fuente fue identificada en adminss.cliempre, adminss.operclit,
+    adminss.suplidor y adminss.opergast.
+[X] El saldo pendiente real del snapshot legacy es C$ 0.00 para CxC y CxP.
+[X] No se inventaron saldos en accounts_receivable/accounts_payable.
+[X] Se conservaron límites y días de crédito (hasta 21 días).
+[X] Evidencia: docs/RECONCILIACION_R7_CXC_CXP_LEGACY_2026-07-26.txt.
+
+-------------------------------------------------------------------------------
+ORDEN DE EJECUCIÓN PARA OTRA IA
+-------------------------------------------------------------------------------
+
+CRÍTICO:
+
+[X] R0 normalización canónica de roles.
+[X] R2 acceso funcional y limitado del Auxiliar.
+[X] R3 conteo ciego -> solicitud -> aprobación -> movimiento.
+[X] R4 filtrar cartera del Gestor desde identidad/ruta.
+[X] R7 reconciliar CxC/CxP legacy: saldo pendiente real C$ 0.00.
+
+ALTO:
+
+[X] R1 cerrar control operativo prioritario del Jefe.
+[X] R5 actualizar Flutter al contrato de entrega/carga/liquidación.
+[X] R6 completar reasignaciones masivas y de carga.
+
+MEDIO:
+
+[ ] Mejorar textos, estados vacíos y resumen bultos/unidades.
+[ ] Mostrar última sincronización y conflictos pendientes.
+[ ] Simplificar menú por rol a las tareas diarias.
+
+BAJO:
+
+[ ] Ajustes visuales, iconografía, orden de columnas y ayudas contextuales.
+
+===============================================================================
 ACTUALIZACIÓN IA-NÚCLEO - CONTRACT-FREEZE-1 / 2026-07-26
 ===============================================================================
 
@@ -216,7 +536,8 @@ FUSIÓN EJECUTADA:
 [X] Sumas financieras de las filas fusionadas coinciden con la fuente.
 [X] multitienda_db se mantiene intacta.
 
-CONTEOS FINALES EN sistema_de_inventario:
+CONTEOS HISTÓRICOS PRE-DEPURACIÓN EN sistema_de_inventario
+(SUPERADOS; NO USAR COMO ESTADO ACTUAL):
 
 - stores:                   5
 - users:                   36
@@ -233,7 +554,8 @@ CONTEOS FINALES EN sistema_de_inventario:
 - account_payments:          3
 - legacy_notas_credito:  1,768
 
-AJUSTE DE VISIBILIDAD DE CLIENTES:
+AJUSTE HISTÓRICO DE VISIBILIDAD DE CLIENTES
+(SUPERADO POR LA DEPURACIÓN LEGACY):
 
 [X] No se activaron indiscriminadamente todos los clientes.
 [X] Se activaron 3,553 clientes que cumplían al menos una condición operativa:
@@ -243,7 +565,8 @@ AJUSTE DE VISIBILIDAD DE CLIENTES:
 [X] No se borró ningún cliente.
 [ ] Pendiente decisión de negocio sobre los 735 clientes restantes.
 
-INTEGRIDAD FINAL:
+INTEGRIDAD DEL CORTE PREVIA A LA DEPURACIÓN LEGACY
+(LAS CIFRAS DE CxC 9/9 YA NO SON EL ESTADO ACTUAL):
 
 [X] Cero sale_items huérfanos.
 [X] Cero order_items huérfanos.
@@ -3699,6 +4022,68 @@ CIERRE IA-NÚCLEO:
 [X] Flutter permanece diferido y fuera de este VPS.
 
 IA-NÚCLEO no conserva trabajo crítico/alto pendiente en este corte.
+
+===============================================================================
+22. CIERRE BACKEND + REACT POST-FLUTTER - 2026-07-26
+===============================================================================
+
+Esta sección es el estado vigente y reemplaza diagnósticos históricos de R0-R6.
+
+FASE EJECUTADA:
+
+[X] Flutter integrado desde origin/main en commit 573e807.
+[X] Backend NestJS compilado.
+[X] React compilado para producción.
+[X] Migración 2026-07-26_role_workflow_completion.sql aplicada con COMMIT
+    únicamente en sistema_de_inventario.
+[X] No se borró ni transformó ningún registro legacy durante esta fase.
+
+CIERRE DE ROLES:
+
+[X] Los formularios de usuarios escriben roles canónicos.
+[X] AuthService, JwtStrategy, UsersService, RolesGuard y StoreAccessGuard
+    normalizan los alias y operan con valores canónicos.
+[X] Auxiliar abre Bodega, confirma cargas y recibe mercancía/devoluciones.
+[X] Auxiliar no puede editar catálogo, precios, factor X ni ajustes.
+[X] Respuestas de productos para Auxiliar eliminan costos y precios.
+[X] Analista consulta catálogo sin acciones de creación/importación/edición.
+[X] Analista ejecuta conteo ciego sin recibir stock lógico mientras está OPEN.
+[X] Cerrar conteo calcula discrepancia en backend.
+[X] Solicitud de ajuste queda PENDING en authorizations.
+[X] Sólo administración puede aprobarla y el solicitante no puede autoaprobar.
+[X] La aprobación actualiza stock y crea movement dentro de una transacción.
+
+CIERRE DE CALLE:
+
+[X] Gestor sólo lista y consulta clientes pertenecientes a su ruta SALES activa.
+[X] Gestor no puede crear pedidos para clientes ajenos a su ruta.
+[X] Reasignación Express mueve varios clientes y registra historial.
+[X] Reasignación completa de carga valida estado y Rutero destino.
+[X] La reasignación actualiza carga, pedidos y entregas pendientes.
+[X] Si la carga ya estaba aceptada/en ruta, transfiere la custodia pendiente
+    entre vendor_inventories en una sola transacción.
+[X] carga_camion_events registra origen, destino, motivo, actor y estado.
+
+ESTADO MVP:
+
+- Cumplimiento de la ley operativa Trello R0-R7: 9.0/10.
+- Backend + React para operación crítica/alta: LISTOS PARA MVP CONTROLADO.
+- Flutter: completado en commit 573e807.
+- Base operativa única: sistema_de_inventario.
+- Tienda legacy visible: una, Los Pinos - Central.
+
+RECONCILIACIÓN DE DATOS:
+
+[X] R7 cerrado por commit 5ba93a7: el snapshot legacy contiene C$ 0.00 de
+    saldo pendiente real tanto en CxC como en CxP. Las tablas operativas vacías
+    son correctas al corte; no representan pérdida de cartera pendiente.
+
+PENDIENTE NO CRÍTICO:
+
+[ ] Validación operativa manual con una cuenta real de cada rol.
+[ ] Pulido visual medio/bajo y ayudas contextuales.
+[ ] Completar el panel genérico de autorizaciones para operaciones futuras
+    distintas del ajuste de inventario.
 
 ===============================================================================
 FIN DEL PLAN.

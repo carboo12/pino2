@@ -6,6 +6,10 @@ import {
 import { DatabaseService } from '../../database/database.service';
 import { UpdateUserDto } from './users.dto';
 import * as bcrypt from 'bcrypt';
+import {
+  normalizeUserRole,
+  requireCanonicalUserRole,
+} from '../../common/utils/user-role.util';
 
 @Injectable()
 export class UsersService {
@@ -61,6 +65,7 @@ export class UsersService {
     storeId?: string;
     storeIds?: string[];
   }) {
+    const canonicalRole = requireCanonicalUserRole(dto.role);
     return await this.db.withTransaction(async (client) => {
       const existing = await client.query(
         'SELECT id FROM users WHERE email = $1',
@@ -72,7 +77,7 @@ export class UsersService {
       const passwordHash = await bcrypt.hash(dto.password, 10);
       const resUser = await client.query(
         `INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, $4) RETURNING *`,
-        [dto.email, passwordHash, dto.name, dto.role],
+        [dto.email, passwordHash, dto.name, canonicalRole],
       );
       const user = resUser.rows[0];
 
@@ -134,7 +139,11 @@ export class UsersService {
     for (const [camel, snake] of Object.entries(fieldMap)) {
       if (dto[camel] !== undefined) {
         sets.push(`${snake} = $${idx++}`);
-        params.push(dto[camel]);
+        params.push(
+          camel === 'role'
+            ? requireCanonicalUserRole(String(dto[camel]))
+            : dto[camel],
+        );
       }
     }
 
@@ -193,7 +202,7 @@ export class UsersService {
       id: row.id,
       email: row.email,
       name: row.name,
-      role: row.role,
+      role: normalizeUserRole(row.role) || row.role,
       isActive: row.is_active,
       createdAt: row.created_at,
       storeIds,

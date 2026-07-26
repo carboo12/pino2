@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { DataPagination } from "@/components/ui/data-pagination";
 import { extractData, extractTotal } from "@/lib/paginated-fetch";
 import { ImportProductsDialog } from "@/components/products/import-products-dialog";
+import { useAuth } from "@/contexts/auth-context";
+import { normalizeUserRole } from "@/lib/user-role";
 
 interface Department {
   id: string;
@@ -80,6 +82,11 @@ export default function ProductsPage() {
   const params = useParams();
   const storeId = params.storeId as string;
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const role = normalizeUserRole(user?.role);
+  const canManageCatalog = ["master-admin", "owner", "store-admin"].includes(
+    role,
+  );
 
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
@@ -363,9 +370,11 @@ export default function ProductsPage() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleEdit}>
-                  Editar
-                </AlertDialogAction>
+                {canManageCatalog && (
+                  <AlertDialogAction onClick={handleEdit}>
+                    Editar
+                  </AlertDialogAction>
+                )}
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -478,55 +487,59 @@ export default function ProductsPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
       </div>
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button variant="outline" asChild>
-          <Link to={`/store/${storeId}/products/departments`}>
-            <Shapes className="mr-2 h-4 w-4" />
-            Depart.
-          </Link>
-        </Button>
-        <Button variant="outline" asChild>
-          <Link to={`/store/${storeId}/products/sub-departments`}>
-            <Library className="mr-2 h-4 w-4" />
-            Sub-Depart.
-          </Link>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => {
-            setReorganizationMode(true);
-            setSelectedDepartment(null);
-            setSelectedSubDepartment(null);
-          }}
-          className="relative"
-        >
-          <Wrench className="mr-2 h-4 w-4" />
-          Reorganizar
-          {unorganizedProducts.length > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-2 -right-2 px-2"
-            >
-              {unorganizedProducts.length}
-            </Badge>
-          )}
-        </Button>
-        <ImportProductsDialog storeId={storeId} departments={departments} />
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          disabled={products.length === 0}
-          className="border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Exportar Excel
-        </Button>
-      </div>
+      {canManageCatalog && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <Button variant="outline" asChild>
+            <Link to={`/store/${storeId}/products/departments`}>
+              <Shapes className="mr-2 h-4 w-4" />
+              Depart.
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to={`/store/${storeId}/products/sub-departments`}>
+              <Library className="mr-2 h-4 w-4" />
+              Sub-Depart.
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setReorganizationMode(true);
+              setSelectedDepartment(null);
+              setSelectedSubDepartment(null);
+            }}
+            className="relative"
+          >
+            <Wrench className="mr-2 h-4 w-4" />
+            Reorganizar
+            {unorganizedProducts.length > 0 && (
+              <Badge
+                variant="destructive"
+                className="absolute -top-2 -right-2 px-2"
+              >
+                {unorganizedProducts.length}
+              </Badge>
+            )}
+          </Button>
+          <ImportProductsDialog storeId={storeId} departments={departments} />
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={products.length === 0}
+            className="border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Excel
+          </Button>
+        </div>
+      )}
 
       {renderBreadcrumb()}
       {renderContent()}
 
-      <FloatingActionButton href={`/store/${storeId}/products/add`} />
+      {canManageCatalog && (
+        <FloatingActionButton href={`/store/${storeId}/products/add`} />
+      )}
     </div>
   );
 }

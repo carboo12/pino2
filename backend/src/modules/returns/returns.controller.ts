@@ -69,7 +69,7 @@ export class ReturnsController {
     );
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('master-admin', 'store-admin', 'auxiliar')
   @Post(':id/receive')
   @ApiOperation({ summary: 'Recibir físicamente devolución de ruta en bodega' })
   receive(@Param('id') id: string, @Req() req: any) {

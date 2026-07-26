@@ -46,6 +46,8 @@ export function getRedirectPath(user: User | null): string | null {
             return `/store/${storeId}/vendors/quick-sale`;
         case 'sales-manager':
             return `/store/${storeId}/vendors/dashboard`;
+        case 'auxiliar':
+            return `/store/${storeId}/warehouse`;
         default:
             console.error(`[RedirectLogic] Unrecognized role: "${user.role}" -> "${role}"`);
             return `/store/${storeId}/products`; // Fallback al listado de productos

@@ -6,8 +6,8 @@ export class CreateAuthorizationDto {
   storeId!: string;
 
   @IsString()
-  @IsNotEmpty()
-  requesterId!: string;
+  @IsOptional()
+  requesterId?: string;
 
   @IsString()
   @IsNotEmpty()

@@ -1,4 +1,6 @@
 import {
+  IsArray,
+  IsUUID,
   IsString,
   IsNotEmpty,
   IsOptional,
@@ -137,4 +139,17 @@ export class UpdateClientDto {
   @IsNumber()
   @IsOptional()
   lng?: number;
+}
+
+export class ReassignClientsDto {
+  @IsArray()
+  @IsUUID('4', { each: true })
+  clientIds!: string[];
+
+  @IsUUID()
+  preventaId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  motivo!: string;
 }

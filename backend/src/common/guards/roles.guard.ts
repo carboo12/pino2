@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { normalizeUserRole } from '../utils/user-role.util';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -21,7 +22,8 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest();
     if (!user) throw new ForbiddenException('No autenticado');
 
-    const hasRole = requiredRoles.some((role) => user.role === role);
+    const normalizedRole = normalizeUserRole(user.role);
+    const hasRole = requiredRoles.some((role) => normalizedRole === role);
     if (!hasRole) {
       throw new ForbiddenException(
         `Se requiere rol: ${requiredRoles.join(' o ')}`,

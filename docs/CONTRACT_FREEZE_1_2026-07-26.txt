@@ -14,6 +14,27 @@ ADENDA N4.1 (aditiva, no rompe versión 1.0):
 - Se agregan estados SUBMITTED_BY_DRIVER, UNDER_REVIEW,
   WITH_OBSERVATION y CLOSED.
 
+ADENDA DE LEY OPERATIVA TRELLO (OBLIGATORIA):
+
+- Jefe / Encargado de Bodega: store-admin.
+- Auxiliar de Recepción y Despacho: auxiliar.
+- Analista / Auditor de Inventario: inventory.
+- Gestor de Ventas / Preventista: sales-manager.
+- Rutero / Repartidor: rutero.
+- Administrador General: master-admin.
+- Los nombres humanos anteriores son etiquetas de UI. PostgreSQL y JWT sólo
+  guardan/emiten el valor canónico.
+- "Administrador Genera" no es un rol adicional; es una tarjeta incompleta que
+  debe corregirse a Administrador General.
+- Gestor sólo consulta rutas/clientes asignados y no puede autorasignarse.
+- Rutero sólo consulta/ejecuta cargas y entregas asignadas.
+- Auxiliar ejecuta recepción/carga/devolución física sin costos ni aprobación.
+- Analista cuenta y solicita ajustes; nunca aprueba su propia solicitud.
+- Jefe configura, asigna, supervisa y aprueba dentro de su bodega.
+- La matriz detallada, brechas y orden de ejecución están en:
+  docs/PLAN_ADAPTACION_SISTEMA_DE_INVENTARIO_2026-07-26.txt,
+  sección "LEY OPERATIVA TRELLO DE ROLES Y FLUJO".
+
 ===============================================================================
 0. REGLAS QUE NO PUEDE CAMBIAR EL AGENTE CONSUMIDOR
 ===============================================================================
@@ -733,3 +754,17 @@ Acción UI: marcar la acción local como sincronizada usando el id devuelto.
     de cambiar el contrato.
 
 FIN CONTRACT-FREEZE-1
+
+===============================================================================
+12. INTEGRACIÓN FINAL - 2026-07-26
+===============================================================================
+
+[X] Flutter implementó este contrato en commit 573e807.
+[X] NestJS y React incorporaron normalización canónica de roles.
+[X] Gestor queda limitado a clientes de su ruta SALES activa.
+[X] Reasignación masiva de clientes implementada.
+[X] Reasignación completa de carga y custodia implementada.
+[X] Conteo ciego y solicitud/aprobación de ajuste implementados.
+[X] Build NestJS correcto.
+[X] Build React correcto.
+[X] Migración aditiva aplicada en sistema_de_inventario.

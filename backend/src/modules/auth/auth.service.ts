@@ -10,6 +10,10 @@ import * as bcrypt from 'bcrypt';
 import * as argon2 from 'argon2';
 import { DatabaseService } from '../../database/database.service';
 import { ConfigService } from '@nestjs/config';
+import {
+  normalizeUserRole,
+  requireCanonicalUserRole,
+} from '../../common/utils/user-role.util';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +40,7 @@ export class AuthService {
     role: string;
     storeIds?: string[];
   }) {
+    const canonicalRole = requireCanonicalUserRole(dto.role);
     // Usamos el bloque transaccional del módulo pg puro
     return await this.db.withTransaction(async (client) => {
       // 1. Verificar si existe
@@ -51,7 +56,7 @@ export class AuthService {
       const resUser = await client.query(
         `INSERT INTO users (email, password_hash, name, role) 
          VALUES ($1, $2, $3, $4) RETURNING *`,
-        [dto.email, passwordHash, dto.name, dto.role],
+        [dto.email, passwordHash, dto.name, canonicalRole],
       );
       const savedUser = resUser.rows[0];
 
@@ -168,16 +173,26 @@ export class AuthService {
     const { password_hash, refresh_token_hash, ...profile } = user;
     return {
       ...profile,
+      role: requireCanonicalUserRole(profile.role),
       storeIds: resStores.rows.map((r) => r.store_id) || [],
     };
   }
 
   private async generateTokens(client: any, user: any) {
     const storeIds = user.userStores?.map((us: any) => us.storeId) || [];
+    const canonicalRole =
+      normalizeUserRole(user.role) || requireCanonicalUserRole(user.role);
+    if (canonicalRole !== user.role) {
+      await client.query(
+        'UPDATE users SET role = $1, updated_at = now() WHERE id = $2',
+        [canonicalRole, user.id],
+      );
+      user.role = canonicalRole;
+    }
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role: canonicalRole,
       storeIds,
     };
 
@@ -202,7 +217,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: canonicalRole,
         storeIds,
       },
     };

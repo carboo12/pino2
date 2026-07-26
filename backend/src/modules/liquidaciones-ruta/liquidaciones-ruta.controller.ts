@@ -52,7 +52,7 @@ export class LiquidacionesRutaController {
     return this.service.review(id, req.user.sub, dto.notes);
   }
 
-  @Roles('master-admin', 'store-admin', 'inventory')
+  @Roles('master-admin', 'store-admin', 'auxiliar')
   @Post(':id/receive-merchandise')
   receiveMerchandise(@Param('id') id: string, @Req() req: any) {
     return this.service.receiveMerchandise(id, req.user.sub);

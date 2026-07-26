@@ -58,6 +58,34 @@ export class OrdersService {
     return this._transitionUseCase;
   }
 
+  async assertClientAssignedToSeller(
+    storeId: string,
+    clientId: string,
+    sellerId: string,
+  ) {
+    const assignment = await this.db.query(
+      `SELECT 1
+         FROM route_clients rc
+         JOIN routes r ON r.id = rc.route_id
+         JOIN clients c ON c.id = rc.client_id
+        WHERE rc.client_id = $1
+          AND r.store_id = $2
+          AND c.store_id = $2
+          AND r.vendor_id = $3
+          AND r.route_type = 'SALES'
+          AND r.status = 'ACTIVE'
+          AND COALESCE(r.valid_from, r.route_date::date) <= CURRENT_DATE
+          AND (r.valid_to IS NULL OR r.valid_to >= CURRENT_DATE)
+        LIMIT 1`,
+      [clientId, storeId, sellerId],
+    );
+    if (assignment.rowCount !== 1) {
+      throw new BadRequestException(
+        'El cliente no pertenece a la ruta activa del Gestor',
+      );
+    }
+  }
+
   async create(
     dto: {
       storeId: string;

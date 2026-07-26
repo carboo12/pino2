@@ -57,3 +57,12 @@ export class AcceptCargaDto extends ConfirmCargaDto {
   @IsUUID()
   externalId!: string;
 }
+
+export class ReassignCargaDto {
+  @IsUUID()
+  ruteroId!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  reason!: string;
+}
