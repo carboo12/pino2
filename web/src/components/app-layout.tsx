@@ -13,7 +13,8 @@ import {
   FileText, Map, MapPin, Settings, LifeBuoy, Package, History, Wrench,
   ShoppingCart, ClipboardCheck, AreaChart, UsersRound, Truck, HandCoins,
   ShieldCheck, SendToBack, Route, DollarSign, ListOrdered, PackagePlus, ReceiptText, Boxes, Wallet, Undo2,
-  ChevronDown, PanelLeftClose, PanelLeft, Command, TreePine,
+  ChevronDown, PanelLeftClose, PanelLeft, Command, TreePine, ShoppingBag, ArrowDownRight,
+  ShieldAlert, UserCheck, UserCog, FileCheck
 } from 'lucide-react';
 
 // --- Nav Item Types ---
@@ -100,13 +101,35 @@ const getMasterAdminNav = (activeStoreId = '9321856d-19ba-42b8-ba47-cf35c0d133dd
 ];
 
 const getStoreAdminNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Caja', href: `/store/${storeId}/work/cash`, icon: WalletCards },
-  { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
-  { type: 'link', name: 'Rutas', href: `/store/${storeId}/routes`, icon: Map },
-  { type: 'link', name: 'Ventas', href: `/store/${storeId}/work/sales`, icon: Route },
-  { type: 'link', name: 'Finanzas', href: `/store/${storeId}/work/finance`, icon: Wallet },
-  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
-  { type: 'link', name: 'Admin', href: `/store/${storeId}/work/admin`, icon: ShieldCheck },
+  { type: 'link', name: 'Panel Sucursal', href: `/store/${storeId}/dashboard`, icon: LayoutDashboard },
+  { type: 'separator' },
+  { type: 'group', name: 'Ventas & Pedidos', icon: ShoppingCart, children: [
+    { type: 'link', name: 'Preventas & Pipeline', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
+    { type: 'link', name: 'Ventas & Facturación', href: `/store/${storeId}/work/sales`, icon: Route },
+    { type: 'link', name: 'Clientes & Cartera', href: `/store/${storeId}/vendors/clients`, icon: Users },
+  ]},
+  { type: 'group', name: 'Inventario & Bodega', icon: Boxes, children: [
+    { type: 'link', name: 'Catálogo & Factor X', href: `/store/${storeId}/products`, icon: Package },
+    { type: 'link', name: 'Movimientos & Kárdex', href: `/store/${storeId}/inventory/movements`, icon: FileText },
+    { type: 'link', name: 'Conteos Ciegos', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
+    { type: 'link', name: 'Ajustes de Inventario', href: `/store/${storeId}/inventory/adjustments`, icon: ShieldCheck },
+  ]},
+  { type: 'group', name: 'Logística & Campo', icon: Map, children: [
+    { type: 'link', name: 'Armado Carga Camión', href: `/store/${storeId}/routes`, icon: Truck },
+    { type: 'link', name: 'Control de Despacho', href: `/store/${storeId}/dispatcher`, icon: MapPin },
+    { type: 'link', name: 'Gestores de Venta', href: `/store/${storeId}/vendors`, icon: UserCheck },
+  ]},
+  { type: 'group', name: 'Finanzas & Compras', icon: Wallet, children: [
+    { type: 'link', name: 'Cuentas por Cobrar (CxC)', href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
+    { type: 'link', name: 'Proveedores & Compras', href: `/store/${storeId}/suppliers`, icon: Store },
+    { type: 'link', name: 'Cuentas por Pagar (CxP)', href: `/store/${storeId}/finance/payables`, icon: WalletCards },
+    { type: 'link', name: 'Arqueos de Caja', href: `/store/${storeId}/cash-register`, icon: DollarSign },
+    { type: 'link', name: 'Liquidación de Rutas', href: `/store/${storeId}/daily-closing`, icon: FileCheck },
+    { type: 'link', name: 'Reportes de Negocio', href: `/store/${storeId}/reports`, icon: AreaChart },
+  ]},
+  { type: 'separator' },
+  { type: 'link', name: 'Usuarios & Roles', href: `/store/${storeId}/users`, icon: UserCog },
+  { type: 'link', name: 'Autorizaciones Emergencia', href: `/store/${storeId}/authorizations`, icon: ShieldAlert },
 ];
 
 // --- Simple role navs (already compact) ---
