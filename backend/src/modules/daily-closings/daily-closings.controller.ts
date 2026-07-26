@@ -33,7 +33,7 @@ export class DailyClosingsController {
     });
   }
 
-  @Roles('master-admin', 'store-admin')
+  @Roles('master-admin', 'store-admin', 'rutero', 'vendor', 'sales-manager', 'inventory', 'cashier', 'dispatcher', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')
   @Get()
   @ApiOperation({ summary: 'Listar cierres de caja' })
   findAll(
