@@ -11,20 +11,19 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> {
-  bool _bootstrapped = false;
-
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (_bootstrapped) {
-      return;
-    }
-
-    _bootstrapped = true;
-    Future<void>.microtask(
-      () => ref.read(authControllerProvider.notifier).restoreSession(),
-    );
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final auth = ref.read(authControllerProvider.notifier);
+      await Future.any([
+        auth.restoreSession(),
+        Future.delayed(const Duration(milliseconds: 1500)),
+      ]);
+      if (mounted && ref.read(authControllerProvider).stage == AuthStage.loading) {
+        auth.forceUnauthenticated();
+      }
+    });
   }
 
   @override

@@ -56,66 +56,67 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> restoreSession() async {
-    if (state.stage == AuthStage.loading) {
-      return;
-    }
-
     state = state.copyWith(stage: AuthStage.loading, clearError: true);
 
-    final cachedSession = await _storage.readSession();
-    if (cachedSession == null) {
-      state = AuthState.unauthenticated();
-      return;
-    }
-
     try {
-      final profile = await _repository.getProfile(cachedSession.accessToken);
-      final refreshedSession = cachedSession.copyWith(user: profile);
-      await _storage.saveSession(refreshedSession);
-      state = AuthState.authenticated(refreshedSession);
-      
-      // Register push token
-      PushNotificationService.instance.registerTokenWithBackend().catchError((e) {
-        log('Error registering push token on restore: $e');
-      });
-      
-      return;
-    } catch (error) {
-      if (error is ApiFailure && error.isConnectivityIssue) {
-        state = AuthState.authenticated(cachedSession);
+      final cachedSession = await _storage.readSession();
+      if (cachedSession == null || cachedSession.accessToken.isEmpty) {
+        state = AuthState.unauthenticated();
         return;
       }
 
-      if (cachedSession.refreshToken.isNotEmpty) {
-        try {
-          final refreshedSession = await _repository.refresh(
-            cachedSession.refreshToken,
-          );
-          await _storage.saveSession(refreshedSession);
-          state = AuthState.authenticated(refreshedSession);
-          
-          // Register push token
-          PushNotificationService.instance.registerTokenWithBackend().catchError((e) {
-            log('Error registering push token on refresh: $e');
-          });
-          
-          return;
-        } catch (error) {
-          if (error is ApiFailure && error.isConnectivityIssue) {
-            state = AuthState.authenticated(cachedSession);
-            return;
-          }
-          await _storage.clear();
-          state = AuthState.unauthenticated(message: _mapError(error));
+      try {
+        final profile = await _repository.getProfile(cachedSession.accessToken);
+        final refreshedSession = cachedSession.copyWith(user: profile);
+        await _storage.saveSession(refreshedSession);
+        state = AuthState.authenticated(refreshedSession);
+        
+        // Register push token
+        PushNotificationService.instance.registerTokenWithBackend().catchError((e) {
+          log('Error registering push token on restore: $e');
+        });
+        
+        return;
+      } catch (error) {
+        if (error is ApiFailure && error.isConnectivityIssue) {
+          state = AuthState.authenticated(cachedSession);
           return;
         }
-      }
-    }
 
-    await _storage.clear();
-    state = AuthState.unauthenticated(
-      message: 'La sesión expiró. Inicia nuevamente.',
-    );
+        if (cachedSession.refreshToken.isNotEmpty) {
+          try {
+            final refreshedSession = await _repository.refresh(
+              cachedSession.refreshToken,
+            );
+            await _storage.saveSession(refreshedSession);
+            state = AuthState.authenticated(refreshedSession);
+            
+            // Register push token
+            PushNotificationService.instance.registerTokenWithBackend().catchError((e) {
+              log('Error registering push token on refresh: $e');
+            });
+            
+            return;
+          } catch (error) {
+            if (error is ApiFailure && error.isConnectivityIssue) {
+              state = AuthState.authenticated(cachedSession);
+              return;
+            }
+          }
+        }
+      }
+
+      await _storage.clear();
+      state = AuthState.unauthenticated(
+        message: 'La sesión expiró. Inicia nuevamente.',
+      );
+    } catch (globalError) {
+      log('Error al restaurar sesión: $globalError');
+      try {
+        await _storage.clear();
+      } catch (_) {}
+      state = AuthState.unauthenticated();
+    }
   }
 
   Future<bool> login({required String email, required String password}) async {
@@ -146,6 +147,12 @@ class AuthController extends Notifier<AuthState> {
 
     await _storage.clear();
     state = AuthState.unauthenticated();
+  }
+
+  void forceUnauthenticated() {
+    if (state.stage != AuthStage.authenticated) {
+      state = AuthState.unauthenticated();
+    }
   }
 
   void clearError() {
