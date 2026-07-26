@@ -725,6 +725,42 @@ Ver PLAN_FLUTTER_DIFERIDO_2026-07-26.txt → sección N4.3.
 No ejecutar en este VPS.
 
 -------------------------------------------------------------------------------
+FASE N5 - AUDITORÍA REACT ↔ ENDPOINTS Y CONTRATOS
+Responsable: IA-NÚCLEO
+Prioridad dominante: CRÍTICO/ALTO
+-------------------------------------------------------------------------------
+
+[X][C][IA-NÚCLEO] N5.1 Inventariar automáticamente todas las rutas React,
+                    páginas, llamadas API y controladores NestJS.
+[X][C][IA-NÚCLEO] N5.2 Corregir endpoints inexistentes o verbos incompatibles.
+[X][A][IA-NÚCLEO] N5.3 Añadir GET /routes/:id requerido por detalle de ruta.
+[X][C][IA-NÚCLEO] N5.4 Sustituir liquidación contra daily-closings por el
+                    contrato canónico liquidaciones-ruta.
+[ ][A][IA-NÚCLEO] N5.5 Revisar payload, query y forma de respuesta de cada
+                    llamada de escritura y cada página operativa.
+[ ][A][IA-NÚCLEO] N5.6 Clasificar y corregir llamadas dinámicas justificadas.
+[ ][A][IA-NÚCLEO] N5.7 Actualizar matriz después de integrar todos los cambios
+                    pendientes de IA-PARALELA.
+
+EVIDENCIA N5.1-N5.4:
+
+- Script reproducible:
+  backend/scripts/audit_react_endpoint_contracts.js.
+- Matriz:
+  docs/MATRIZ_REACT_ENDPOINTS_IA_NUCLEO_2026-07-26.txt.
+- Cobertura estática actual: 84 rutas React, 94 archivos de página, 229
+  endpoints NestJS y más de 300 llamadas API directas/transitivas.
+- La matriz contiene todas las rutas, páginas sin ruta directa, hallazgos,
+  endpoints backend y consumidores React conocidos.
+- Resultado después de las correcciones: 0 rutas inexistentes y 0 verbos HTTP
+  incompatibles detectados.
+- GET /routes/:id devuelve detalle con vendedor y route_clients normalizados.
+- Las dos entradas Web de liquidación ahora usan una pantalla canónica.
+- La pantalla usa GET /liquidaciones-ruta y las operaciones POST review,
+  receive-merchandise y approve; ya no intenta PATCH /daily-closings/:id.
+- Build NestJS y build React completados.
+
+-------------------------------------------------------------------------------
 FASE P0 - COMPONENTES PARALELOS SIN DEPENDENCIA DE API
 Responsable: IA-PARALELA
 Prioridad dominante: MEDIO/BAJO

@@ -1,5 +1,5 @@
 MATRIZ REACT <-> ENDPOINTS NESTJS - IA-NUCLEO
-Generado: 2026-07-26T06:18:52.322Z
+Generado: 2026-07-26T06:19:57.991Z
 Alcance: inventario estático completo; no ejecuta operaciones ni modifica datos.
 
 RESUMEN
@@ -7,10 +7,10 @@ RESUMEN
 - Archivos de página detectados: 94
 - Páginas sin ruta directa: 15
 - Endpoints NestJS detectados: 229
-- Llamadas API literales/dinámicas detectadas: 308
+- Llamadas API literales/dinámicas detectadas: 307
 - Llamadas con endpoint inexistente: 0
 - Llamadas con método incompatible: 0
-- Llamadas dinámicas a revisar: 4
+- Llamadas dinámicas a revisar: 3
 
 REGLA DE LECTURA
 - OK: método y ruta compatibles con un controlador NestJS.
@@ -930,12 +930,9 @@ C.1 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
   Fuente: web/src/hooks/queries.ts:?
   Alternativas backend: ninguna
 C.2 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
-  Fuente: web/src/lib/audit-logger.ts:?
-  Alternativas backend: ninguna
-C.3 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
   Fuente: web/src/services/api-client-validated.ts:?
   Alternativas backend: ninguna
-C.4 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
+C.3 [REVISAR_DINAMICO] NO_RESUELTO ARGUMENTO_DINAMICO
   Fuente: web/src/services/api-client-validated.ts:?
   Alternativas backend: ninguna
 

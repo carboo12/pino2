@@ -139,7 +139,12 @@ function extractApiCalls(file, source) {
   const allCallPattern =
     /\b(apiClient|axios)\s*\.\s*(get|post|put|patch|delete)\s*\(/g;
   let totalKnownClients = 0;
-  while (allCallPattern.exec(source)) totalKnownClients++;
+  let allCallMatch;
+  while ((allCallMatch = allCallPattern.exec(source))) {
+    const line = source.slice(0, allCallMatch.index).split('\n').length;
+    const sourceLine = source.split('\n')[line - 1] || '';
+    if (!sourceLine.trimStart().startsWith('//')) totalKnownClients++;
+  }
   const resolvedKnownClients = calls.filter((call) =>
     ['apiClient', 'axios'].includes(call.client),
   ).length;
