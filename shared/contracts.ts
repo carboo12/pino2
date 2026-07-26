@@ -55,7 +55,9 @@ export const TRUCK_LOAD_STATUSES = [
 export type TruckLoadStatus = typeof TRUCK_LOAD_STATUSES[number];
 
 export const ROUTE_LIQUIDATION_STATUSES = [
-  'PENDING', 'BALANCED', 'WITH_DIFFERENCE', 'APPROVED', 'CANCELLED',
+  'PENDING', 'SUBMITTED_BY_DRIVER', 'UNDER_REVIEW',
+  'BALANCED', 'WITH_DIFFERENCE', 'APPROVED',
+  'WITH_OBSERVATION', 'CLOSED', 'CANCELLED',
 ] as const;
 export type RouteLiquidationStatus = typeof ROUTE_LIQUIDATION_STATUSES[number];
 

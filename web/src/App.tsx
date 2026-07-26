@@ -249,6 +249,8 @@ const InventoryValuationPage = lazy(
 const PurchaseOrdersPage = lazy(
   () => import("@/pages/store-admin/purchase-orders/purchase-orders-page"),
 );
+const RoutesListPage = lazy(() => import('@/pages/store-admin/routes/routes-list-page'));
+const RouteFormPage = lazy(() => import('@/pages/store-admin/routes/route-form-page'));
 const PromotionsPage = lazy(
   () => import("@/pages/store-admin/promotions/promotions-page"),
 );
@@ -535,6 +537,28 @@ function App() {
                             allowedRoles={INVENTORY_ROLES}
                           >
                             <SupplierInvoicesPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/routes"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <RoutesListPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/routes/create"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <RouteFormPage />
                           </ProtectedRoute>
                         }
                       />

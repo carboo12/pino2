@@ -97,6 +97,7 @@ const getMasterAdminNav = (): NavItem[] => [
 const getStoreAdminNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Caja', href: `/store/${storeId}/work/cash`, icon: WalletCards },
   { type: 'link', name: 'Bodega', href: `/store/${storeId}/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Rutas', href: `/store/${storeId}/routes`, icon: Map },
   { type: 'link', name: 'Ventas', href: `/store/${storeId}/work/sales`, icon: Route },
   { type: 'link', name: 'Finanzas', href: `/store/${storeId}/work/finance`, icon: Wallet },
   { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },

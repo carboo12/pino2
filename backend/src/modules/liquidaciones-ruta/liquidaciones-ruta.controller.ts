@@ -9,7 +9,11 @@ import {
   Req,
 } from '@nestjs/common';
 import { LiquidacionesRutaService } from './liquidaciones-ruta.service';
-import { CreateLiquidacionDto } from './liquidaciones-ruta.dto';
+import {
+  ApproveLiquidacionDto,
+  CreateLiquidacionDto,
+  ReviewLiquidacionDto,
+} from './liquidaciones-ruta.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -30,6 +34,31 @@ export class LiquidacionesRutaController {
       liquidadoPor: req.user.sub,
       requireExternalId: isRutero,
     });
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Post(':id/review')
+  review(
+    @Param('id') id: string,
+    @Body() dto: ReviewLiquidacionDto,
+    @Req() req: any,
+  ) {
+    return this.service.review(id, req.user.sub, dto.notes);
+  }
+
+  @Roles('master-admin', 'store-admin')
+  @Post(':id/approve')
+  approve(
+    @Param('id') id: string,
+    @Body() dto: ApproveLiquidacionDto,
+    @Req() req: any,
+  ) {
+    return this.service.approveAndClose(
+      id,
+      req.user.sub,
+      dto.allowCashObservation === true,
+      dto.notes,
+    );
   }
 
   @Roles('master-admin', 'store-admin', 'rutero')

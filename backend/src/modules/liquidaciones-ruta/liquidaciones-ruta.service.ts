@@ -1,10 +1,13 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PoolClient } from 'pg';
 import { DatabaseService } from '../../database/database.service';
 import { LiquidacionStatus } from '../../common/constants/enums';
+import { splitIntoBulkUnits } from '../../common/utils/stock-display.util';
 
 @Injectable()
 export class LiquidacionesRutaService {
@@ -19,11 +22,31 @@ export class LiquidacionesRutaService {
     notas?: string;
     externalId?: string;
     requireExternalId?: boolean;
+    cargaId?: string;
+    returnItems?: Array<{ productId: string; returnedUnits: number }>;
   }) {
     if (dto.requireExternalId && !dto.externalId) {
       throw new BadRequestException(
         'externalId es obligatorio para cierres enviados desde ruta',
       );
+    }
+    if (dto.requireExternalId) {
+      if (!dto.cargaId) {
+        throw new BadRequestException(
+          'cargaId es obligatorio para finalizar una ruta',
+        );
+      }
+      if (!dto.returnItems) {
+        throw new BadRequestException(
+          'returnItems es obligatorio para declarar el retorno físico',
+        );
+      }
+      return this.submitByDriver({
+        ...dto,
+        cargaId: dto.cargaId,
+        externalId: dto.externalId!,
+        returnItems: dto.returnItems,
+      });
     }
 
     return this.db.withTransaction(async (client) => {
@@ -181,6 +204,261 @@ export class LiquidacionesRutaService {
 
       return this.mapRow(insertRes.rows[0]);
     });
+  }
+
+  private async submitByDriver(dto: {
+    storeId: string;
+    ruteroId: string;
+    fechaRuta: string;
+    liquidadoPor: string;
+    arqueoId?: string;
+    notas?: string;
+    externalId: string;
+    cargaId: string;
+    returnItems: Array<{ productId: string; returnedUnits: number }>;
+  }) {
+    const id = await this.db.withTransaction(async (client) => {
+      const duplicate = await client.query(
+        `SELECT id FROM liquidaciones_ruta
+         WHERE store_id = $1 AND external_id = $2
+         FOR UPDATE`,
+        [dto.storeId, dto.externalId],
+      );
+      if (duplicate.rowCount === 1) {
+        return duplicate.rows[0].id;
+      }
+
+      const cargaRes = await client.query(
+        `SELECT * FROM cargas_camion
+         WHERE id = $1 AND store_id = $2 AND rutero_id = $3
+         FOR UPDATE`,
+        [dto.cargaId, dto.storeId, dto.ruteroId],
+      );
+      if (cargaRes.rowCount !== 1) {
+        throw new NotFoundException('Carga no asignada al Rutero');
+      }
+      const carga = cargaRes.rows[0];
+      if (carga.status !== 'EN_ROUTE') {
+        throw new ConflictException(
+          `La ruta no puede finalizarse desde ${carga.status}`,
+        );
+      }
+
+      const incomplete = await client.query(
+        `SELECT co.order_id
+         FROM carga_camion_orders co
+         WHERE co.carga_id = $1
+           AND NOT EXISTS (
+             SELECT 1
+             FROM pending_deliveries pd
+             WHERE pd.order_id = co.order_id
+               AND pd.carga_id = $1
+               AND pd.status IN (
+                 'ENTREGADO', 'PARCIAL', 'RECHAZADO',
+                 'DEVUELTO', 'CANCELADO'
+               )
+           )
+         LIMIT 1`,
+        [dto.cargaId],
+      );
+      if (incomplete.rowCount > 0) {
+        throw new ConflictException(
+          'Todos los pedidos de la carga deben tener resultado antes del retorno',
+        );
+      }
+
+      const expectedRes = await client.query(
+        `SELECT product_id, units_per_bulk_snapshot, accepted_units
+         FROM carga_camion_items
+         WHERE carga_id = $1
+         ORDER BY product_id
+         FOR UPDATE`,
+        [dto.cargaId],
+      );
+      const deliveredRes = await client.query(
+        `SELECT dir.product_id,
+                COALESCE(SUM(dir.delivered_units), 0)::int AS delivered_units
+         FROM pending_deliveries pd
+         JOIN delivery_item_results dir ON dir.delivery_id = pd.id
+         WHERE pd.carga_id = $1
+         GROUP BY dir.product_id`,
+        [dto.cargaId],
+      );
+      const deliveredByProduct = new Map(
+        deliveredRes.rows.map((row) => [
+          row.product_id,
+          Number(row.delivered_units),
+        ]),
+      );
+      const input = new Map(
+        dto.returnItems.map((item) => [item.productId, item.returnedUnits]),
+      );
+      if (
+        input.size !== dto.returnItems.length ||
+        input.size !== expectedRes.rowCount
+      ) {
+        throw new BadRequestException(
+          'Debe declarar exactamente una vez cada producto de la carga',
+        );
+      }
+
+      const prepared: Array<{
+        productId: string;
+        expectedUnits: number;
+        returnedUnits: number;
+        differenceUnits: number;
+        unitsPerBulk: number;
+      }> = [];
+      for (const row of expectedRes.rows) {
+        const expected =
+          Number(row.accepted_units) -
+          Number(deliveredByProduct.get(row.product_id) || 0);
+        const returned = Number(input.get(row.product_id));
+        if (
+          expected < 0 ||
+          !Number.isInteger(returned) ||
+          returned < 0 ||
+          returned > expected
+        ) {
+          throw new BadRequestException(
+            `Retorno inválido para producto ${row.product_id}; esperado máximo ${expected}`,
+          );
+        }
+        prepared.push({
+          productId: row.product_id,
+          expectedUnits: expected,
+          returnedUnits: returned,
+          differenceUnits: returned - expected,
+          unitsPerBulk: Number(row.units_per_bulk_snapshot),
+        });
+      }
+
+      const finances = await this.calculateLoadFinancials(
+        client,
+        dto.cargaId,
+        dto.storeId,
+        dto.ruteroId,
+        dto.fechaRuta,
+        dto.arqueoId,
+      );
+      const merchandiseExpected = prepared.reduce(
+        (sum, item) => sum + item.expectedUnits,
+        0,
+      );
+      const merchandiseReturned = prepared.reduce(
+        (sum, item) => sum + item.returnedUnits,
+        0,
+      );
+
+      const result = await client.query(
+        `INSERT INTO liquidaciones_ruta (
+           store_id, rutero_id, fecha_ruta, total_pedidos, total_entregados,
+           total_rechazados, total_cobrado_contado, total_cobrado_credito,
+           total_devoluciones, efectivo_esperado, efectivo_entregado,
+           diferencia, arqueo_id, status, liquidado_por, notas, external_id,
+           carga_id, submitted_at, submitted_by,
+           merchandise_expected_units, merchandise_returned_units,
+           merchandise_difference_units
+         ) VALUES (
+           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
+           'SUBMITTED_BY_DRIVER',$14,$15,$16,$17,NOW(),$14,$18,$19,$20
+         )
+         ON CONFLICT (store_id, rutero_id, fecha_ruta)
+         DO UPDATE SET
+           total_pedidos = EXCLUDED.total_pedidos,
+           total_entregados = EXCLUDED.total_entregados,
+           total_rechazados = EXCLUDED.total_rechazados,
+           total_cobrado_contado = EXCLUDED.total_cobrado_contado,
+           total_cobrado_credito = EXCLUDED.total_cobrado_credito,
+           total_devoluciones = EXCLUDED.total_devoluciones,
+           efectivo_esperado = EXCLUDED.efectivo_esperado,
+           efectivo_entregado = EXCLUDED.efectivo_entregado,
+           diferencia = EXCLUDED.diferencia,
+           arqueo_id = EXCLUDED.arqueo_id,
+           status = 'SUBMITTED_BY_DRIVER',
+           liquidado_por = EXCLUDED.liquidado_por,
+           notas = EXCLUDED.notas,
+           external_id = EXCLUDED.external_id,
+           carga_id = EXCLUDED.carga_id,
+           submitted_at = NOW(),
+           submitted_by = EXCLUDED.submitted_by,
+           merchandise_expected_units = EXCLUDED.merchandise_expected_units,
+           merchandise_returned_units = EXCLUDED.merchandise_returned_units,
+           merchandise_difference_units = EXCLUDED.merchandise_difference_units,
+           version = liquidaciones_ruta.version + 1
+         RETURNING id`,
+        [
+          dto.storeId,
+          dto.ruteroId,
+          dto.fechaRuta,
+          finances.totalPedidos,
+          finances.totalEntregados,
+          finances.totalRechazados,
+          finances.totalContado,
+          finances.totalCredito,
+          finances.totalDevoluciones,
+          finances.efectivoEsperado,
+          finances.efectivoEntregado,
+          finances.diferencia,
+          finances.arqueoId,
+          dto.liquidadoPor,
+          dto.notas || null,
+          dto.externalId,
+          dto.cargaId,
+          merchandiseExpected,
+          merchandiseReturned,
+          merchandiseReturned - merchandiseExpected,
+        ],
+      );
+      const liquidacionId = result.rows[0].id;
+
+      await client.query(
+        'DELETE FROM liquidacion_ruta_items WHERE liquidacion_id = $1',
+        [liquidacionId],
+      );
+      for (const item of prepared) {
+        await client.query(
+          `INSERT INTO liquidacion_ruta_items (
+             liquidacion_id, carga_id, product_id, expected_units,
+             returned_units, difference_units, units_per_bulk_snapshot
+           ) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+          [
+            liquidacionId,
+            dto.cargaId,
+            item.productId,
+            item.expectedUnits,
+            item.returnedUnits,
+            item.differenceUnits,
+            item.unitsPerBulk,
+          ],
+        );
+      }
+
+      await client.query(
+        `UPDATE cargas_camion
+         SET status = 'RETURNED', returned_by = $2, returned_at = NOW(),
+             version = version + 1, updated_at = NOW()
+         WHERE id = $1`,
+        [dto.cargaId, dto.ruteroId],
+      );
+      await client.query(
+        `INSERT INTO carga_camion_events (
+           carga_id, event_type, external_id, actor_id, payload
+         ) VALUES ($1,'RETURNED',$2,$3,$4::jsonb)`,
+        [
+          dto.cargaId,
+          dto.externalId,
+          dto.ruteroId,
+          JSON.stringify({
+            liquidacionId,
+            merchandiseExpected,
+            merchandiseReturned,
+          }),
+        ],
+      );
+      return liquidacionId;
+    });
+    return this.findOne(id, dto.ruteroId);
   }
 
   async findAll(storeId: string, fecha?: string, ruteroId?: string) {
