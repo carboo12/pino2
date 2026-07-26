@@ -37,6 +37,7 @@ function shortenIfUuid(segment: string): string {
 }
 
 const breadcrumbLabels: Record<string, string> = {
+  'store': 'Tienda',
   'work': 'Espacio',
   'cash': 'Caja',
   'warehouse': 'Bodega',
@@ -54,6 +55,16 @@ const breadcrumbLabels: Record<string, string> = {
   'pending-orders': 'Pedidos',
   'dispatch': 'Despacho',
   'delivery-route': 'Ruta',
+  'routes': 'Rutas',
+  'cargas': 'Cargas',
+  'liquidaciones': 'Liquidaciones',
+  'import': 'Importar',
+  'adjustments': 'Ajustes',
+  'movements': 'Movimientos',
+  'entry': 'Entrada',
+  'receivables': 'CxC',
+  'payables': 'CxP',
+  'warehouse-dashboard': 'Bodega',
 };
 
 function Breadcrumb() {

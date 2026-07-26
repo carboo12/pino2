@@ -287,7 +287,7 @@ export default function CatalogWorkspacePage() {
                     <p className="text-xs text-[#5B6673]">{p.barcode || 'Sin código'}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold text-[#DC2626]">{p.stock ?? 0} uds</span>
+                    <span className="text-sm font-semibold text-[#DC2626]">{p.stockDisplay?.formatted || calculateStockDisplay(p.currentStock ?? 0, p.handlesBulk ?? false, p.unitsPerBulk ?? 1).formatted}</span>
                     <Button variant="outline" size="sm" onClick={() => navigate(`/store/${storeId}/inventory/adjustments?productId=${p.id}`)}>
                       Ajustar
                     </Button>
