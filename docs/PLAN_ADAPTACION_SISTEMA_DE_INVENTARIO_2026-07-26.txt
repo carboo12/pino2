@@ -17,7 +17,8 @@ FASE ACTUAL:
   implementadas mediante migraciones aditivas.
 - N3: operaciones transaccionales e idempotencia backend completadas para el
   contrato de integración. El cliente Flutter se implementará posteriormente
-  en otra máquina; no se compila ni modifica Flutter en este VPS.
+  en otra máquina (ver PLAN_FLUTTER_DIFERIDO_2026-07-26.txt);
+  no se compila ni modifica Flutter en este VPS.
 - N4: retorno/liquidación administrativa completa, compras e integridad restante
   continúan pendientes.
 - P1: queda habilitado para IA-PARALELA conforme al documento congelado.
@@ -370,28 +371,16 @@ ARCHIVOS RESERVADOS A IA-NÚCLEO:
 - web/src/services/**
 - web/src/lib/runtime-config.ts
 - web/src/App.tsx
-- flutter/lib/core/database/**
-- flutter/lib/core/network/**
-- flutter/lib/features/**/data/**
-- flutter/lib/features/**/domain/**
-- flutter/lib/features/preventa/presentation/screens/preventa_route_screen.dart
-- flutter/lib/features/preventa/presentation/screens/preventa_order_screen.dart
-- flutter/lib/features/deliveries/presentation/screens/delivery_detail_screen.dart
-- flutter/lib/features/deliveries/presentation/screens/route_board_screen.dart
-- flutter/lib/features/warehouse/presentation/screens/carga_camion_screen.dart
-- flutter/lib/features/collections/presentation/screens/collections_screen.dart
+- flutter/** (todo Flutter se maneja en PLAN_FLUTTER_DIFERIDO_2026-07-26.txt)
 
 ARCHIVOS/ÁREAS INICIALES PERMITIDAS A IA-PARALELA:
 
 - web/src/components/field-operations/**        (archivos nuevos)
-- web/src/components/bulk-unit-input/**         (archivos nuevos)
-- web/src/components/data-pagination/**         (archivos nuevos)
-- web/src/components/import-preview/**          (archivos nuevos)
-- web/src/components/states/**                  (archivos nuevos)
-- flutter/lib/features/preventa/presentation/widgets/**   (archivos nuevos)
-- flutter/lib/features/deliveries/presentation/widgets/** (archivos nuevos)
-- flutter/lib/features/warehouse/presentation/widgets/**  (archivos nuevos)
-- flutter/lib/features/collections/presentation/widgets/** (archivos nuevos)
+- web/src/components/ui/bulk-unit-input.tsx     (archivos nuevos)
+- web/src/components/ui/bulk-unit-display.tsx   (archivos nuevos)
+- web/src/components/ui/data-pagination.tsx     (archivos nuevos)
+- web/src/components/ui/import-preview-table.tsx (archivos nuevos)
+- web/src/pages/store-admin/routes/**           (archivos nuevos)
 
 IA-PARALELA podrá editar páginas existentes sólo cuando IA-NÚCLEO marque el
 contrato correspondiente como FROZEN. Hasta entonces debe crear componentes
@@ -710,13 +699,10 @@ EVIDENCIA N4.2.4:
 - stock_bulks y stock_units no se escriben directamente porque PostgreSQL las
   recalcula como columnas generadas desde current_stock y units_per_bulk.
 
-SUBFASE N4.3 - Flutter financiero/campo
+SUBFASE N4.3 - Flutter financiero/campo (DIFERIDO)
 
-[ ][A][IA-NÚCLEO] N4.3.1 Migración Drift de CxC.
-[ ][A][IA-NÚCLEO] N4.3.2 Cache de dueDate/daysOverdue/saldo/límite.
-[ ][A][IA-NÚCLEO] N4.3.3 Cobro offline idempotente.
-[ ][A][IA-NÚCLEO] N4.3.4 Impresión Bluetooth.
-[ ][A][IA-NÚCLEO] N4.3.5 Reimpresión sin repetir operación.
+Ver PLAN_FLUTTER_DIFERIDO_2026-07-26.txt → sección N4.3.
+No ejecutar en este VPS.
 
 -------------------------------------------------------------------------------
 FASE P0 - COMPONENTES PARALELOS SIN DEPENDENCIA DE API
@@ -745,29 +731,10 @@ RESTRICCIÓN:
 
 Estos componentes no llaman apiClient y no importan servicios.
 
-SUBFASE P0.2 - Widgets Flutter puros
+SUBFASE P0.2 - Widgets Flutter puros (DIFERIDO)
 
-[ ][M][IA-PARALELA] P0.2.1 BulkUnitStepper.
-[ ][M][IA-PARALELA] P0.2.2 BulkUnitSummary.
-[ ][M][IA-PARALELA] P0.2.3 RouteStopCard.
-[ ][M][IA-PARALELA] P0.2.4 LoadItemCountCard.
-[ ][M][IA-PARALELA] P0.2.5 DeliveryItemResultEditor visual.
-[ ][M][IA-PARALELA] P0.2.6 PaymentMethodSelector visual.
-[ ][M][IA-PARALELA] P0.2.7 SyncOperationStatusCard.
-[ ][B][IA-PARALELA] P0.2.8 EmptyRouteState.
-[ ][B][IA-PARALELA] P0.2.9 CompactErrorBanner.
-
-RESTRICCIÓN:
-
-Los widgets reciben valores/callbacks; no usan Dio, Drift ni repositorios.
-
-CRITERIO DE SALIDA P0:
-
-- Componentes reutilizables y sin lógica de negocio.
-- Responsive.
-- Teclado numérico adecuado.
-- Accesibles con botones grandes para uso de piso/calle.
-- No hay endpoints inventados.
+Ver PLAN_FLUTTER_DIFERIDO_2026-07-26.txt → sección P0.2.
+No ejecutar en este VPS.
 
 -------------------------------------------------------------------------------
 FASE P1 - INTEGRACIÓN DE PÁGINAS CON CONTRATO CONGELADO
@@ -809,19 +776,10 @@ SUBFASE P1.4 - React Liquidación
 [ ][M][IA-PARALELA] P1.4.4 Acción Aprobar/Cerrar.
 [ ][B][IA-PARALELA] P1.4.5 Impresión/resumen visual.
 
-SUBFASE P1.5 - Flutter presentación
+SUBFASE P1.5 - Flutter presentación (DIFERIDO)
 
-[ ][M][IA-PARALELA] P1.5.1 Integrar widgets de ruta.
-[ ][M][IA-PARALELA] P1.5.2 Integrar editor Bultos/Unidades.
-[ ][M][IA-PARALELA] P1.5.3 Integrar editor entrega parcial.
-[ ][M][IA-PARALELA] P1.5.4 Integrar selector de pago.
-[ ][M][IA-PARALELA] P1.5.5 Mostrar estados outbox.
-[ ][B][IA-PARALELA] P1.5.6 Simplificar navegación a una mano.
-
-REGLA:
-
-IA-PARALELA no modifica repositorios ni payloads. Si el contrato no alcanza,
-reporta el campo exacto a IA-NÚCLEO.
+Ver PLAN_FLUTTER_DIFERIDO_2026-07-26.txt → sección P1.5.
+No ejecutar en este VPS.
 
 -------------------------------------------------------------------------------
 FASE P2 - RENDIMIENTO VISUAL Y PULIDO
@@ -3549,67 +3507,13 @@ SIGUIENTE TRABAJO IA-NÚCLEO:
 7. Publicar endpoints/DTO/JSON y liberar CONTRACT-FREEZE-1.
 
 ===============================================================================
-21. FASE FLUTTER DIFERIDA - EJECUTAR EN OTRA MÁQUINA
+FIN DEL PLAN.
+
+===============================================================================
+FLUTTER — DOCUMENTO APARTE
 ===============================================================================
 
-No ejecutar Flutter en este VPS. La máquina Flutter debe comenzar sólo después
-de recibir el aviso literal: CONTRACT-FREEZE-1 LIBERADO.
+Todo el trabajo Flutter (N4.3, P0.2, P1.5, F-M0 a F-M5) fue movido a:
+  docs/PLAN_FLUTTER_DIFERIDO_2026-07-26.txt
 
-SUBFASE F-M0 - PREPARACIÓN
-
-[ ] Hacer checkout del commit de freeze indicado por IA-NÚCLEO.
-[ ] Ejecutar flutter pub get.
-[ ] Ejecutar dart format únicamente en archivos Flutter modificados.
-[ ] Confirmar URL/basePath del API para el ambiente de la nueva máquina.
-[ ] No copiar credenciales ni DATABASE_URL dentro de Dart.
-
-SUBFASE F-M1 - ROLES Y CONTRATOS
-
-[ ] En flutter/lib/core/utils/role_utils.dart normalizar preventa a
-    AppRole.salesManager.
-[ ] No tratar preventa como rol persistido independiente.
-[ ] Crear flutter/lib/core/contracts/field_contracts.dart con los valores
-    exactos publicados en CONTRACT-FREEZE-1.
-[ ] Mapear errores recuperables de offline sin traducir los códigos.
-
-SUBFASE F-M2 - GESTOR
-
-[ ] En preventa_route_screen.dart filtrar rutas por session.user.id y fecha.
-[ ] Si no existe ruta asignada, mostrar lista vacía.
-[ ] Eliminar definitivamente: routeClientIds.isEmpty ? clients : ...
-[ ] Mostrar mensaje práctico: "No tienes una ruta asignada para hoy".
-[ ] POST /orders conserva externalId UUID local.
-[ ] No usar vendorId de un selector; usar sesión sólo como dato visual.
-[ ] Mantener el pedido en outbox hasta respuesta definitiva/idempotente.
-
-SUBFASE F-M3 - RUTERO
-
-[ ] GET de carga/entregas no debe enviar IDs seleccionables de otro Rutero.
-[ ] Implementar aceptar carga con externalId.
-[ ] Guardar snapshot de unidades/bultos aceptados en Drift.
-[ ] Entrega completa y parcial envían resultados por item.
-[ ] Rechazo crea devolución en tránsito; no repone bodega desde Flutter.
-[ ] Cobro usa externalId y conserva CASH/TRANSFER/CHECK.
-[ ] Cierre de ruta queda en outbox hasta confirmación del backend.
-
-SUBFASE F-M4 - DRIFT/OFFLINE
-
-[ ] Migración aditiva; no borrar tablas ni colas locales existentes.
-[ ] Unique local por externalId + operationType.
-[ ] Estados: pending, processing, synced, retryable_error, conflict.
-[ ] Un HTTP 4xx de negocio no se elimina de la cola.
-[ ] Un timeout posterior al commit se reintenta con el mismo externalId.
-[ ] Sincronización nunca cambia clientId/vendorId/ruteroId por datos de UI.
-
-SUBFASE F-M5 - SALIDA
-
-[ ] flutter analyze sin errores nuevos.
-[ ] APK debug instala y abre.
-[ ] Gestor sin ruta ve cero clientes.
-[ ] Gestor con ruta ve únicamente su cartera.
-[ ] Rutero ve sólo su carga y entregas.
-[ ] Modo avión conserva pedido/cobro/entrega.
-[ ] Reconexión no duplica ninguna operación.
-[ ] Entregar commit Flutter separado, sin editar backend, SQL o React.
-
-FIN DEL PLAN.
+No ejecutar Flutter en este VPS. La máquina Flutter debe usar ese documento.

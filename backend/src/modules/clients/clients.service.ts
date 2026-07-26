@@ -42,40 +42,72 @@ export class ClientsService {
     filters?: {
       search?: string;
       limit?: number;
+      page?: number;
+      pageSize?: number;
       preventaId?: string;
       grupoClienteId?: string;
       sinAsignar?: boolean;
     },
   ) {
-    let sql = "SELECT * FROM clients WHERE store_id = $1 AND is_active = true";
+    let whereSql = " WHERE store_id = $1 AND is_active = true";
     const params: any[] = [storeId];
     let pIdx = 2;
 
     if (filters?.search) {
-      sql += ` AND (name ILIKE $${pIdx} OR phone ILIKE $${pIdx})`;
+      whereSql += ` AND (name ILIKE $${pIdx} OR phone ILIKE $${pIdx})`;
       params.push(`%${filters.search}%`);
       pIdx++;
     }
 
     if (filters?.preventaId) {
-      sql += ` AND preventa_id = $${pIdx++}`;
+      whereSql += ` AND preventa_id = $${pIdx++}`;
       params.push(filters.preventaId);
     }
 
     if (filters?.grupoClienteId) {
-      sql += ` AND grupo_cliente_id = $${pIdx++}`;
+      whereSql += ` AND grupo_cliente_id = $${pIdx++}`;
       params.push(filters.grupoClienteId);
     }
 
     if (filters?.sinAsignar) {
-      sql += ` AND preventa_id IS NULL`;
+      whereSql += ` AND preventa_id IS NULL`;
     }
 
-    sql += " ORDER BY name ASC";
+    const paginationRequested = filters?.page !== undefined;
+    if (paginationRequested) {
+      const page = Math.max(1, Number.isFinite(filters.page) ? filters.page! : 1);
+      const requestedSize = filters?.pageSize ?? filters?.limit ?? 50;
+      const pageSize = Math.max(
+        1,
+        Math.min(500, Number.isFinite(requestedSize) ? requestedSize : 50),
+      );
+      const offset = (page - 1) * pageSize;
 
-    if (filters?.limit) {
-      sql += ` LIMIT $${pIdx++}`;
-      params.push(filters.limit);
+      const [countResult, dataResult] = await Promise.all([
+        this.db.query(`SELECT COUNT(*)::int AS total FROM clients${whereSql}`, params),
+        this.db.query(
+          `SELECT * FROM clients${whereSql}
+           ORDER BY name ASC, id ASC
+           LIMIT $${pIdx} OFFSET $${pIdx + 1}`,
+          [...params, pageSize, offset],
+        ),
+      ]);
+      const total = Number(countResult.rows[0]?.total ?? 0);
+      return {
+        data: dataResult.rows.map(this.mapRow),
+        total,
+        page,
+        pageSize,
+        limit: pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      };
+    }
+
+    let sql = `SELECT * FROM clients${whereSql} ORDER BY name ASC, id ASC`;
+    if (filters?.limit && Number.isFinite(filters.limit)) {
+      const safeLimit = Math.max(1, Math.min(1000, filters.limit));
+      sql += ` LIMIT $${pIdx}`;
+      params.push(safeLimit);
     }
 
     const res = await this.db.query(sql, params);

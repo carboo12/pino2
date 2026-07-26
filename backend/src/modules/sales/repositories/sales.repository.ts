@@ -492,6 +492,79 @@ export class SalesRepository {
     return res.rows.map((r) => this.mapper.toSale(r));
   }
 
+  async findPaginatedSales(
+    storeId: string | undefined,
+    shiftId: string | undefined,
+    startDate: string | undefined,
+    endDate: string | undefined,
+    storeIds: string | undefined,
+    page: number,
+    pageSize: number,
+    vendorId?: string,
+  ) {
+    let whereSql = ' WHERE 1=1';
+    const params: any[] = [];
+
+    if (storeId) {
+      whereSql += ` AND store_id = $${params.push(storeId)}`;
+    }
+    if (storeIds) {
+      const ids = storeIds
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (ids.length > 0) {
+        const placeholders = ids
+          .map((id) => {
+            params.push(id);
+            return `$${params.length}`;
+          })
+          .join(',');
+        whereSql += ` AND store_id IN (${placeholders})`;
+      }
+    }
+    if (
+      shiftId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        shiftId,
+      )
+    ) {
+      whereSql += ` AND cash_shift_id = $${params.push(shiftId)}`;
+    }
+    if (vendorId) {
+      whereSql += ` AND cashier_id = $${params.push(vendorId)}`;
+    }
+    if (startDate) {
+      whereSql += ` AND created_at >= $${params.push(startDate)}`;
+    }
+    if (endDate) {
+      whereSql += ` AND created_at <= $${params.push(endDate)}`;
+    }
+
+    const offset = (page - 1) * pageSize;
+    const [countResult, dataResult] = await Promise.all([
+      this.db.query(
+        `SELECT COUNT(*)::int AS total FROM sales${whereSql}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT * FROM sales${whereSql}
+          ORDER BY created_at DESC, id DESC
+          LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, pageSize, offset],
+      ),
+    ]);
+    const total = Number(countResult.rows[0]?.total ?? 0);
+    return {
+      data: dataResult.rows.map((row) => this.mapper.toSale(row)),
+      total,
+      page,
+      pageSize,
+      limit: pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
+  }
+
   async getSalesReportTopProducts(
     storeId: string,
     startDate: string,

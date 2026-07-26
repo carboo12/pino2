@@ -141,6 +141,7 @@ export class ProductsService {
       data,
       total,
       page: safePage,
+      pageSize: safeLimit,
       limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit) || 1,
     };

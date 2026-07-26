@@ -137,7 +137,29 @@ export class InventoryService {
     return this.repo.getKardex(storeId, productId);
   }
 
-  async getMovements(storeId: string, date?: string, type?: string, limit?: number) {
+  async getMovements(
+    storeId: string,
+    date?: string,
+    type?: string,
+    limit?: number,
+    page?: number,
+    pageSize?: number,
+  ) {
+    if (page !== undefined) {
+      const safePage = Math.max(1, Number.isFinite(page) ? page : 1);
+      const requestedSize = pageSize ?? limit ?? 50;
+      const safePageSize = Math.max(
+        1,
+        Math.min(500, Number.isFinite(requestedSize) ? requestedSize : 50),
+      );
+      return this.repo.getPaginatedMovements(
+        storeId,
+        date,
+        type,
+        safePage,
+        safePageSize,
+      );
+    }
     return this.repo.getMovements(storeId, date, type, limit);
   }
 

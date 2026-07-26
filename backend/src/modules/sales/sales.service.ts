@@ -96,7 +96,27 @@ export class SalesService {
     storeIds?: string,
     limit?: number,
     vendorId?: string,
+    page?: number,
+    pageSize?: number,
   ) {
+    if (page !== undefined) {
+      const safePage = Math.max(1, Number.isFinite(page) ? page : 1);
+      const requestedSize = pageSize ?? limit ?? 50;
+      const safePageSize = Math.max(
+        1,
+        Math.min(500, Number.isFinite(requestedSize) ? requestedSize : 50),
+      );
+      return this.salesRepo.findPaginatedSales(
+        storeId,
+        shiftId,
+        startDate,
+        endDate,
+        storeIds,
+        safePage,
+        safePageSize,
+        vendorId,
+      );
+    }
     return this.salesRepo.findAllSales(
       storeId,
       shiftId,

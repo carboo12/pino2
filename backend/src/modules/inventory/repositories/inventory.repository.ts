@@ -163,6 +163,51 @@ export class InventoryRepository {
     return res.rows.map((r) => this.mapper.toMovement(r));
   }
 
+  async getPaginatedMovements(
+    storeId: string,
+    date: string | undefined,
+    type: string | undefined,
+    page: number,
+    pageSize: number,
+  ) {
+    let whereSql = ' WHERE m.store_id = $1';
+    const params: any[] = [storeId];
+
+    if (date) {
+      whereSql += ' AND m.created_at::date = $' + params.push(date);
+    }
+    if (type && type !== 'all') {
+      whereSql += ' AND m.type = $' + params.push(type.toUpperCase());
+    }
+
+    const offset = (page - 1) * pageSize;
+    const [countResult, dataResult] = await Promise.all([
+      this.db.query(
+        `SELECT COUNT(*)::int AS total FROM movements m${whereSql}`,
+        params,
+      ),
+      this.db.query(
+        `SELECT m.*, p.description AS product_description, u.name AS user_name
+           FROM movements m
+           LEFT JOIN products p ON m.product_id = p.id
+           LEFT JOIN users u ON m.user_id = u.id
+           ${whereSql}
+          ORDER BY m.created_at DESC, m.id DESC
+          LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, pageSize, offset],
+      ),
+    ]);
+    const total = Number(countResult.rows[0]?.total ?? 0);
+    return {
+      data: dataResult.rows.map((row) => this.mapper.toMovement(row)),
+      total,
+      page,
+      pageSize,
+      limit: pageSize,
+      totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    };
+  }
+
   async getWarehouseInventory(storeId: string) {
     const res = await this.db.query(
       `SELECT

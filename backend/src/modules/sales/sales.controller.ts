@@ -43,9 +43,21 @@ export class SalesController {
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('limit') limit?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
     @Query('vendorId') vendorId?: string,
   ) {
-    return this.service.findAll(storeId, shiftId, startDate, endDate, storeIds, limit ? parseInt(limit, 10) : undefined, vendorId);
+    return this.service.findAll(
+      storeId,
+      shiftId,
+      startDate,
+      endDate,
+      storeIds,
+      limit ? parseInt(limit, 10) : undefined,
+      vendorId,
+      page ? parseInt(page, 10) : undefined,
+      pageSize ? parseInt(pageSize, 10) : undefined,
+    );
   }
 
   @Roles('master-admin', 'store-admin')

@@ -39,16 +39,20 @@ export class ClientsController {
     @Query('storeId') storeId: string,
     @Query('search') search?: string,
     @Query('limit') limit?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
     @Query('preventaId') preventaId?: string,
     @Query('grupoClienteId') grupoClienteId?: string,
-    @Query('sinAsignar') sinAsignar?: boolean,
+    @Query('sinAsignar') sinAsignar?: string,
   ) {
     return this.service.findAll(storeId, {
       search,
       limit: limit ? parseInt(limit, 10) : undefined,
+      page: page ? parseInt(page, 10) : undefined,
+      pageSize: pageSize ? parseInt(pageSize, 10) : undefined,
       preventaId,
       grupoClienteId,
-      sinAsignar,
+      sinAsignar: sinAsignar === 'true',
     });
   }
 

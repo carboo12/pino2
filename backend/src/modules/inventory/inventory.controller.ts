@@ -46,8 +46,17 @@ export class InventoryController {
     @Query('date') date?: string,
     @Query('type') type?: string,
     @Query('limit') limit?: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
   ) {
-    return this.service.getMovements(storeId, date, type, limit ? parseInt(limit, 10) : undefined);
+    return this.service.getMovements(
+      storeId,
+      date,
+      type,
+      limit ? parseInt(limit, 10) : undefined,
+      page ? parseInt(page, 10) : undefined,
+      pageSize ? parseInt(pageSize, 10) : undefined,
+    );
   }
 
   @Roles('master-admin', 'store-admin', 'inventory', 'vendor', 'sales-manager', 'cashier', 'dispatcher', 'rutero', 'auxiliar', 'supervisor-caja', 'supervisor-pasillo')

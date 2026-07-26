@@ -91,6 +91,7 @@ export class ProductsController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
     @Query('usesInventory') usesInventory?: string,
     @Query('stockCritical') stockCritical?: string,
   ) {
@@ -103,7 +104,11 @@ export class ProductsController {
         departmentId,
         subDepartmentId,
         parseInt(page, 10) || 1,
-        limit ? parseInt(limit, 10) : 50,
+        pageSize
+          ? parseInt(pageSize, 10)
+          : limit
+            ? parseInt(limit, 10)
+            : 50,
         usesInventoryFilter,
         stockCriticalFilter,
       );

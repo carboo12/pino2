@@ -1,0 +1,158 @@
+PLAN FLUTTER DIFERIDO — PINO / sistema_de_inventario
+Versión: 1.0
+Fecha: 2026-07-26
+Base operativa: sistema_de_inventario
+Ejecución: EN OTRA MÁQUINA (NO EN ESTE VPS)
+Contract: CONTRACT-FREEZE-1 (docs/CONTRACT_FREEZE_1_2026-07-26.txt)
+
+===============================================================================
+CONTEXTO
+===============================================================================
+
+Este documento agrupa TODO el trabajo Flutter del plan original. No se ejecuta
+en el VPS actual. La máquina Flutter debe comenzar sólo después de recibir el
+aviso literal: "CONTRACT-FREEZE-1 LIBERADO".
+
+Reglas:
+- No tocar backend, SQL, migraciones, servicios web, App.tsx, shared/contracts.ts
+- Usar exactamente los mismos contratos que React (CONTRACT_FREEZE_1)
+- No copiar credenciales ni DATABASE_URL dentro de Dart
+- Flutter analyze sin errores nuevos
+- APK debug instala y abre
+- Commit separado, sin mezclar con cambios de backend o React
+
+===============================================================================
+N4.3 — FLUTTER FINANCIERO/CAMPO (IA-NÚCLEO)
+===============================================================================
+
+[ ][A] N4.3.1 Migración Drift de CxC.
+[ ][A] N4.3.2 Cache de dueDate/daysOverdue/saldo/límite.
+[ ][A] N4.3.3 Cobro offline idempotente.
+[ ][A] N4.3.4 Impresión Bluetooth.
+[ ][A] N4.3.5 Reimpresión sin repetir operación.
+
+===============================================================================
+P0.2 — WIDGETS FLUTTER PUROS (IA-PARALELA)
+===============================================================================
+
+Sin dependencia de API. Los widgets reciben valores/callbacks; no usan Dio,
+Drift ni repositorios.
+
+[ ][M] P0.2.1 BulkUnitStepper.
+[ ][M] P0.2.2 BulkUnitSummary.
+[ ][M] P0.2.3 RouteStopCard.
+[ ][M] P0.2.4 LoadItemCountCard.
+[ ][M] P0.2.5 DeliveryItemResultEditor visual.
+[ ][M] P0.2.6 PaymentMethodSelector visual.
+[ ][M] P0.2.7 SyncOperationStatusCard.
+[ ][B] P0.2.8 EmptyRouteState.
+[ ][B] P0.2.9 CompactErrorBanner.
+
+CRITERIO DE SALIDA P0.2:
+- Componentes reutilizables sin lógica de negocio
+- Responsive
+- Teclado numérico adecuado
+- Accesibles con botones grandes para uso de piso/calle
+
+===============================================================================
+P1.5 — FLUTTER PRESENTACIÓN (IA-PARALELA)
+===============================================================================
+
+Requiere CONTRACT-FREEZE-1.
+
+[ ][M] P1.5.1 Integrar widgets de ruta en preventa_route_screen
+[ ][M] P1.5.2 Integrar editor Bultos/Unidades en preventa_order_screen
+[ ][M] P1.5.3 Integrar editor entrega parcial en delivery_detail_screen
+[ ][M] P1.5.4 Integrar selector de pago en collections_screen
+[ ][M] P1.5.5 Mostrar estados outbox en tiempo real
+[ ][B] P1.5.6 Simplificar navegación a una mano en formularios de campo
+
+===============================================================================
+F-M0 — PREPARACIÓN
+===============================================================================
+
+[ ] Hacer checkout del commit de freeze indicado por IA-NÚCLEO
+[ ] Ejecutar flutter pub get
+[ ] Ejecutar dart format únicamente en archivos Flutter modificados
+[ ] Confirmar URL/basePath del API para el ambiente de la nueva máquina
+[ ] No copiar credenciales ni DATABASE_URL dentro de Dart
+
+===============================================================================
+F-M1 — ROLES Y CONTRATOS
+===============================================================================
+
+[ ] En flutter/lib/core/utils/role_utils.dart normalizar preventa a
+    AppRole.salesManager
+[ ] No tratar preventa como rol persistido independiente
+[ ] Crear flutter/lib/core/contracts/field_contracts.dart con los valores
+    exactos publicados en CONTRACT-FREEZE-1
+[ ] Mapear errores recuperables de offline sin traducir los códigos
+
+===============================================================================
+F-M2 — GESTOR (PREVENTA)
+===============================================================================
+
+[ ] En preventa_route_screen.dart filtrar rutas por session.user.id y fecha
+[ ] Si no existe ruta asignada, mostrar lista vacía
+[ ] Eliminar definitivamente: routeClientIds.isEmpty ? clients : ...
+[ ] Mostrar mensaje práctico: "No tienes una ruta asignada para hoy"
+[ ] POST /orders conserva externalId UUID local
+[ ] No usar vendorId de un selector; usar sesión sólo como dato visual
+[ ] Mantener el pedido en outbox hasta respuesta definitiva/idempotente
+
+===============================================================================
+F-M3 — RUTERO
+===============================================================================
+
+[ ] GET de carga/entregas no debe enviar IDs seleccionables de otro Rutero
+[ ] Implementar aceptar carga con externalId
+[ ] Guardar snapshot de unidades/bultos aceptados en Drift
+[ ] Entrega completa y parcial envían resultados por item
+[ ] Rechazo crea devolución en tránsito; no repone bodega desde Flutter
+[ ] Cobro usa externalId y conserva CASH/TRANSFER/CHECK
+[ ] Cierre de ruta queda en outbox hasta confirmación del backend
+
+===============================================================================
+F-M4 — DRIFT/OFFLINE
+===============================================================================
+
+[ ] Migración aditiva; no borrar tablas ni colas locales existentes
+[ ] Unique local por externalId + operationType
+[ ] Estados: pending, processing, synced, retryable_error, conflict
+[ ] Un HTTP 4xx de negocio no se elimina de la cola
+[ ] Un timeout posterior al commit se reintenta con el mismo externalId
+[ ] Sincronización nunca cambia clientId/vendorId/ruteroId por datos de UI
+
+===============================================================================
+F-M5 — SALIDA
+===============================================================================
+
+[ ] flutter analyze sin errores nuevos
+[ ] APK debug instala y abre
+[ ] Gestor sin ruta ve cero clientes
+[ ] Gestor con ruta ve únicamente su cartera
+[ ] Rutero ve sólo su carga y entregas
+[ ] Modo avión conserva pedido/cobro/entrega
+[ ] Reconexión no duplica ninguna operación
+[ ] Entregar commit Flutter separado, sin editar backend, SQL o React
+
+===============================================================================
+ARCHIVOS FLUTTER EXCLUIDOS DE IA-PARALELA EN ESTE VPS
+===============================================================================
+
+Estos archivos no deben ser editados en el VPS actual:
+
+flutter/lib/core/database/**
+flutter/lib/core/network/**
+flutter/lib/features/**/data/**
+flutter/lib/features/**/domain/**
+flutter/lib/features/preventa/presentation/screens/preventa_route_screen.dart
+flutter/lib/features/preventa/presentation/screens/preventa_order_screen.dart
+flutter/lib/features/deliveries/presentation/screens/delivery_detail_screen.dart
+flutter/lib/features/deliveries/presentation/screens/route_board_screen.dart
+flutter/lib/features/warehouse/presentation/screens/carga_camion_screen.dart
+flutter/lib/features/collections/presentation/screens/collections_screen.dart
+
+===============================================================================
+FIN DEL PLAN FLUTTER DIFERIDO
+===============================================================================
