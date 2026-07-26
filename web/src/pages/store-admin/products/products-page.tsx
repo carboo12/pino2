@@ -22,6 +22,7 @@ import {
   ChevronRight,
   Wrench,
   Download,
+  FileText,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { useParams, useNavigate } from "react-router-dom";
@@ -84,7 +85,7 @@ export default function ProductsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const role = normalizeUserRole(user?.role);
-  const canManageCatalog = ["master-admin", "owner", "store-admin"].includes(
+  const canManageCatalog = ["admin", "super-admin", "inventory"].includes(
     role,
   );
 
@@ -360,23 +361,41 @@ export default function ProductsPage() {
                 </Card>
               </AlertDialogTrigger>
             ))}
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-md">
               <AlertDialogHeader>
-                <AlertDialogTitle>
-                  ¿Qué deseas hacer con &quot;{selectedProduct?.description}
-                  &quot;?
+                <AlertDialogTitle className="text-lg font-bold">
+                  {selectedProduct?.description}
                 </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Selecciona una opción para continuar.
+                <AlertDialogDescription className="text-sm">
+                  Precio de Venta: <strong className="text-foreground">C$ {Number(selectedProduct?.salePrice || 0).toFixed(2)}</strong> | 
+                  Existencia: <strong className="text-foreground">{selectedProduct?.currentStock || 0} unidades</strong>
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <div className="flex flex-col gap-2 my-2">
                 {canManageCatalog && (
-                  <AlertDialogAction onClick={handleEdit}>
-                    Editar
-                  </AlertDialogAction>
+                  <Button
+                    onClick={handleEdit}
+                    className="w-full justify-start font-semibold"
+                  >
+                    <Wrench className="mr-2 h-4 w-4" />
+                    Editar Producto & Factor X
+                  </Button>
                 )}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (selectedProduct) {
+                      navigate(`/store/${storeId}/inventory/movements?productId=${selectedProduct.id}`);
+                    }
+                  }}
+                  className="w-full justify-start font-medium"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Ver Kárdex & Movimientos
+                </Button>
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="w-full sm:w-auto">Cerrar</AlertDialogCancel>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
