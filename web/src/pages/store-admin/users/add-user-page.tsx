@@ -44,24 +44,16 @@ const userFormSchema = z.object({
   assignedStoreId: z.string().optional(),
 });
 
-const STORE_ROLES = [
-  { value: 'cashier', label: 'CAJERO' },
-  { value: 'inventory', label: 'ANALISTA / AUDITOR DE INVENTARIO' },
-  { value: 'auxiliar', label: 'AUXILIAR DE RECEPCIÓN Y DESPACHO' },
-  { value: 'store-admin', label: 'JEFE / ENCARGADO DE BODEGA' },
-  { value: 'vendor', label: 'VENDEDOR (COMPATIBILIDAD)' },
-  { value: 'sales-manager', label: 'GESTOR DE VENTAS' },
-  { value: 'rutero', label: 'RUTERO / REPARTIDOR' },
-  { value: 'supervisor-caja', label: 'SUPERVISOR DE CAJA' },
-  { value: 'supervisor-pasillo', label: 'SUPERVISOR DE PASILLO' },
+const CANONICAL_ROLES = [
+  { value: 'admin', label: '1. JEFE / ENCARGADO DE BODEGA' },
+  { value: 'auxiliar', label: '2. AUXILIAR DE RECEPCIÓN Y DESPACHO' },
+  { value: 'inventory', label: '3. ANALISTA / AUDITOR DE INVENTARIO' },
+  { value: 'gestor', label: '4. GESTOR DE VENTAS (Móvil)' },
+  { value: 'rutero', label: '5. RUTERO / REPARTIDOR (Móvil)' },
+  { value: 'super-admin', label: '6. ADMINISTRADOR GENERAL' },
 ] as const;
 
-const MASTER_EXTRA_ROLES = [
-  { value: 'master-admin', label: 'MASTER ADMIN' },
-  { value: 'chain-admin', label: 'CHAIN ADMIN' },
-] as const;
-
-const GLOBAL_ROLES = new Set(['master-admin', 'chain-admin']);
+const GLOBAL_ROLES = new Set(['super-admin']);
 
 export default function AddUserPage() {
   const { storeId } = useParams();
@@ -72,10 +64,7 @@ export default function AddUserPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [stores, setStores] = useState<Array<{ id: string; name: string }>>([]);
 
-  const roleOptions = useMemo(
-    () => (isMasterMode ? [...MASTER_EXTRA_ROLES, ...STORE_ROLES] : STORE_ROLES),
-    [isMasterMode],
-  );
+  const roleOptions = CANONICAL_ROLES;
   const backHref = isMasterMode ? '/master-admin/users' : `/store/${storeId}/users`;
 
   const form = useForm<z.infer<typeof userFormSchema>>({
@@ -84,7 +73,7 @@ export default function AddUserPage() {
       name: '',
       email: '',
       password: '',
-      role: 'cashier',
+      role: 'admin',
       assignedStoreId: storeId || '',
     },
   });

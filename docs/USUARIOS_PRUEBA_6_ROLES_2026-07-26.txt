@@ -1,0 +1,97 @@
+===============================================================================
+USUARIOS DE PRUEBA Y CREDENCIALES — 6 ROLES CANÓNICOS TRELLO
+===============================================================================
+Fecha: 2026-07-26
+Sistema: PINO / sistema_de_inventario
+Entorno Local Backend: http://localhost:3010/api
+Entorno Local Web: http://localhost:5173/
+
+===============================================================================
+1. CREDENCIALES DE ACCESO (6 ROLES CANÓNICOS)
+===============================================================================
+
+-------------------------------------------------------------------------------
+1. JEFE / ENCARGADO DE BODEGA
+-------------------------------------------------------------------------------
+Rol Canónico: admin
+Correo / Usuario: dueno@lospinos.com
+Contraseña: 123
+Plataforma: Web React (http://localhost:5173/)
+Alcance: Control operativo total de su bodega asignada, usuarios, productos, liquidación de rutas y autorizaciones.
+
+-------------------------------------------------------------------------------
+2. ADMINISTRADOR GENERAL
+-------------------------------------------------------------------------------
+Rol Canónico: super-admin
+Correo / Usuario: admin@multitienda.com
+Contraseña: 123
+Plataforma: Web React (http://localhost:5173/)
+Alcance: Bypass global, gestión multi-tienda, marcas, cadenas, licencias y configuraciones maestro.
+
+-------------------------------------------------------------------------------
+3. ANALISTA DE INVENTARIO (Bodeguero)
+-------------------------------------------------------------------------------
+Rol Canónico: inventory
+Correo / Usuario: bodeg@lospinos.com
+Contraseña: 123
+Plataforma: Web React (http://localhost:5173/)
+Alcance: Auditoría de kárdex, conteos ciegos/arqueos por zona, solicitud de ajustes de inventario.
+
+-------------------------------------------------------------------------------
+4. AUXILIAR DE RECEPCIÓN Y DESPACHO
+-------------------------------------------------------------------------------
+Rol Canónico: auxiliar
+Correo / Usuario: cajero@tienda.com
+Contraseña: 123
+Plataforma: Web React / Terminal Almacén (http://localhost:5173/)
+Alcance: Recepción de mercancía de proveedores, armado de cargas físicas para ruteros y recepción de devoluciones de campo.
+
+-------------------------------------------------------------------------------
+5. GESTOR DE VENTAS (Preventista)
+-------------------------------------------------------------------------------
+Rol Canónico: gestor
+Correo / Usuario: gestor@lospinos.com
+Contraseña: 123
+Plataforma: App Android Flutter (100% Offline) / API
+Alcance: Levantamiento de pedidos preventa (Bultos/Unidades), consulta de stock y créditos, registro de visitas con geolocalización.
+
+-------------------------------------------------------------------------------
+6. RUTERO / REPARTIDOR
+-------------------------------------------------------------------------------
+Rol Canónico: rutero
+Correo / Usuario: rute@lospinos.com
+Contraseña: 123
+Plataforma: App Android Flutter + Impresora Bluetooth (100% Offline) / API
+Alcance: Recepción de carga del camión, entrega total/parcial, rechazos con devolución en tránsito, cobros y liquidación diaria.
+
+===============================================================================
+2. MATRIZ DE PRUEBAS DE ESCENARIOS POR ROL
+===============================================================================
+
+Escenario 1 (Administración General):
+- Iniciar sesión con admin@multitienda.com (super-admin / 123).
+- Verificar acceso a /master-admin/dashboard y listado de sucursales sin restricción de tienda.
+
+Escenario 2 (Jefe de Bodega):
+- Iniciar sesión con dueno@lospinos.com (admin / 123).
+- Probar alta de personal, catálogo de productos con Factor X (bultos) y liquidación de ruta.
+
+Escenario 3 (Auxiliar de Almacén):
+- Iniciar sesión con cajero@tienda.com (auxiliar / 123).
+- Probar módulo de recepción de proveedores y armado de cargas de camión.
+
+Escenario 4 (Analista de Inventario):
+- Iniciar sesión con bodeg@lospinos.com (inventory / 123).
+- Probar kárdex de movimientos y solicitud de arqueo ciego.
+
+Escenario 5 (Gestor de Ventas - Móvil):
+- Iniciar sesión con gestor@lospinos.com (gestor / 123).
+- Probar sincronización offline de ruta, cartera de crédito y creación de pedido outbox.
+
+Escenario 6 (Rutero - Móvil):
+- Iniciar sesión con rute@lospinos.com (rutero / 123).
+- Aceptar carga de camión, ejecutar entregas parciales y enviar resumen de liquidación.
+
+===============================================================================
+FIN DEL DOCUMENTO DE USUARIOS Y CREDENCIALES
+===============================================================================

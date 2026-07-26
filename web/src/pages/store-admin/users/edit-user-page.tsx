@@ -52,23 +52,16 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'gestionar_usuarios', label: 'Gestionar usuarios' },
 ];
 
-const STORE_ROLE_OPTIONS = [
-  { value: 'cashier', label: 'CAJERO' },
-  { value: 'inventory', label: 'ANALISTA / AUDITOR DE INVENTARIO' },
-  { value: 'auxiliar', label: 'AUXILIAR DE RECEPCIÓN Y DESPACHO' },
-  { value: 'store-admin', label: 'JEFE / ENCARGADO DE BODEGA' },
-  { value: 'vendor', label: 'VENDEDOR (COMPATIBILIDAD)' },
-  { value: 'sales-manager', label: 'GESTOR DE VENTAS' },
-  { value: 'rutero', label: 'RUTERO / REPARTIDOR' },
-  { value: 'supervisor-caja', label: 'SUPERVISOR DE CAJA' },
-  { value: 'supervisor-pasillo', label: 'SUPERVISOR DE PASILLO' },
-];
+const CANONICAL_ROLES = [
+  { value: 'admin', label: '1. JEFE / ENCARGADO DE BODEGA' },
+  { value: 'auxiliar', label: '2. AUXILIAR DE RECEPCIÓN Y DESPACHO' },
+  { value: 'inventory', label: '3. ANALISTA / AUDITOR DE INVENTARIO' },
+  { value: 'gestor', label: '4. GESTOR DE VENTAS (Móvil)' },
+  { value: 'rutero', label: '5. RUTERO / REPARTIDOR (Móvil)' },
+  { value: 'super-admin', label: '6. ADMINISTRADOR GENERAL' },
+] as const;
 
-const MASTER_ROLE_OPTIONS = [
-  { value: 'master-admin', label: 'MASTER ADMIN' },
-  { value: 'chain-admin', label: 'CHAIN ADMIN' },
-  ...STORE_ROLE_OPTIONS,
-];
+const MASTER_ROLE_OPTIONS = CANONICAL_ROLES;
 
 export default function EditUserPage() {
   const { storeId, userId } = useParams();
