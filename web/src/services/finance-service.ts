@@ -132,6 +132,10 @@ export interface ProductOption {
   costPrice: number;
   currentStock: number;
   barcode?: string;
+  handlesBulk?: boolean;
+  unitsPerBulk?: number;
+  unitType?: string;
+  brand?: string;
 }
 
 function cleanParams(

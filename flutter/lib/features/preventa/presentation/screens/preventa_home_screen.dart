@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../../../core/config/app_colors.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/delta_sync_service.dart';
 import '../../../../core/network/sync_queue_processor.dart';
+import '../../../../core/widgets/premium_widgets.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
-import 'package:intl/intl.dart';
 
 class PreventaHomeScreen extends ConsumerStatefulWidget {
   const PreventaHomeScreen({super.key});
@@ -16,8 +19,11 @@ class PreventaHomeScreen extends ConsumerStatefulWidget {
 
 class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
   Map<String, dynamic> _metrics = {
-    'visits': 0, 'totalVisits': 0,
-    'totalSold': 0.0, 'ordersCount': 0, 'pendingSync': 0,
+    'visits': 0,
+    'totalVisits': 0,
+    'totalSold': 0.0,
+    'ordersCount': 0,
+    'pendingSync': 0,
   };
   List<Map<String, dynamic>> _recentOrders = [];
   bool _loadingMetrics = true;
@@ -41,10 +47,12 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
 
     try {
       final results = await Future.wait([
-        // visits today
-        apiClient.getList('/visit-logs?vendorId=$userId&date=$today', bearerToken: token).catchError((_) => <dynamic>[]),
-        // orders today (to get total and count)
-        apiClient.getList('/orders?vendorId=$userId&storeId=$storeId&fromDate=$today', bearerToken: token).catchError((_) => <dynamic>[]),
+        apiClient
+            .getList('/visit-logs?vendorId=$userId&date=$today', bearerToken: token)
+            .catchError((_) => <dynamic>[]),
+        apiClient
+            .getList('/orders?vendorId=$userId&storeId=$storeId&fromDate=$today', bearerToken: token)
+            .catchError((_) => <dynamic>[]),
       ]);
 
       final visitLogs = results[0];
@@ -85,13 +93,12 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
     final todayStr = DateFormat('EEE d \'de\' MMMM', 'es').format(DateTime.now());
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : AppColors.slate50,
       appBar: AppBar(
-        title: const Text('Preventa'),
+        title: const Text('Preventa', style: TextStyle(fontWeight: FontWeight.w800)),
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: [
@@ -119,11 +126,13 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         children: [
-            // Hero Session
-            Container(
-              padding: const EdgeInsets.all(18),
+          // Hero Section
+          StaggeredFadeIn(
+            index: 0,
+            child: Container(
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(22),
                 gradient: const LinearGradient(
                   colors: [Color(0xFF047857), Color(0xFF065F46)],
                   begin: Alignment.topLeft,
@@ -135,7 +144,7 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   )
-                ]
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,23 +173,29 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
                 ],
               ),
             ),
+          ),
 
-            const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-            // KPI Grid
-           if (_loadingMetrics)
-             const Center(child: CircularProgressIndicator())
-           else
-             LayoutBuilder(
-               builder: (context, constraints) {
-                 final isSmall = constraints.maxWidth < 360;
-                 return GridView.count(
-                   crossAxisCount: 2,
-                   shrinkWrap: true,
-                   physics: const NeverScrollableScrollPhysics(),
-                   crossAxisSpacing: isSmall ? 10 : 16,
-                   mainAxisSpacing: isSmall ? 10 : 16,
-                    childAspectRatio: isSmall ? 1.15 : 1.4,
+          // KPI Grid
+          if (_loadingMetrics)
+            const Center(child: Padding(
+              padding: EdgeInsets.all(32),
+              child: CircularProgressIndicator(),
+            ))
+          else
+            StaggeredFadeIn(
+              index: 1,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSmall = constraints.maxWidth < 360;
+                  return GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisSpacing: isSmall ? 10 : 16,
+                    mainAxisSpacing: isSmall ? 10 : 16,
+                    childAspectRatio: isSmall ? 1.15 : 1.35,
                     children: [
                       _buildKpiCard(
                         title: 'Visitas',
@@ -214,11 +229,14 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
                   );
                 },
               ),
+            ),
 
-            const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-            // Main Action
-            FilledButton.icon(
+          // Main Action
+          StaggeredFadeIn(
+            index: 2,
+            child: FilledButton.icon(
               onPressed: () => context.push('/preventa-route'),
               icon: const Icon(Icons.directions_car_rounded, size: 22),
               label: const Text('Iniciar Ruta'),
@@ -227,56 +245,64 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 3,
+                shadowColor: const Color(0xFF047857).withValues(alpha: 0.4),
                 textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
             ),
+          ),
 
-           const SizedBox(height: 24),
+          const SizedBox(height: 24),
 
-           // Ultimos pedidos
-           if (_recentOrders.isNotEmpty) ...[
-             Text(
-               'Últimos pedidos del día',
-               style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-             ),
-             const SizedBox(height: 12),
-             Container(
-               decoration: BoxDecoration(
-                 color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                 borderRadius: BorderRadius.circular(20),
-                 boxShadow: [
-                   BoxShadow(
-                     color: Colors.black.withValues(alpha: 0.03),
-                     blurRadius: 10,
-                     offset: const Offset(0, 4),
-                   )
-                 ],
-                 border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-               ),
-               child: Column(
-                 children: _recentOrders.map((o) {
-                   final idx = _recentOrders.indexOf(o);
-                   return Column(
-                     children: [
-                       if (idx > 0) const Divider(height: 1),
-                       _buildRecentOrderRow(
-                         o['client'] as String,
-                         'C\$ ${NumberFormat('#,##0.00', 'es').format(double.tryParse(o['total']?.toString() ?? '0') ?? 0)}',
-                         _formatTime(o['time'] as String),
-                         o['synced'] as bool,
-                       ),
-                     ],
-                   );
-                 }).toList(),
-               ),
-             ),
-           ],
+          // Ultimos pedidos
+          if (_recentOrders.isNotEmpty) ...[
+            StaggeredFadeIn(
+              index: 3,
+              child: Text(
+                'Últimos pedidos del día',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.slate900,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            StaggeredFadeIn(
+              index: 4,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: AppColors.cardShadow,
+                  border: Border.all(color: AppColors.slate200),
+                ),
+                child: Column(
+                  children: _recentOrders.map((o) {
+                    final idx = _recentOrders.indexOf(o);
+                    return Column(
+                      children: [
+                        if (idx > 0) const Divider(height: 1, color: AppColors.slate200),
+                        _buildRecentOrderRow(
+                          o['client'] as String,
+                          'C\$ ${NumberFormat('#,##0.00', 'es').format(double.tryParse(o['total']?.toString() ?? '0') ?? 0)}',
+                          _formatTime(o['time'] as String),
+                          o['synced'] as bool,
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: const Color(0xFF047857),
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: AppColors.slate500,
+        backgroundColor: Colors.white,
+        elevation: 8,
         onTap: (index) {
           switch (index) {
             case 1:
@@ -307,20 +333,20 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
     }
   }
 
-  Widget _buildKpiCard({required String title, required String value, required String subtitle, required IconData icon, required Color color}) {
+  Widget _buildKpiCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          )
-        ]
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,15 +355,45 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black54, fontSize: 13)),
-              Icon(icon, color: color, size: 20),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.slate600,
+                  fontSize: 13,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
             ],
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5)),
-              Text(subtitle, style: const TextStyle(color: Colors.black45, fontSize: 11, fontWeight: FontWeight.w600)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                  letterSpacing: -0.5,
+                  color: AppColors.slate900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  color: AppColors.slate500,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           )
         ],
@@ -353,23 +409,33 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: AppColors.slate100,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.receipt_rounded, size: 20, color: Colors.black54),
+            child: const Icon(Icons.receipt_rounded, size: 20, color: AppColors.slate700),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(client, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(
+                  client,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: AppColors.slate900,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
-                    Icon(Icons.access_time_rounded, size: 12, color: Colors.grey.shade500),
+                    const Icon(Icons.access_time_rounded, size: 12, color: AppColors.slate400),
                     const SizedBox(width: 4),
-                    Text(time, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    Text(
+                      time,
+                      style: const TextStyle(color: AppColors.slate500, fontSize: 12),
+                    ),
                   ],
                 )
               ],
@@ -378,12 +444,19 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(ammount, style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF047857))),
+              Text(
+                ammount,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF047857),
+                  fontSize: 14,
+                ),
+              ),
               const SizedBox(height: 4),
               Icon(
-                synced ? Icons.cloud_done_rounded : Icons.cloud_upload_rounded, 
-                size: 14, 
-                color: synced ? Colors.green : Colors.orange
+                synced ? Icons.cloud_done_rounded : Icons.cloud_upload_rounded,
+                size: 14,
+                color: synced ? AppColors.success : AppColors.warning,
               ),
             ],
           )

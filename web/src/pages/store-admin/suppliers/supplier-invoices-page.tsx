@@ -13,9 +13,17 @@ import {
   CheckCircle2,
   RotateCcw,
   HandCoins,
+  ChevronsUpDown,
+  Check,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Card,
   CardContent,
@@ -55,13 +63,182 @@ import { useAuth } from "@/contexts/auth-context";
 import apiClient from "@/services/api-client";
 import { alert, toast } from "@/lib/swalert";
 import { usePagination } from "@/hooks/use-pagination";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import financeService, {
   type AccountPayable,
   type ProductOption,
   type SupplierInvoice,
   type SupplierOption,
 } from "@/services/finance-service";
+
+interface ProductSearchSelectProps {
+  value: string;
+  onSelect: (productId: string) => void;
+  products: ProductOption[];
+}
+
+function ProductSearchSelect({
+  value,
+  onSelect,
+  products,
+}: ProductSearchSelectProps) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const selectedProduct = products.find((p) => p.id === value);
+
+  const filteredProducts = useMemo(() => {
+    if (!search.trim()) return products;
+    const query = search.toLowerCase().trim();
+    return products.filter(
+      (p) =>
+        p.description.toLowerCase().includes(query) ||
+        (p.barcode && p.barcode.toLowerCase().includes(query)) ||
+        (p.brand && p.brand.toLowerCase().includes(query)),
+    );
+  }, [products, search]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal text-left h-10 px-3 bg-background"
+        >
+          <span className="truncate flex items-center gap-2">
+            {value === "manual" || !selectedProduct ? (
+              <span className="text-muted-foreground">Manual / no existe aún</span>
+            ) : (
+              <>
+                <span className="font-medium text-foreground truncate">
+                  {selectedProduct.description}
+                </span>
+                {selectedProduct.handlesBulk ||
+                (selectedProduct.unitsPerBulk && selectedProduct.unitsPerBulk > 1) ? (
+                  <Badge
+                    variant="secondary"
+                    className="bg-amber-100 text-amber-800 text-[10px] font-semibold px-1.5 py-0 border border-amber-300 shrink-0"
+                  >
+                    📦 Bulto ({selectedProduct.unitsPerBulk || 1} u)
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="bg-slate-100 text-slate-700 text-[10px] font-normal px-1.5 py-0 shrink-0"
+                  >
+                    🏷️ Unidad
+                  </Badge>
+                )}
+              </>
+            )}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[340px] sm:w-[420px] p-0" align="start">
+        <div className="p-2 border-b flex items-center gap-2 bg-muted/20">
+          <Search className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+          <input
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            placeholder="Buscar producto, código o marca..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            autoFocus
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="text-xs text-muted-foreground hover:text-foreground mr-1"
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
+        <div className="max-h-[280px] overflow-y-auto p-1 space-y-0.5">
+          <button
+            type="button"
+            className={cn(
+              "w-full flex items-center justify-between text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors",
+              value === "manual" && "bg-accent/70 font-medium",
+            )}
+            onClick={() => {
+              onSelect("manual");
+              setOpen(false);
+              setSearch("");
+            }}
+          >
+            <span className="text-muted-foreground font-medium">
+              Manual / no existe aún
+            </span>
+            {value === "manual" && <Check className="h-4 w-4 text-primary" />}
+          </button>
+          <div className="my-1 border-t" />
+          {filteredProducts.length === 0 ? (
+            <div className="p-4 text-center text-xs text-muted-foreground">
+              No se encontraron productos coincidentes
+            </div>
+          ) : (
+            filteredProducts.map((p) => {
+              const isSelected = p.id === value;
+              const handlesBulk =
+                p.handlesBulk || (p.unitsPerBulk && p.unitsPerBulk > 1);
+              const upb = p.unitsPerBulk || 1;
+
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={cn(
+                    "w-full flex items-center justify-between text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors gap-2",
+                    isSelected && "bg-accent/70 font-medium",
+                  )}
+                  onClick={() => {
+                    onSelect(p.id);
+                    setOpen(false);
+                    setSearch("");
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate font-medium text-foreground">
+                      {p.description}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                      {p.barcode && <span>Cód: {p.barcode}</span>}
+                      <span>Costo: ${p.costPrice ?? 0}</span>
+                      <span>Stock: {p.currentStock ?? 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {handlesBulk ? (
+                      <Badge
+                        variant="secondary"
+                        className="bg-amber-100 text-amber-800 text-[11px] font-semibold px-1.5 py-0.5 border border-amber-300"
+                      >
+                        📦 Bulto ({upb} u)
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="bg-slate-100 text-slate-700 text-[11px] font-normal px-1.5 py-0.5"
+                      >
+                        🏷️ Unidad
+                      </Badge>
+                    )}
+                    {isSelected && <Check className="h-4 w-4 text-primary ml-1" />}
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 const dateFormatter = new Intl.DateTimeFormat("es-NI", {
   dateStyle: "medium",
@@ -1176,47 +1353,52 @@ export default function SupplierInvoicesPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">Detalle de compra</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Puedes seleccionar productos existentes o dejar líneas
-                    manuales para mercancía nueva.
-                  </p>
-                </div>
-                <Button variant="outline" onClick={addDraftItem}>
-                  Agregar línea
-                </Button>
-              </div>
-
               <div className="space-y-3">
-                {invoiceDraft.items.map((item, index) => (
-                  <Card key={item.localId} className="bg-muted/30">
-                    <CardContent className="grid gap-3 p-4 md:grid-cols-[1.5fr_2fr_110px_140px_auto]">
-                      <div className="grid gap-2">
-                        <Label>Producto</Label>
-                        <Select
-                          value={item.selectedProductId}
-                          onValueChange={(value) =>
-                            handleProductSelection(item.localId, value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Producto o manual" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="manual">
-                              Manual / no existe aún
-                            </SelectItem>
-                            {products.map((product) => (
-                              <SelectItem key={product.id} value={product.id}>
-                                {product.description}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Detalle de compra</h3>
+                  <Button variant="outline" onClick={addDraftItem}>
+                    Agregar línea
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {invoiceDraft.items.map((item, index) => {
+                    const selectedProd = products.find(
+                      (p) => p.id === item.selectedProductId,
+                    );
+                    return (
+                      <Card key={item.localId} className="bg-muted/30">
+                        <CardContent className="grid gap-3 p-4 md:grid-cols-[1.8fr_2fr_110px_140px_auto]">
+                          <div className="grid gap-2">
+                            <div className="flex items-center justify-between">
+                              <Label>Producto</Label>
+                              {selectedProd &&
+                                (selectedProd.handlesBulk ||
+                                (selectedProd.unitsPerBulk &&
+                                  selectedProd.unitsPerBulk > 1) ? (
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-amber-100 text-amber-800 text-[10px] font-semibold px-1.5 py-0 border border-amber-300"
+                                  >
+                                    📦 Bulto ({selectedProd.unitsPerBulk || 1} uds)
+                                  </Badge>
+                                ) : (
+                                  <Badge
+                                    variant="outline"
+                                    className="bg-slate-100 text-slate-700 text-[10px] font-normal px-1.5 py-0"
+                                  >
+                                    🏷️ Unidad
+                                  </Badge>
+                                ))}
+                            </div>
+                            <ProductSearchSelect
+                              value={item.selectedProductId}
+                              onSelect={(val) =>
+                                handleProductSelection(item.localId, val)
+                              }
+                              products={products}
+                            />
+                          </div>
                       <div className="grid gap-2">
                         <Label>Descripción</Label>
                         <Input
@@ -1269,8 +1451,8 @@ export default function SupplierInvoicesPage() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                );
+              })}
             </div>
 
             <div className="rounded-lg border bg-muted/40 p-4">

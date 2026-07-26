@@ -8,6 +8,7 @@ import '../../../../core/network/connectivity_service.dart';
 import '../../../../core/network/sync_queue_processor.dart';
 import '../../../../core/realtime/realtime_controller.dart';
 import '../../../../core/utils/role_utils.dart';
+import '../../../../core/widgets/premium_widgets.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/home_repository.dart';
 import '../../domain/models/store_summary.dart';
@@ -34,7 +35,7 @@ final assignedStoresProvider = FutureProvider<List<StoreSummary>>((ref) async {
 });
 
 final quickPulseProvider =
-    FutureProvider.family<Map<String, int>, String>((ref, storeId) async {
+    FutureProvider.family<Map<String, dynamic>, String>((ref, storeId) async {
   final authState = ref.watch(authControllerProvider);
   final session = authState.session;
   if (session == null) return {};
@@ -42,41 +43,36 @@ final quickPulseProvider =
   final client = ref.read(appApiClientProvider);
   final token = session.accessToken;
   final userId = session.user.id;
+  final today = DateTime.now().toIso8601String().substring(0, 10);
 
-  int pendingOrders = 0;
-  int todaySalesCount = 0;
+  // Ejecutar solicitudes en paralelo para máxima agilidad
+  final results = await Future.wait([
+    client
+        .getList('/orders?storeId=$storeId&status=RECIBIDO', bearerToken: token)
+        .catchError((_) => <dynamic>[]),
+    client
+        .getList('/sales?storeId=$storeId&startDate=${today}T00:00:00&endDate=${today}T23:59:59', bearerToken: token)
+        .catchError((_) => <dynamic>[]),
+    client
+        .getList('/vendor-inventories/$userId', bearerToken: token)
+        .catchError((_) => <dynamic>[]),
+  ]);
+
+  final orders = results[0];
+  final sales = results[1];
+  final inv = results[2];
+
+  int pendingOrders = orders.length;
+  int todaySalesCount = sales.length;
   double todaySalesTotal = 0;
+  for (final s in sales) {
+    todaySalesTotal += (s['total'] as num?)?.toDouble() ?? 0;
+  }
+
   int vendorStockItems = 0;
-
-  try {
-    final orders = await client.getList(
-      '/orders?storeId=$storeId&status=RECIBIDO',
-      bearerToken: token,
-    );
-    pendingOrders = orders.length;
-  } catch (_) {}
-
-  try {
-    final today = DateTime.now().toIso8601String().substring(0, 10);
-    final sales = await client.getList(
-      '/sales?storeId=$storeId&startDate=${today}T00:00:00&endDate=${today}T23:59:59',
-      bearerToken: token,
-    );
-    todaySalesCount = sales.length;
-    for (final s in sales) {
-      todaySalesTotal += (s['total'] as num?)?.toDouble() ?? 0;
-    }
-  } catch (_) {}
-
-  try {
-    final inv = await client.getList(
-      '/vendor-inventories/$userId',
-      bearerToken: token,
-    );
-    for (final v in inv) {
-      vendorStockItems += (v['currentQuantity'] as num?)?.toInt() ?? 0;
-    }
-  } catch (_) {}
+  for (final v in inv) {
+    vendorStockItems += (v['currentQuantity'] as num?)?.toInt() ?? 0;
+  }
 
   return {
     'pendingOrders': pendingOrders,
@@ -134,15 +130,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         title: Row(
           children: [
             Container(
-              width: 28, height: 28,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: AppColors.heroGradient),
-                borderRadius: BorderRadius.circular(7),
+                gradient: const LinearGradient(
+                  colors: AppColors.heroGradient,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.park_rounded, color: Colors.white, size: 16),
+              child: const Icon(Icons.park_rounded, color: Colors.white, size: 18),
             ),
-            const SizedBox(width: 8),
-            const Text('Pino', style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(width: 10),
+            const Text(
+              'Pino',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+            ),
           ],
         ),
         actions: [
@@ -190,21 +201,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           children: [
-            const SyncStatusBanner(),
-            const SizedBox(height: 12),
-            _HeroCard(
-              name: session.user.name,
-              roleLabel: roleLabel(role),
-              storeName: storesAsync.asData?.value
-                  .where((s) => s.id == currentStoreId)
-                  .map((s) => s.name).firstOrNull,
+            const StaggeredFadeIn(
+              index: 0,
+              child: SyncStatusBanner(),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
+            StaggeredFadeIn(
+              index: 1,
+              child: _HeroCard(
+                name: session.user.name,
+                roleLabel: roleLabel(role),
+                storeName: storesAsync.asData?.value
+                    .where((s) => s.id == currentStoreId)
+                    .map((s) => s.name).firstOrNull,
+              ),
+            ),
+            const SizedBox(height: 16),
             if (currentStoreId != null)
-              _QuickPulseBar(storeId: currentStoreId),
-            const SizedBox(height: 18),
-            _buildActions(context, role, storesAsync.asData?.value
-                .where((s) => s.id == currentStoreId).firstOrNull),
+              StaggeredFadeIn(
+                index: 2,
+                child: _QuickPulseBar(storeId: currentStoreId),
+              ),
+            const SizedBox(height: 20),
+            StaggeredFadeIn(
+              index: 3,
+              child: _buildActions(
+                context,
+                role,
+                storesAsync.asData?.value
+                    .where((s) => s.id == currentStoreId)
+                    .firstOrNull,
+              ),
+            ),
           ],
         ),
       ),
@@ -219,17 +247,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Acciones', style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w800)),
+        Text(
+          'Acciones Rápida',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: 17,
+                color: AppColors.slate900,
+              ),
+        ),
         const SizedBox(height: 12),
-        ...actions.map((action) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: PrimaryActionCard(
-            action: action,
-            onTap: store == null ? null : () => openAction(context,
-              action: action, storeId: store.id, storeName: store.name),
-          ),
-        )),
+        ...actions.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final action = entry.value;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: StaggeredFadeIn(
+              index: 4 + idx,
+              child: PrimaryActionCard(
+                action: action,
+                onTap: store == null
+                    ? null
+                    : () => openAction(
+                          context,
+                          action: action,
+                          storeId: store.id,
+                          storeName: store.name,
+                        ),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
@@ -246,43 +293,61 @@ class _HeroCard extends StatelessWidget {
     final theme = Theme.of(context);
     final today = DateFormat("d 'de' MMMM, yyyy", 'es').format(DateTime.now());
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         gradient: const LinearGradient(
           colors: AppColors.heroGradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: AppColors.elevatedShadow,
       ),
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(14),
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.25),
+                width: 1,
+              ),
             ),
-            child: const Icon(Icons.park_rounded, color: Colors.white, size: 24),
+            child: const Icon(Icons.park_rounded, color: Colors.white, size: 28),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Hola, ${name.split(' ').first}',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white, fontWeight: FontWeight.w800)),
+                Text(
+                  'Hola, ${name.split(' ').first}',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  [roleLabel, if (storeName != null) storeName].join(' • '),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text([roleLabel, ?storeName].join(' • '),
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white70)),
-                Text(today,
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white60, fontSize: 11)),
+                Text(
+                  today,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -305,31 +370,33 @@ class _QuickPulseBar extends ConsumerWidget {
       data: (pulse) {
         if (pulse.isEmpty) return const SizedBox.shrink();
 
-        final pending = pulse['pendingOrders'] ?? 0;
-        final salesCount = pulse['todaySalesCount'] ?? 0;
-        final salesTotal = pulse['todaySalesTotal'] ?? 0;
-        final stock = pulse['vendorStock'] ?? 0;
+        final int pending = (pulse['pendingOrders'] as num?)?.toInt() ?? 0;
+        final int salesCount = (pulse['todaySalesCount'] as num?)?.toInt() ?? 0;
+        final int salesTotal = (pulse['todaySalesTotal'] as num?)?.toInt() ?? 0;
+        final int stock = (pulse['vendorStock'] as num?)?.toInt() ?? 0;
 
         return Row(
           children: [
             _PulseChip(
               icon: Icons.inbox_rounded,
-              value: '$pending',
+              numericValue: pending,
               label: 'Pendientes',
-              color: pending > 0 ? AppColors.error : AppColors.textMuted,
+              color: pending > 0 ? AppColors.error : AppColors.slate500,
               highlight: pending > 0,
+              hasPulse: pending > 0,
             ),
             const SizedBox(width: 8),
             _PulseChip(
               icon: Icons.receipt_long_rounded,
-              value: '$salesCount',
+              numericValue: salesCount,
               label: 'Ventas',
               color: AppColors.primary,
             ),
             const SizedBox(width: 8),
             _PulseChip(
               icon: Icons.attach_money_rounded,
-              value: 'C\$$salesTotal',
+              numericValue: salesTotal,
+              prefix: 'C\$',
               label: 'Total',
               color: AppColors.success,
               flex: 2,
@@ -337,7 +404,7 @@ class _QuickPulseBar extends ConsumerWidget {
             const SizedBox(width: 8),
             _PulseChip(
               icon: Icons.inventory_2_rounded,
-              value: '$stock',
+              numericValue: stock,
               label: 'Stock',
               color: AppColors.accent,
             ),
@@ -345,16 +412,19 @@ class _QuickPulseBar extends ConsumerWidget {
         );
       },
       loading: () => Row(
-        children: List.generate(4, (_) => Expanded(
-          child: Container(
-            height: 64,
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(14),
+        children: List.generate(
+          4,
+          (_) => Expanded(
+            child: Container(
+              height: 64,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: AppColors.slate100,
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
           ),
-        )),
+        ),
       ),
       error: (_, _) => const SizedBox.shrink(),
     );
@@ -364,18 +434,22 @@ class _QuickPulseBar extends ConsumerWidget {
 class _PulseChip extends StatelessWidget {
   const _PulseChip({
     required this.icon,
-    required this.value,
+    required this.numericValue,
     required this.label,
     required this.color,
+    this.prefix,
     this.highlight = false,
+    this.hasPulse = false,
     this.flex = 1,
   });
 
   final IconData icon;
-  final String value;
+  final int numericValue;
   final String label;
   final Color color;
+  final String? prefix;
   final bool highlight;
+  final bool hasPulse;
   final int flex;
 
   @override
@@ -383,13 +457,15 @@ class _PulseChip extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: highlight ? color.withValues(alpha: 0.1) : Colors.grey.shade50,
+          color: highlight ? color.withValues(alpha: 0.08) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: highlight ? color.withValues(alpha: 0.25) : AppColors.border,
+            color: highlight ? color.withValues(alpha: 0.3) : AppColors.slate200,
+            width: highlight ? 1.5 : 1,
           ),
+          boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -398,27 +474,33 @@ class _PulseChip extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 14, color: color),
-                const SizedBox(width: 4),
+                if (hasPulse) ...[
+                  PulsingDot(color: color, size: 8),
+                  const SizedBox(width: 5),
+                ] else ...[
+                  Icon(icon, size: 14, color: color),
+                  const SizedBox(width: 4),
+                ],
                 Flexible(
-                  child: Text(
-                    value,
-                    overflow: TextOverflow.ellipsis,
+                  child: AnimatedCounter(
+                    value: numericValue,
+                    prefix: prefix,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: highlight ? color : Colors.grey.shade800,
+                      color: highlight ? color : AppColors.slate800,
                     ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 2),
-            Text(label,
-              style: TextStyle(
-                fontSize: 9,
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textMuted,
+                color: AppColors.slate500,
               ),
             ),
           ],
