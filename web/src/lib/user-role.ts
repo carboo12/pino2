@@ -48,3 +48,17 @@ export const isGlobalAdminRole = (value?: string | null) => {
   const role = normalizeUserRole(value);
   return role === 'super-admin';
 };
+
+export const getRoleBadgeLabel = (value?: string | null): string => {
+  const role = normalizeUserRole(value);
+  const labels: Record<string, string> = {
+    'super-admin': 'Super Admin',
+    'chain-admin': 'Admin de Cadena',
+    'admin': 'Administrador / Dueño',
+    'inventory': 'Bodeguero / Inventario',
+    'gestor': 'Gestor de Ventas',
+    'rutero': 'Repartidor / Ruta',
+    'auxiliar': 'Auxiliar / Caja',
+  };
+  return labels[role] || role || 'Usuario';
+};
