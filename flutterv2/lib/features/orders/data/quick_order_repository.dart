@@ -1,6 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
+
 import '../../../core/network/api_client.dart';
+import '../../../core/storage/offline_cache_service.dart';
 
 class QuickOrderRepository {
   Future<Map<String, dynamic>> createOrder({
@@ -32,9 +35,19 @@ class QuickOrderRepository {
         return data;
       }
       return {'success': true, 'raw': data};
-    } catch (e) {
-      debugPrint('[QuickOrderRepository] Error al crear pedido: $e');
-      rethrow;
+    } on DioException catch (e) {
+      debugPrint('[QuickOrderRepository] Error de red al crear pedido, guardando en cola offline: $e');
+      await OfflineCacheService.enqueueOfflineOperation(
+        endpoint: '/orders',
+        method: 'POST',
+        payload: payload,
+      );
+
+      return {
+        'queuedOffline': true,
+        'message': 'Pedido guardado en cola local offline.',
+        'externalId': payload['externalId'],
+      };
     }
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/storage/offline_cache_service.dart';
 import '../domain/models/catalog_product.dart';
 
 class CatalogRepository {
@@ -11,11 +12,18 @@ class CatalogRepository {
       final data = response.data;
       final list = data is List ? data : (data['data'] is List ? data['data'] : []);
 
-      return (list as List)
-          .map((item) => CatalogProduct.fromJson(Map<String, dynamic>.from(item as Map)))
+      final rawList = (list as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      await OfflineCacheService.cacheProducts(storeId, rawList);
+
+      return rawList
+          .map((item) => CatalogProduct.fromJson(item))
           .toList();
     } catch (e) {
-      debugPrint('[CatalogRepository] Error al obtener catálogo: $e');
+      debugPrint('[CatalogRepository] Error en red, leyendo caché local offline: $e');
+      final cached = await OfflineCacheService.getCachedProducts(storeId);
+      if (cached.isNotEmpty) {
+        return cached.map((item) => CatalogProduct.fromJson(item)).toList();
+      }
       return [];
     }
   }

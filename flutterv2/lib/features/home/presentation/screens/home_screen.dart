@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
-import '../../../auth/domain/auth_user.dart';
 import '../../../auth/presentation/auth_controller.dart';
 import '../../../catalog/presentation/screens/product_catalog_screen.dart';
 import '../../../clients/presentation/screens/client_portfolio_screen.dart';
@@ -11,6 +10,7 @@ import '../../../collections/presentation/screens/collections_screen.dart';
 import '../../../daily_closing/presentation/screens/daily_closing_screen.dart';
 import '../../../expenses/presentation/screens/expenses_screen.dart';
 import '../../../deliveries/presentation/screens/route_board_screen.dart';
+import '../../../orders/presentation/screens/express_visit_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
 import '../../../preventa/presentation/screens/preventa_home_screen.dart';
 import '../../../promotions/presentation/screens/promotions_screen.dart';
@@ -157,7 +157,38 @@ class _HomeScreenState extends State<HomeScreen> {
               roleLabelStr: roleLabel(role),
               storeName: storeName,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            if (role == AppRole.vendor || role == AppRole.salesManager || role == AppRole.rutero) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ExpressVisitScreen(
+                          storeId: storeId,
+                          storeName: storeName,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.flash_on_rounded, size: 24, color: Colors.white),
+                  label: const Text(
+                    '⚡ VISITA Y VENTA EXPRESS EN CALLE (GPS)',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 3,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
             _buildActions(context, role, _selectedStore),
           ],
         ),
@@ -196,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer(BuildContext context, AuthUser user, AppRole role, String storeId, String? storeName) {
+  Widget _buildDrawer(BuildContext context, dynamic user, AppRole role, String storeId, String? storeName) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -633,7 +664,7 @@ class _HeroCard extends StatelessWidget {
               Text(
                 storeName,
                 style: const TextStyle(
-                  color: Colors.white90,
+                  color: Colors.white,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
