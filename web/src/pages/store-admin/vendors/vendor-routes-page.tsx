@@ -26,8 +26,9 @@ import { useAuth } from '@/contexts/auth-context';
 
 // ── Schema for visit planning ──
 const routeFormSchema = z.object({
+  name: z.string().min(1, 'Ingresa el nombre de la ruta.'),
   vendorId: z.string().min(1, 'Debes seleccionar un vendedor.'),
-  date: z.date(),
+  dayOfWeek: z.number().min(0).max(7),
   clientIds: z.array(z.string()).min(1, 'Tienes que seleccionar al menos un cliente.'),
 });
 
@@ -51,7 +52,7 @@ export default function VendorRoutesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const form = useForm<z.infer<typeof routeFormSchema>>({
     resolver: zodResolver(routeFormSchema),
-    defaultValues: { date: new Date(), clientIds: [] },
+    defaultValues: { name: '', vendorId: '', dayOfWeek: 0, clientIds: [] },
   });
 
   // ── Tab 2: Dispatch ──
@@ -107,9 +108,9 @@ export default function VendorRoutesPage() {
   async function onSubmitVisitPlan(values: z.infer<typeof routeFormSchema>) {
     setIsSaving(true);
     try {
-      await apiClient.post('/routes', { ...values, storeId, status: 'PENDING' });
-      toast.success('Ruta Creada', 'La ruta ha sido asignada y el vendedor notificado.');
-      form.reset({ date: new Date(), clientIds: [] });
+      await apiClient.post('/routes', { ...values, storeId, status: 'ACTIVE' });
+      toast.success('Ruta Creada', 'La ruta fija de cobertura ha sido asignada correctamente.');
+      form.reset({ name: '', vendorId: '', dayOfWeek: 0, clientIds: [] });
     } catch (error) {
       logError(error, { location: 'vendor-routes-submit', additionalInfo: { ...values } });
       toast.error('Error', 'No se pudo crear la ruta.');

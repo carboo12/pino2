@@ -26,6 +26,8 @@ import { getRoleBadgeLabel, normalizeUserRole } from '@/lib/user-role';
 
 interface RouteItem {
   id: string;
+  name?: string;
+  dayOfWeek?: number;
   vendorId: string;
   vendorName?: string;
   clientIds: string[];
@@ -39,6 +41,17 @@ interface RouteItem {
   version: number;
   notes?: string;
 }
+
+const DAY_NAMES: Record<number, string> = {
+  0: '🔄 Todos los Días (Diario)',
+  1: '📅 Lunes',
+  2: '📅 Martes',
+  3: '📅 Miércoles',
+  4: '📅 Jueves',
+  5: '📅 Viernes',
+  6: '📅 Sábado',
+  7: '📅 Domingo',
+};
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pendiente de Inicio',
@@ -357,9 +370,12 @@ export default function RoutesListPage() {
 
                     <div className="space-y-1">
                       <h3 className="font-bold text-base group-hover:text-primary transition-colors flex items-center gap-2">
-                        <User className="h-4 w-4 text-primary" />
-                        {vendorName}
+                        <RouteIcon className="h-4 w-4 text-primary" />
+                        {r.name || `Ruta Cobertura ${r.id.slice(0, 8)}`}
                       </h3>
+                      <p className="text-xs font-medium text-foreground/80 flex items-center gap-1.5">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" /> Responsable: {vendorName}
+                      </p>
                       {r.notes && (
                         <p className="text-xs text-muted-foreground truncate">
                           Nota: {r.notes}
@@ -374,11 +390,9 @@ export default function RoutesListPage() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
-                        Fecha:{' '}
+                        Cobertura:{' '}
                         <strong>
-                          {r.routeDate
-                            ? new Date(r.routeDate).toLocaleDateString('es-NI')
-                            : '—'}
+                          {DAY_NAMES[r.dayOfWeek ?? 0] || 'Todos los Días'}
                         </strong>
                       </span>
                     </div>

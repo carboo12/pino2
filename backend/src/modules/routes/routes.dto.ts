@@ -3,9 +3,12 @@ import {
   IsArray,
   IsDateString,
   IsIn,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
+  Min,
 } from 'class-validator';
 
 const ROUTE_STATUSES = ['PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED'];
@@ -17,6 +20,15 @@ export class CreateRouteDto {
 
   @IsUUID('all')
   vendorId!: string;
+
+  @IsString()
+  name!: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(7)
+  @IsOptional()
+  dayOfWeek?: number;
 
   @IsArray()
   @ArrayUnique()
@@ -50,6 +62,16 @@ export class CreateRouteDto {
 }
 
 export class UpdateRouteDto {
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(7)
+  @IsOptional()
+  dayOfWeek?: number;
+
   @IsIn(ROUTE_STATUSES)
   @IsOptional()
   status?: string;

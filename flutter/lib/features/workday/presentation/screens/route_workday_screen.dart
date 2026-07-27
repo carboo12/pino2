@@ -18,7 +18,12 @@ final _routeClientsProvider = FutureProvider<List<ClientSummary>>((ref) async {
   final visits = await repository.getVisits();
 
   final now = DateTime.now();
+  final currentWeekday = now.weekday; // 1 = Lunes ... 7 = Domingo
+
   final todayRoutes = routes.where((r) {
+    if (r.dayOfWeek == 0 || r.dayOfWeek == currentWeekday) {
+      return true;
+    }
     final d = r.routeDate;
     return d != null &&
         d.year == now.year &&

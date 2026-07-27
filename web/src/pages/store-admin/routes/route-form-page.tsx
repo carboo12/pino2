@@ -48,10 +48,10 @@ export default function RouteFormPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const [name, setName] = useState('');
   const [vendorId, setVendorId] = useState('');
+  const [dayOfWeek, setDayOfWeek] = useState<number>(0);
   const [routeType, setRouteType] = useState<'SALES' | 'DELIVERY'>('SALES');
-  const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
-  const [validTo, setValidTo] = useState('');
   const [notes, setNotes] = useState('');
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -64,13 +64,11 @@ export default function RouteFormPage() {
   useEffect(() => {
     if (!storeId) return;
     Promise.all([
-      // Fetch users without strict role filter so gestor, rutero, admin are all included!
       apiClient.get('/users', { params: { storeId, limit: 100 } }),
       apiClient.get('/clients', { params: { storeId, limit: 1000 } }),
     ])
       .then(([usersRes, clientsRes]) => {
         const users = Array.isArray(usersRes.data) ? usersRes.data : usersRes.data?.data || [];
-        // Map staff users
         const validVendors = users
           .filter((u: any) => ['gestor', 'admin', 'rutero', 'auxiliar'].includes(u.role?.toLowerCase()))
           .map((u: any) => ({
@@ -113,23 +111,23 @@ export default function RouteFormPage() {
   };
 
   const handleSubmit = async () => {
-    if (!storeId || !vendorId || selectedClients.length === 0) {
-      toast.error('Datos Incompletos', 'Por favor selecciona un gestor de ventas y al menos 1 cliente para la ruta.');
+    if (!storeId || !name.trim() || !vendorId || selectedClients.length === 0) {
+      toast.error('Datos Incompletos', 'Por favor ingresa el nombre de la ruta, selecciona un gestor de ventas y al menos 1 cliente.');
       return;
     }
     setSaving(true);
     try {
       await apiClient.post('/routes', {
         storeId,
+        name: name.trim(),
         vendorId,
+        dayOfWeek,
         clientIds: selectedClients,
-        date: new Date(routeDate).toISOString(),
         routeType,
         status: 'ACTIVE',
-        validTo: validTo ? new Date(validTo).toISOString() : new Date(routeDate).toISOString(),
         notes: notes || undefined,
       });
-      toast.success('Ruta Creada Exitosamente', 'La ruta y clientes han sido asignados correctamente.');
+      toast.success('Ruta Creada Exitosamente', 'La ruta fija de cobertura ha sido registrada y asignada correctamente.');
       navigate(`/store/${storeId}/routes`);
     } catch (err: any) {
       toast.error('Error al Crear Ruta', err?.response?.data?.message || 'No se pudo guardar la ruta.');
@@ -142,7 +140,7 @@ export default function RouteFormPage() {
     <WorkspaceShell
       topbar={
         <WorkspaceTopBar
-          title="Planificación & Creación de Ruta"
+          title="Planificación & Creación de Ruta Fija de Cobertura"
           storeName={user?.storeName}
           actions={
             <div className="flex items-center gap-2">
@@ -157,7 +155,7 @@ export default function RouteFormPage() {
               <Button
                 size="sm"
                 onClick={handleSubmit}
-                disabled={saving || !vendorId || selectedClients.length === 0}
+                disabled={saving || !name.trim() || !vendorId || selectedClients.length === 0}
                 className="rounded-xl font-bold bg-emerald-600 hover:bg-emerald-700 text-white text-xs shadow-xs"
               >
                 <Save className="mr-1.5 h-3.5 w-3.5" /> {saving ? 'Guardando...' : 'Guardar y Publicar Ruta'}
@@ -219,13 +217,23 @@ export default function RouteFormPage() {
             <Card className="rounded-2xl border border-[#DDE2E8] bg-card shadow-xs">
               <CardHeader className="pb-3 border-b border-[#DDE2E8]">
                 <CardTitle className="text-base font-extrabold text-foreground flex items-center gap-2">
-                  <UserCheck className="h-4 w-4 text-primary" /> Parámetros de la Ruta
+                  <UserCheck className="h-4 w-4 text-primary" /> Parámetros de la Ruta Fija
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Selecciona el responsable y la vigencia del recorrido.
+                  Define el nombre, responsable y frecuencia fija de cobertura.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Nombre de la Ruta *</Label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ej. Ruta Comercio Lunes - Zona 1"
+                    className="h-10 rounded-xl text-xs font-medium"
+                  />
+                </div>
+
                 <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-foreground">Gestor de Ventas / Conductor *</Label>
                   <select
@@ -243,6 +251,24 @@ export default function RouteFormPage() {
                 </div>
 
                 <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-foreground">Día Recurrente de Cobertura *</Label>
+                  <select
+                    value={dayOfWeek}
+                    onChange={(e) => setDayOfWeek(Number(e.target.value))}
+                    className="w-full h-10 rounded-xl border border-[#DDE2E8] bg-background px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value={0}>🔄 Recurrente Diario (Todos los Días)</option>
+                    <option value={1}>📅 Lunes</option>
+                    <option value={2}>📅 Martes</option>
+                    <option value={3}>📅 Miércoles</option>
+                    <option value={4}>📅 Jueves</option>
+                    <option value={5}>📅 Viernes</option>
+                    <option value={6}>📅 Sábado</option>
+                    <option value={7}>📅 Domingo</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
                   <Label className="text-xs font-bold text-foreground">Tipo de Operación</Label>
                   <select
                     value={routeType}
@@ -252,28 +278,6 @@ export default function RouteFormPage() {
                     <option value="SALES">🛍️ Preventa / Visita Comercial</option>
                     <option value="DELIVERY">🚚 Entrega de Pedidos / Logística</option>
                   </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-foreground">Fecha Inicio</Label>
-                    <Input
-                      type="date"
-                      value={routeDate}
-                      onChange={(e) => setRouteDate(e.target.value)}
-                      className="h-10 rounded-xl text-xs font-medium"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-bold text-foreground">Fecha Fin / Válido Hasta</Label>
-                    <Input
-                      type="date"
-                      value={validTo}
-                      onChange={(e) => setValidTo(e.target.value)}
-                      className="h-10 rounded-xl text-xs font-medium"
-                    />
-                  </div>
                 </div>
 
                 <div className="space-y-1.5">

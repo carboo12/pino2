@@ -56,6 +56,8 @@ export class RoutesService {
   async create(dto: {
     storeId: string;
     vendorId: string;
+    name: string;
+    dayOfWeek?: number;
     clientIds?: string[];
     date?: string;
     notes?: string;
@@ -68,30 +70,36 @@ export class RoutesService {
     if (!dto.storeId || !dto.vendorId) {
       throw new BadRequestException('La tienda y el vendedor son requeridos');
     }
-
-    const parsedDate = dto.date ? new Date(dto.date) : new Date();
-    if (Number.isNaN(parsedDate.getTime())) {
-      throw new BadRequestException('La fecha de ruta no es válida');
+    const name = (dto.name || '').trim();
+    if (!name) {
+      throw new BadRequestException('El nombre de la ruta es obligatorio');
     }
 
-    const routeDate = parsedDate.toISOString();
+    const parsedDate = dto.date ? new Date(dto.date) : new Date();
+    const routeDate = Number.isNaN(parsedDate.getTime())
+      ? new Date().toISOString()
+      : parsedDate.toISOString();
+    const dayOfWeek = dto.dayOfWeek !== undefined ? Number(dto.dayOfWeek) : 0;
     const clientIds = [...new Set(dto.clientIds || [])];
+
     const route = await this.db.withTransaction(async (client) => {
       await this.validateVendor(client, dto.storeId, dto.vendorId);
       await this.validateClients(client, dto.storeId, clientIds);
 
       const res = await client.query(
         `INSERT INTO routes (
-           store_id, vendor_id, client_ids, route_date, notes, status,
+           store_id, vendor_id, name, day_of_week, client_ids, route_date, notes, status,
            route_type, zone_id, assigned_by, valid_from, valid_to
          )
          VALUES (
-           $1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9, $4::date, $10::date
+           $1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $6::date, $12::date
          )
          RETURNING *`,
         [
           dto.storeId,
           dto.vendorId,
+          name,
+          dayOfWeek,
           JSON.stringify(clientIds),
           routeDate,
           dto.notes || null,
@@ -147,6 +155,8 @@ export class RoutesService {
   async update(
     id: string,
     dto: {
+      name?: string;
+      dayOfWeek?: number;
       status?: string;
       notes?: string;
       vendorId?: string;
@@ -180,20 +190,24 @@ export class RoutesService {
 
       await client.query(
         `UPDATE routes
-            SET status = COALESCE($2, status),
-                notes = CASE WHEN $3::boolean THEN $4 ELSE notes END,
-                vendor_id = COALESCE($5, vendor_id),
-                route_type = COALESCE($6, route_type),
-                zone_id = CASE WHEN $7::boolean THEN $8 ELSE zone_id END,
-                route_date = COALESCE($9::timestamp, route_date),
-                valid_from = COALESCE($9::date, valid_from),
-                valid_to = CASE WHEN $10::boolean THEN $11::date ELSE valid_to END,
-                client_ids = CASE WHEN $12::boolean THEN $13::jsonb ELSE client_ids END,
+            SET name = COALESCE($2, name),
+                day_of_week = COALESCE($3, day_of_week),
+                status = COALESCE($4, status),
+                notes = CASE WHEN $5::boolean THEN $6 ELSE notes END,
+                vendor_id = COALESCE($7, vendor_id),
+                route_type = COALESCE($8, route_type),
+                zone_id = CASE WHEN $9::boolean THEN $10 ELSE zone_id END,
+                route_date = COALESCE($11::timestamp, route_date),
+                valid_from = COALESCE($11::date, valid_from),
+                valid_to = CASE WHEN $12::boolean THEN $13::date ELSE valid_to END,
+                client_ids = CASE WHEN $14::boolean THEN $15::jsonb ELSE client_ids END,
                 version = version + 1,
                 updated_at = NOW()
           WHERE id = $1`,
         [
           id,
+          dto.name?.trim() || null,
+          dto.dayOfWeek !== undefined ? Number(dto.dayOfWeek) : null,
           dto.status?.trim().toUpperCase() || null,
           dto.notes !== undefined,
           dto.notes ?? null,
@@ -287,7 +301,7 @@ export class RoutesService {
         WHERE u.id = $1
           AND us.store_id = $2
           AND u.is_active = true
-          AND u.role IN ('sales-manager', 'vendor', 'rutero')`,
+          AND u.role IN ('sales-manager', 'vendor', 'rutero', 'gestor', 'admin', 'auxiliar')`,
       [vendorId, storeId],
     );
     if (res.rowCount !== 1) {
@@ -340,6 +354,8 @@ export class RoutesService {
       id: row.id,
       storeId: row.store_id,
       vendorId: row.vendor_id,
+      name: row.name || `Ruta Cobertura ${(row.id || '').slice(0, 8)}`,
+      dayOfWeek: Number(row.day_of_week ?? 0),
       clientIds:
         typeof row.normalized_client_ids === 'string'
           ? JSON.parse(row.normalized_client_ids)

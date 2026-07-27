@@ -107,6 +107,8 @@ class CachedRoutes extends Table {
   TextColumn get id => text()();
   TextColumn get storeId => text()();
   TextColumn get vendorId => text()();
+  TextColumn get name => text().withDefault(const Constant('Ruta Fija Cobertura'))();
+  IntColumn get dayOfWeek => integer().withDefault(const Constant(0))();
   TextColumn get clientIdsJson => text()();
   DateTimeColumn get routeDate => dateTime().nullable()();
   TextColumn get status => text()();
