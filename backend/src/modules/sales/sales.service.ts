@@ -338,8 +338,6 @@ export class SalesService {
     startDate?: string,
     endDate?: string,
   ) {
-    const pool = this.db.getPool();
-
     const dispatchersParams: any[] = [storeId];
     let dDateClause = '';
     if (startDate) {
@@ -365,7 +363,7 @@ export class SalesService {
       ORDER BY "totalOrdersCount" DESC
     `;
 
-    const dispatchersRes = await pool.query(dispatchersQuery, dispatchersParams);
+    const dispatchersRes = await this.db.query(dispatchersQuery, dispatchersParams);
 
     const cashiersParams: any[] = [storeId];
     let cDateClause = '';
@@ -392,7 +390,7 @@ export class SalesService {
       ORDER BY "totalTicketsBilled" DESC
     `;
 
-    const cashiersRes = await pool.query(cashiersQuery, cashiersParams);
+    const cashiersRes = await this.db.query(cashiersQuery, cashiersParams);
 
     return {
       storeId,
