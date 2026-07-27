@@ -75,18 +75,32 @@ class CatalogProduct {
   }
 
   factory CatalogProduct.fromJson(Map<String, dynamic> json) {
-    final sp = double.tryParse('${json['salePrice'] ?? 0}') ?? 0;
+    final rawSp = json['salePrice'] ?? json['sale_price'] ?? 0;
+    final sp = double.tryParse('$rawSp') ?? 0;
+
+    final rawCs = json['currentStock'] ?? json['current_stock'] ?? json['stock'] ?? 0;
+    final cs = int.tryParse('$rawCs') ?? 0;
+
     final upb = int.tryParse('${json['unitsPerBulk'] ?? json['units_per_bulk'] ?? 1}') ?? 1;
+
+    final rawSb = json['stockBulks'] ?? json['stock_bulks'] ?? (upb > 1 ? cs ~/ upb : 0);
+    final sb = int.tryParse('$rawSb') ?? 0;
+
+    final rawSu = json['stockUnits'] ?? json['stock_units'] ?? (upb > 1 ? cs % upb : cs);
+    final su = int.tryParse('$rawSu') ?? 0;
+
+    final desc = json['description']?.toString() ?? json['name']?.toString() ?? 'Producto';
+
     return CatalogProduct(
       id: json['id']?.toString() ?? '',
-      storeId: json['storeId']?.toString() ?? '',
-      description: json['description']?.toString() ?? 'Producto',
+      storeId: json['storeId']?.toString() ?? json['store_id']?.toString() ?? '',
+      description: desc,
       salePrice: sp,
-      currentStock: int.tryParse('${json['currentStock'] ?? 0}') ?? 0,
+      currentStock: cs,
       unitsPerBulk: upb,
       handlesBulk: json['handlesBulk'] == true || json['handles_bulk'] == true || upb > 1,
-      stockBulks: int.tryParse('${json['stockBulks'] ?? 0}') ?? 0,
-      stockUnits: int.tryParse('${json['stockUnits'] ?? 0}') ?? 0,
+      stockBulks: sb,
+      stockUnits: su,
       barcode: json['barcode']?.toString(),
       alternateBarcodes: (json['alternateBarcodes'] as List<dynamic>?)
               ?.map((e) => e['barcode']?.toString())
@@ -94,20 +108,20 @@ class CatalogProduct {
               .toList() ??
           [],
       brand: json['brand']?.toString(),
-      department: json['departmentName']?.toString() ?? json['department']?.toString(),
-      subDepartment: json['subDepartment']?.toString(),
-      minStock: int.tryParse('${json['minStock'] ?? 0}') ?? 0,
-      wholesalePrice: double.tryParse('${json['wholesalePrice'] ?? 0}') ?? 0,
+      department: json['departmentName']?.toString() ?? json['department_id']?.toString() ?? json['department']?.toString(),
+      subDepartment: json['subDepartment']?.toString() ?? json['sub_department']?.toString(),
+      minStock: int.tryParse('${json['minStock'] ?? json['min_stock'] ?? 0}') ?? 0,
+      wholesalePrice: double.tryParse('${json['wholesalePrice'] ?? json['wholesale_price'] ?? 0}') ?? 0,
       price1: double.tryParse('${json['price1'] ?? sp}') ?? sp,
       price2: double.tryParse('${json['price2'] ?? sp}') ?? sp,
       price3: double.tryParse('${json['price3'] ?? sp}') ?? sp,
       price4: double.tryParse('${json['price4'] ?? sp}') ?? sp,
       price5: double.tryParse('${json['price5'] ?? sp}') ?? sp,
-      bulkPrice1: double.tryParse('${json['bulkPrice1'] ?? 0}') ?? 0,
-      bulkPrice2: double.tryParse('${json['bulkPrice2'] ?? 0}') ?? 0,
-      bulkPrice3: double.tryParse('${json['bulkPrice3'] ?? 0}') ?? 0,
-      bulkPrice4: double.tryParse('${json['bulkPrice4'] ?? 0}') ?? 0,
-      bulkPrice5: double.tryParse('${json['bulkPrice5'] ?? 0}') ?? 0,
+      bulkPrice1: double.tryParse('${json['bulkPrice1'] ?? json['bulk_price_1'] ?? 0}') ?? 0,
+      bulkPrice2: double.tryParse('${json['bulkPrice2'] ?? json['bulk_price_2'] ?? 0}') ?? 0,
+      bulkPrice3: double.tryParse('${json['bulkPrice3'] ?? json['bulk_price_3'] ?? 0}') ?? 0,
+      bulkPrice4: double.tryParse('${json['bulkPrice4'] ?? json['bulk_price_4'] ?? 0}') ?? 0,
+      bulkPrice5: double.tryParse('${json['bulkPrice5'] ?? json['bulk_price_5'] ?? 0}') ?? 0,
     );
   }
 }
