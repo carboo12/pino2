@@ -104,9 +104,9 @@ class _RouteBoardScreenState extends State<RouteBoardScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (filteredDeliveries.isEmpty)
-                    const Container(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: Text('No hay entregas pendientes registradas.')),
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      child: const Center(child: Text('No hay entregas pendientes registradas.')),
                     )
                   else
                     ...filteredDeliveries.map(

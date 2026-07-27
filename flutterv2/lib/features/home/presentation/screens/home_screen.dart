@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _repository = HomeRepository();
   List<StoreSummary> _stores = [];
   StoreSummary? _selectedStore;
+  bool _loadingStores = false;
 
   @override
   void initState() {
