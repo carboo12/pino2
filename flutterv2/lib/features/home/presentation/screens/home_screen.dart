@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/auth_controller.dart';
+import '../../../deliveries/presentation/screens/route_board_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
 import '../../data/home_repository.dart';
 import '../../data/role_actions.dart';
@@ -169,6 +170,19 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => QuickOrderScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.routeBoard) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RouteBoardScreen(
             storeId: storeId,
             storeName: storeName,
           ),
