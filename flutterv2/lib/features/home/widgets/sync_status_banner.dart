@@ -81,6 +81,7 @@ class _SyncStatusBannerState extends State<SyncStatusBanner> {
 
     return Card(
       elevation: 0,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
@@ -90,86 +91,90 @@ class _SyncStatusBannerState extends State<SyncStatusBanner> {
       ),
       color: isOnline ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Column(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isOnline ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
-                    shape: BoxShape.circle,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isOnline ? const Color(0xFFD1FAE5) : const Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isOnline ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
+                color: isOnline ? const Color(0xFF059669) : const Color(0xFFD97706),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isOnline
+                        ? '🟢 Conectado al Servidor (En vivo)'
+                        : '📱 Base Local del Teléfono (Offline)',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      color: isOnline ? const Color(0xFF065F46) : const Color(0xFF92400E),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Icon(
-                    isOnline ? Icons.cloud_done_rounded : Icons.phone_android_rounded,
-                    color: isOnline ? const Color(0xFF059669) : const Color(0xFFD97706),
-                    size: 22,
+                  const SizedBox(height: 2),
+                  Text(
+                    isOnline
+                        ? (_pendingCount > 0
+                            ? '$_pendingCount preventas pendientes en cola...'
+                            : 'Catálogo y clientes sincronizados')
+                        : 'Pedidos guardados localmente.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isOnline ? const Color(0xFF047857) : const Color(0xFFB45309),
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: isOnline ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-                              shape: BoxShape.circle,
-                            ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (isOnline)
+              SizedBox(
+                height: 36,
+                child: ElevatedButton.icon(
+                  onPressed: _isSyncing ? null : _triggerManualSync,
+                  icon: _isSyncing
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isOnline
-                                ? '🟢 Conectado al Servidor (En vivo)'
-                                : '📱 Base Local del Teléfono (Offline)',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                              color: isOnline ? const Color(0xFF065F46) : const Color(0xFF92400E),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isOnline
-                            ? (_pendingCount > 0
-                                ? '$_pendingCount preventas pendientes en cola...'
-                                : 'Catálogo y clientes sincronizados')
-                            : 'Tus pedidos se guardan en la base local del teléfono y se sincronizarán al volver el internet.',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isOnline ? const Color(0xFF047857) : const Color(0xFFB45309),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (isOnline)
-                  SizedBox(
-                    height: 38,
-                    child: ElevatedButton.icon(
-                      onPressed: _isSyncing ? null : _triggerManualSync,
-                      icon: _isSyncing
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.sync_rounded, size: 16),
-                      label: Text(_isSyncing ? 'Sincronizando...' : 'Sincronizar'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
+                        )
+                      : const Icon(Icons.sync_rounded, size: 16),
+                  label: Text(_isSyncing ? 'Sincronizando...' : 'Sincronizar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    textStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-              ],
-            ),
+                ),
+              ),
           ],
         ),
       ),
