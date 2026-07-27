@@ -9,6 +9,8 @@ import '../../../clients/presentation/screens/client_portfolio_screen.dart';
 import '../../../collections/presentation/screens/collections_screen.dart';
 import '../../../deliveries/presentation/screens/route_board_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
+import '../../../returns/presentation/screens/returns_screen.dart';
+import '../../../warehouse/presentation/screens/warehouse_board_screen.dart';
 import '../../data/home_repository.dart';
 import '../../data/role_actions.dart';
 import '../../domain/models/store_summary.dart';
@@ -178,6 +180,19 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
+    if (action.routeKey == RouteKey.warehouse) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => WarehouseBoardScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
     if (action.routeKey == RouteKey.routeBoard) {
       Navigator.push(
         context,
@@ -222,6 +237,19 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => ClientPortfolioScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.returns) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ReturnsScreen(
             storeId: storeId,
             storeName: storeName,
           ),
