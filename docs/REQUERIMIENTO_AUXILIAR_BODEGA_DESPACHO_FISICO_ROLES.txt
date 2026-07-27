@@ -1,0 +1,17 @@
+📦 3. Auxiliar de Bodega / Despacho Físico
+Rol Canonical: AUXILIAR_DESPACHO / AUXILIAR / INVENTORY
+
+Plataforma: Terminal de Almacén / Web (React 19)
+
+Objetivo: Armar y entregar físicamente la carga de productos al cliente en el portón o área de entrega contra factura pagada.
+
+✅ Lo que SÍ hace:
+- Verificación de Factura Pagada: Escanea o revisa la factura emitida por el Cajero para validar que el pedido esté cancelado.
+- Armado de Carga Física: Reúne los Bultos y Unidades exactos indicados en el detalle del documento.
+- Escaneo de Bultos/Unidades: Valida mediante lector de código de barras (product_barcodes) la mercancía que se le está entregando al cliente.
+- Confirmación de Entrega: Sella o marca en el sistema la orden como "Entregado al Cliente" para cerrar el ciclo.
+
+❌ Lo que NO hace:
+- No ve datos financieros: Bloqueo estricto a precios de costo, costos de compra, saldos de crédito o montos totales de ventas.
+- No cobra dinero: No puede recibir efectivo ni pagos directos de clientes.
+- No modifica reglas de producto: No puede cambiar el factor X de unidades por bulto ni autorizar mermas sin firma superior.

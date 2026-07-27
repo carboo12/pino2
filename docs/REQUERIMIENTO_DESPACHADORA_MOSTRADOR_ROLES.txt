@@ -1,0 +1,18 @@
+🛍️ 1. Despachadora de Mostrador (Atención y Comanda)
+Rol Canonical: DISTRIBUTOR_SELLER / DISPATCHER / AUXILIAR
+
+Plataforma: Web POS / Módulo Mostrador (React 19)
+
+Objetivo: Atender al cliente que llega a la sala de ventas, asesorarle en empaques (Bultos/Unidades) y generar la comanda preliminar.
+
+✅ Lo que SÍ hace:
+- Toma de Comandas / Prefacturas: Atiende al cliente en mostrador e ingresa los productos solicitados expresados en Bultos y Unidades.
+- Asignación de Cliente: Selecciona al cliente registrado o lo marca como Cliente Genérico / Contado.
+- Registro de Productividad (seller_id): Vincula automáticamente su ID de usuario a la comanda para el cálculo de sus comisiones y métricas de productividad.
+- Emisión de Tiquete de Comanda: Imprime o genera el número de comanda (ejemplo: Comanda #104) para que el cliente pase a la caja.
+- Consulta de Stock en Tiempo Real: Revisa la disponibilidad de inventario en la distribuidora para no incluir productos agotados en la comanda.
+
+❌ Lo que NO hace:
+- No cobra dinero: No maneja efectivo, no procesa cobros ni tiene acceso a la apertura/cierre de caja registradora (cash-shifts).
+- No entrega mercancía física: No despacha los productos en la bodega física (de eso se encarga el Auxiliar de Bodega).
+- No modifica precios ni aprueba créditos: No puede alterar precios de lista, aplicar descuentos manuales ni aprobar ventas al crédito.
