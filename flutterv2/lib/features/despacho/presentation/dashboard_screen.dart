@@ -81,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _navegarAFicha(String carnet) async {
     final ctrl = context.read<DespachoController>();
     HapticFeedback.mediumImpact();
-    
+
     // Mostramos un loading overlay
     showDialog(
       context: context,
@@ -92,7 +92,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
 
     final found = await ctrl.buscarColaborador(carnet);
-    
+
     if (mounted) {
       Navigator.pop(context); // quitar loading
       if (found) {
@@ -122,7 +122,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final totalKids = despacho.kpis?['TotalNinos'] ?? 0;
     final deliveredKids = despacho.kpis?['Entregados'] ?? 0;
     final pendingKids = despacho.kpis?['Pendientes'] ?? 0;
-    final totalAdultos = despacho.censoItems.fold(0, (s, r) => s + r.totalAdultos);
+    final totalAdultos = despacho.censoItems.fold(
+      0,
+      (s, r) => s + r.totalAdultos,
+    );
     final despacharKids = totalKids - deliveredKids;
 
     return Scaffold(
@@ -146,10 +149,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
               flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                titlePadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 title: Row(
                   children: [
-                    const Icon(Icons.dashboard_rounded, color: Colors.white, size: 20),
+                    const Icon(
+                      Icons.dashboard_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     const Text(
                       'Dashboard',
@@ -201,7 +211,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       context: context,
                       builder: (ctx) => AlertDialog(
                         title: const Text('Cerrar Sesión'),
-                        content: const Text('¿Deseas cerrar tu sesión de operador?'),
+                        content: const Text(
+                          '¿Deseas cerrar tu sesión de operador?',
+                        ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(ctx, false),
@@ -236,15 +248,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Grid de KPIs con Gradientes idénticos a React
                     Row(
                       children: [
-                        Expanded(child: _buildKPI('Total Niños Censados', totalKids, const [Color(0xFF374151), Color(0xFF111827)])),
+                        Expanded(
+                          child: _buildKPI(
+                            'Total Niños Censados',
+                            totalKids,
+                            const [Color(0xFF374151), Color(0xFF111827)],
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildKPI('Adultos Registrados', totalAdultos, const [Color(0xFF2563EB), Color(0xFF1D4ED8)])),
+                        Expanded(
+                          child: _buildKPI(
+                            'Adultos Registrados',
+                            totalAdultos,
+                            const [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildKPI('Hijos x Despachar', totalKids, const [Color(0xFF10B981), Color(0xFF059669)])),
+                        Expanded(
+                          child: _buildKPI(
+                            'Hijos x Despachar',
+                            totalKids,
+                            const [Color(0xFF10B981), Color(0xFF059669)],
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildKPI('Entregados', deliveredKids, const [Color(0xFF059669), Color(0xFF047857)])),
+                        Expanded(
+                          child: _buildKPI('Entregados', deliveredKids, const [
+                            Color(0xFF059669),
+                            Color(0xFF047857),
+                          ]),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _buildKPI('Por Despachar', despacharKids, const [Color(0xFFF59E0B), Color(0xFFD97706)])),
+                        Expanded(
+                          child: _buildKPI(
+                            'Por Despachar',
+                            despacharKids,
+                            const [Color(0xFFF59E0B), Color(0xFFD97706)],
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -255,10 +296,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       onChanged: _onSearchChanged,
                       decoration: InputDecoration(
                         hintText: 'Buscar carnet, colaborador o hijo...',
-                        prefixIcon: const Icon(Icons.search, color: ClaroTheme.slate400),
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: ClaroTheme.slate400,
+                        ),
                         suffixIcon: _searchCtrl.text.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, color: ClaroTheme.slate400),
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: ClaroTheme.slate400,
+                                ),
                                 onPressed: () {
                                   _searchCtrl.clear();
                                   _onSearchChanged('');
@@ -306,147 +353,168 @@ class _DashboardScreenState extends State<DashboardScreen> {
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final item = despacho.censoItems[index];
-                      final fullyDelivered = item.totalHijos > 0 && item.entregados == item.totalHijos;
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final item = despacho.censoItems[index];
+                    final fullyDelivered =
+                        item.totalHijos > 0 &&
+                        item.entregados == item.totalHijos;
 
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: fullyDelivered
-                                ? ClaroTheme.success.withValues(alpha: 0.3)
-                                : ClaroTheme.slate200,
-                            width: 1.5,
-                          ),
-                          boxShadow: ClaroTheme.cardShadow,
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: fullyDelivered
+                              ? ClaroTheme.success.withValues(alpha: 0.3)
+                              : ClaroTheme.slate200,
+                          width: 1.5,
                         ),
-                        child: InkWell(
-                          onTap: () => _navegarAFicha(item.carnet),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      item.carnet,
-                                      style: const TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w800,
-                                        color: ClaroTheme.primary,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    // Estado de Asistencia
-                                    if (item.asistio > 0)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: ClaroTheme.successLight,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.check_circle_rounded, color: ClaroTheme.success, size: 12),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              'Asistió',
-                                              style: TextStyle(
-                                                fontFamily: 'Inter',
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w700,
-                                                color: ClaroTheme.success,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    else
-                                      Text(
-                                        'Sin registrar',
-                                        style: TextStyle(
-                                          fontFamily: 'Inter',
-                                          fontSize: 11,
-                                          color: ClaroTheme.slate400,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  item.nombre,
-                                  style: const TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: ClaroTheme.slate900,
-                                  ),
-                                ),
-                                if (item.gerencia != null && item.gerencia!.isNotEmpty) ...[
-                                  const SizedBox(height: 4),
+                        boxShadow: ClaroTheme.cardShadow,
+                      ),
+                      child: InkWell(
+                        onTap: () => _navegarAFicha(item.carnet),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
                                   Text(
-                                    item.gerencia!,
+                                    item.carnet,
                                     style: const TextStyle(
                                       fontFamily: 'Inter',
-                                      fontSize: 12,
-                                      color: ClaroTheme.slate500,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      color: ClaroTheme.primary,
                                     ),
                                   ),
+                                  const Spacer(),
+                                  // Estado de Asistencia
+                                  if (item.asistio > 0)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: ClaroTheme.successLight,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle_rounded,
+                                            color: ClaroTheme.success,
+                                            size: 12,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Asistió',
+                                            style: TextStyle(
+                                              fontFamily: 'Inter',
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              color: ClaroTheme.success,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Text(
+                                      'Sin registrar',
+                                      style: TextStyle(
+                                        fontFamily: 'Inter',
+                                        fontSize: 11,
+                                        color: ClaroTheme.slate400,
+                                      ),
+                                    ),
                                 ],
-                                const SizedBox(height: 12),
-                                const Divider(height: 1, color: ClaroTheme.slate100),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.child_care_rounded, color: ClaroTheme.slate400, size: 16),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          'Hijos: ${item.totalHijos}',
-                                          style: const TextStyle(
-                                            fontFamily: 'Inter',
-                                            fontSize: 13,
-                                            color: ClaroTheme.slate700,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.card_giftcard_rounded, color: ClaroTheme.slate400, size: 16),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          'Entregados: ${item.entregados}/${item.totalHijos}',
-                                          style: TextStyle(
-                                            fontFamily: 'Inter',
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w700,
-                                            color: fullyDelivered ? ClaroTheme.success : ClaroTheme.slate700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                item.nombre,
+                                style: const TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: ClaroTheme.slate900,
+                                ),
+                              ),
+                              if (item.gerencia != null &&
+                                  item.gerencia!.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.gerencia!,
+                                  style: const TextStyle(
+                                    fontFamily: 'Inter',
+                                    fontSize: 12,
+                                    color: ClaroTheme.slate500,
+                                  ),
                                 ),
                               ],
-                            ),
+                              const SizedBox(height: 12),
+                              const Divider(
+                                height: 1,
+                                color: ClaroTheme.slate100,
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.child_care_rounded,
+                                        color: ClaroTheme.slate400,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Hijos: ${item.totalHijos}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 13,
+                                          color: ClaroTheme.slate700,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.card_giftcard_rounded,
+                                        color: ClaroTheme.slate400,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Entregados: ${item.entregados}/${item.totalHijos}',
+                                        style: TextStyle(
+                                          fontFamily: 'Inter',
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: fullyDelivered
+                                              ? ClaroTheme.success
+                                              : ClaroTheme.slate700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                    childCount: despacho.censoItems.length,
-                  ),
+                      ),
+                    );
+                  }, childCount: despacho.censoItems.length),
                 ),
               ),
 
@@ -454,7 +522,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (!despacho.loadingCenso && despacho.censoTotalPaginas > 1)
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 24,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -469,27 +540,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
-                            onPressed: _pagina > 1 ? () => _cambiarPagina(-1) : null,
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              size: 16,
+                            ),
+                            onPressed: _pagina > 1
+                                ? () => _cambiarPagina(-1)
+                                : null,
                             style: IconButton.styleFrom(
                               backgroundColor: Colors.white,
-                              disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
+                              disabledBackgroundColor: Colors.white.withValues(
+                                alpha: 0.5,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                side: const BorderSide(color: ClaroTheme.slate200),
+                                side: const BorderSide(
+                                  color: ClaroTheme.slate200,
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                            onPressed: _pagina < despacho.censoTotalPaginas ? () => _cambiarPagina(1) : null,
+                            icon: const Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 16,
+                            ),
+                            onPressed: _pagina < despacho.censoTotalPaginas
+                                ? () => _cambiarPagina(1)
+                                : null,
                             style: IconButton.styleFrom(
                               backgroundColor: Colors.white,
-                              disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
+                              disabledBackgroundColor: Colors.white.withValues(
+                                alpha: 0.5,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                side: const BorderSide(color: ClaroTheme.slate200),
+                                side: const BorderSide(
+                                  color: ClaroTheme.slate200,
+                                ),
                               ),
                             ),
                           ),
@@ -499,10 +588,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
               ),
-            
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 20),
-            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
           ],
         ),
       ),
@@ -532,7 +619,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text(
             value.toString(),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontFamily: 'Inter', fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, height: 1.2),
+            style: const TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              height: 1.2,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -540,7 +633,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontFamily: 'Inter', fontSize: 9, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85), height: 1.2),
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.85),
+              height: 1.2,
+            ),
           ),
         ],
       ),
