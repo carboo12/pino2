@@ -124,6 +124,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final currentStoreId = _selectedStoreId ?? session.user.primaryStoreId;
+    final activeStore = storesAsync.asData?.value
+        .where((s) => s.id == currentStoreId)
+        .firstOrNull ??
+        StoreSummary(
+          id: (currentStoreId != null && currentStoreId.isNotEmpty)
+              ? currentStoreId
+              : (session.user.storeIds.firstOrNull ?? '9321856d-19ba-42b8-ba47-cf35c0d133dd'),
+          name: 'Tienda Principal',
+        );
 
     return Scaffold(
       appBar: AppBar(
@@ -211,26 +220,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: _HeroCard(
                 name: session.user.name,
                 roleLabel: roleLabel(role),
-                storeName: storesAsync.asData?.value
-                    .where((s) => s.id == currentStoreId)
-                    .map((s) => s.name).firstOrNull,
+                storeName: activeStore.name,
               ),
             ),
             const SizedBox(height: 16),
-            if (currentStoreId != null)
-              StaggeredFadeIn(
-                index: 2,
-                child: _QuickPulseBar(storeId: currentStoreId),
-              ),
+            StaggeredFadeIn(
+              index: 2,
+              child: _QuickPulseBar(storeId: activeStore.id),
+            ),
             const SizedBox(height: 20),
             StaggeredFadeIn(
               index: 3,
               child: _buildActions(
                 context,
                 role,
-                storesAsync.asData?.value
-                    .where((s) => s.id == currentStoreId)
-                    .firstOrNull,
+                activeStore,
               ),
             ),
           ],

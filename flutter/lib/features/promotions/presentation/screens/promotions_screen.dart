@@ -33,12 +33,10 @@ class _PromotionsScreenState extends ConsumerState<PromotionsScreen> {
   Future<void> _loadPromotions() async {
     final authState = ref.read(authControllerProvider);
     final token = authState.session?.accessToken;
-    final storeId = authState.session?.user.primaryStoreId ?? '';
-
-    if (storeId.isEmpty) {
-      setState(() => _loading = false);
-      return;
-    }
+    final primaryId = authState.session?.user.primaryStoreId;
+    final storeId = (primaryId != null && primaryId.isNotEmpty)
+        ? primaryId
+        : (authState.session?.user.storeIds.firstOrNull ?? '9321856d-19ba-42b8-ba47-cf35c0d133dd');
 
     try {
       final apiClient = ref.read(appApiClientProvider);
