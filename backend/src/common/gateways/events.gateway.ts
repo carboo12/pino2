@@ -21,7 +21,9 @@ const allowedOrigins = (
 
 @WebSocketGateway({
   cors: {
-    origin: allowedOrigins,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      callback(null, true);
+    },
     credentials: true,
   },
   namespace: 'events',
