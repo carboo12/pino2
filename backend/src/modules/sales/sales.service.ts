@@ -332,4 +332,73 @@ export class SalesService {
       this.toUnitsPerBulk(unitsPerBulk),
     );
   }
+
+  async getProductivityReport(
+    storeId: string,
+    startDate?: string,
+    endDate?: string,
+  ) {
+    const pool = this.db.getPool();
+
+    const dispatchersParams: any[] = [storeId];
+    let dDateClause = '';
+    if (startDate) {
+      dispatchersParams.push(startDate);
+      dDateClause += ` AND o.created_at >= $${dispatchersParams.length}::timestamp`;
+    }
+    if (endDate) {
+      dispatchersParams.push(endDate);
+      dDateClause += ` AND o.created_at <= $${dispatchersParams.length}::timestamp`;
+    }
+
+    const dispatchersQuery = `
+      SELECT 
+        COALESCE(u.id::text, 'sin-id') as "dispatcherId",
+        COALESCE(u.name, o.sales_manager_name, 'Despachador/a Mostrador') as "dispatcherName",
+        COALESCE(u.role, 'dispatcher') as "role",
+        COUNT(o.id)::int as "totalOrdersCount",
+        COALESCE(SUM(o.total), 0)::float as "totalAmountCommanded"
+      FROM orders o
+      LEFT JOIN users u ON o.vendor_id = u.id
+      WHERE o.store_id = $1 ${dDateClause}
+      GROUP BY u.id, u.name, o.sales_manager_name, u.role
+      ORDER BY "totalOrdersCount" DESC
+    `;
+
+    const dispatchersRes = await pool.query(dispatchersQuery, dispatchersParams);
+
+    const cashiersParams: any[] = [storeId];
+    let cDateClause = '';
+    if (startDate) {
+      cashiersParams.push(startDate);
+      cDateClause += ` AND s.created_at >= $${cashiersParams.length}::timestamp`;
+    }
+    if (endDate) {
+      cashiersParams.push(endDate);
+      cDateClause += ` AND s.created_at <= $${cashiersParams.length}::timestamp`;
+    }
+
+    const cashiersQuery = `
+      SELECT 
+        COALESCE(u.id::text, 'sin-id') as "cashierId",
+        COALESCE(u.name, s.cashier_name, 'Cajer@ Mostrador') as "cashierName",
+        COALESCE(u.role, 'cashier') as "role",
+        COUNT(s.id)::int as "totalTicketsBilled",
+        COALESCE(SUM(s.total), 0)::float as "totalAmountBilled"
+      FROM sales s
+      LEFT JOIN users u ON s.created_by = u.id
+      WHERE s.store_id = $1 ${cDateClause}
+      GROUP BY u.id, u.name, s.cashier_name, u.role
+      ORDER BY "totalTicketsBilled" DESC
+    `;
+
+    const cashiersRes = await pool.query(cashiersQuery, cashiersParams);
+
+    return {
+      storeId,
+      period: { startDate, endDate },
+      dispatchers: dispatchersRes.rows,
+      cashiers: cashiersRes.rows,
+    };
+  }
 }

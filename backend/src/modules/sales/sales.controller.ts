@@ -31,11 +31,22 @@ export class SalesController {
     return this.service.processSale(dto, req.user.sub);
   }
 
-  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')
+  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin', 'cashier', 'store-admin')
   @Get('dashboard-stats')
   @ApiOperation({ summary: 'Obtener estadísticas de ventas para el dashboard' })
   getDashboardStats(@Query('storeId') storeId: string) {
     return this.service.getDashboardStats(storeId);
+  }
+
+  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin', 'cashier', 'store-admin')
+  @Get('productivity-report')
+  @ApiOperation({ summary: 'Obtener reporte de productividad por despachadora y cajer@' })
+  getProductivityReport(
+    @Query('storeId') storeId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.service.getProductivityReport(storeId, startDate, endDate);
   }
 
   @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')

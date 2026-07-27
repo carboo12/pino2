@@ -189,6 +189,9 @@ const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 const AdminDailyClosingsPage = lazy(
   () => import("@/pages/store-admin/reports/admin-daily-closings-page"),
 );
+const ProductivityReportPage = lazy(
+  () => import("@/pages/store-admin/reports/productivity-report-page"),
+);
 const OrdersPipelinePage = lazy(
   () => import("@/pages/store-admin/pending-orders/orders-pipeline-page"),
 );
@@ -1019,6 +1022,17 @@ function App() {
                             allowedRoles={STORE_ADMIN_ROLES}
                           >
                             <AdminDailyClosingsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/reports/productivity"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={STORE_ADMIN_ROLES}
+                          >
+                            <ProductivityReportPage />
                           </ProtectedRoute>
                         }
                       />
