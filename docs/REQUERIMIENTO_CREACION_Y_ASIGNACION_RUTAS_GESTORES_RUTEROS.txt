@@ -1,0 +1,91 @@
+🗺️ 1. Módulo de Creación y Configuración de Rutas (Web Admin)
+Para que esto funcione, en el backend de NestJS existen los módulos zones, routes, chains, stores y grupos-clientes.
+
+¿En qué parte se crean las rutas?
+Se crean en la Plataforma Web en el menú Logística y Comercial > Definición de Rutas.
+
+Existen dos tipos de rutas en el sistema:
+
+Rutas de Ventas (Preventa): Agrupa clientes por cercanía geográfica o secuencia lógica de visita para tomar pedidos.
+
+Rutas de Reparto (Entrega): Agrupa los sectores o municipios a donde el camión saldrá a entregar la mercancía físicamente.
+
+👤 2. ¿Quién y cómo asigna los clientes al GESTOR DE VENTAS?
+¿Quién lo asigna?
+El Jefe de Bodega Central o el Supervisor Comercial desde la Plataforma Web.
+
+Flujo de Asignación y Reasignación de Clientes al Gestor:
+
+[ Web Admin: Módulo de Rutas / Clientes ]
+                  │
+                  ├──► 1. Asignar Zona/Día (ej. "Ruta Lunes - Zona Norte")
+                  ├──► 2. Vincular Clientes a la Ruta
+                  └──► 3. Asignar Ruta al Gestor "Carlos Vendedor"
+                                   │
+                                   ▼
+              Sincronización mediante API / DB Offline
+                                   │
+                                   ▼
+            [ App Android Flutter del Gestor de Ventas ]
+   (Visualiza solo su lista de clientes asignados para el día)
+
+Creación/Asignación Inicial:
+En la Web se crea la Ruta Comercial (ejemplo: Ruta Norte - Lunes).
+Se seleccionan los clientes de la base de datos y se añaden a esa ruta.
+Se asigna el usuario GESTOR_VENTAS responsable de esa ruta.
+En la App Android: Al iniciar sesión el lunes, la App Flutter descarga automáticamente la lista de clientes pertenecientes a la Ruta Norte - Lunes.
+
+Reasignación de Cliente en Tiempo Real (Caso Especial):
+Si el Gestor "A" se enferma o no puede atender a un grupo de clientes, el Jefe de Bodega entra a la Web en Gestión de Clientes > Reasignación Express.
+Selecciona los clientes y cambia el responsable al Gestor "B".
+En la siguiente sincronización de la App del Gestor "B", esos clientes aparecen disponibles en su pantalla inmediatamente.
+
+🚚 3. ¿Quién y cómo asigna las rutas al RUTERO?
+¿Quién lo asigna?
+El Jefe de Bodega Central desde la Plataforma Web al momento de consolidar los pedidos de preventa para el despacho.
+
+Flujo de Asignación y Armado de Ruta para el Rutero:
+
+[ 1. Gestores de Ventas levantan 50 pedidos en la App ]
+                           │
+                           ▼
+[ 2. Jefe de Bodega en Web: Módulo "Despacho & Cargas Camión" ]
+    - Filtra pedidos de la "Zona Sur"
+    - Asigna los 50 pedidos a la Carga del Camión #3
+    - Asigna la Carga al Rutero "Juan Repartidor"
+                           │
+                           ▼
+[ 3. Auxiliar arma la carga en la bodega física ]
+                           │
+                           ▼
+[ 4. App Android Flutter del Rutero "Juan Repartidor" ]
+    - Recibe la Carga #3 con su Mapa/Lista de Entrega ordenada
+
+Generación de la Carga:
+El Jefe de Bodega revisa en la Web todos los pedidos pendientes (pending-orders) generados por los Gestores de Ventas.
+
+Consolidación y Asignación:
+Agrupa los pedidos por zona o sector (ej. Sector Centro).
+Crea una nueva Carga de Camión (cargas-camion) y selecciona al Rutero que manejará ese vehículo.
+El sistema genera automáticamente el Plan de Entrega / Ruta de Reparto (routes / pending-deliveries), ordenando la secuencia de paradas de entrega.
+
+Reasignación de Entrega:
+Si un Rutero sufre una avería en su camión, el Jefe de Bodega entra a la Web, selecciona la Carga o los pedidos pendientes de esa ruta y los transfiere a otro Rutero disponible.
+
+📌 Documentación de Roles para Trello (Actualización)
+Añade estas responsabilidades clave a tus tarjetas de Trello:
+
+📦 En la Tarjeta del Jefe / Encargado de Bodega Central (Web):
+✅ Lo que SÍ hace:
+Creación y Configuración de Rutas: Diseñar y estructurar las rutas de venta y de reparto en la Web (routes, zones).
+Asignación de Clientes a Gestores: Asignar carteras de clientes y secuencias de visitas diarias a los Gestores de Ventas.
+Asignación de Cargas a Ruteros: Consolidar pedidos levantados y asignar las hojas de reparto/camión a los Ruteros.
+Reasignación Dinámica: Cambiar clientes de vendedor o reasignar cargas entre ruteros en caso de emergencias o ausencias.
+
+📱 En la Tarjeta del Gestor de Ventas (App Android Flutter):
+❌ Lo que NO hace:
+No puede autorasignarse clientes: Solo ve y atiende a los clientes asignados por la administración en su ruta del día.
+
+🚚 En la Tarjeta del Rutero (App Android Flutter):
+❌ Lo que NO hace:
+No escoge qué pedidos entregar: Solo transporta y entrega la ruta de carga que le fue consolidada y asignada por el Jefe de Bodega Central.
