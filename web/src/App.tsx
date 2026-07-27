@@ -307,6 +307,20 @@ const SALES_ADMIN_ROLES: NormalizedUserRole[] = [
   "gestor",
   "admin",
 ];
+const ALL_STORE_ROLES: NormalizedUserRole[] = [
+  "admin",
+  "super-admin",
+  "inventory",
+  "auxiliar",
+  "gestor",
+  "rutero",
+];
+
+const ProductsRedirect = () => {
+  const { user } = useAuth();
+  const storeId = user?.storeIds?.[0] || '9321856d-19ba-42b8-ba47-cf35c0d133dd';
+  return <Navigate to={`/store/${storeId}/products`} replace />;
+};
 
 const ProtectedRoute = ({
   children,
@@ -381,6 +395,23 @@ function App() {
 
                       {/* RUTAS DE TIENDA */}
                       <Route
+                        path="/products"
+                        element={
+                          <ProtectedRoute>
+                            <ProductsRedirect />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/catalog"
+                        element={
+                          <ProtectedRoute>
+                            <ProductsRedirect />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      <Route
                         path="/store/:storeId/dashboard"
                         element={
                           <ProtectedRoute
@@ -397,7 +428,7 @@ function App() {
                         element={
                           <ProtectedRoute
                             requireStoreAccess
-                            allowedRoles={STORE_ADMIN_ROLES}
+                            allowedRoles={ALL_STORE_ROLES}
                           >
                             <ProductsPage />
                           </ProtectedRoute>

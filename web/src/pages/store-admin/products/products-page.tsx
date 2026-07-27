@@ -23,7 +23,11 @@ import {
   Wrench,
   Download,
   FileText,
+  Search,
+  Grid,
+  List,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import * as XLSX from "xlsx";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
@@ -81,9 +85,9 @@ function getStockBadgeVariant(currentStock: number, minStock: number) {
 
 export default function ProductsPage() {
   const params = useParams();
-  const storeId = params.storeId as string;
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const storeId = (params.storeId as string) || user?.storeIds?.[0] || '9321856d-19ba-42b8-ba47-cf35c0d133dd';
+  const navigate = useNavigate();
   const role = normalizeUserRole(user?.role);
   const canManageCatalog = ["admin", "super-admin", "inventory"].includes(
     role,
@@ -95,12 +99,14 @@ export default function ProductsPage() {
     useState<SubDepartment | null>(null);
   const [reorganizationMode, setReorganizationMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewAll, setViewAll] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   useEffect(() => {
     setPage(1);
-  }, [selectedDepartment, selectedSubDepartment, reorganizationMode]);
+  }, [selectedDepartment, selectedSubDepartment, reorganizationMode, searchTerm, viewAll]);
 
   const {
     data: pageData,
@@ -112,11 +118,15 @@ export default function ProductsPage() {
       storeId,
       page,
       pageSize,
+      searchTerm,
       selectedDepartment?.id,
       selectedSubDepartment?.id,
     ],
     queryFn: async () => {
       const prodParams: Record<string, any> = { storeId, page, pageSize };
+      if (searchTerm.trim()) {
+        prodParams.search = searchTerm.trim();
+      }
       if (selectedDepartment?.id) {
         prodParams.departmentId = selectedDepartment.id;
       }
@@ -129,7 +139,7 @@ export default function ProductsPage() {
 
       const [prodsRes, deptsRes, subDeptsRes] = await Promise.all([
         apiClient.get("/products", { params: prodParams }),
-        apiClient.get("/departments", { params: { storeId, type: "main" } }),
+        apiClient.get("/departments", { params: { storeId, type: "main" } }).catch(() => ({ data: [] })),
         apiClient
           .get("/departments/sub-departments", { params: { storeId } })
           .catch(() => ({ data: [] })),
@@ -137,7 +147,7 @@ export default function ProductsPage() {
       return {
         products: extractData<Product>(prodsRes.data),
         total: extractTotal(prodsRes.data),
-        departments: deptsRes.data.map((d: any) => ({
+        departments: (deptsRes.data || []).map((d: any) => ({
           ...d,
           name: d.name || d.nombre,
         })) as Department[],
@@ -162,9 +172,8 @@ export default function ProductsPage() {
   }, [products]);
 
   const filteredProducts = useMemo(() => {
-    if (!selectedDepartment) return [];
     return products;
-  }, [products, selectedDepartment]);
+  }, [products]);
 
   const filteredSubDepartments = useMemo(() => {
     if (!selectedDepartment) return [];
@@ -403,6 +412,25 @@ export default function ProductsPage() {
       );
     };
 
+    // View List directly if searching, viewAll enabled, or no departments
+    if (viewAll || searchTerm.trim() || departments.length === 0) {
+      return (
+        <>
+          {productListContent(products, products)}
+          <DataPagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setPage(1);
+            }}
+          />
+        </>
+      );
+    }
+
     // View Reorganization
     if (reorganizationMode) {
       return <>{productListContent(activeProducts, activeProducts)}<DataPagination page={page} pageSize={pageSize} total={total} onPageChange={setPage} onPageSizeChange={(s) => { setPageSize(s); setPage(1); }} /></>;
@@ -469,19 +497,6 @@ export default function ProductsPage() {
       );
     }
 
-    // View Departments
-    if (departments.length === 0) {
-      return (
-        <Alert>
-          <Shapes className="h-4 w-4" />
-          <AlertTitle>Sin departamentos</AlertTitle>
-          <AlertDescription>
-            Crea un departamento para organizar productos.
-          </AlertDescription>
-        </Alert>
-      );
-    }
-
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {departments.map((dept) => (
@@ -504,56 +519,102 @@ export default function ProductsPage() {
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-      </div>
-      {canManageCatalog && (
-        <div className="flex flex-wrap gap-2 mb-6">
-          <Button variant="outline" asChild>
-            <Link to={`/store/${storeId}/products/departments`}>
-              <Shapes className="mr-2 h-4 w-4" />
-              Depart.
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to={`/store/${storeId}/products/sub-departments`}>
-              <Library className="mr-2 h-4 w-4" />
-              Sub-Depart.
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => {
-              setReorganizationMode(true);
-              setSelectedDepartment(null);
-              setSelectedSubDepartment(null);
-            }}
-            className="relative"
-          >
-            <Wrench className="mr-2 h-4 w-4" />
-            Reorganizar
-            {unorganizedProducts.length > 0 && (
-              <Badge
-                variant="destructive"
-                className="absolute -top-2 -right-2 px-2"
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Catálogo de Productos ({total})</h1>
+          <p className="text-sm text-muted-foreground">Consulta de precios, existencias y Factor X en inventario.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {canManageCatalog && (
+            <>
+              <Button variant="outline" asChild>
+                <Link to={`/store/${storeId}/products/departments`}>
+                  <Shapes className="mr-2 h-4 w-4" />
+                  Depart.
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to={`/store/${storeId}/products/sub-departments`}>
+                  <Library className="mr-2 h-4 w-4" />
+                  Sub-Depart.
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setReorganizationMode(true);
+                  setSelectedDepartment(null);
+                  setSelectedSubDepartment(null);
+                }}
+                className="relative"
               >
-                {unorganizedProducts.length}
-              </Badge>
-            )}
-          </Button>
-          <ImportProductsDialog storeId={storeId} departments={departments} />
+                <Wrench className="mr-2 h-4 w-4" />
+                Reorganizar
+                {unorganizedProducts.length > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 px-2"
+                  >
+                    {unorganizedProducts.length}
+                  </Badge>
+                )}
+              </Button>
+              <ImportProductsDialog storeId={storeId} departments={departments} />
+            </>
+          )}
           <Button
             variant="outline"
             onClick={handleExport}
             disabled={products.length === 0}
-            className="border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950"
+            className="border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950 font-semibold"
           >
             <Download className="mr-2 h-4 w-4" />
             Exportar Excel
           </Button>
         </div>
-      )}
+      </div>
+
+      {/* SEARCH AND VIEW TOGGLE */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card p-4 rounded-xl border">
+        <div className="relative flex-grow max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre o código de barras..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (e.target.value && !viewAll) setViewAll(true);
+            }}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant={viewAll || !!searchTerm ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewAll(true)}
+            className="font-bold"
+          >
+            <List className="mr-2 h-4 w-4" /> Ver Todos ({total})
+          </Button>
+          {departments.length > 0 && (
+            <Button
+              variant={!viewAll && !searchTerm && !selectedDepartment ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setViewAll(false);
+                setSearchTerm('');
+                setSelectedDepartment(null);
+                setSelectedSubDepartment(null);
+              }}
+              className="font-bold"
+            >
+              <Grid className="mr-2 h-4 w-4" /> Por Departamentos
+            </Button>
+          )}
+        </div>
+      </div>
 
       {renderBreadcrumb()}
       {renderContent()}
