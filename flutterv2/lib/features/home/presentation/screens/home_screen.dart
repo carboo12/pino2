@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/auth_controller.dart';
+import '../../../catalog/data/catalog_repository.dart';
 import '../../../catalog/presentation/screens/product_catalog_screen.dart';
+import '../../../clients/data/client_portfolio_repository.dart';
 import '../../../clients/presentation/screens/client_portfolio_screen.dart';
 import '../../../collections/presentation/screens/collections_screen.dart';
 import '../../../daily_closing/presentation/screens/daily_closing_screen.dart';
@@ -51,10 +53,26 @@ class _HomeScreenState extends State<HomeScreen> {
     if (carnet == null) return;
 
     final stores = await _repository.getAssignedStores(userId: carnet);
-    setState(() {
-      _stores = stores;
-      _selectedStore = stores.isNotEmpty ? stores.first : null;
-    });
+    if (mounted) {
+      setState(() {
+        _stores = stores;
+        _selectedStore = stores.isNotEmpty ? stores.first : null;
+      });
+      if (_selectedStore != null) {
+        _preloadOfflineData(_selectedStore!.id);
+      }
+    }
+  }
+
+  Future<void> _preloadOfflineData(String storeId) async {
+    try {
+      debugPrint('📦 [Preload] Pre-cargando catálogo y clientes localmente para modo offline...');
+      await CatalogRepository().getProducts(storeId: storeId);
+      await ClientPortfolioRepository().getClients(storeId: storeId);
+      debugPrint('✅ [Preload] Pre-carga offline completada con éxito.');
+    } catch (e) {
+      debugPrint('⚠️ [Preload] Error durante la pre-carga offline: $e');
+    }
   }
 
   void _onBottomNavTapped(int index, String storeId, String? storeName) {

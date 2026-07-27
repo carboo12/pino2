@@ -38,7 +38,7 @@ export class StoresController {
     return this.storesService.create(dto);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero', 'vendor', 'sales-manager', 'chain-admin', 'super-admin', 'store-admin', 'cashier')
   @Get()
   @ApiQuery({ name: 'chainId', required: false })
   @ApiOperation({ summary: 'Listar tiendas (Filtrable por cadena)' })
