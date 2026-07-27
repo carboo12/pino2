@@ -25,7 +25,7 @@ export default function ClientReassignPage() {
       const uRes = await apiClient.get(`/users?storeId=${storeId}`);
       setPreventas(
         (uRes.data || []).filter((u: any) =>
-          ['sales-manager', 'vendor'].includes(normalizeUserRole(u.role)),
+          ['sales-manager', 'vendor', 'gestor'].includes(normalizeUserRole(u.role)),
         ),
       );
     } catch (e: any) {
