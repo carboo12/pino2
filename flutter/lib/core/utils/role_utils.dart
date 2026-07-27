@@ -53,8 +53,12 @@ AppRole normalizeRole(String? value) {
     case 'despachador':
       return AppRole.dispatcher;
     case 'rutero':
+    case 'rute':
+    case 'repartidor':
     case 'chofer':
     case 'conductor':
+    case 'driver':
+    case 'delivery':
       return AppRole.rutero;
     case 'vendor':
     case 'vendedor':
