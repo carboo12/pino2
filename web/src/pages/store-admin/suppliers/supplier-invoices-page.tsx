@@ -52,6 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { exportToExcel } from "@/lib/export-excel";
 import {
   Table,
   TableBody,
@@ -1218,6 +1219,33 @@ export default function SupplierInvoicesPage() {
     }
   };
 
+  const handleExportInvoicesExcel = () => {
+    if (invoices.length === 0) {
+      toast({ title: "Sin datos", description: "No hay facturas para exportar." });
+      return;
+    }
+    const headers = [
+      "No. Factura",
+      "Proveedor",
+      "Fecha Emisión",
+      "Tipo Pago",
+      "Monto Total (C$)",
+      "Estado Factura",
+      "Fecha Registro"
+    ];
+    const rows = invoices.map(inv => [
+      inv.invoiceNumber,
+      inv.supplierName || suppliers.find(s => s.id === inv.supplierId)?.name || '---',
+      inv.issueDate ? inv.issueDate.substring(0, 10) : '---',
+      inv.paymentType,
+      Number(inv.total || 0),
+      inv.status,
+      inv.createdAt ? inv.createdAt.substring(0, 10) : '---'
+    ]);
+    exportToExcel(`Facturas_Proveedor_${new Date().toISOString().substring(0, 10)}`, headers, rows, 'Facturas');
+    toast({ title: "Excel Generado", description: "Facturas de proveedor exportadas a Excel correctamente." });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -1260,6 +1288,15 @@ export default function SupplierInvoicesPage() {
               <RefreshCw className="mr-2 h-4 w-4" />
             )}
             Actualizar
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExportInvoicesExcel}
+            disabled={invoices.length === 0}
+            className="border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950 font-semibold"
+          >
+            <FileSpreadsheet className="mr-1.5 h-4 w-4" />
+            Exportar Excel
           </Button>
           <Button
             variant="outline"

@@ -33,6 +33,7 @@ import {
   CheckCircle2,
   DollarSign,
   UserCheck,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,6 +45,7 @@ import { toast } from '@/lib/swalert';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataPagination } from '@/components/ui/data-pagination';
 import { extractData, extractTotal } from '@/lib/paginated-fetch';
+import { exportToExcel } from '@/lib/export-excel';
 
 interface Client {
   id: string;
@@ -179,22 +181,48 @@ export default function VendorClientsPage() {
 
   // KPI stats from loaded page
   const creditClientsCount = clients.filter((c) => c.isCreditClient || (c.limiteCredito || 0) > 0).length;
+  const handleExportClientsExcel = () => {
+    if (clients.length === 0) {
+      toast.error('Sin datos', 'No hay clientes para exportar');
+      return;
+    }
+    const headers = [
+      'Nombre',
+      'Cédula / RUC',
+      'Teléfono',
+      'Dirección',
+      'Vendedor Asignado',
+      'Límite Crédito (C$)',
+      'Días Crédito',
+      'Saldo Pendiente (C$)',
+    ];
+    const rows = clients.map(c => [
+      c.name,
+      c.idCard || '---',
+      c.phone || '---',
+      c.address || '---',
+      vendors[c.vendorId || ''] || '---',
+      Number(c.creditLimit || 0),
+      Number(c.creditDays || 0),
+      Number(c.currentBalance || 0),
+    ]);
+    exportToExcel(`Cartera_Clientes_${new Date().toISOString().substring(0, 10)}`, headers, rows, 'Clientes');
+    toast.success('Excel Generado', 'La cartera de clientes fue exportada a Excel correctamente.');
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* CABECERA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
+      {/* HEADER PAGE */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" />
-            Directorio y Cartera de Clientes ({total.toLocaleString()})
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Cartera de Clientes ({total.toLocaleString()})
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Expediente omnicanal de clientes, historial de ventas, crédito autorizados y rutas.
+          <p className="text-sm text-muted-foreground mt-1">
+            Administración de clientes, asignación de vendedores y límites de crédito.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -202,6 +230,15 @@ export default function VendorClientsPage() {
             className="rounded-xl font-bold"
           >
             <RefreshCw className="mr-2 h-4 w-4" /> Actualizar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportClientsExcel}
+            disabled={clients.length === 0}
+            className="rounded-xl font-bold border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950"
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
           </Button>
           <AddClientDialog onClientAdded={handleClientAdded} />
           <Button

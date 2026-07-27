@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { ImportPreviewTable } from '@/components/ui/import-preview-table';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { exportToExcel } from '@/lib/export-excel';
 
 interface ImportRow {
   index: number;
@@ -30,25 +31,70 @@ export default function ImportProductsPage() {
     const f = e.target.files?.[0];
     if (!f) return;
     setFile(f);
+    setPreviewing(true);
 
-    const text = await f.text();
-    const lines = text.split('\n').filter(l => l.trim());
-    if (lines.length < 2) {
-      toast.error('Archivo inválido', 'Debe tener al menos una fila de datos');
-      return;
+    try {
+      if (f.name.endsWith('.xlsx') || f.name.endsWith('.xls')) {
+        const XLSX = await import('xlsx');
+        const buffer = await f.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json<string[]>(worksheet, { header: 1 });
+        if (jsonData.length > 0) {
+          const headers = (jsonData[0] || []).map(h => String(h).trim());
+          setColumns(headers);
+          const dataRows: ImportRow[] = jsonData.slice(1).filter(r => r.length > 0).map((rowArray, idx) => {
+            const cells = headers.map((_, colIdx) => String(rowArray[colIdx] ?? '').trim());
+            const hasName = cells[0] && cells[0].length > 0;
+            const hasPrice = cells[2] && !isNaN(Number(cells[2]));
+            const isValid = hasName && hasPrice;
+            return {
+              index: idx + 1,
+              cells,
+              status: isValid ? 'valid' : 'error',
+              errors: [
+                ...(!hasName ? ['Nombre requerido'] : []),
+                ...(!hasPrice ? ['Precio inválido'] : []),
+              ],
+            };
+          });
+          setRows(dataRows);
+          setStep('preview');
+        }
+      } else {
+        const text = await f.text();
+        const lines = text.split('\n').filter((l) => l.trim());
+        if (lines.length > 0) {
+          const headers = lines[0].split(',').map((h) => h.trim());
+          setColumns(headers);
+
+          const parsedRows: ImportRow[] = lines.slice(1).map((line, idx) => {
+            const cells = line.split(',').map((c) => c.trim());
+            const hasName = cells[0] && cells[0].length > 0;
+            const hasPrice = cells[2] && !isNaN(Number(cells[2]));
+            const isValid = hasName && hasPrice;
+
+            return {
+              index: idx + 1,
+              cells,
+              status: isValid ? 'valid' : 'error',
+              errors: [
+                ...(!hasName ? ['Nombre requerido'] : []),
+                ...(!hasPrice ? ['Precio inválido'] : []),
+              ],
+            };
+          });
+
+          setRows(parsedRows);
+          setStep('preview');
+        }
+      }
+    } catch {
+      toast.error('Error al leer archivo', 'Formato no reconocido');
+    } finally {
+      setPreviewing(false);
     }
-
-    const headers = lines[0].split(',').map(h => h.trim());
-    const dataLines = lines.slice(1).filter(l => l.trim());
-
-    setColumns(headers);
-    setRows(dataLines.map((line, i) => ({
-      index: i,
-      cells: line.split(',').map(c => c.trim()),
-      status: 'valid' as const,
-    })));
-
-    setStep('preview');
   };
 
   const handlePreview = async () => {
@@ -87,17 +133,16 @@ export default function ImportProductsPage() {
   };
 
   const handleImport = async () => {
-    if (!storeId || rows.length === 0) return;
+    if (rows.length === 0) return;
     setImporting(true);
+
     try {
-      const products = rows
-        .filter(r => r.status !== 'error')
-        .map(r => ({
-          description: r.cells[0] || '',
-          salePrice: parseFloat(r.cells[2]) || 0,
-          barcode: r.cells[1] || undefined,
-          storeId,
-        }));
+      const validRows = rows.filter((r) => r.status === 'valid');
+      const products = validRows.map((r) => ({
+        description: r.cells[0] || 'Sin nombre',
+        barcode: r.cells[1] || undefined,
+        salePrice: Number(r.cells[2]) || 0,
+      }));
 
       await apiClient.post('/products/import', {
         storeId,
@@ -115,14 +160,13 @@ export default function ImportProductsPage() {
   };
 
   const downloadTemplate = () => {
-    const csv = 'nombre,código de barras,precio\nProducto ejemplo,1234567890123,100\n';
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'plantilla_importacion.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+    const headers = ['Nombre / Descripción', 'Código de Barras', 'Precio de Venta', 'Precio de Costo', 'Marca', 'Departamento', 'Stock Inicial'];
+    const sampleRows = [
+      ['Producto Ejemplo 1', '7441001234567', 100.00, 70.00, 'Marca A', 'Abarrotes', 50],
+      ['Producto Ejemplo 2', '7441007654321', 50.00, 35.00, 'Marca B', 'Bebidas', 100],
+    ];
+    exportToExcel('plantilla_importacion_productos', headers, sampleRows, 'Plantilla');
+    toast.success('Plantilla Generada', 'Se descargó la plantilla Excel (.xlsx) correctamente.');
   };
 
   return (
@@ -134,11 +178,11 @@ export default function ImportProductsPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Importar Productos</h1>
-            <p className="text-sm text-muted-foreground">Importación masiva desde archivo CSV</p>
+            <p className="text-sm text-muted-foreground">Importación masiva desde archivo Excel (.xlsx)</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={downloadTemplate}>
-          <Download className="mr-1 h-4 w-4" /> Plantilla CSV
+        <Button variant="outline" size="sm" onClick={downloadTemplate} className="border-green-600/30 text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950">
+          <FileSpreadsheet className="mr-1 h-4 w-4" /> Plantilla Excel
         </Button>
       </div>
 
@@ -146,15 +190,15 @@ export default function ImportProductsPage() {
         <div className="flex flex-col items-center gap-6 rounded-lg border border-dashed p-12 text-center">
           <FileSpreadsheet className="h-12 w-12 text-muted-foreground" />
           <div className="space-y-2">
-            <p className="text-lg font-medium">Selecciona un archivo CSV</p>
-            <p className="text-sm text-muted-foreground">Columnas: nombre, código de barras, precio</p>
+            <p className="text-lg font-medium">Selecciona un archivo Excel (.xlsx) o CSV</p>
+            <p className="text-sm text-muted-foreground">Columnas: Nombre / Descripción, Código de Barras, Precio de Venta</p>
           </div>
           <Label htmlFor="file-upload" className="cursor-pointer">
             <div className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
               <Upload className="h-4 w-4" />
               Seleccionar archivo
             </div>
-            <Input ref={fileRef} id="file-upload" type="file" accept=".csv" onChange={handleFileChange} className="hidden" />
+            <Input ref={fileRef} id="file-upload" type="file" accept=".xlsx,.xls,.csv" onChange={handleFileChange} className="hidden" />
           </Label>
         </div>
       )}

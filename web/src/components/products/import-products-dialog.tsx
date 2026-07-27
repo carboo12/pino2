@@ -6,6 +6,7 @@ import apiClient from '@/services/api-client';
 import { logError } from '@/lib/error-logger';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { exportToExcel } from '@/lib/export-excel';
 
 import { Button } from '@/components/ui/button';
 import {
