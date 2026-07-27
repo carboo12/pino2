@@ -37,13 +37,13 @@ class ClientPortfolioRepository {
     double? lat,
     double? lng,
   }) async {
-    final payload = {
+    final payload = <String, dynamic>{
       'storeId': storeId,
       'name': name.trim(),
       if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
       if (address != null && address.trim().isNotEmpty) 'address': address.trim(),
-      if (lat != null) 'lat': lat,
-      if (lng != null) 'lng': lng,
+      ...?lat != null ? {'lat': lat} : null,
+      ...?lng != null ? {'lng': lng} : null,
     };
 
     try {
@@ -61,12 +61,11 @@ class ClientPortfolioRepository {
       );
 
       return ClientSummary(
-        id: payload['externalId'] ?? 'temp_${DateTime.now().millisecondsSinceEpoch}',
+        id: (payload['externalId'] ?? 'temp_${DateTime.now().millisecondsSinceEpoch}').toString(),
+        storeId: storeId,
         name: name,
         phone: phone,
         address: address,
-        lat: lat,
-        lng: lng,
       );
     }
     return null;

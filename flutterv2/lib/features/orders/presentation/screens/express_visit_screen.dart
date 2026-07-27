@@ -3,7 +3,6 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../clients/data/client_portfolio_repository.dart';
-import '../../../clients/domain/models/client_summary.dart';
 import 'quick_order_screen.dart';
 
 class ExpressVisitScreen extends StatefulWidget {
