@@ -345,9 +345,6 @@ export default function VendorReturnsPage() {
             <Alert className="rounded-2xl border-orange-200 bg-orange-50/50 p-6">
               <Package className="h-6 w-6 text-orange-600 mb-2" />
               <AlertTitle className="text-lg font-bold text-orange-950">Sin productos asignados a este vendedor</AlertTitle>
-              <AlertDescription className="text-orange-900 mt-1">
-                {selectedVendorName} no tiene actualmente productos en su inventario registrado. Puedes presionar el botón <strong>"Agregar de Catálogo"</strong> para buscar e ingresar cualquier producto de la tienda y devolverlo a bodega.
-              </AlertDescription>
               <div className="mt-4">
                 <Button onClick={loadStoreCatalog} className="bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl">
                   <Plus className="mr-2 h-4 w-4" /> Seleccionar Producto del Catálogo

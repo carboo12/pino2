@@ -35,11 +35,16 @@ async function bootstrap() {
 
   const corsOrigins = (
     config.get('CORS_ORIGIN') || 'http://localhost:5173,http://localhost:9002'
-  ).split(',');
+  ).split(',').map(o => o.trim()).filter(Boolean);
 
-  // CORS
+  // CORS — support Firebase preview channels (*.web.app)
   app.enableCors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (corsOrigins.includes(origin)) return callback(null, true);
+      if (origin.endsWith('.web.app') || origin.endsWith('.firebaseapp.com')) return callback(null, true);
+      callback(null, false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
