@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/auth_controller.dart';
+import '../../../catalog/presentation/screens/product_catalog_screen.dart';
+import '../../../clients/presentation/screens/client_portfolio_screen.dart';
 import '../../../collections/presentation/screens/collections_screen.dart';
 import '../../../deliveries/presentation/screens/route_board_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
@@ -194,6 +196,32 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => CollectionsScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.catalog) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProductCatalogScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.clients) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ClientPortfolioScreen(
             storeId: storeId,
             storeName: storeName,
           ),
