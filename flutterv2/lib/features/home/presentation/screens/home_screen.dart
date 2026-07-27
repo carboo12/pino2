@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/auth_controller.dart';
+import '../../../orders/presentation/screens/quick_order_screen.dart';
 import '../../data/home_repository.dart';
 import '../../data/role_actions.dart';
 import '../../domain/models/store_summary.dart';
@@ -21,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _repository = HomeRepository();
   List<StoreSummary> _stores = [];
   StoreSummary? _selectedStore;
-  bool _loadingStores = false;
 
   @override
   void initState() {
@@ -164,7 +164,19 @@ class _HomeScreenState extends State<HomeScreen> {
     String storeId,
     String? storeName,
   ) {
-    // Por ahora mostramos un mensaje hasta conectar cada pantalla en la Fase 3
+    if (action.routeKey == RouteKey.quickOrder) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuickOrderScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Abriendo ${action.title}...'),
