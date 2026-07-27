@@ -24,6 +24,26 @@ export class VendorInventoriesService {
     return this.mapRow(res.rows[0]);
   }
 
+  async findAll(storeId?: string, vendorId?: string) {
+    let sql = `SELECT vi.*, p.description, p.barcode 
+               FROM vendor_inventories vi 
+               JOIN products p ON vi.product_id = p.id 
+               WHERE 1=1`;
+    const params: any[] = [];
+
+    if (vendorId) {
+      params.push(vendorId);
+      sql += ` AND vi.vendor_id = $${params.length}`;
+    } else if (storeId) {
+      params.push(storeId);
+      sql += ` AND p.store_id = $${params.length}`;
+    }
+
+    sql += ` ORDER BY p.description ASC`;
+    const res = await this.db.query(sql, params);
+    return res.rows.map(this.mapRow);
+  }
+
   async getVendorProducts(vendorId: string) {
     const res = await this.db.query(
       `SELECT vi.*, p.description, p.barcode 

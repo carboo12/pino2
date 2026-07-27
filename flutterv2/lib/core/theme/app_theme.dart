@@ -11,34 +11,39 @@ class AppTheme {
   AppTheme._();
 
   // =============================================
-  // PALETA DE COLORES - ROJO CLARO CORPORATIVO
+  // PALETA DE COLORES - INDIGO & EMERALD (REACT MATCH)
   // =============================================
 
-  /// Rojo Claro Corporativo
-  static const Color primary = Color(0xFFDA291C);
-  static const Color primaryLight = Color(0xFFE85B51);
-  static const Color primaryDark = Color(0xFFB01E15);
+  /// Indigo Principal (React Web Match)
+  static const Color primary = Color(0xFF4F46E5);
+  static const Color primaryLight = Color(0xFF6366F1);
+  static const Color primaryDark = Color(0xFF3730A3);
 
-  /// Escala de Rojos
-  static const Color red50 = Color(0xFFFEF2F2);
-  static const Color red100 = Color(0xFFFEE2E2);
-  static const Color red200 = Color(0xFFFECACA);
-  static const Color red300 = Color(0xFFFCA5A5);
-  static const Color red400 = Color(0xFFF87171);
-  static const Color red500 = Color(0xFFEF4444);
-  static const Color red600 = Color(0xFFDC2626);
-  static const Color red700 = Color(0xFFDA291C);
-  static const Color red800 = Color(0xFFB91C1C);
-  static const Color red900 = Color(0xFF7F1D1D);
+  /// Emerald Secundario / Acento
+  static const Color accent = Color(0xFF10B981);
+  static const Color accentLight = Color(0xFF34D399);
+  static const Color accentDark = Color(0xFF059669);
 
-  /// Semánticos (sin azul)
-  static const Color success = Color(0xFF0D9668);
-  static const Color successLight = Color(0xFFD1FAE5);
-  static const Color warning = Color(0xFFD97706);
+  /// Escala de Indigos
+  static const Color indigo50 = Color(0xFFEEF2FF);
+  static const Color indigo100 = Color(0xFFE0E7FF);
+  static const Color indigo200 = Color(0xFFC7D2FE);
+  static const Color indigo300 = Color(0xFFA5B4FC);
+  static const Color indigo400 = Color(0xFF818CF8);
+  static const Color indigo500 = Color(0xFF6366F1);
+  static const Color indigo600 = Color(0xFF4F46E5);
+  static const Color indigo700 = Color(0xFF4338CA);
+  static const Color indigo800 = Color(0xFF3730A3);
+  static const Color indigo900 = Color(0xFF312E81);
+
+  /// Semánticos
+  static const Color success = Color(0xFF10B981);
+  static const Color successLight = Color(0xFFECFDF5);
+  static const Color warning = Color(0xFFF59E0B);
   static const Color warningLight = Color(0xFFFEF3C7);
-  static const Color error = Color(0xFFB91C1C);
+  static const Color error = Color(0xFFEF4444);
   static const Color errorLight = Color(0xFFFEE2E2);
-  static const Color info = Color(0xFF64748B); // Gris azulado neutro (sin azul puro)
+  static const Color info = Color(0xFF3B82F6);
 
   /// Neutrales (Slate) - Base del diseño profesional
   static const Color slate50 = Color(0xFFF8FAFC);
@@ -60,14 +65,14 @@ class AppTheme {
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF0F172A), Color(0xFF3B1212)],
+    colors: [Color(0xFF0F172A), Color(0xFF1E1B4B)],
   );
 
   /// Gradiente Hero (para headers y splash)
   static const LinearGradient heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF2D1A1A)],
+    colors: [Color(0xFF0F172A), Color(0xFF1E1B4B), Color(0xFF312E81)],
   );
 
   /// Fondo limpio
@@ -141,8 +146,8 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: primary,
         onPrimary: Colors.white,
-        primaryContainer: red100,
-        onPrimaryContainer: red900,
+        primaryContainer: indigo100,
+        onPrimaryContainer: indigo900,
         secondary: slate800,
         onSecondary: Colors.white,
         surface: Colors.white,
@@ -261,7 +266,7 @@ class AppTheme {
       // Chips
       chipTheme: ChipThemeData(
         backgroundColor: slate50,
-        selectedColor: red100,
+        selectedColor: indigo100,
         labelStyle: const TextStyle(color: slate700),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         side: BorderSide.none,
@@ -281,7 +286,7 @@ class AppTheme {
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) =>
-              states.contains(WidgetState.selected) ? red100 : slate200,
+              states.contains(WidgetState.selected) ? indigo100 : slate200,
         ),
       ),
 

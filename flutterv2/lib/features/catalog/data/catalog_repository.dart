@@ -8,9 +8,14 @@ class CatalogRepository {
     required String storeId,
   }) async {
     try {
-      final response = await ApiClient.dio.get('/stores/$storeId/products');
+      Response response;
+      try {
+        response = await ApiClient.dio.get('/products', queryParameters: {'storeId': storeId, 'limit': 300});
+      } catch (_) {
+        response = await ApiClient.dio.get('/stores/$storeId/products');
+      }
       final data = response.data;
-      final list = data is List ? data : (data['data'] is List ? data['data'] : []);
+      final list = data is List ? data : (data is Map && data['data'] is List ? data['data'] : []);
 
       final rawList = (list as List).map((e) => Map<String, dynamic>.from(e as Map)).toList();
       await OfflineCacheService.cacheProducts(storeId, rawList);

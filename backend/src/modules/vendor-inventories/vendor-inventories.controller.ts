@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
   ParseUUIDPipe,
@@ -22,6 +23,18 @@ import { ProcessTransactionDto } from './vendor-inventories.dto';
 @Controller('vendor-inventories')
 export class VendorInventoriesController {
   constructor(private readonly service: VendorInventoriesService) {}
+
+  @Roles('admin', 'rutero', 'gestor', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
+  @Get()
+  @ApiOperation({ summary: 'Listar inventario asignado por sucursal o vendedor' })
+  findAll(
+    @Query('storeId') storeId?: string,
+    @Query('vendorId') vendorId?: string,
+    @Req() req?: any,
+  ) {
+    const targetVendor = ['rutero', 'gestor'].includes(req?.user?.role) ? req.user.sub : vendorId;
+    return this.service.findAll(storeId, targetVendor);
+  }
 
   @Roles('admin', 'rutero', 'gestor', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
   @Get(':vendorId/:productId')
