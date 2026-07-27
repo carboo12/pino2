@@ -158,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
               storeName: storeName,
             ),
             const SizedBox(height: 16),
-            if (role == AppRole.vendor || role == AppRole.salesManager || role == AppRole.rutero) ...[
+            if (role == AppRole.vendor || role == AppRole.salesManager) ...[
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -181,6 +181,66 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 3,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ] else if (role == AppRole.rutero) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => RouteBoardScreen(
+                          storeId: storeId,
+                          storeName: storeName,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.local_shipping_rounded, size: 24, color: Colors.white),
+                  label: const Text(
+                    '🚚 MI RUTA Y ENTREGAS DEL DÍA',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 3,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ] else if (role == AppRole.inventory || role == AppRole.auxiliar) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => WarehouseBoardScreen(
+                          storeId: storeId,
+                          storeName: storeName,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.warehouse_rounded, size: 24, color: Colors.white),
+                  label: const Text(
+                    '🏬 TABLERO DE PREPARACIÓN DE BODEGA',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 3,
@@ -253,30 +313,33 @@ class _HomeScreenState extends State<HomeScreen> {
               subtitle: const Text('Tienda Activa'),
             ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.flash_on_rounded, color: AppTheme.primary),
-            title: const Text('Capturar Pedido'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.local_shipping_rounded, color: AppTheme.primary),
-            title: const Text('Entregas y Rutas'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.payments_rounded, color: AppTheme.primary),
-            title: const Text('Cobros y Cartera'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
+          if (role != AppRole.rutero && role != AppRole.inventory && role != AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.flash_on_rounded, color: AppTheme.primary),
+              title: const Text('Capturar Pedido'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
+          if (role != AppRole.inventory && role != AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.local_shipping_rounded, color: AppTheme.primary),
+              title: const Text('Entregas y Rutas'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
+          if (role != AppRole.inventory && role != AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.payments_rounded, color: AppTheme.primary),
+              title: const Text('Cobros y Cartera'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.grid_view_rounded, color: AppTheme.primary),
             title: const Text('Catálogo de Productos'),
@@ -294,62 +357,59 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.assignment_return_rounded, color: AppTheme.primary),
-            title: const Text('Devoluciones'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnsScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.warehouse_rounded, color: AppTheme.primary),
-            title: const Text('Tablero de Bodega'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => WarehouseBoardScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
+          if (role != AppRole.inventory && role != AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.assignment_return_rounded, color: AppTheme.primary),
+              title: const Text('Devoluciones'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnsScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
+          if (role == AppRole.owner || role == AppRole.storeAdmin || role == AppRole.masterAdmin || role == AppRole.inventory || role == AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.warehouse_rounded, color: AppTheme.primary),
+              title: const Text('Tablero de Bodega'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => WarehouseBoardScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.inventory_2_rounded, color: AppTheme.primary),
-            title: const Text('Stock Actual Vendedor'),
+            title: const Text('Stock Actual (Camión / Vendedor)'),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context, MaterialPageRoute(builder: (_) => VendorInventoryScreen(storeId: storeId, storeName: storeName)));
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.lock_clock_rounded, color: AppTheme.primary),
-            title: const Text('Cierre Diario de Caja'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => DailyClosingScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary),
-            title: const Text('Historial de Ventas'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => SalesHistoryScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.primary),
-            title: const Text('Gastos Operativos'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ExpensesScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.tune_rounded, color: AppTheme.primary),
-            title: const Text('Ajustes de Inventario'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryAdjustmentsScreen(storeId: storeId, storeName: storeName)));
-            },
-          ),
+          if (role != AppRole.inventory && role != AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.lock_clock_rounded, color: AppTheme.primary),
+              title: const Text('Cierre Diario de Caja'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => DailyClosingScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
+          if (role == AppRole.owner || role == AppRole.storeAdmin || role == AppRole.masterAdmin || role == AppRole.vendor || role == AppRole.salesManager)
+            ListTile(
+              leading: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary),
+              title: const Text('Historial de Ventas'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => SalesHistoryScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
+          if (role == AppRole.owner || role == AppRole.storeAdmin || role == AppRole.masterAdmin || role == AppRole.inventory || role == AppRole.auxiliar)
+            ListTile(
+              leading: const Icon(Icons.tune_rounded, color: AppTheme.primary),
+              title: const Text('Ajustes de Inventario'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryAdjustmentsScreen(storeId: storeId, storeName: storeName)));
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.percent_rounded, color: AppTheme.primary),
             title: const Text('Promociones Vigentes'),
