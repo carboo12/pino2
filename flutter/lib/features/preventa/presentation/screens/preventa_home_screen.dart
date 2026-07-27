@@ -40,8 +40,8 @@ class _PreventaHomeScreenState extends ConsumerState<PreventaHomeScreen> {
     final apiClient = ref.read(appApiClientProvider);
     final token = session.accessToken;
     final userId = session.user.id;
-    final storeId = session.user.primaryStoreId;
-    if (storeId == null) return;
+    final storeId = session.user.primaryStoreId ??
+        (session.user.storeIds.firstOrNull ?? '9321856d-19ba-42b8-ba47-cf35c0d133dd');
 
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 

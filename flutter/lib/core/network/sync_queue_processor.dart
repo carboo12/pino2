@@ -225,9 +225,15 @@ class SyncQueueProcessor extends Notifier<SyncQueueState> {
     try {
       final pending = await _localCache.getPendingSyncEntries(limit: 100);
       final failed = pending.where((e) => e.attemptCount > 0).length;
+      final newStatus = (pending.isEmpty && failed == 0)
+          ? SyncQueueStatus.idle
+          : state.status;
+
       state = state.copyWith(
+        status: newStatus,
         pendingCount: pending.length,
         failedCount: failed,
+        clearError: pending.isEmpty && failed == 0,
       );
     } catch (_) {}
   }
