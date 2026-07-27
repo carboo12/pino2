@@ -40,7 +40,7 @@ interface RouteDetail {
   routeType: string;
   status: string;
   zoneId?: string;
-  validTo?: string;
+  dayOfWeek?: number;
   version: number;
   notes?: string;
 }
@@ -74,7 +74,6 @@ export default function RouteDetailPage() {
   const [vendorId, setVendorId] = useState('');
   const [clientIds, setClientIds] = useState<string[]>([]);
   const [clientSearch, setClientSearch] = useState('');
-  const [validTo, setValidTo] = useState('');
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -120,7 +119,6 @@ export default function RouteDetailPage() {
     if (route) {
       setVendorId(route.vendorId || '');
       setClientIds(route.clientIds || []);
-      setValidTo(route.validTo || route.routeDate?.split('T')[0] || '');
     }
   }, [route]);
 
@@ -197,7 +195,6 @@ export default function RouteDetailPage() {
       await apiClient.patch(`/routes/${routeId}`, {
         vendorId,
         clientIds,
-        validTo: validTo || undefined,
         reason: reason.trim(),
         version: route.version,
       });
@@ -341,17 +338,6 @@ export default function RouteDetailPage() {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* VALIDO HASTA */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-bold">Válido Hasta (Vencimiento de Ruta)</Label>
-                <Input
-                  type="date"
-                  value={validTo}
-                  onChange={(e) => setValidTo(e.target.value)}
-                  className="h-10 text-xs rounded-xl"
-                />
               </div>
 
               {/* MOTIVO DE MODIFICACION */}

@@ -55,10 +55,6 @@ export class CreateRouteDto {
   @IsUUID('all')
   @IsOptional()
   zoneId?: string;
-
-  @IsDateString()
-  @IsOptional()
-  validTo?: string;
 }
 
 export class UpdateRouteDto {
@@ -101,10 +97,6 @@ export class UpdateRouteDto {
   @IsDateString()
   @IsOptional()
   date?: string;
-
-  @IsDateString()
-  @IsOptional()
-  validTo?: string | null;
 
   @IsString()
   @IsOptional()

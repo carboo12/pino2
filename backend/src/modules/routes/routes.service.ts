@@ -89,10 +89,10 @@ export class RoutesService {
       const res = await client.query(
         `INSERT INTO routes (
            store_id, vendor_id, name, day_of_week, client_ids, route_date, notes, status,
-           route_type, zone_id, assigned_by, valid_from, valid_to
+           route_type, zone_id, assigned_by
          )
          VALUES (
-           $1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $6::date, $12::date
+           $1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11
          )
          RETURNING *`,
         [
@@ -107,7 +107,6 @@ export class RoutesService {
           dto.routeType || 'SALES',
           dto.zoneId || null,
           dto.assignedBy || null,
-          dto.validTo || null,
         ],
       );
       await this.replaceRouteClients(client, res.rows[0].id, clientIds);
@@ -198,9 +197,7 @@ export class RoutesService {
                 route_type = COALESCE($8, route_type),
                 zone_id = CASE WHEN $9::boolean THEN $10 ELSE zone_id END,
                 route_date = COALESCE($11::timestamp, route_date),
-                valid_from = COALESCE($11::date, valid_from),
-                valid_to = CASE WHEN $12::boolean THEN $13::date ELSE valid_to END,
-                client_ids = CASE WHEN $14::boolean THEN $15::jsonb ELSE client_ids END,
+                client_ids = CASE WHEN $12::boolean THEN $13::jsonb ELSE client_ids END,
                 version = version + 1,
                 updated_at = NOW()
           WHERE id = $1`,
@@ -216,8 +213,6 @@ export class RoutesService {
           dto.zoneId !== undefined,
           dto.zoneId ?? null,
           dto.date || null,
-          dto.validTo !== undefined,
-          dto.validTo ?? null,
           clientIds !== undefined,
           JSON.stringify(clientIds || []),
         ],
@@ -364,8 +359,6 @@ export class RoutesService {
       routeType: row.route_type || 'SALES',
       zoneId: row.zone_id,
       assignedBy: row.assigned_by,
-      validFrom: row.valid_from,
-      validTo: row.valid_to,
       version: Number(row.version || 1),
       notes: row.notes,
       status: row.status,
