@@ -31,13 +31,37 @@ class PushNotificationService {
       return;
     }
 
-    await _initializeFirebase();
-    await _initializeLocalNotifications();
-    await _requestPermission();
-    await _setupForegroundListeners();
+    try {
+      await _initializeFirebase();
+    } catch (e, st) {
+      log('⚠️ Firebase init failed, push disabled', error: e, stackTrace: st, name: 'FCM');
+      return; // Can't continue without Firebase
+    }
+
+    try {
+      await _initializeLocalNotifications();
+    } catch (e) {
+      log('⚠️ Local notifications init failed: $e', name: 'FCM');
+    }
+
+    try {
+      await _requestPermission();
+    } catch (e) {
+      log('⚠️ FCM permission request failed: $e', name: 'FCM');
+    }
+
+    try {
+      await _setupForegroundListeners();
+    } catch (e) {
+      log('⚠️ FCM foreground listeners failed: $e', name: 'FCM');
+    }
     
     // Suscribirse a temas generales
-    await subscribeToTopic(taskAssignmentTopic);
+    try {
+      await subscribeToTopic(taskAssignmentTopic);
+    } catch (e) {
+      log('⚠️ FCM topic subscription failed: $e', name: 'FCM');
+    }
   }
 
   Future<void> _initializeLocalNotifications() async {
