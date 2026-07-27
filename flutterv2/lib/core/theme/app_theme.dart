@@ -36,6 +36,18 @@ class AppTheme {
   static const Color indigo800 = Color(0xFF3730A3);
   static const Color indigo900 = Color(0xFF312E81);
 
+  /// Aliases de compatibilidad
+  static const Color red50 = indigo50;
+  static const Color red100 = indigo100;
+  static const Color red200 = indigo200;
+  static const Color red300 = indigo300;
+  static const Color red400 = indigo400;
+  static const Color red500 = indigo500;
+  static const Color red600 = indigo600;
+  static const Color red700 = indigo700;
+  static const Color red800 = indigo800;
+  static const Color red900 = indigo900;
+
   /// Semánticos
   static const Color success = Color(0xFF10B981);
   static const Color successLight = Color(0xFFECFDF5);
