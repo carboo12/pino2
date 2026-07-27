@@ -198,13 +198,13 @@ export default function VendorClientsPage() {
     ];
     const rows = clients.map(c => [
       c.name,
-      c.idCard || '---',
+      c.idCard || (c as any).dni || (c as any).ruc || '---',
       c.phone || '---',
       c.address || '---',
       vendors[c.vendorId || ''] || '---',
-      Number(c.creditLimit || 0),
-      Number(c.creditDays || 0),
-      Number(c.currentBalance || 0),
+      Number(c.limiteCredito || (c as any).creditLimit || 0),
+      Number(c.diasCredito || (c as any).creditDays || 0),
+      Number((c as any).saldoActual || (c as any).currentBalance || 0),
     ]);
     exportToExcel(`Cartera_Clientes_${new Date().toISOString().substring(0, 10)}`, headers, rows, 'Clientes');
     toast.success('Excel Generado', 'La cartera de clientes fue exportada a Excel correctamente.');

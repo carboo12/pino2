@@ -1221,7 +1221,7 @@ export default function SupplierInvoicesPage() {
 
   const handleExportInvoicesExcel = () => {
     if (invoices.length === 0) {
-      toast({ title: "Sin datos", description: "No hay facturas para exportar." });
+      toast.info("Sin datos", "No hay facturas para exportar.");
       return;
     }
     const headers = [
@@ -1236,14 +1236,14 @@ export default function SupplierInvoicesPage() {
     const rows = invoices.map(inv => [
       inv.invoiceNumber,
       inv.supplierName || suppliers.find(s => s.id === inv.supplierId)?.name || '---',
-      inv.issueDate ? inv.issueDate.substring(0, 10) : '---',
+      inv.createdAt ? inv.createdAt.substring(0, 10) : '---',
       inv.paymentType,
       Number(inv.total || 0),
       inv.status,
       inv.createdAt ? inv.createdAt.substring(0, 10) : '---'
     ]);
     exportToExcel(`Facturas_Proveedor_${new Date().toISOString().substring(0, 10)}`, headers, rows, 'Facturas');
-    toast({ title: "Excel Generado", description: "Facturas de proveedor exportadas a Excel correctamente." });
+    toast.success("Excel Generado", "Facturas de proveedor exportadas a Excel correctamente.");
   };
 
   return (
