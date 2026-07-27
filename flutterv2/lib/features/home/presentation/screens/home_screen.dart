@@ -23,9 +23,7 @@ import '../../../warehouse/presentation/screens/inventory_adjustments_screen.dar
 import '../../../warehouse/presentation/screens/warehouse_board_screen.dart';
 import '../../../workday/presentation/screens/workday_screen.dart';
 import '../../data/home_repository.dart';
-import '../../data/role_actions.dart';
 import '../../domain/models/store_summary.dart';
-import '../../widgets/action_cards.dart';
 import '../../widgets/sync_status_banner.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -40,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<StoreSummary> _stores = [];
   StoreSummary? _selectedStore;
   int _currentBottomIndex = 0;
+
+  int _productCount = 0;
+  int _clientCount = 0;
+  bool _isLoadingMetrics = false;
 
   @override
   void initState() {
@@ -59,20 +61,118 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedStore = stores.isNotEmpty ? stores.first : null;
       });
       if (_selectedStore != null) {
-        _preloadOfflineData(_selectedStore!.id);
+        _refreshStoreData(_selectedStore!.id);
       }
     }
   }
 
-  Future<void> _preloadOfflineData(String storeId) async {
+  Future<void> _refreshStoreData(String storeId) async {
+    if (mounted) setState(() => _isLoadingMetrics = true);
     try {
-      debugPrint('📦 [Preload] Pre-cargando catálogo y clientes localmente para modo offline...');
-      await CatalogRepository().getProducts(storeId: storeId);
-      await ClientPortfolioRepository().getClients(storeId: storeId);
-      debugPrint('✅ [Preload] Pre-carga offline completada con éxito.');
+      final products = await CatalogRepository().getProducts(storeId: storeId);
+      final clients = await ClientPortfolioRepository().getClients(storeId: storeId);
+
+      if (mounted) {
+        setState(() {
+          _productCount = products.length;
+          _clientCount = clients.length;
+          _isLoadingMetrics = false;
+        });
+      }
     } catch (e) {
-      debugPrint('⚠️ [Preload] Error durante la pre-carga offline: $e');
+      debugPrint('Error al refrescar métricas de tienda: $e');
+      if (mounted) setState(() => _isLoadingMetrics = false);
     }
+  }
+
+  void _switchStore(StoreSummary store) {
+    if (_selectedStore?.id == store.id) return;
+    setState(() => _selectedStore = store);
+    _refreshStoreData(store.id);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('🏪 Cambiado a: ${store.name}'),
+        backgroundColor: const Color(0xFF4F46E5),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showStoreSelectorModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Seleccionar Tienda / Sucursal',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.slate900,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Elige la tienda con la que deseas operar:',
+              style: TextStyle(fontSize: 13, color: AppTheme.slate500),
+            ),
+            const SizedBox(height: 16),
+            ..._stores.map((s) {
+              final isSelected = s.id == _selectedStore?.id;
+              final isSuper = s.name.toLowerCase().contains('supermercado');
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.primary.withValues(alpha: 0.08) : AppTheme.slate50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isSelected ? AppTheme.primary : AppTheme.slate200,
+                    width: isSelected ? 2 : 1,
+                  ),
+                ),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: isSelected ? AppTheme.primary : AppTheme.slate200,
+                    child: Icon(
+                      isSuper ? Icons.shopping_bag_rounded : Icons.local_shipping_rounded,
+                      color: isSelected ? Colors.white : AppTheme.slate600,
+                      size: 20,
+                    ),
+                  ),
+                  title: Text(
+                    s.name,
+                    style: TextStyle(
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: isSelected ? AppTheme.primary : AppTheme.slate900,
+                    ),
+                  ),
+                  subtitle: Text(
+                    isSuper ? 'Formato POS / Sala de Ventas' : 'Formato Bultos & Preventa Campo',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(Icons.check_circle_rounded, color: AppTheme.primary)
+                      : null,
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _switchStore(s);
+                  },
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
   }
 
   void _onBottomNavTapped(int index, String storeId, String? storeName) {
@@ -110,8 +210,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final role = normalizeRole(user.rol);
-    final storeName = _selectedStore?.name ?? 'Tienda Principal';
-    final storeId = _selectedStore?.id ?? 'default_store';
+    final storeName = _selectedStore?.name ?? 'Supermercado Los Pinos';
+    final storeId = _selectedStore?.id ?? '9321856d-19ba-42b8-ba47-cf35c0d133dd';
 
     return Scaffold(
       drawer: _buildDrawer(context, user, role, storeId, storeName),
@@ -146,30 +246,21 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: 'Sincronizar Datos',
             icon: const Icon(Icons.sync_rounded),
             onPressed: () {
-              _preloadOfflineData(storeId);
+              _refreshStoreData(storeId);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('🔄 Sincronizando catálogo, clientes y pendientes...'),
+                  content: Text('🔄 Sincronizando catálogo y clientes...'),
                   backgroundColor: Color(0xFF10B981),
                   duration: Duration(seconds: 2),
                 ),
               );
             },
           ),
-          if (_stores.length > 1)
-            PopupMenuButton<StoreSummary>(
-              icon: const Icon(Icons.store_rounded),
-              tooltip: 'Cambiar tienda',
-              onSelected: (store) {
-                setState(() => _selectedStore = store);
-              },
-              itemBuilder: (_) => _stores
-                  .map((s) => PopupMenuItem(
-                        value: s,
-                        child: Text(s.name),
-                      ))
-                  .toList(),
-            ),
+          IconButton(
+            tooltip: 'Cambiar Tienda',
+            icon: const Icon(Icons.store_rounded, color: AppTheme.primary),
+            onPressed: _showStoreSelectorModal,
+          ),
           IconButton(
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout_rounded),
@@ -180,16 +271,139 @@ class _HomeScreenState extends State<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: _loadStores,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             SyncStatusBanner(storeId: storeId),
             const SizedBox(height: 12),
+
+            // Selector de Tienda Destacado (Banner Superior)
+            GestureDetector(
+              onTap: _showStoreSelectorModal,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4F46E5), Color(0xFF3730A3)],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: AppTheme.cardShadow,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'TIENDA ACTIVA',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            storeName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Cambiar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Hero Card Saludo y Rol
             _HeroCard(
               name: user.nombre,
               roleLabelStr: roleLabel(role),
               storeName: storeName,
             ),
             const SizedBox(height: 16),
+
+            // Dashboard KPI Metrics Grid
+            Row(
+              children: [
+                Expanded(
+                  child: _KpiCard(
+                    title: 'Catálogo',
+                    value: _isLoadingMetrics ? '...' : '$_productCount',
+                    subtitle: 'Productos Disponibles',
+                    icon: Icons.inventory_2_rounded,
+                    color: const Color(0xFF4F46E5),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProductCatalogScreen(storeId: storeId, storeName: storeName),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _KpiCard(
+                    title: 'Cartera',
+                    value: _isLoadingMetrics ? '...' : '$_clientCount',
+                    subtitle: 'Clientes Asignados',
+                    icon: Icons.people_alt_rounded,
+                    color: const Color(0xFF10B981),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ClientPortfolioScreen(storeId: storeId, storeName: storeName),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Botón de Acción Principal por Rol
             if (role == AppRole.vendor || role == AppRole.salesManager) ...[
               SizedBox(
                 width: double.infinity,
@@ -209,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.flash_on_rounded, size: 24, color: Colors.white),
                   label: const Text(
                     '⚡ VISITA Y VENTA EXPRESS EN CALLE (GPS)',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, letterSpacing: 0.2),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, letterSpacing: 0.2),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF10B981),
@@ -281,7 +495,82 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
             ],
-            _buildActions(context, role, _selectedStore),
+
+            // Grid de Menú Rápido Completo
+            const Text(
+              'Menú de Operaciones Rápidas',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.slate900,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.3,
+              children: [
+                _MenuGridTile(
+                  title: 'Capturar Pedido',
+                  subtitle: 'Preventa rápida',
+                  icon: Icons.add_shopping_cart_rounded,
+                  color: const Color(0xFF4F46E5),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+                _MenuGridTile(
+                  title: 'Entregas y Rutas',
+                  subtitle: 'Despacho camión',
+                  icon: Icons.local_shipping_rounded,
+                  color: const Color(0xFF0284C7),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+                _MenuGridTile(
+                  title: 'Cobros y Cartera',
+                  subtitle: 'Recaudación CxC',
+                  icon: Icons.payments_rounded,
+                  color: const Color(0xFF10B981),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+                _MenuGridTile(
+                  title: 'Historial Ventas',
+                  subtitle: 'Consultar facturas',
+                  icon: Icons.receipt_long_rounded,
+                  color: const Color(0xFFD97706),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => SalesHistoryScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+                _MenuGridTile(
+                  title: 'Devoluciones',
+                  subtitle: 'Rechazo en tránsito',
+                  icon: Icons.assignment_return_rounded,
+                  color: const Color(0xFFEF4444),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnsScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+                _MenuGridTile(
+                  title: 'Cierre Diario',
+                  subtitle: 'Rendición de caja',
+                  icon: Icons.lock_clock_rounded,
+                  color: const Color(0xFF8B5CF6),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => DailyClosingScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -342,36 +631,45 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.store_rounded, color: AppTheme.primary),
               title: Text(storeName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: const Text('Tienda Activa'),
+              subtitle: const Text('Tienda Activa (Toca para cambiar)'),
+              onTap: () {
+                Navigator.pop(context);
+                _showStoreSelectorModal();
+              },
             ),
           const Divider(),
-          if (role != AppRole.rutero && role != AppRole.inventory && role != AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.flash_on_rounded, color: AppTheme.primary),
-              title: const Text('Capturar Pedido'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
-          if (role != AppRole.inventory && role != AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.local_shipping_rounded, color: AppTheme.primary),
-              title: const Text('Entregas y Rutas'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
-          if (role != AppRole.inventory && role != AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.payments_rounded, color: AppTheme.primary),
-              title: const Text('Cobros y Cartera'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
+          ListTile(
+            leading: const Icon(Icons.flash_on_rounded, color: AppTheme.primary),
+            title: const Text('Visita Express GPS'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ExpressVisitScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_shopping_cart_rounded, color: AppTheme.primary),
+            title: const Text('Capturar Pedido'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.local_shipping_rounded, color: AppTheme.primary),
+            title: const Text('Entregas y Rutas'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.payments_rounded, color: AppTheme.primary),
+            title: const Text('Cobros y Cartera'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.grid_view_rounded, color: AppTheme.primary),
             title: const Text('Catálogo de Productos'),
@@ -389,24 +687,22 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           const Divider(),
-          if (role != AppRole.inventory && role != AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.assignment_return_rounded, color: AppTheme.primary),
-              title: const Text('Devoluciones'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnsScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
-          if (role == AppRole.owner || role == AppRole.storeAdmin || role == AppRole.masterAdmin || role == AppRole.inventory || role == AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.warehouse_rounded, color: AppTheme.primary),
-              title: const Text('Tablero de Bodega'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => WarehouseBoardScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
+          ListTile(
+            leading: const Icon(Icons.assignment_return_rounded, color: AppTheme.primary),
+            title: const Text('Devoluciones'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.warehouse_rounded, color: AppTheme.primary),
+            title: const Text('Tablero de Bodega'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => WarehouseBoardScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.inventory_2_rounded, color: AppTheme.primary),
             title: const Text('Stock Actual (Camión / Vendedor)'),
@@ -415,33 +711,30 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => VendorInventoryScreen(storeId: storeId, storeName: storeName)));
             },
           ),
-          if (role != AppRole.inventory && role != AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.lock_clock_rounded, color: AppTheme.primary),
-              title: const Text('Cierre Diario de Caja'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => DailyClosingScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
-          if (role == AppRole.owner || role == AppRole.storeAdmin || role == AppRole.masterAdmin || role == AppRole.vendor || role == AppRole.salesManager)
-            ListTile(
-              leading: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary),
-              title: const Text('Historial de Ventas'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => SalesHistoryScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
-          if (role == AppRole.owner || role == AppRole.storeAdmin || role == AppRole.masterAdmin || role == AppRole.inventory || role == AppRole.auxiliar)
-            ListTile(
-              leading: const Icon(Icons.tune_rounded, color: AppTheme.primary),
-              title: const Text('Ajustes de Inventario'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryAdjustmentsScreen(storeId: storeId, storeName: storeName)));
-              },
-            ),
+          ListTile(
+            leading: const Icon(Icons.lock_clock_rounded, color: AppTheme.primary),
+            title: const Text('Cierre Diario de Caja'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => DailyClosingScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary),
+            title: const Text('Historial de Ventas'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => SalesHistoryScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.tune_rounded, color: AppTheme.primary),
+            title: const Text('Ajustes de Inventario'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryAdjustmentsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.percent_rounded, color: AppTheme.primary),
             title: const Text('Promociones Vigentes'),
@@ -468,223 +761,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActions(BuildContext context, AppRole role, StoreSummary? store) {
-    final actions = actionsForRole(role);
-    if (actions.isEmpty) return const SizedBox.shrink();
-
-    final storeId = store?.id ?? 'default_store';
-    final storeName = store?.name;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Acciones Disponibles',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.slate900,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...actions.map(
-          (act) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: PrimaryActionCard(
-              action: act,
-              onTap: () => _openActionScreen(context, act, storeId, storeName),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _openActionScreen(
-    BuildContext context,
-    RoleAction action,
-    String storeId,
-    String? storeName,
-  ) {
-    if (action.routeKey == RouteKey.quickOrder) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuickOrderScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.warehouse) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => WarehouseBoardScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.routeBoard) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RouteBoardScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.collections) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CollectionsScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.catalog) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ProductCatalogScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.clients) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ClientPortfolioScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.returns) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ReturnsScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.vendorInventory) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => VendorInventoryScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.dailyClosing) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DailyClosingScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.salesHistory) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SalesHistoryScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.expenses) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ExpensesScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.inventoryAdjustments) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => InventoryAdjustmentsScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (action.routeKey == RouteKey.preventaClients ||
-        action.routeKey == RouteKey.preventaOrder ||
-        action.routeKey == RouteKey.preventaRoute) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PreventaHomeScreen(
-            storeId: storeId,
-            storeName: storeName,
-          ),
-        ),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Abriendo ${action.title}...'),
-        duration: const Duration(seconds: 1),
       ),
     );
   }
@@ -732,9 +808,9 @@ class _HeroCard extends StatelessWidget {
                 ),
               ),
               const Icon(
-                Icons.account_balance_wallet_rounded,
+                Icons.person_rounded,
                 color: Colors.white70,
-                size: 20,
+                size: 22,
               ),
             ],
           ),
@@ -753,17 +829,166 @@ class _HeroCard extends StatelessWidget {
             children: [
               const Icon(Icons.storefront_rounded, color: Colors.white70, size: 15),
               const SizedBox(width: 6),
-              Text(
-                storeName,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+              Expanded(
+                child: Text(
+                  storeName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _KpiCard extends StatelessWidget {
+  const _KpiCard({
+    required this.title,
+    required this.value,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String title;
+  final String value;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.slate200),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: AppTheme.slate400),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: color,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.slate900,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.slate500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuGridTile extends StatelessWidget {
+  const _MenuGridTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.slate200),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.slate900,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.slate500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }
