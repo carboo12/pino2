@@ -35,8 +35,8 @@ class _QuickOrderScreenState extends State<QuickOrderScreen> {
   bool _loadingBootstrap = true;
 
   String _productSearch = '';
-  String _paymentType = 'CONTADO';
-  int _priceLevel = 1;
+  final String _paymentType = 'CONTADO';
+  final int _priceLevel = 1;
   ClientSummary? _selectedClient;
   bool _isSubmitting = false;
   final Map<String, _DraftOrderItem> _draftItems = {};
@@ -261,7 +261,7 @@ class _QuickOrderScreenState extends State<QuickOrderScreen> {
                       : ListView.separated(
                           padding: const EdgeInsets.all(16),
                           itemCount: filteredProducts.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          separatorBuilder: (_, _) => const SizedBox(height: 8),
                           itemBuilder: (ctx, i) {
                             final prod = filteredProducts[i];
                             final draft = _draftItems[prod.id];
@@ -380,7 +380,7 @@ class _QuickOrderScreenState extends State<QuickOrderScreen> {
             Expanded(
               child: ListView.separated(
                 itemCount: clients.length,
-                separatorBuilder: (_, __) => const Divider(),
+                separatorBuilder: (_, _) => const Divider(),
                 itemBuilder: (ctx, i) {
                   final c = clients[i];
                   return ListTile(

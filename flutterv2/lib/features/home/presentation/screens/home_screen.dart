@@ -24,25 +24,21 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _repository = HomeRepository();
   List<StoreSummary> _stores = [];
   StoreSummary? _selectedStore;
-  bool _loadingStores = false;
 
   @override
   void initState() {
     super.initState();
     _loadStores();
   }
-
   Future<void> _loadStores() async {
     final auth = context.read<AuthController>();
     final carnet = auth.userCarnet;
     if (carnet == null) return;
 
-    setState(() => _loadingStores = true);
     final stores = await _repository.getAssignedStores(userId: carnet);
     setState(() {
       _stores = stores;
       _selectedStore = stores.isNotEmpty ? stores.first : null;
-      _loadingStores = false;
     });
   }
 
