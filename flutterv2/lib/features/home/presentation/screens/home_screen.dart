@@ -11,6 +11,7 @@ import '../../../daily_closing/presentation/screens/daily_closing_screen.dart';
 import '../../../expenses/presentation/screens/expenses_screen.dart';
 import '../../../deliveries/presentation/screens/route_board_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
+import '../../../preventa/presentation/screens/preventa_home_screen.dart';
 import '../../../returns/presentation/screens/returns_screen.dart';
 import '../../../sales_history/presentation/screens/sales_history_screen.dart';
 import '../../../vendor_inventory/presentation/screens/vendor_inventory_screen.dart';
@@ -320,6 +321,21 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => InventoryAdjustmentsScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.preventaClients ||
+        action.routeKey == RouteKey.preventaOrder ||
+        action.routeKey == RouteKey.preventaRoute) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PreventaHomeScreen(
             storeId: storeId,
             storeName: storeName,
           ),
