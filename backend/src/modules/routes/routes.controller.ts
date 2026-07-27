@@ -24,7 +24,7 @@ import { CreateRouteDto, UpdateRouteDto } from './routes.dto';
 export class RoutesController {
   constructor(private readonly service: RoutesService) {}
 
-  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
+  @Roles('admin', 'gestor', 'rutero', 'vendedor', 'vendor', 'sales-manager', 'inventory', 'auxiliar', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: 'Listar rutas de vendedores' })
   findAll(
@@ -32,14 +32,14 @@ export class RoutesController {
     @Query('vendorId') vendorId?: string,
     @Req() req?: any,
   ) {
-    const isFieldSeller = ['gestor'].includes(req?.user?.role);
+    const isFieldSeller = ['gestor', 'rutero', 'vendedor', 'vendor'].includes(req?.user?.role);
     return this.service.findAll(
       storeId,
-      isFieldSeller ? req.user.sub : vendorId,
+      vendorId || (isFieldSeller ? req.user.sub : undefined),
     );
   }
 
-  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'rutero', 'vendedor', 'vendor', 'sales-manager', 'chain-admin', 'super-admin')
   @Post()
   @ApiOperation({ summary: 'Crear ruta de vendedor' })
   create(
@@ -50,21 +50,21 @@ export class RoutesController {
     return this.service.create({ ...dto, assignedBy: req.user.sub });
   }
 
-  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'rutero', 'vendedor', 'vendor', 'sales-manager', 'chain-admin', 'super-admin')
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de una ruta' })
   findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
-  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'rutero', 'vendedor', 'vendor', 'sales-manager', 'chain-admin', 'super-admin')
   @Get(':id/history')
   @ApiOperation({ summary: 'Historial de asignación de una ruta' })
   history(@Param('id') id: string) {
     return this.service.findHistory(id);
   }
 
-  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'chain-admin', 'super-admin')
+  @Roles('admin', 'inventory', 'auxiliar', 'gestor', 'rutero', 'vendedor', 'vendor', 'sales-manager', 'chain-admin', 'super-admin')
   @Patch(':id')
   @ApiOperation({ summary: 'Actualizar ruta' })
   update(

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/role_utils.dart';
+import '../../../auth/domain/auth_user.dart';
 import '../../../auth/presentation/auth_controller.dart';
 import '../../../catalog/presentation/screens/product_catalog_screen.dart';
 import '../../../clients/presentation/screens/client_portfolio_screen.dart';
@@ -12,11 +13,13 @@ import '../../../expenses/presentation/screens/expenses_screen.dart';
 import '../../../deliveries/presentation/screens/route_board_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
 import '../../../preventa/presentation/screens/preventa_home_screen.dart';
+import '../../../promotions/presentation/screens/promotions_screen.dart';
 import '../../../returns/presentation/screens/returns_screen.dart';
 import '../../../sales_history/presentation/screens/sales_history_screen.dart';
 import '../../../vendor_inventory/presentation/screens/vendor_inventory_screen.dart';
 import '../../../warehouse/presentation/screens/inventory_adjustments_screen.dart';
 import '../../../warehouse/presentation/screens/warehouse_board_screen.dart';
+import '../../../workday/presentation/screens/workday_screen.dart';
 import '../../data/home_repository.dart';
 import '../../data/role_actions.dart';
 import '../../domain/models/store_summary.dart';
@@ -34,12 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _repository = HomeRepository();
   List<StoreSummary> _stores = [];
   StoreSummary? _selectedStore;
+  int _currentBottomIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _loadStores();
   }
+
   Future<void> _loadStores() async {
     final auth = context.read<AuthController>();
     final carnet = auth.userCarnet;
@@ -50,6 +55,29 @@ class _HomeScreenState extends State<HomeScreen> {
       _stores = stores;
       _selectedStore = stores.isNotEmpty ? stores.first : null;
     });
+  }
+
+  void _onBottomNavTapped(int index, String storeId, String? storeName) {
+    if (index == 0) {
+      setState(() => _currentBottomIndex = 0);
+      return;
+    }
+    if (index == 1) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
+      return;
+    }
+    if (index == 2) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
+      return;
+    }
+    if (index == 3) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
+      return;
+    }
+    if (index == 4) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ProductCatalogScreen(storeId: storeId, storeName: storeName)));
+      return;
+    }
   }
 
   @override
@@ -65,8 +93,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final role = normalizeRole(user.rol);
     final storeName = _selectedStore?.name ?? 'Tienda Principal';
+    final storeId = _selectedStore?.id ?? 'default_store';
 
     return Scaffold(
+      drawer: _buildDrawer(context, user, role, storeId, storeName),
       appBar: AppBar(
         title: Row(
           children: [
@@ -131,6 +161,190 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildActions(context, role, _selectedStore),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentBottomIndex,
+        onTap: (idx) => _onBottomNavTapped(idx, storeId, storeName),
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: AppTheme.primary,
+        unselectedItemColor: AppTheme.slate500,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+        unselectedLabelStyle: const TextStyle(fontSize: 11),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_shopping_cart_rounded),
+            label: 'Pedidos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_shipping_rounded),
+            label: 'Entregas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.payments_rounded),
+            label: 'Cobros',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.grid_view_rounded),
+            label: 'Catálogo',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context, AuthUser user, AppRole role, String storeId, String? storeName) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          UserAccountsDrawerHeader(
+            accountName: Text(user.nombre, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            accountEmail: Text('${user.carnet}  ·  ${roleLabel(role)}', style: const TextStyle(fontSize: 12)),
+            currentAccountPicture: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Text(
+                user.nombre.isNotEmpty ? user.nombre[0].toUpperCase() : 'P',
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primary),
+              ),
+            ),
+            decoration: const BoxDecoration(
+              gradient: AppTheme.heroGradient,
+            ),
+          ),
+          if (storeName != null)
+            ListTile(
+              leading: const Icon(Icons.store_rounded, color: AppTheme.primary),
+              title: Text(storeName, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: const Text('Tienda Activa'),
+            ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.flash_on_rounded, color: AppTheme.primary),
+            title: const Text('Capturar Pedido'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => QuickOrderScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.local_shipping_rounded, color: AppTheme.primary),
+            title: const Text('Entregas y Rutas'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => RouteBoardScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.payments_rounded, color: AppTheme.primary),
+            title: const Text('Cobros y Cartera'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CollectionsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.grid_view_rounded, color: AppTheme.primary),
+            title: const Text('Catálogo de Productos'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ProductCatalogScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.people_alt_rounded, color: AppTheme.primary),
+            title: const Text('Cartera de Clientes'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ClientPortfolioScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.assignment_return_rounded, color: AppTheme.primary),
+            title: const Text('Devoluciones'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ReturnsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.warehouse_rounded, color: AppTheme.primary),
+            title: const Text('Tablero de Bodega'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => WarehouseBoardScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.inventory_2_rounded, color: AppTheme.primary),
+            title: const Text('Stock Actual Vendedor'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => VendorInventoryScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.lock_clock_rounded, color: AppTheme.primary),
+            title: const Text('Cierre Diario de Caja'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => DailyClosingScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.receipt_long_rounded, color: AppTheme.primary),
+            title: const Text('Historial de Ventas'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => SalesHistoryScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_rounded, color: AppTheme.primary),
+            title: const Text('Gastos Operativos'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ExpensesScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.tune_rounded, color: AppTheme.primary),
+            title: const Text('Ajustes de Inventario'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryAdjustmentsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.percent_rounded, color: AppTheme.primary),
+            title: const Text('Promociones Vigentes'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PromotionsScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.timer_rounded, color: AppTheme.primary),
+            title: const Text('Jornada Laboral'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => WorkdayScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout_rounded, color: AppTheme.error),
+            title: const Text('Cerrar Sesión', style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.bold)),
+            onTap: () {
+              Navigator.pop(context);
+              context.read<AuthController>().logout();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -367,77 +581,64 @@ class _HeroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: AppTheme.heroGradient,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: AppTheme.elevatedShadow,
+        boxShadow: AppTheme.cardShadow,
       ),
-      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 44,
-                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: Colors.white,
-                  size: 24,
+                child: Text(
+                  roleLabelStr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      roleLabelStr,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
+              const Icon(
+                Icons.account_balance_wallet_rounded,
+                color: Colors.white70,
+                size: 20,
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+          const SizedBox(height: 14),
+          Text(
+            '¡Hola, $name!',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.5,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.store_rounded, color: Colors.white, size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  storeName,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.storefront_rounded, color: Colors.white70, size: 15),
+              const SizedBox(width: 6),
+              Text(
+                storeName,
+                style: const TextStyle(
+                  color: Colors.white90,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

@@ -48,7 +48,7 @@ export class ClientsController {
   ) {
     const isFieldSeller = ['gestor'].includes(req?.user?.role);
     const forceVendorFilter = isFieldSeller && allClients !== 'true';
-    return this.service.findAll(storeId, {
+    const filterOptions = {
       search,
       limit: limit ? parseInt(limit, 10) : undefined,
       page: page ? parseInt(page, 10) : undefined,
@@ -56,8 +56,24 @@ export class ClientsController {
       preventaId,
       grupoClienteId,
       sinAsignar: sinAsignar === 'true',
-      assignedVendorId: forceVendorFilter ? req.user.sub : undefined,
-    });
+    };
+
+    if (forceVendorFilter) {
+      const assignedResult = await this.service.findAll(storeId, {
+        ...filterOptions,
+        assignedVendorId: req.user.sub,
+      });
+
+      const items = Array.isArray(assignedResult)
+        ? assignedResult
+        : (assignedResult as any)?.data || [];
+
+      if (items.length > 0) {
+        return assignedResult;
+      }
+    }
+
+    return this.service.findAll(storeId, filterOptions);
   }
 
   @Roles('admin', 'gestor', 'inventory', 'rutero', 'auxiliar', 'chain-admin', 'super-admin')
