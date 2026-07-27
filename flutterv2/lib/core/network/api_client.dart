@@ -21,8 +21,16 @@ class ApiClient {
   static const String keyUserCorreo = 'asistencia_user_correo';
   static const String keyUserRol = 'asistencia_user_rol';
 
+  static String _normalizeUrl(String url) {
+    var trimmed = url.trim();
+    if (!trimmed.endsWith('/')) {
+      trimmed = '$trimmed/';
+    }
+    return trimmed;
+  }
+
   static BaseOptions _baseOpts(String url) => BaseOptions(
-        baseUrl: url,
+        baseUrl: _normalizeUrl(url),
         connectTimeout: ApiEnvironment.connectTimeout,
         receiveTimeout: ApiEnvironment.receiveTimeout,
         sendTimeout: const Duration(seconds: 30),

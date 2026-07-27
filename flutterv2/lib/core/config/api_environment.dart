@@ -6,13 +6,13 @@ class ApiEnvironment {
   /// URL del backend NestJS de Asistencia.
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://rhclaroni.com/api-dev',
+    defaultValue: 'https://rhclaroni.com/api-dev/',
   );
 
   /// URL del Portal Corporativo (login SSO).
   static const String portalBaseUrl = String.fromEnvironment(
     'PORTAL_API_URL',
-    defaultValue: 'https://rhclaroni.com/api-portal-test',
+    defaultValue: 'https://rhclaroni.com/api-portal-test/',
   );
 
   static const Duration connectTimeout = Duration(seconds: 15);
