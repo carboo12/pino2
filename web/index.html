@@ -7,6 +7,35 @@
     <meta name="description" content="Pino2 MultiTienda - Plataforma Omnicanal de Gestión de Tiendas, Inventarios, Ventas y Distribución en Ruta" />
     <meta name="theme-color" content="#0F766E" />
     <title>Pino2 MultiTienda | Gestión Omnicanal & Ruta</title>
+    <script>
+      (function() {
+        var RELOAD_KEY = '__pino_chunk_reload';
+        function isChunkError(msg) {
+          return /ChunkLoadError|Loading chunk|Importing a module script|Failed to fetch dynamically imported/i.test(msg || '');
+        }
+        window.addEventListener('error', function(e) {
+          var tag = e.target && e.target.tagName;
+          if ((tag === 'SCRIPT' || tag === 'LINK') || isChunkError(e.message)) {
+            if (!sessionStorage.getItem(RELOAD_KEY)) {
+              sessionStorage.setItem(RELOAD_KEY, '1');
+              window.location.reload();
+            }
+          }
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e.reason ? (e.reason.message || String(e.reason.message)) : '';
+          if (isChunkError(reason)) {
+            if (!sessionStorage.getItem(RELOAD_KEY)) {
+              sessionStorage.setItem(RELOAD_KEY, '1');
+              window.location.reload();
+            }
+          }
+        });
+        window.addEventListener('load', function() {
+          sessionStorage.removeItem(RELOAD_KEY);
+        });
+      })();
+    </script>
   </head>
   <body class="bg-background text-foreground antialiased selection:bg-teal-500/20 selection:text-teal-700">
     <div id="root"></div>
