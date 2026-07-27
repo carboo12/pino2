@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/network/connectivity_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/auth_controller.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/despacho/presentation/despacho_controller.dart';
-import 'features/despacho/presentation/home_shell.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 
 class PinoApp extends StatelessWidget {
   const PinoApp({super.key});
@@ -16,6 +17,7 @@ class PinoApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()..initialize()),
         ChangeNotifierProvider(create: (_) => DespachoController()),
+        ChangeNotifierProvider(create: (_) => ConnectivityService()),
       ],
       child: MaterialApp(
         title: 'Pino Mobile',
@@ -51,7 +53,7 @@ class _AppRoot extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(
-                  Icons.card_giftcard_rounded,
+                  Icons.park_rounded,
                   color: Colors.white,
                   size: 36,
                 ),
@@ -90,6 +92,6 @@ class _AppRoot extends StatelessWidget {
       );
     }
 
-    return auth.isAuthenticated ? const HomeShell() : const LoginScreen();
+    return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
   }
 }
