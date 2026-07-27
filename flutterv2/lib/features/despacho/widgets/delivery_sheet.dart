@@ -83,7 +83,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: ClaroTheme.slate300,
+                  color: AppTheme.slate300,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -102,14 +102,14 @@ class _DeliverySheetState extends State<DeliverySheet> {
                           width: 48,
                           height: 48,
                           decoration: BoxDecoration(
-                            color: ClaroTheme.primary.withValues(alpha: 0.1),
+                            color: AppTheme.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Icon(
                             widget.hijo.generoHijo.toUpperCase() == 'F'
                                 ? Icons.face_3_rounded
                                 : Icons.face_rounded,
-                            color: ClaroTheme.primary,
+                            color: AppTheme.primary,
                             size: 28,
                           ),
                         ),
@@ -124,7 +124,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
                                   fontFamily: 'Inter',
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
-                                  color: ClaroTheme.slate900,
+                                  color: AppTheme.slate900,
                                 ),
                               ),
                               Text(
@@ -132,7 +132,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
                                 style: const TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 13,
-                                  color: ClaroTheme.slate500,
+                                  color: AppTheme.slate500,
                                 ),
                               ),
                             ],
@@ -232,19 +232,19 @@ class _DeliverySheetState extends State<DeliverySheet> {
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: ClaroTheme.errorLight,
+                          color: AppTheme.errorLight,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: ClaroTheme.red200),
+                          border: Border.all(color: AppTheme.red200),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline, color: ClaroTheme.error, size: 18),
+                            const Icon(Icons.error_outline, color: AppTheme.error, size: 18),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _localError ?? despacho.error ?? '',
                                 style: const TextStyle(
-                                  color: ClaroTheme.error,
+                                  color: AppTheme.error,
                                   fontSize: 13,
                                 ),
                               ),
@@ -315,7 +315,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
           fontFamily: 'Inter',
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: ClaroTheme.slate500,
+          color: AppTheme.slate500,
           letterSpacing: 0.5,
         ),
       ),
@@ -332,11 +332,11 @@ class _DeliverySheetState extends State<DeliverySheet> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: selected
-                ? ClaroTheme.primary.withValues(alpha: 0.1)
-                : ClaroTheme.slate50,
+                ? AppTheme.primary.withValues(alpha: 0.1)
+                : AppTheme.slate50,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: selected ? ClaroTheme.primary : ClaroTheme.slate200,
+              color: selected ? AppTheme.primary : AppTheme.slate200,
               width: selected ? 2 : 1,
             ),
           ),
@@ -345,7 +345,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
               Icon(
                 icon,
                 size: 20,
-                color: selected ? ClaroTheme.primary : ClaroTheme.slate400,
+                color: selected ? AppTheme.primary : AppTheme.slate400,
               ),
               const SizedBox(height: 4),
               Text(
@@ -354,7 +354,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
                   fontFamily: 'Inter',
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                  color: selected ? ClaroTheme.primary : ClaroTheme.slate500,
+                  color: selected ? AppTheme.primary : AppTheme.slate500,
                 ),
               ),
             ],
@@ -370,7 +370,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
         Icon(
           valid ? Icons.check_circle : Icons.radio_button_unchecked,
           size: 16,
-          color: valid ? ClaroTheme.success : ClaroTheme.slate300,
+          color: valid ? AppTheme.success : AppTheme.slate300,
         ),
         const SizedBox(width: 8),
         Text(
@@ -378,7 +378,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
           style: TextStyle(
             fontFamily: 'Inter',
             fontSize: 12,
-            color: valid ? ClaroTheme.success : ClaroTheme.slate400,
+            color: valid ? AppTheme.success : AppTheme.slate400,
           ),
         ),
       ],
@@ -430,6 +430,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
     }
   }
 
+  // ignore: unused_element
   void _showJugueteSelector(List<Juguete> catalogo) {
     // Filtrar por categoría del hijo si es posible
     final filtrados = catalogo
@@ -473,7 +474,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
                       height: 40,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: ClaroTheme.slate200),
+                        border: Border.all(color: AppTheme.slate200),
                       ),
                       child: AppImage(
                         url: j.fotoUrl,
@@ -482,10 +483,10 @@ class _DeliverySheetState extends State<DeliverySheet> {
                         borderRadius: 5,
                         fit: BoxFit.cover,
                         errorWidget: Container(
-                          color: ClaroTheme.slate50,
+                          color: AppTheme.slate50,
                           child: Icon(
                             Icons.card_giftcard,
-                            color: selected ? ClaroTheme.primary : ClaroTheme.slate400,
+                            color: selected ? AppTheme.primary : AppTheme.slate400,
                           ),
                         ),
                       ),
@@ -495,7 +496,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
                       '${j.categoria ?? ""} · ${j.genero ?? ""} · Stock: ${j.stockActual}',
                     ),
                     trailing: selected
-                        ? const Icon(Icons.check_circle, color: ClaroTheme.primary)
+                        ? const Icon(Icons.check_circle, color: AppTheme.primary)
                         : null,
                     selected: selected,
                     onTap: () {
@@ -529,9 +530,9 @@ class _DeliverySheetState extends State<DeliverySheet> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         decoration: BoxDecoration(
-          color: ClaroTheme.slate50,
+          color: AppTheme.slate50,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: ClaroTheme.slate200),
+          border: Border.all(color: AppTheme.slate200),
         ),
         child: DropdownButtonFormField<int>(
           value: _jugueteSeleccionado!.id,
@@ -548,12 +549,12 @@ class _DeliverySheetState extends State<DeliverySheet> {
                   width: 32, height: 32,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: ClaroTheme.slate200),
+                    border: Border.all(color: AppTheme.slate200),
                   ),
                   child: AppImage(
                     url: j.fotoUrl, width: 32, height: 32,
                     borderRadius: 5, fit: BoxFit.cover,
-                    errorWidget: const Icon(Icons.card_giftcard_rounded, size: 16, color: ClaroTheme.primary),
+                    errorWidget: const Icon(Icons.card_giftcard_rounded, size: 16, color: AppTheme.primary),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -576,9 +577,9 @@ class _DeliverySheetState extends State<DeliverySheet> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ClaroTheme.slate50,
+        color: AppTheme.slate50,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: ClaroTheme.slate200),
+        border: Border.all(color: AppTheme.slate200),
       ),
       child: Row(
         children: [
@@ -586,14 +587,14 @@ class _DeliverySheetState extends State<DeliverySheet> {
             width: 44, height: 44,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: ClaroTheme.slate200),
+              border: Border.all(color: AppTheme.slate200),
             ),
             child: AppImage(
               url: _jugueteSeleccionado!.fotoUrl, width: 44, height: 44,
               borderRadius: 7, fit: BoxFit.cover,
               errorWidget: Container(
                 color: Colors.white,
-                child: const Icon(Icons.card_giftcard_rounded, color: ClaroTheme.primary, size: 22),
+                child: const Icon(Icons.card_giftcard_rounded, color: AppTheme.primary, size: 22),
               ),
             ),
           ),
@@ -602,8 +603,8 @@ class _DeliverySheetState extends State<DeliverySheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_jugueteSeleccionado!.nombreJuguete, style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: ClaroTheme.slate800)),
-                Text('Stock: ${_jugueteSeleccionado!.stockActual} disponibles', style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: _jugueteSeleccionado!.stockActual > 0 ? ClaroTheme.success : ClaroTheme.error, fontWeight: FontWeight.w500)),
+                Text(_jugueteSeleccionado!.nombreJuguete, style: const TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.slate800)),
+                Text('Stock: ${_jugueteSeleccionado!.stockActual} disponibles', style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: _jugueteSeleccionado!.stockActual > 0 ? AppTheme.success : AppTheme.error, fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -644,7 +645,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
               ),
             ],
           ),
-          backgroundColor: ClaroTheme.success,
+          backgroundColor: AppTheme.success,
           behavior: SnackBarBehavior.floating,
         ),
       );

@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/api_environment.dart';
 
-/// Cliente HTTP central de Claro Despacho.
+/// Cliente HTTP central de Pino Mobile.
 ///
 /// Responsabilidades:
 /// 1) Configurar baseURL/timeouts/headers.

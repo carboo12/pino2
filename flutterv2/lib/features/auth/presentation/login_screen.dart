@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen>
     final errorMsg = context.select<AuthController, String?>((c) => c.error);
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -77,12 +77,12 @@ class _LoginScreenState extends State<LoginScreen>
                           width: 80,
                           height: 80,
                           decoration: BoxDecoration(
-                            gradient: ClaroTheme.heroGradient,
+                            gradient: AppTheme.heroGradient,
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: ClaroTheme.elevatedShadow,
+                            boxShadow: AppTheme.elevatedShadow,
                           ),
                           child: const Icon(
-                            Icons.card_giftcard_rounded,
+                            Icons.inventory_2_rounded,
                             size: 40,
                             color: Colors.white,
                           ),
@@ -91,24 +91,24 @@ class _LoginScreenState extends State<LoginScreen>
                       const SizedBox(height: 24),
                       const Center(
                         child: Text(
-                          'CLARO DESPACHO',
+                          'PINO MOBILE',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
-                            color: ClaroTheme.slate900,
+                            color: AppTheme.slate900,
                             letterSpacing: -1,
                           ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Center(
+                      const Center(
                         child: Text(
-                          'Día del Niño ${DateTime.now().year}',
-                          style: const TextStyle(
+                          'Gestión de Ventas y Distribución',
+                          style: TextStyle(
                             fontFamily: 'Inter',
-                            fontSize: 16,
-                            color: ClaroTheme.slate500,
+                            fontSize: 15,
+                            color: AppTheme.slate500,
                           ),
                         ),
                       ),
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen>
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
-                          boxShadow: ClaroTheme.elevatedShadow,
+                          boxShadow: AppTheme.elevatedShadow,
                         ),
                         child: Form(
                           key: _formKey,
@@ -135,8 +135,8 @@ class _LoginScreenState extends State<LoginScreen>
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
                                       colors: [
-                                        ClaroTheme.primary,
-                                        ClaroTheme.primaryDark,
+                                        AppTheme.primary,
+                                        AppTheme.primaryDark,
                                       ],
                                     ),
                                     borderRadius: BorderRadius.circular(2),
@@ -172,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       _obscureText
                                           ? Icons.visibility_outlined
                                           : Icons.visibility_off_outlined,
-                                      color: ClaroTheme.slate400,
+                                      color: AppTheme.slate400,
                                     ),
                                     onPressed: () =>
                                         setState(() => _obscureText = !_obscureText),
@@ -191,15 +191,15 @@ class _LoginScreenState extends State<LoginScreen>
                                   margin: const EdgeInsets.only(bottom: 24),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: ClaroTheme.errorLight,
+                                    color: AppTheme.errorLight,
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: ClaroTheme.red200),
+                                    border: Border.all(color: AppTheme.red200),
                                   ),
                                   child: Row(
                                     children: [
                                       const Icon(
                                         Icons.error_outline,
-                                        color: ClaroTheme.error,
+                                        color: AppTheme.error,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -207,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         child: Text(
                                           errorMsg,
                                           style: const TextStyle(
-                                            color: ClaroTheme.error,
+                                            color: AppTheme.error,
                                             fontSize: 13,
                                           ),
                                         ),
@@ -222,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen>
                                 child: ElevatedButton(
                                   onPressed: isLoading ? null : _submit,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: ClaroTheme.primary,
+                                    backgroundColor: AppTheme.primary,
                                     foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
@@ -263,17 +263,17 @@ class _LoginScreenState extends State<LoginScreen>
                               width: 8,
                               height: 8,
                               decoration: const BoxDecoration(
-                                color: ClaroTheme.primary,
+                                color: AppTheme.primary,
                                 shape: BoxShape.circle,
                               ),
                             ),
                             const SizedBox(width: 8),
                             const Text(
-                              'Claro Nicaragua',
+                              'Pino Mobile System',
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 12,
-                                color: ClaroTheme.slate400,
+                                color: AppTheme.slate400,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -294,21 +294,21 @@ class _LoginScreenState extends State<LoginScreen>
   InputDecoration _inputDecoration(String label, IconData icon) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: ClaroTheme.slate400),
-      prefixIcon: Icon(icon, color: ClaroTheme.slate400),
+      labelStyle: const TextStyle(color: AppTheme.slate400),
+      prefixIcon: Icon(icon, color: AppTheme.slate400),
       filled: true,
-      fillColor: ClaroTheme.slate50,
+      fillColor: AppTheme.slate50,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: ClaroTheme.slate200),
+        borderSide: const BorderSide(color: AppTheme.slate200),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: ClaroTheme.primary, width: 2),
+        borderSide: const BorderSide(color: AppTheme.primary, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );

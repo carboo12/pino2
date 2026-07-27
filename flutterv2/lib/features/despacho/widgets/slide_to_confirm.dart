@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -58,8 +58,8 @@ class _SlideToConfirmState extends State<SlideToConfirm>
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = widget.backgroundColor ?? ClaroTheme.slate100;
-    final tColor = widget.thumbColor ?? ClaroTheme.primary;
+    final bgColor = widget.backgroundColor ?? AppTheme.slate100;
+    final tColor = widget.thumbColor ?? AppTheme.primary;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -73,13 +73,13 @@ class _SlideToConfirmState extends State<SlideToConfirm>
             height: 64,
             decoration: BoxDecoration(
               color: _confirmed
-                  ? ClaroTheme.success.withValues(alpha: 0.15)
+                  ? AppTheme.success.withValues(alpha: 0.15)
                   : bgColor,
               borderRadius: BorderRadius.circular(32),
               border: Border.all(
                 color: _confirmed
-                    ? ClaroTheme.success.withValues(alpha: 0.3)
-                    : ClaroTheme.slate200,
+                    ? AppTheme.success.withValues(alpha: 0.3)
+                    : AppTheme.slate200,
               ),
             ),
             child: Stack(
@@ -110,14 +110,14 @@ class _SlideToConfirmState extends State<SlideToConfirm>
                             fontFamily: 'Inter',
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: ClaroTheme.slate500,
+                            color: AppTheme.slate500,
                           ),
                         ),
                         const SizedBox(width: 8),
                         const Icon(
                           Icons.arrow_forward_rounded,
                           size: 18,
-                          color: ClaroTheme.slate400,
+                          color: AppTheme.slate400,
                         ),
                       ],
                     ),
@@ -130,7 +130,7 @@ class _SlideToConfirmState extends State<SlideToConfirm>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle, color: ClaroTheme.success, size: 24),
+                        Icon(Icons.check_circle, color: AppTheme.success, size: 24),
                         const SizedBox(width: 8),
                         Text(
                           '¡Confirmado!',
@@ -138,7 +138,7 @@ class _SlideToConfirmState extends State<SlideToConfirm>
                             fontFamily: 'Inter',
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: ClaroTheme.success,
+                            color: AppTheme.success,
                           ),
                         ),
                       ],
@@ -187,11 +187,11 @@ class _SlideToConfirmState extends State<SlideToConfirm>
                       width: _thumbSize,
                       height: _thumbSize,
                       decoration: BoxDecoration(
-                        color: _confirmed ? ClaroTheme.success : tColor,
+                        color: _confirmed ? AppTheme.success : tColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: (_confirmed ? ClaroTheme.success : tColor)
+                            color: (_confirmed ? AppTheme.success : tColor)
                                 .withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 2),

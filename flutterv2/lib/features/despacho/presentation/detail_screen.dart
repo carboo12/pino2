@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -53,7 +53,7 @@ class _DetailScreenState extends State<DetailScreen> {
     final tieneFotoEvidencia = hijos.any((h) => h.fotoEvidenciaUrl != null && h.fotoEvidenciaUrl!.isNotEmpty);
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: const Text('Ficha Familiar'),
         backgroundColor: Colors.white,
@@ -69,7 +69,7 @@ class _DetailScreenState extends State<DetailScreen> {
         ],
       ),
       body: RefreshIndicator(
-        color: ClaroTheme.primary,
+        color: AppTheme.primary,
         onRefresh: () => despacho.buscarColaborador(colab.carnet),
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -85,21 +85,21 @@ class _DetailScreenState extends State<DetailScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: ClaroTheme.red50,
+                    color: AppTheme.red50,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: ClaroTheme.red200),
+                    border: Border.all(color: AppTheme.red200),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded, color: ClaroTheme.primary, size: 24),
+                      Icon(Icons.warning_amber_rounded, color: AppTheme.primary, size: 24),
                       SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Asistencia No Registrada', style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: ClaroTheme.primaryDark, fontWeight: FontWeight.w700)),
+                            Text('Asistencia No Registrada', style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppTheme.primaryDark, fontWeight: FontWeight.w700)),
                             SizedBox(height: 6),
-                            Text('El colaborador no ha registrado su asistencia al evento. Para poder despachar los juguetes de sus hijos, primero debe registrar su asistencia.', style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: ClaroTheme.primaryDark, fontWeight: FontWeight.w500)),
+                            Text('El colaborador no ha registrado su asistencia al evento. Para poder despachar los juguetes de sus hijos, primero debe registrar su asistencia.', style: TextStyle(fontFamily: 'Inter', fontSize: 13, color: AppTheme.primaryDark, fontWeight: FontWeight.w500)),
                           ],
                         ),
                       ),
@@ -157,9 +157,9 @@ class _DetailScreenState extends State<DetailScreen> {
                 index: pendientes.length > 1 ? 4 : 3,
                 child: Row(
                   children: [
-                    const Icon(Icons.child_care_rounded, color: ClaroTheme.primary, size: 20),
+                    const Icon(Icons.child_care_rounded, color: AppTheme.primary, size: 20),
                     const SizedBox(width: 8),
-                    Text('Hijos (${_hijosEntregados(hijos)}/${hijos.length} entregados)', style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: ClaroTheme.slate900)),
+                    Text('Hijos (${_hijosEntregados(hijos)}/${hijos.length} entregados)', style: const TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.slate900)),
                   ],
                 ),
               ),
@@ -195,15 +195,15 @@ class _DetailScreenState extends State<DetailScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: ClaroTheme.errorLight,
+                    color: AppTheme.errorLight,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: ClaroTheme.red200),
+                    border: Border.all(color: AppTheme.red200),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error_outline, color: ClaroTheme.error, size: 18),
+                      const Icon(Icons.error_outline, color: AppTheme.error, size: 18),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(despacho.error!, style: const TextStyle(color: ClaroTheme.error, fontSize: 13))),
+                      Expanded(child: Text(despacho.error!, style: const TextStyle(color: AppTheme.error, fontSize: 13))),
                     ],
                   ),
                 ),
@@ -219,12 +219,12 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget _buildColaboradorCard(Colaborador colab, LookupResult lookup) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: ClaroTheme.cardShadow),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: AppTheme.cardShadow),
       child: Row(
         children: [
           Container(
             width: 64, height: 64,
-            decoration: BoxDecoration(gradient: ClaroTheme.heroGradient, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(gradient: AppTheme.heroGradient, borderRadius: BorderRadius.circular(16)),
             child: AppImage(
               url: lookup.fotoHcm, width: 64, height: 64, borderRadius: 16, fit: BoxFit.cover,
               errorWidget: const Icon(Icons.person, color: Colors.white, size: 32),
@@ -235,12 +235,12 @@ class _DetailScreenState extends State<DetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(colab.nombre, style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: ClaroTheme.slate900)),
+                Text(colab.nombre, style: const TextStyle(fontFamily: 'Inter', fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.slate900)),
                 const SizedBox(height: 4),
-                Text('Carnet: ${colab.carnet}', style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: ClaroTheme.slate500, fontWeight: FontWeight.w500)),
+                Text('Carnet: ${colab.carnet}', style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: AppTheme.slate500, fontWeight: FontWeight.w500)),
                 if (colab.gerencia != null) ...[
                   const SizedBox(height: 2),
-                  Text(colab.gerencia!, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: ClaroTheme.slate400)),
+                  Text(colab.gerencia!, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppTheme.slate400)),
                 ],
                 if (colab.departamentoGeografico != null) ...[
                   const SizedBox(height: 2),
@@ -249,10 +249,10 @@ class _DetailScreenState extends State<DetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
-                          color: colab.departamentoGeografico!.toUpperCase() == 'MANAGUA' ? ClaroTheme.successLight : ClaroTheme.slate100,
+                          color: colab.departamentoGeografico!.toUpperCase() == 'MANAGUA' ? AppTheme.successLight : AppTheme.slate100,
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(colab.departamentoGeografico!, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colab.departamentoGeografico!.toUpperCase() == 'MANAGUA' ? ClaroTheme.success : ClaroTheme.slate500)),
+                        child: Text(colab.departamentoGeografico!, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colab.departamentoGeografico!.toUpperCase() == 'MANAGUA' ? AppTheme.success : AppTheme.slate500)),
                       ),
                     ],
                   ),
@@ -271,22 +271,22 @@ class _DetailScreenState extends State<DetailScreen> {
       final canRevert = auth.userRol == 'admin' || auth.userRol == 'supervisor';
       return Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: ClaroTheme.successLight, borderRadius: BorderRadius.circular(16), border: Border.all(color: ClaroTheme.success.withValues(alpha: 0.3))),
+        decoration: BoxDecoration(color: AppTheme.successLight, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.success.withValues(alpha: 0.3))),
         child: Row(
           children: [
             Container(
               width: 40, height: 40,
-              decoration: BoxDecoration(color: ClaroTheme.success.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.check_circle_rounded, color: ClaroTheme.success, size: 22),
+              decoration: BoxDecoration(color: AppTheme.success.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+              child: const Icon(Icons.check_circle_rounded, color: AppTheme.success, size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Asistencia Registrada', style: TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: ClaroTheme.success)),
+                  const Text('Asistencia Registrada', style: TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.success)),
                   if (lookup.fechaAsistencia != null)
-                    Text('${lookup.adultos} adultos · ${lookup.ninos} niños', style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: ClaroTheme.slate500)),
+                    Text('${lookup.adultos} adultos · ${lookup.ninos} niños', style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppTheme.slate500)),
                 ],
               ),
             ),
@@ -300,15 +300,15 @@ class _DetailScreenState extends State<DetailScreen> {
                       content: Text('¿Reversar la asistencia de ${lookup.colaborador.nombre}?'),
                       actions: [
                         TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirmar', style: TextStyle(color: ClaroTheme.error))),
+                        TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirmar', style: TextStyle(color: AppTheme.error))),
                       ],
                     ),
                   );
                   if (confirm == true) await despacho.reversarAsistencia(lookup.colaborador.carnet);
                 },
-                icon: const Icon(Icons.rotate_left_rounded, color: ClaroTheme.error, size: 16),
-                label: const Text('Reversar', style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: ClaroTheme.error)),
-                style: TextButton.styleFrom(backgroundColor: ClaroTheme.error.withValues(alpha: 0.1), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                icon: const Icon(Icons.rotate_left_rounded, color: AppTheme.error, size: 16),
+                label: const Text('Reversar', style: TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.error)),
+                style: TextButton.styleFrom(backgroundColor: AppTheme.error.withValues(alpha: 0.1), padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
               ),
           ],
         ),
@@ -317,7 +317,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: ClaroTheme.slate200), boxShadow: ClaroTheme.cardShadow),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.slate200), boxShadow: AppTheme.cardShadow),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -325,16 +325,16 @@ class _DetailScreenState extends State<DetailScreen> {
             children: [
               Container(
                 width: 40, height: 40,
-                decoration: BoxDecoration(color: ClaroTheme.warningLight, borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.schedule_rounded, color: ClaroTheme.warning, size: 22),
+                decoration: BoxDecoration(color: AppTheme.warningLight, borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.schedule_rounded, color: AppTheme.warning, size: 22),
               ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Asistencia Pendiente', style: TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: ClaroTheme.warning)),
-                    Text('Registra la asistencia para habilitar despacho', style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: ClaroTheme.slate500)),
+                    Text('Asistencia Pendiente', style: TextStyle(fontFamily: 'Inter', fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.warning)),
+                    Text('Registra la asistencia para habilitar despacho', style: TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppTheme.slate500)),
                   ],
                 ),
               ),
@@ -347,7 +347,7 @@ class _DetailScreenState extends State<DetailScreen> {
             label: despacho.loading
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                 : const Text('Registrar Asistencia'),
-            style: ElevatedButton.styleFrom(backgroundColor: ClaroTheme.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary, foregroundColor: Colors.white, minimumSize: const Size(double.infinity, 52), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
           ),
         ],
       ),
@@ -357,29 +357,29 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget _buildFotoEvidenciaSection(bool tieneFoto, DespachoController despacho) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: ClaroTheme.slate50, borderRadius: BorderRadius.circular(12), border: Border.all(color: ClaroTheme.slate200)),
+      decoration: BoxDecoration(color: AppTheme.slate50, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.slate200)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.camera_alt_rounded, size: 18, color: ClaroTheme.slate600),
+              const Icon(Icons.camera_alt_rounded, size: 18, color: AppTheme.slate600),
               const SizedBox(width: 8),
-              const Text('Foto de Evidencia', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: ClaroTheme.slate800)),
+              const Text('Foto de Evidencia', style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: FontWeight.w700, color: AppTheme.slate800)),
               const Spacer(),
               if (tieneFoto)
                 const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle, size: 14, color: ClaroTheme.success),
+                    Icon(Icons.check_circle, size: 14, color: AppTheme.success),
                     SizedBox(width: 4),
-                    Text('Foto registrada', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: ClaroTheme.success)),
+                    Text('Foto registrada', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.success)),
                   ],
                 ),
             ],
           ),
           const SizedBox(height: 2),
-          const Text('1 foto por colaborador (opcional)', style: TextStyle(fontSize: 11, color: ClaroTheme.slate400)),
+          const Text('1 foto por colaborador (opcional)', style: TextStyle(fontSize: 11, color: AppTheme.slate400)),
           const SizedBox(height: 10),
           if (_colaboradorFoto != null)
             Stack(
@@ -489,11 +489,11 @@ class _DetailScreenState extends State<DetailScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? ClaroTheme.primary.withValues(alpha: 0.1) : ClaroTheme.slate50,
+            color: selected ? AppTheme.primary.withValues(alpha: 0.1) : AppTheme.slate50,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: selected ? ClaroTheme.primary : ClaroTheme.slate200, width: selected ? 2 : 1),
+            border: Border.all(color: selected ? AppTheme.primary : AppTheme.slate200, width: selected ? 2 : 1),
           ),
-          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.3, color: selected ? ClaroTheme.primary : ClaroTheme.slate500)),
+          child: Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.3, color: selected ? AppTheme.primary : AppTheme.slate500)),
         ),
       ),
     );
@@ -501,11 +501,11 @@ class _DetailScreenState extends State<DetailScreen> {
 
   Future<void> _despacharTodo(List<Hijo> pendientes, String carnet, DespachoController despacho) async {
     if (_recibidoPor == 'TERCERO' && _nombreReceptorCtrl.text.trim().length < 3) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debe ingresar el nombre de la persona que recibe'), backgroundColor: ClaroTheme.error));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debe ingresar el nombre de la persona que recibe'), backgroundColor: AppTheme.error));
       return;
     }
     if (_colaboradorFoto == null) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debe tomar una foto de evidencia primero'), backgroundColor: ClaroTheme.error));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Debe tomar una foto de evidencia primero'), backgroundColor: AppTheme.error));
       return;
     }
     for (final hijo in pendientes) {
@@ -518,7 +518,7 @@ class _DetailScreenState extends State<DetailScreen> {
       );
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al entregar a ${hijo.nombreHijo}: ${despacho.error ?? "error"}'), backgroundColor: ClaroTheme.error),
+          SnackBar(content: Text('Error al entregar a ${hijo.nombreHijo}: ${despacho.error ?? "error"}'), backgroundColor: AppTheme.error),
         );
         return;
       }
@@ -548,7 +548,7 @@ class _DetailScreenState extends State<DetailScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: ClaroTheme.warning, size: 24),
+            Icon(Icons.warning_amber_rounded, color: AppTheme.warning, size: 24),
             SizedBox(width: 8),
             Text('Reversar Entrega', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700)),
           ],
@@ -557,7 +557,7 @@ class _DetailScreenState extends State<DetailScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('¿Reversar la entrega de ${hijo.nombreHijo}?', style: const TextStyle(fontSize: 14, color: ClaroTheme.slate600)),
+            Text('¿Reversar la entrega de ${hijo.nombreHijo}?', style: const TextStyle(fontSize: 14, color: AppTheme.slate600)),
             const SizedBox(height: 16),
             TextField(
               controller: motivoCtrl,
@@ -571,13 +571,13 @@ class _DetailScreenState extends State<DetailScreen> {
           TextButton(
             onPressed: () async {
               if (motivoCtrl.text.trim().length < 10) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El motivo debe tener al menos 10 caracteres'), backgroundColor: ClaroTheme.error));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El motivo debe tener al menos 10 caracteres'), backgroundColor: AppTheme.error));
                 return;
               }
               Navigator.pop(ctx);
               await despacho.reversarDespacho(entregaId: hijo.entregaId!, motivo: motivoCtrl.text.trim());
             },
-            child: const Text('Confirmar Reversión', style: TextStyle(color: ClaroTheme.error, fontWeight: FontWeight.w600)),
+            child: const Text('Confirmar Reversión', style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -611,7 +611,7 @@ class _DetailScreenState extends State<DetailScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(success ? '✅ Foto de evidencia actualizada' : 'Error: ${despacho.error}'),
-        backgroundColor: success ? const Color(0xFF10B981) : ClaroTheme.error,
+        backgroundColor: success ? const Color(0xFF10B981) : AppTheme.error,
       ));
     }
   }

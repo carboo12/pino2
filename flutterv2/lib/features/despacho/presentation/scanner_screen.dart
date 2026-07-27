@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +64,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(despacho.error ?? 'Colaborador no encontrado'),
-          backgroundColor: ClaroTheme.error,
+          backgroundColor: AppTheme.error,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -99,7 +99,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 fontFamily: 'Inter',
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: ClaroTheme.slate900,
+                color: AppTheme.slate900,
               ),
               textAlign: TextAlign.center,
             ),
@@ -119,7 +119,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
               decoration: InputDecoration(
                 hintText: 'Ej: 10243',
                 hintStyle: TextStyle(
-                  color: ClaroTheme.slate300,
+                  color: AppTheme.slate300,
                   fontWeight: FontWeight.w400,
                 ),
                 prefixIcon: const Icon(Icons.badge_outlined),
@@ -128,7 +128,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: ClaroTheme.primary, width: 2),
+                  borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                 ),
               ),
               onSubmitted: (value) {
@@ -164,7 +164,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     final despacho = context.watch<DespachoController>();
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate900,
+      backgroundColor: AppTheme.slate900,
       body: Stack(
         children: [
           // ── Cámara ──
@@ -192,7 +192,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: ClaroTheme.primary,
+                      color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
@@ -257,7 +257,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: ClaroTheme.primary),
+                    CircularProgressIndicator(color: AppTheme.primary),
                     SizedBox(height: 16),
                     Text(
                       'Buscando colaborador...',
@@ -286,7 +286,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const PulsingDot(color: ClaroTheme.primary, size: 8),
+                        const PulsingDot(color: AppTheme.primary, size: 8),
                         const SizedBox(width: 8),
                         Text(
                           'Acerque el carnet al visor',
@@ -340,7 +340,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                                       onPressed: () => Navigator.pop(ctx, true),
                                       child: const Text(
                                         'Cerrar Sesión',
-                                        style: TextStyle(color: ClaroTheme.error),
+                                        style: TextStyle(color: AppTheme.error),
                                       ),
                                     ),
                                   ],
@@ -355,7 +355,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                               style: TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 12,
-                                color: ClaroTheme.primary.withValues(alpha: 0.9),
+                                color: AppTheme.primary.withValues(alpha: 0.9),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -399,7 +399,7 @@ class _ScannerOverlayPainter extends CustomPainter {
 
     // Bordes rojos del visor
     final borderPaint = Paint()
-      ..color = ClaroTheme.primary
+      ..color = AppTheme.primary
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
     canvas.drawRRect(
@@ -409,7 +409,7 @@ class _ScannerOverlayPainter extends CustomPainter {
 
     // Línea láser horizontal animada estática (posición central)
     final laserPaint = Paint()
-      ..color = ClaroTheme.primary.withValues(alpha: 0.6)
+      ..color = AppTheme.primary.withValues(alpha: 0.6)
       ..strokeWidth = 2;
     final laserY = scanArea.center.dy;
     canvas.drawLine(

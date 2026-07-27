@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -43,13 +43,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: const Text('Catálogo de Juguetes'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: ClaroTheme.slate800),
+          icon: const Icon(Icons.menu_rounded, color: AppTheme.slate800),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
@@ -68,10 +68,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Buscar juguete...',
-                prefixIcon: const Icon(Icons.search, color: ClaroTheme.slate400),
+                prefixIcon: const Icon(Icons.search, color: AppTheme.slate400),
                 suffixIcon: _searchCtrl.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: ClaroTheme.slate400),
+                        icon: const Icon(Icons.clear, color: AppTheme.slate400),
                         onPressed: () {
                           _searchCtrl.clear();
                           setState(() {
@@ -87,7 +87,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
           // Listado
           Expanded(
             child: RefreshIndicator(
-              color: ClaroTheme.primary,
+              color: AppTheme.primary,
               onRefresh: () => despacho.cargarCatalogo(),
               child: filtrados.isEmpty
                   ? const PremiumEmptyState(
@@ -101,24 +101,24 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       itemBuilder: (context, index) {
                         final juguete = filtrados[index];
                         final Color statusColor = juguete.stockActual <= 5
-                            ? ClaroTheme.error
+                            ? AppTheme.error
                             : juguete.stockActual <= 10
-                                ? ClaroTheme.warning
-                                : ClaroTheme.success;
+                                ? AppTheme.warning
+                                : AppTheme.success;
 
                         final Color statusBg = juguete.stockActual <= 5
-                            ? ClaroTheme.errorLight
+                            ? AppTheme.errorLight
                             : juguete.stockActual <= 10
-                                ? ClaroTheme.warningLight
-                                : ClaroTheme.successLight;
+                                ? AppTheme.warningLight
+                                : AppTheme.successLight;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: ClaroTheme.slate200),
-                            boxShadow: ClaroTheme.cardShadow,
+                            border: Border.all(color: AppTheme.slate200),
+                            boxShadow: AppTheme.cardShadow,
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16),
@@ -131,7 +131,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                   margin: const EdgeInsets.only(right: 12),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: ClaroTheme.slate200),
+                                    border: Border.all(color: AppTheme.slate200),
                                   ),
                                   child: AppImage(
                                     url: juguete.fotoUrl,
@@ -140,10 +140,10 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                     borderRadius: 6,
                                     fit: BoxFit.cover,
                                     errorWidget: Container(
-                                      color: ClaroTheme.slate100,
+                                      color: AppTheme.slate100,
                                       child: const Icon(
                                         Icons.inventory_2_rounded,
-                                        color: ClaroTheme.slate400,
+                                        color: AppTheme.slate400,
                                         size: 24,
                                       ),
                                     ),
@@ -161,7 +161,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                           fontFamily: 'Inter',
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
-                                          color: ClaroTheme.slate900,
+                                          color: AppTheme.slate900,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -172,7 +172,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                             style: const TextStyle(
                                               fontFamily: 'Inter',
                                               fontSize: 11,
-                                              color: ClaroTheme.slate500,
+                                              color: AppTheme.slate500,
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -183,7 +183,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                                   ? const Color(0xFFFCE7F3)
                                                   : juguete.genero == 'M'
                                                       ? const Color(0xFFDBEAFE)
-                                                      : ClaroTheme.slate100,
+                                                      : AppTheme.slate100,
                                               borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: Text(
@@ -196,7 +196,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                                                 fontFamily: 'Inter',
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.w700,
-                                                color: ClaroTheme.slate700,
+                                                color: AppTheme.slate700,
                                               ),
                                             ),
                                           ),

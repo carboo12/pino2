@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
@@ -116,7 +116,7 @@ class PulsingDot extends StatefulWidget {
 
   const PulsingDot({
     super.key,
-    this.color = ClaroTheme.primary,
+    this.color = AppTheme.primary,
     this.size = 10,
   });
 
@@ -261,10 +261,10 @@ class PremiumEmptyState extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: const BoxDecoration(
-                color: ClaroTheme.slate100,
+                color: AppTheme.slate100,
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 36, color: ClaroTheme.slate400),
+              child: Icon(icon, size: 36, color: AppTheme.slate400),
             ),
             const SizedBox(height: 24),
             Text(
@@ -273,7 +273,7 @@ class PremiumEmptyState extends StatelessWidget {
                 fontFamily: 'Inter',
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: ClaroTheme.slate800,
+                color: AppTheme.slate800,
               ),
               textAlign: TextAlign.center,
             ),
@@ -283,7 +283,7 @@ class PremiumEmptyState extends StatelessWidget {
               style: const TextStyle(
                 fontFamily: 'Inter',
                 fontSize: 14,
-                color: ClaroTheme.slate500,
+                color: AppTheme.slate500,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -356,7 +356,7 @@ class AppImage extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: ClaroTheme.primary,
+                  color: AppTheme.primary,
                 ),
               ),
             ),
@@ -380,10 +380,10 @@ class AppImage extends StatelessWidget {
         Container(
           width: width,
           height: height,
-          color: ClaroTheme.slate100,
+          color: AppTheme.slate100,
           child: const Icon(
             Icons.broken_image_outlined,
-            color: ClaroTheme.slate400,
+            color: AppTheme.slate400,
             size: 24,
           ),
         );

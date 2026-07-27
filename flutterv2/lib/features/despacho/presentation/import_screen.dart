@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -58,7 +58,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al seleccionar archivo: $e'),
-            backgroundColor: ClaroTheme.error,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -99,7 +99,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Importación exitosa'),
-            backgroundColor: ClaroTheme.success,
+            backgroundColor: AppTheme.success,
           ),
         );
       }
@@ -119,20 +119,20 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
     final tipo = _tabCtrl.index == 0 ? 'censo' : 'catalogo';
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: const Text('Importar Excel'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: ClaroTheme.slate800),
+          icon: const Icon(Icons.menu_rounded, color: AppTheme.slate800),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
         bottom: TabBar(
           controller: _tabCtrl,
-          indicatorColor: ClaroTheme.primary,
-          labelColor: ClaroTheme.primary,
-          unselectedLabelColor: ClaroTheme.slate500,
+          indicatorColor: AppTheme.primary,
+          labelColor: AppTheme.primary,
+          unselectedLabelColor: AppTheme.slate500,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontFamily: 'Inter'),
           tabs: const [
             Tab(text: 'Censo de Familias'),
@@ -151,15 +151,15 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: ClaroTheme.slate200),
-                boxShadow: ClaroTheme.cardShadow,
+                border: Border.all(color: AppTheme.slate200),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.file_present_rounded, color: ClaroTheme.primary, size: 22),
+                      const Icon(Icons.file_present_rounded, color: AppTheme.primary, size: 22),
                       const SizedBox(width: 8),
                       Text(
                         'Archivo de Importación (${tipo.toUpperCase()})',
@@ -167,7 +167,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                           fontFamily: 'Inter',
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: ClaroTheme.slate900,
+                          color: AppTheme.slate900,
                         ),
                       ),
                     ],
@@ -180,10 +180,10 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: ClaroTheme.slate50,
+                        color: AppTheme.slate50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _selectedFile != null ? ClaroTheme.success : ClaroTheme.slate300,
+                          color: _selectedFile != null ? AppTheme.success : AppTheme.slate300,
                           style: BorderStyle.solid,
                           width: 1.5,
                         ),
@@ -193,7 +193,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                           Icon(
                             Icons.upload_file_rounded,
                             size: 44,
-                            color: _selectedFile != null ? ClaroTheme.success : ClaroTheme.slate400,
+                            color: _selectedFile != null ? AppTheme.success : AppTheme.slate400,
                           ),
                           const SizedBox(height: 12),
                           if (_selectedFile == null) ...[
@@ -203,7 +203,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                                 fontFamily: 'Inter',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: ClaroTheme.slate800,
+                                color: AppTheme.slate800,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -214,7 +214,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                               style: const TextStyle(
                                 fontFamily: 'Inter',
                                 fontSize: 11,
-                                color: ClaroTheme.slate400,
+                                color: AppTheme.slate400,
                               ),
                             ),
                           ] else ...[
@@ -224,7 +224,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                                 fontFamily: 'Inter',
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: ClaroTheme.slate800,
+                                color: AppTheme.slate800,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -234,7 +234,7 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                               icon: const Icon(Icons.delete_outline_rounded, size: 16),
                               label: const Text('Quitar archivo'),
                               style: TextButton.styleFrom(
-                                foregroundColor: ClaroTheme.error,
+                                foregroundColor: AppTheme.error,
                                 padding: EdgeInsets.zero,
                               ),
                             ),
@@ -276,9 +276,9 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: ClaroTheme.successLight,
+                  color: AppTheme.successLight,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: ClaroTheme.success.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppTheme.success.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,23 +289,23 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                         fontFamily: 'Inter',
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: ClaroTheme.success,
+                        color: AppTheme.success,
                       ),
                     ),
                     const SizedBox(height: 8),
                     if (tipo == 'censo') ...[
                       Text(
                         'Colaboradores procesados: ${_result!['colaboradores'] ?? '-'}',
-                        style: const TextStyle(fontSize: 13, color: ClaroTheme.success),
+                        style: const TextStyle(fontSize: 13, color: AppTheme.success),
                       ),
                       Text(
                         'Hijos registrados: ${_result!['hijos'] ?? '-'}',
-                        style: const TextStyle(fontSize: 13, color: ClaroTheme.success),
+                        style: const TextStyle(fontSize: 13, color: AppTheme.success),
                       ),
                     ] else ...[
                       Text(
                         'Juguetes importados: ${_result!['juguetes'] ?? '-'}',
-                        style: const TextStyle(fontSize: 13, color: ClaroTheme.success),
+                        style: const TextStyle(fontSize: 13, color: AppTheme.success),
                       ),
                     ],
                   ],
@@ -317,9 +317,9 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: ClaroTheme.errorLight,
+                  color: AppTheme.errorLight,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: ClaroTheme.error.withValues(alpha: 0.3)),
+                  border: Border.all(color: AppTheme.error.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,13 +330,13 @@ class _ImportScreenState extends State<ImportScreen> with SingleTickerProviderSt
                         fontFamily: 'Inter',
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: ClaroTheme.error,
+                        color: AppTheme.error,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _error!,
-                      style: const TextStyle(fontSize: 13, color: ClaroTheme.error),
+                      style: const TextStyle(fontSize: 13, color: AppTheme.error),
                     ),
                   ],
                 ),

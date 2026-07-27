@@ -87,7 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(
-        child: CircularProgressIndicator(color: ClaroTheme.primary),
+        child: CircularProgressIndicator(color: AppTheme.primary),
       ),
     );
 
@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ctrl.error ?? 'Colaborador no encontrado'),
-            backgroundColor: ClaroTheme.error,
+            backgroundColor: AppTheme.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -121,7 +121,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final totalKids = despacho.kpis?['TotalNinos'] ?? 0;
     final deliveredKids = despacho.kpis?['Entregados'] ?? 0;
-    final pendingKids = despacho.kpis?['Pendientes'] ?? 0;
     final totalAdultos = despacho.censoItems.fold(
       0,
       (s, r) => s + r.totalAdultos,
@@ -129,9 +128,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final despacharKids = totalKids - deliveredKids;
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       body: RefreshIndicator(
-        color: ClaroTheme.primary,
+        color: AppTheme.primary,
         onRefresh: () async {
           _loadData();
         },
@@ -143,7 +142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               expandedHeight: 140,
               floating: false,
               pinned: true,
-              backgroundColor: ClaroTheme.slate900,
+              backgroundColor: AppTheme.slate900,
               leading: IconButton(
                 icon: const Icon(Icons.menu_rounded, color: Colors.white),
                 onPressed: () => Scaffold.of(context).openDrawer(),
@@ -184,7 +183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 background: Container(
                   decoration: const BoxDecoration(
-                    gradient: ClaroTheme.heroGradient,
+                    gradient: AppTheme.heroGradient,
                   ),
                   child: Align(
                     alignment: Alignment.centerLeft,
@@ -223,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             onPressed: () => Navigator.pop(ctx, true),
                             child: const Text(
                               'Cerrar Sesión',
-                              style: TextStyle(color: ClaroTheme.error),
+                              style: TextStyle(color: AppTheme.error),
                             ),
                           ),
                         ],
@@ -298,13 +297,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         hintText: 'Buscar carnet, colaborador o hijo...',
                         prefixIcon: const Icon(
                           Icons.search,
-                          color: ClaroTheme.slate400,
+                          color: AppTheme.slate400,
                         ),
                         suffixIcon: _searchCtrl.text.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(
                                   Icons.clear,
-                                  color: ClaroTheme.slate400,
+                                  color: AppTheme.slate400,
                                 ),
                                 onPressed: () {
                                   _searchCtrl.clear();
@@ -338,7 +337,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (despacho.loadingCenso)
               const SliverFillRemaining(
                 child: Center(
-                  child: CircularProgressIndicator(color: ClaroTheme.primary),
+                  child: CircularProgressIndicator(color: AppTheme.primary),
                 ),
               )
             else if (despacho.censoItems.isEmpty)
@@ -366,11 +365,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: fullyDelivered
-                              ? ClaroTheme.success.withValues(alpha: 0.3)
-                              : ClaroTheme.slate200,
+                              ? AppTheme.success.withValues(alpha: 0.3)
+                              : AppTheme.slate200,
                           width: 1.5,
                         ),
-                        boxShadow: ClaroTheme.cardShadow,
+                        boxShadow: AppTheme.cardShadow,
                       ),
                       child: InkWell(
                         onTap: () => _navegarAFicha(item.carnet),
@@ -388,7 +387,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       fontFamily: 'Inter',
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: ClaroTheme.primary,
+                                      color: AppTheme.primary,
                                     ),
                                   ),
                                   const Spacer(),
@@ -400,7 +399,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         vertical: 3,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: ClaroTheme.successLight,
+                                        color: AppTheme.successLight,
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: const Row(
@@ -408,7 +407,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         children: [
                                           Icon(
                                             Icons.check_circle_rounded,
-                                            color: ClaroTheme.success,
+                                            color: AppTheme.success,
                                             size: 12,
                                           ),
                                           SizedBox(width: 4),
@@ -418,7 +417,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               fontFamily: 'Inter',
                                               fontSize: 10,
                                               fontWeight: FontWeight.w700,
-                                              color: ClaroTheme.success,
+                                              color: AppTheme.success,
                                             ),
                                           ),
                                         ],
@@ -430,7 +429,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       style: TextStyle(
                                         fontFamily: 'Inter',
                                         fontSize: 11,
-                                        color: ClaroTheme.slate400,
+                                        color: AppTheme.slate400,
                                       ),
                                     ),
                                 ],
@@ -442,7 +441,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   fontFamily: 'Inter',
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
-                                  color: ClaroTheme.slate900,
+                                  color: AppTheme.slate900,
                                 ),
                               ),
                               if (item.gerencia != null &&
@@ -453,14 +452,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   style: const TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 12,
-                                    color: ClaroTheme.slate500,
+                                    color: AppTheme.slate500,
                                   ),
                                 ),
                               ],
                               const SizedBox(height: 12),
                               const Divider(
                                 height: 1,
-                                color: ClaroTheme.slate100,
+                                color: AppTheme.slate100,
                               ),
                               const SizedBox(height: 12),
                               Row(
@@ -471,7 +470,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     children: [
                                       const Icon(
                                         Icons.child_care_rounded,
-                                        color: ClaroTheme.slate400,
+                                        color: AppTheme.slate400,
                                         size: 16,
                                       ),
                                       const SizedBox(width: 6),
@@ -480,7 +479,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         style: const TextStyle(
                                           fontFamily: 'Inter',
                                           fontSize: 13,
-                                          color: ClaroTheme.slate700,
+                                          color: AppTheme.slate700,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -490,7 +489,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     children: [
                                       const Icon(
                                         Icons.card_giftcard_rounded,
-                                        color: ClaroTheme.slate400,
+                                        color: AppTheme.slate400,
                                         size: 16,
                                       ),
                                       const SizedBox(width: 6),
@@ -501,8 +500,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                           color: fullyDelivered
-                                              ? ClaroTheme.success
-                                              : ClaroTheme.slate700,
+                                              ? AppTheme.success
+                                              : AppTheme.slate700,
                                         ),
                                       ),
                                     ],
@@ -534,7 +533,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
-                          color: ClaroTheme.slate500,
+                          color: AppTheme.slate500,
                         ),
                       ),
                       Row(
@@ -555,7 +554,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: const BorderSide(
-                                  color: ClaroTheme.slate200,
+                                  color: AppTheme.slate200,
                                 ),
                               ),
                             ),
@@ -577,7 +576,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 side: const BorderSide(
-                                  color: ClaroTheme.slate200,
+                                  color: AppTheme.slate200,
                                 ),
                               ),
                             ),
@@ -652,13 +651,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       label: Text(label),
       selected: active,
       onSelected: (_) => _setFiltro(estado),
-      selectedColor: ClaroTheme.primary,
-      backgroundColor: ClaroTheme.slate100,
+      selectedColor: AppTheme.primary,
+      backgroundColor: AppTheme.slate100,
       labelStyle: TextStyle(
         fontFamily: 'Inter',
         fontSize: 12,
         fontWeight: FontWeight.w700,
-        color: active ? Colors.white : ClaroTheme.slate600,
+        color: active ? Colors.white : AppTheme.slate600,
       ),
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -31,18 +31,18 @@ class ChildCard extends StatelessWidget {
     final String statusLabel;
 
     if (hijo.entregado) {
-      statusColor = ClaroTheme.success;
-      statusBg = ClaroTheme.successLight;
+      statusColor = AppTheme.success;
+      statusBg = AppTheme.successLight;
       statusIcon = Icons.check_circle_rounded;
       statusLabel = 'Entregado';
     } else if (hijo.reversado) {
-      statusColor = ClaroTheme.warning;
-      statusBg = ClaroTheme.warningLight;
+      statusColor = AppTheme.warning;
+      statusBg = AppTheme.warningLight;
       statusIcon = Icons.replay_rounded;
       statusLabel = 'Reversado';
     } else {
-      statusColor = ClaroTheme.slate500;
-      statusBg = ClaroTheme.slate50;
+      statusColor = AppTheme.slate500;
+      statusBg = AppTheme.slate50;
       statusIcon = Icons.schedule_rounded;
       statusLabel = 'Pendiente';
     }
@@ -58,13 +58,13 @@ class ChildCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: hijo.entregado
-              ? ClaroTheme.success.withValues(alpha: 0.3)
+              ? AppTheme.success.withValues(alpha: 0.3)
               : hijo.reversado
-                  ? ClaroTheme.warning.withValues(alpha: 0.3)
-                  : ClaroTheme.slate200,
+                  ? AppTheme.warning.withValues(alpha: 0.3)
+                  : AppTheme.slate200,
           width: 1.5,
         ),
-        boxShadow: ClaroTheme.cardShadow,
+        boxShadow: AppTheme.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,7 +101,7 @@ class ChildCard extends StatelessWidget {
                           fontFamily: 'Inter',
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: ClaroTheme.slate900,
+                          color: AppTheme.slate900,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -110,7 +110,7 @@ class ChildCard extends StatelessWidget {
                         style: const TextStyle(
                           fontFamily: 'Inter',
                           fontSize: 12,
-                          color: ClaroTheme.slate500,
+                          color: AppTheme.slate500,
                         ),
                       ),
                     ],
@@ -164,7 +164,7 @@ class ChildCard extends StatelessWidget {
                          height: 32,
                          decoration: BoxDecoration(
                            borderRadius: BorderRadius.circular(6),
-                           border: Border.all(color: ClaroTheme.slate200),
+                           border: Border.all(color: AppTheme.slate200),
                          ),
                          child: AppImage(
                            url: hijo.jugueteSugerido!.fotoUrl,
@@ -173,11 +173,11 @@ class ChildCard extends StatelessWidget {
                            borderRadius: 5,
                            fit: BoxFit.cover,
                            errorWidget: Container(
-                             color: ClaroTheme.slate50,
+                             color: AppTheme.slate50,
                              child: const Icon(
                                Icons.card_giftcard_rounded,
                                size: 16,
-                               color: ClaroTheme.primary,
+                               color: AppTheme.primary,
                              ),
                            ),
                          ),
@@ -191,7 +191,7 @@ class ChildCard extends StatelessWidget {
                             fontFamily: 'Inter',
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
-                            color: ClaroTheme.slate800,
+                            color: AppTheme.slate800,
                           ),
                         ),
                       ),
@@ -200,10 +200,10 @@ class ChildCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: hijo.jugueteSugerido!.stockActual > 5
-                              ? ClaroTheme.successLight
+                              ? AppTheme.successLight
                               : hijo.jugueteSugerido!.stockActual > 0
-                                  ? ClaroTheme.warningLight
-                                  : ClaroTheme.errorLight,
+                                  ? AppTheme.warningLight
+                                  : AppTheme.errorLight,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -213,10 +213,10 @@ class ChildCard extends StatelessWidget {
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: hijo.jugueteSugerido!.stockActual > 5
-                                ? ClaroTheme.success
+                                ? AppTheme.success
                                 : hijo.jugueteSugerido!.stockActual > 0
-                                    ? ClaroTheme.warning
-                                    : ClaroTheme.error,
+                                    ? AppTheme.warning
+                                    : AppTheme.error,
                           ),
                         ),
                       ),
@@ -247,7 +247,7 @@ class ChildCard extends StatelessWidget {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: ClaroTheme.slate200),
+                          border: Border.all(color: AppTheme.slate200),
                         ),
                         child: Stack(
                           children: [
@@ -259,14 +259,14 @@ class ChildCard extends StatelessWidget {
                                 height: 140,
                                 fit: BoxFit.cover,
                                 errorWidget: Container(
-                                  color: ClaroTheme.slate50,
+                                  color: AppTheme.slate50,
                                   child: const Center(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.image_not_supported_rounded, color: ClaroTheme.slate400, size: 28),
+                                        Icon(Icons.image_not_supported_rounded, color: AppTheme.slate400, size: 28),
                                         SizedBox(height: 4),
-                                        Text('Foto no disponible', style: TextStyle(fontSize: 11, color: ClaroTheme.slate400)),
+                                        Text('Foto no disponible', style: TextStyle(fontSize: 11, color: AppTheme.slate400)),
                                       ],
                                     ),
                                   ),
@@ -325,8 +325,8 @@ class ChildCard extends StatelessWidget {
                             icon: const Icon(Icons.replay_rounded, size: 16),
                             label: const Text('Reversar', style: TextStyle(fontSize: 11)),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: ClaroTheme.warning,
-                              side: const BorderSide(color: ClaroTheme.warning),
+                              foregroundColor: AppTheme.warning,
+                              side: const BorderSide(color: AppTheme.warning),
                               minimumSize: const Size(0, 40),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
@@ -344,10 +344,10 @@ class ChildCard extends StatelessWidget {
                       asistenciaRegistrada ? 'Entregar Juguete' : 'Requiere Asistencia',
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ClaroTheme.primary,
+                      backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: ClaroTheme.slate200,
-                      disabledForegroundColor: ClaroTheme.slate400,
+                      disabledBackgroundColor: AppTheme.slate200,
+                      disabledForegroundColor: AppTheme.slate400,
                       minimumSize: const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -365,14 +365,14 @@ class ChildCard extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: ClaroTheme.slate400),
+        Icon(icon, size: 14, color: AppTheme.slate400),
         const SizedBox(width: 6),
         Text(
           text,
           style: const TextStyle(
             fontFamily: 'Inter',
             fontSize: 12,
-            color: ClaroTheme.slate500,
+            color: AppTheme.slate500,
           ),
         ),
       ],

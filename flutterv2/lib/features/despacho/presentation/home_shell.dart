@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -50,7 +50,7 @@ class _HomeShellState extends State<HomeShell> {
             // Header
             DrawerHeader(
               decoration: const BoxDecoration(
-                gradient: ClaroTheme.heroGradient,
+                gradient: AppTheme.heroGradient,
               ),
               child: Align(
                 alignment: Alignment.bottomLeft,
@@ -115,75 +115,75 @@ class _HomeShellState extends State<HomeShell> {
               leading: const Icon(Icons.dashboard_rounded),
               title: const Text('Dashboard'),
               selected: _selectedIndex == 0,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(0),
             ),
             ListTile(
               leading: const Icon(Icons.how_to_reg_rounded),
               title: const Text('Registro Asistencia'),
               selected: _selectedIndex == 1,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(1),
             ),
             ListTile(
               leading: const Icon(Icons.card_giftcard_rounded),
               title: const Text('Despacho'),
               selected: _selectedIndex == 2,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(2),
             ),
             ListTile(
               leading: const Icon(Icons.inventory_2_rounded),
               title: const Text('Catálogo'),
               selected: _selectedIndex == 3,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(3),
             ),
             ListTile(
               leading: const Icon(Icons.history_rounded),
               title: const Text('Historial'),
               selected: _selectedIndex == 4,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(4),
             ),
             ListTile(
               leading: const Icon(Icons.upload_file_rounded),
               title: const Text('Importar'),
               selected: _selectedIndex == 5,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(5),
             ),
             ListTile(
               leading: const Icon(Icons.admin_panel_settings_rounded),
               title: const Text('Usuarios'),
               selected: _selectedIndex == 6,
-              selectedColor: ClaroTheme.primary,
-              iconColor: ClaroTheme.slate500,
-              textColor: ClaroTheme.slate700,
+              selectedColor: AppTheme.primary,
+              iconColor: AppTheme.slate500,
+              textColor: AppTheme.slate700,
               onTap: () => _onItemTapped(6),
             ),
 
             const Spacer(),
-            const Divider(height: 1, color: ClaroTheme.slate200),
+            const Divider(height: 1, color: AppTheme.slate200),
 
             // Cerrar Sesión
             ListTile(
-              leading: const Icon(Icons.logout_rounded, color: ClaroTheme.error),
+              leading: const Icon(Icons.logout_rounded, color: AppTheme.error),
               title: const Text(
                 'Cerrar Sesión',
-                style: TextStyle(color: ClaroTheme.error, fontWeight: FontWeight.w600),
+                style: TextStyle(color: AppTheme.error, fontWeight: FontWeight.w600),
               ),
               onTap: () async {
                 final confirm = await showDialog<bool>(
@@ -200,7 +200,7 @@ class _HomeShellState extends State<HomeShell> {
                         onPressed: () => Navigator.pop(ctx, true),
                         child: const Text(
                           'Cerrar Sesión',
-                          style: TextStyle(color: ClaroTheme.error),
+                          style: TextStyle(color: AppTheme.error),
                         ),
                       ),
                     ],

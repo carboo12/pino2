@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 /// ============================================
-/// CLARO DESPACHO THEME - Corporativo Premium
+/// PINO MOBILE THEME - Corporativo Premium
 /// ============================================
 /// Diseño premium corporativo con Rojo Claro (#DA291C) como acento.
 /// Paleta: Rojo, Blanco, Gris (Slate), Negro.
 /// PROHIBIDO: Azul, Índigo, Celeste o variantes.
 
-class ClaroTheme {
-  ClaroTheme._();
+class AppTheme {
+  AppTheme._();
 
   // =============================================
   // PALETA DE COLORES - ROJO CLARO CORPORATIVO
@@ -417,19 +417,19 @@ class ClaroTheme {
 // EXTENSIONES ÚTILES
 // =============================================
 
-extension ClaroContext on BuildContext {
+extension AppContext on BuildContext {
   ThemeData get theme => Theme.of(this);
   TextTheme get textTheme => Theme.of(this).textTheme;
   ColorScheme get colors => Theme.of(this).colorScheme;
 
-  Color get primaryColor => ClaroTheme.primary;
+  Color get primaryColor => AppTheme.primary;
   Color get surfaceColor => Colors.white;
-  Color get backgroundColor => ClaroTheme.slate50;
+  Color get backgroundColor => AppTheme.slate50;
 
-  Color get successColor => ClaroTheme.success;
-  Color get warningColor => ClaroTheme.warning;
-  Color get errorColor => ClaroTheme.error;
-  Color get infoColor => ClaroTheme.info;
+  Color get successColor => AppTheme.success;
+  Color get warningColor => AppTheme.warning;
+  Color get errorColor => AppTheme.error;
+  Color get infoColor => AppTheme.info;
 }
 
 // =============================================

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -71,13 +71,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final despacho = context.watch<DespachoController>();
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: const Text('Historial de Movimientos'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: ClaroTheme.slate800),
+          icon: const Icon(Icons.menu_rounded, color: AppTheme.slate800),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
@@ -92,8 +92,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: ClaroTheme.slate200),
-                boxShadow: ClaroTheme.cardShadow,
+                border: Border.all(color: AppTheme.slate200),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Row(
                 children: [
@@ -114,7 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   if (_searchCtrl.text.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.clear, color: ClaroTheme.slate400),
+                      icon: const Icon(Icons.clear, color: AppTheme.slate400),
                       onPressed: () {
                         _searchCtrl.clear();
                         _buscar();
@@ -148,7 +148,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     fontFamily: 'Inter',
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: ClaroTheme.slate700,
+                    color: AppTheme.slate700,
                   ),
                 ),
                 Text(
@@ -157,7 +157,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     fontFamily: 'Inter',
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: ClaroTheme.primary,
+                    color: AppTheme.primary,
                   ),
                 ),
               ],
@@ -168,11 +168,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // Listado
           Expanded(
             child: RefreshIndicator(
-              color: ClaroTheme.primary,
+              color: AppTheme.primary,
               onRefresh: () async => _loadData(),
               child: despacho.loadingHistorial
                   ? const Center(
-                      child: CircularProgressIndicator(color: ClaroTheme.primary),
+                      child: CircularProgressIndicator(color: AppTheme.primary),
                     )
                   : despacho.historialItems.isEmpty
                       ? const PremiumEmptyState(
@@ -194,11 +194,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: isReverted
-                                      ? ClaroTheme.warning.withValues(alpha: 0.3)
-                                      : ClaroTheme.slate200,
+                                      ? AppTheme.warning.withValues(alpha: 0.3)
+                                      : AppTheme.slate200,
                                   width: 1.5,
                                 ),
-                                boxShadow: ClaroTheme.cardShadow,
+                                boxShadow: AppTheme.cardShadow,
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
@@ -214,7 +214,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                             fontFamily: 'Inter',
                                             fontSize: 13,
                                             fontWeight: FontWeight.w800,
-                                            color: ClaroTheme.primary,
+                                            color: AppTheme.primary,
                                           ),
                                         ),
                                         const Spacer(),
@@ -225,8 +225,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           ),
                                           decoration: BoxDecoration(
                                             color: isReverted
-                                                ? ClaroTheme.warningLight
-                                                : ClaroTheme.successLight,
+                                                ? AppTheme.warningLight
+                                                : AppTheme.successLight,
                                             borderRadius: BorderRadius.circular(6),
                                           ),
                                           child: Text(
@@ -236,8 +236,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               fontSize: 10,
                                               fontWeight: FontWeight.w700,
                                               color: isReverted
-                                                  ? ClaroTheme.warning
-                                                  : ClaroTheme.success,
+                                                  ? AppTheme.warning
+                                                  : AppTheme.success,
                                             ),
                                           ),
                                         ),
@@ -252,7 +252,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         fontFamily: 'Inter',
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
-                                        color: ClaroTheme.slate900,
+                                        color: AppTheme.slate900,
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -263,7 +263,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         style: const TextStyle(
                                           fontFamily: 'Inter',
                                           fontSize: 13,
-                                          color: ClaroTheme.slate600,
+                                          color: AppTheme.slate600,
                                         ),
                                         children: [
                                           const TextSpan(
@@ -280,7 +280,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                         style: const TextStyle(
                                           fontFamily: 'Inter',
                                           fontSize: 13,
-                                          color: ClaroTheme.slate600,
+                                          color: AppTheme.slate600,
                                         ),
                                         children: [
                                           const TextSpan(
@@ -292,7 +292,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    const Divider(height: 1, color: ClaroTheme.slate100),
+                                    const Divider(height: 1, color: AppTheme.slate100),
                                     const SizedBox(height: 8),
 
                                     // Audit Details
@@ -307,7 +307,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               style: TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontSize: 10,
-                                                color: ClaroTheme.slate400,
+                                                color: AppTheme.slate400,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -316,7 +316,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               style: const TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontSize: 12,
-                                                color: ClaroTheme.slate700,
+                                                color: AppTheme.slate700,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -330,7 +330,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               style: TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontSize: 10,
-                                                color: ClaroTheme.slate400,
+                                                color: AppTheme.slate400,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),
@@ -339,7 +339,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               style: const TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontSize: 11,
-                                                color: ClaroTheme.slate700,
+                                                color: AppTheme.slate700,
                                               ),
                                             ),
                                           ],
@@ -353,9 +353,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                          color: ClaroTheme.slate100,
+                                          color: AppTheme.slate100,
                                           borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color: ClaroTheme.slate200),
+                                          border: Border.all(color: AppTheme.slate200),
                                         ),
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,7 +364,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               children: [
                                                 const Icon(
                                                   Icons.rotate_left_rounded,
-                                                  color: ClaroTheme.warning,
+                                                  color: AppTheme.warning,
                                                   size: 14,
                                                 ),
                                                 const SizedBox(width: 4),
@@ -374,7 +374,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                                     fontFamily: 'Inter',
                                                     fontSize: 11,
                                                     fontWeight: FontWeight.w700,
-                                                    color: ClaroTheme.slate800,
+                                                    color: AppTheme.slate800,
                                                   ),
                                                 ),
                                               ],
@@ -385,7 +385,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                               style: const TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontSize: 11,
-                                                color: ClaroTheme.slate600,
+                                                color: AppTheme.slate600,
                                                 fontStyle: FontStyle.italic,
                                               ),
                                             ),
@@ -414,7 +414,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     style: const TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
-                      color: ClaroTheme.slate500,
+                      color: AppTheme.slate500,
                     ),
                   ),
                   Row(
@@ -427,7 +427,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            side: const BorderSide(color: ClaroTheme.slate200),
+                            side: const BorderSide(color: AppTheme.slate200),
                           ),
                         ),
                       ),
@@ -441,7 +441,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
-                            side: const BorderSide(color: ClaroTheme.slate200),
+                            side: const BorderSide(color: AppTheme.slate200),
                           ),
                         ),
                       ),

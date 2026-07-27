@@ -1,0 +1,456 @@
+================================================================================
+   PLAN DE MIGRACIÓN: FLUTTER (VIEJO) → FLUTTERV2 (NUEVO)
+   Proyecto: Pino Mobile
+   Fecha: 26 de Julio 2026
+================================================================================
+
+CONTEXTO:
+=========
+- flutter/  = Proyecto viejo "Pino Mobile". Usa Riverpod + GoRouter. Login NO
+  funcionaba, múltiples errores. PERO tiene 17 módulos de funcionalidad completa.
+- flutterv2/ = Proyecto nuevo "Claro Despacho". Usa Provider. Login SÍ funciona.
+  Diseño premium limpio. Solo tiene 2 módulos (auth + despacho).
+  
+OBJETIVO:
+=========
+Copiar las funcionalidades útiles del proyecto viejo (flutter) al proyecto nuevo 
+(flutterv2) SIN dañar lo que ya funciona. Además, eliminar toda referencia a 
+"Claro", "Claro Despacho", "Claro Nicaragua" y "Día del Niño" reemplazándolas 
+por "Pino Mobile" o el nombre que corresponda.
+
+
+================================================================================
+                        FASE 0: REBRANDING (PRIORIDAD ALTA)
+================================================================================
+Quitar toda palabra "Claro" y títulos del viejo sistema de despacho.
+
+ARCHIVOS A MODIFICAR EN FLUTTERV2:
+-----------------------------------
+
+0.1) pubspec.yaml
+    - Línea 1: name: claro_despacho → name: pino_mobile
+    - NOTA: Esto cambia TODOS los imports del paquete. Hay que buscar y 
+      reemplazar 'package:claro_despacho/' por 'package:pino_mobile/' en 
+      TODOS los archivos .dart
+
+0.2) lib/core/config/app_config.dart
+    - appName: 'Claro Despacho' → 'Pino Mobile'
+    - Quitar referencia a "Día del Niño 2026" si existe
+    - Quitar activeEventId si no aplica
+
+0.3) lib/app.dart
+    - title: 'Claro Despacho' → 'Pino Mobile'
+    - Texto 'Claro Despacho' en splash → 'Pino Mobile'
+    - Clase AsistenciaApp → PinoApp (o mantener nombre neutro)
+
+0.4) lib/core/theme/app_theme.dart
+    - Clase ClaroTheme → AppTheme (o PinoTheme)
+    - Comentarios que digan "CLARO DESPACHO THEME" → "PINO MOBILE THEME"
+    - Extension ClaroContext → AppContext (o PinoContext)
+    - NOTA CRÍTICA: ClaroTheme se usa en ~20+ archivos. Hay que hacer 
+      find/replace global de "ClaroTheme" → "AppTheme"
+
+0.5) lib/core/network/api_client.dart
+    - Comentario "Cliente HTTP central de Claro Despacho" → "de Pino Mobile"
+    - Claves de storage: 'asistencia_jwt_token' etc. → NO CAMBIAR, son claves
+      internas de storage que no afectan la UI. Solo cambiar comentarios.
+
+0.6) lib/features/auth/presentation/login_screen.dart
+    - Texto 'CLARO DESPACHO' → 'PINO MOBILE' (línea 94)
+    - Texto 'Día del Niño ...' → subtítulo apropiado
+    - Texto 'Claro Nicaragua' → 'Pino Mobile' (línea 272)
+
+0.7) Todos los archivos en features/despacho/ que referencian "ClaroTheme":
+    - presentation/dashboard_screen.dart
+    - presentation/admin_screen.dart
+    - presentation/attendance_screen.dart
+    - presentation/catalog_screen.dart
+    - presentation/detail_screen.dart
+    - presentation/dispatch_screen.dart
+    - presentation/history_screen.dart
+    - presentation/home_shell.dart
+    - presentation/import_screen.dart
+    - presentation/scanner_screen.dart
+    - presentation/despacho_controller.dart
+    - widgets/child_card.dart
+    - widgets/delivery_sheet.dart
+    - widgets/slide_to_confirm.dart
+
+0.8) lib/core/widgets/premium_widgets.dart
+    - Cambiar referencias a ClaroTheme → AppTheme
+
+0.9) test/widget_test.dart
+    - import package:claro_despacho → package:pino_mobile
+
+0.10) Android: android/app/src/main/AndroidManifest.xml
+     - android:label="claro_despacho" → "Pino Mobile"
+
+0.11) iOS: ios/Runner/Info.plist
+     - CFBundleDisplayName → "Pino Mobile"
+
+
+================================================================================
+                FASE 1: PREPARACIÓN DE INFRAESTRUCTURA CORE
+================================================================================
+Adaptar el core de flutterv2 para soportar las funcionalidades del viejo.
+
+1.1) AGREGAR DEPENDENCIAS AL pubspec.yaml DE FLUTTERV2
+     Dependencias que tiene flutter viejo y faltan en flutterv2:
+     
+     [ ] connectivity_plus: ^5.0.2     (para detectar estado de red)
+     [ ] shared_preferences: 2.2.2     (cache local simple)
+     [ ] geolocator: 10.1.0            (GPS para entregas/rutas)
+     [ ] url_launcher: ^6.3.2          (abrir URLs externas)
+     [ ] google_fonts: ^8.1.0          (tipografía - o usar assets locales)
+     [ ] pdf: ^3.10.8                  (generar PDFs de reportes)
+     [ ] share_plus: ^7.2.2            (compartir archivos)
+     [ ] intl (actualizar a ^0.20.2)   (formateo de fechas/moneda)
+     
+     DEPENDENCIAS A NO COPIAR (problemáticas/innecesarias):
+     X flutter_riverpod  → ya usamos Provider, NO mezclar
+     X drift/sqlite3     → base de datos local pesada, evaluar si necesaria
+     X firebase_core     → causaba errores en el viejo
+     X firebase_messaging → causaba errores en el viejo
+     X socket_io_client   → websockets, evaluar después
+     X go_router          → mantener Navigator simple por ahora
+
+1.2) AGREGAR SERVICIO DE CONECTIVIDAD
+     Crear: lib/core/network/connectivity_service.dart
+     Fuente: flutter/lib/core/network/connectivity_service.dart
+     Adaptar: Quitar Riverpod, usar patrón singleton o Provider
+
+1.3) EVALUAR NAVEGACIÓN
+     Actualmente flutterv2 usa Navigator.push directo.
+     Con muchas pantallas conviene go_router.
+     DECISIÓN: Mantener Navigator simple por ahora, migrar a go_router
+     cuando haya más de 10 pantallas activas.
+
+
+================================================================================
+              FASE 2: MIGRAR MÓDULO HOME/DASHBOARD PRINCIPAL
+================================================================================
+El flutter viejo tiene un Home con tiendas asignadas y acciones por rol.
+Flutterv2 tiene un HomeShell con tabs de despacho.
+
+2.1) CREAR: lib/features/home/
+     Estructura nueva basada en el viejo:
+     home/
+     ├── data/
+     │   ├── home_repository.dart        (copiar y adaptar de flutter viejo)
+     │   └── role_actions.dart           (copiar de flutter viejo)
+     ├── domain/
+     │   └── models/
+     │       └── store_summary.dart      (copiar de flutter viejo)
+     ├── presentation/
+     │   └── screens/
+     │       └── home_screen.dart        (adaptar a Provider, quitar Riverpod)
+     └── widgets/
+         ├── action_cards.dart           (copiar de flutter viejo)
+         └── sync_status_banner.dart     (copiar de flutter viejo)
+
+2.2) ADAPTAR home_screen.dart:
+     - Quitar imports de Riverpod
+     - Cambiar FutureProvider por FutureBuilder o Provider
+     - Cambiar ref.watch() por Provider.of() o context.watch()
+     - Usar AppTheme en lugar de AppColors
+     - Conectar con AuthController existente de flutterv2
+
+2.3) INTEGRAR EN NAVEGACIÓN:
+     - Después de login exitoso → ir a HomeScreen (no a ScannerScreen)
+     - HomeScreen es el hub central que lleva a las demás funciones
+
+
+================================================================================
+       FASE 3: MIGRAR MÓDULOS DE NEGOCIO (UNO POR UNO, EN ORDEN)
+================================================================================
+
+PRIORIDAD ALTA (funcionalidad core del negocio):
+-------------------------------------------------
+
+3.1) MÓDULO: PEDIDOS (orders/)
+     Fuente: flutter/lib/features/orders/
+     - data/    → copiar y adaptar repositorio
+     - presentation/ → quick_order_screen.dart → adaptar a Provider
+     
+     Trabajo:
+     [ ] Copiar modelos de datos de pedidos
+     [ ] Copiar quick_order_screen.dart, adaptar de Riverpod a Provider
+     [ ] Conectar con ApiClient de flutterv2 (ya funciona)
+     [ ] Probar crear pedido desde la app
+
+3.2) MÓDULO: ENTREGAS (deliveries/)
+     Fuente: flutter/lib/features/deliveries/
+     - data/
+     - domain/ → models/ → delivery_summary.dart
+     - presentation/ → route_board_screen.dart, delivery_detail_screen.dart
+     
+     Trabajo:
+     [ ] Copiar modelos de DeliverySummary
+     [ ] Copiar pantallas de ruta de entregas
+     [ ] Adaptar a Provider, quitar Riverpod
+     [ ] Probar visualización de entregas
+
+3.3) MÓDULO: COBROS (collections/)
+     Fuente: flutter/lib/features/collections/
+     Trabajo:
+     [ ] Copiar modelos, repositorio y pantalla
+     [ ] Adaptar a Provider
+     [ ] Probar registro de cobros
+
+3.4) MÓDULO: CATÁLOGO (catalog/)
+     Fuente: flutter/lib/features/catalog/
+     Trabajo:
+     [ ] Copiar modelos de productos
+     [ ] Copiar product_catalog_screen.dart
+     [ ] Adaptar a Provider
+     [ ] Probar búsqueda de productos
+
+3.5) MÓDULO: CLIENTES (clients/)
+     Fuente: flutter/lib/features/clients/
+     Trabajo:
+     [ ] Copiar modelos y repositorio
+     [ ] Copiar client_portfolio_screen.dart
+     [ ] Adaptar a Provider
+
+
+PRIORIDAD MEDIA (funcionalidad importante pero no crítica):
+-----------------------------------------------------------
+
+3.6) MÓDULO: DEVOLUCIONES (returns/)
+     Fuente: flutter/lib/features/returns/
+     [ ] Copiar y adaptar returns_screen.dart
+     [ ] Copiar route_returns_screen.dart
+
+3.7) MÓDULO: BODEGA (warehouse/)
+     Fuente: flutter/lib/features/warehouse/
+     [ ] Copiar warehouse_board_screen.dart
+     [ ] Copiar picking_checklist_screen.dart
+     [ ] Copiar carga_camion_screen.dart
+     [ ] Copiar inventory_adjustment_screen.dart
+
+3.8) MÓDULO: INVENTARIO VENDEDOR (vendor_inventory/)
+     Fuente: flutter/lib/features/vendor_inventory/
+     [ ] Copiar y adaptar pantalla
+
+3.9) MÓDULO: GASTOS (expenses/)
+     Fuente: flutter/lib/features/expenses/
+     [ ] Copiar modelos y pantalla expenses_screen.dart
+     [ ] Adaptar a Provider
+
+3.10) MÓDULO: HISTORIAL VENTAS (sales_history/)
+      Fuente: flutter/lib/features/sales_history/
+      [ ] Copiar y adaptar
+
+
+PRIORIDAD BAJA (funcionalidad extra):
+--------------------------------------
+
+3.11) MÓDULO: PREVENTA (preventa/)
+      Fuente: flutter/lib/features/preventa/
+      [ ] Copiar las 5 pantallas (home, route, clients, add_client, order)
+      [ ] Adaptar a Provider
+
+3.12) MÓDULO: CIERRE DIARIO (daily_closing/)
+      Fuente: flutter/lib/features/daily_closing/
+      [ ] Copiar y adaptar
+
+3.13) MÓDULO: PROMOCIONES (promotions/)
+      Fuente: flutter/lib/features/promotions/
+      [ ] Copiar y adaptar
+
+3.14) MÓDULO: JORNADA LABORAL (workday/)
+      Fuente: flutter/lib/features/workday/
+      [ ] 5 pantallas, la más compleja. Dejar para el final.
+
+
+================================================================================
+           FASE 4: MIGRAR UTILIDADES Y SERVICIOS CORE
+================================================================================
+
+4.1) COPIAR core/utils/ (del viejo)
+     [ ] role_utils.dart → utilidades de roles de usuario
+
+4.2) COPIAR core/storage/ (del viejo)
+     [ ] Evaluar si se necesita almacenamiento local extra
+
+4.3) COPIAR core/documents/ (del viejo)
+     [ ] Generación de PDFs para facturas/reportes
+
+4.4) EVALUAR core/realtime/ (del viejo)
+     [ ] Websockets con socket_io - DEJAR PARA DESPUÉS
+     [ ] Solo copiar si se confirma que el backend lo soporta estable
+
+4.5) NO COPIAR core/database/ (del viejo)
+     [ ] Drift/SQLite es pesado y complejo
+     [ ] Flutterv2 funciona sin BD local
+     [ ] Evaluar solo si se necesita modo offline
+
+
+================================================================================
+             FASE 5: WIDGETS COMPARTIDOS Y DISEÑO
+================================================================================
+
+5.1) COPIAR widgets útiles del viejo a flutterv2:
+     [ ] core/widgets/premium_widgets.dart → ya existe en flutterv2, comparar
+     [ ] core/widgets/empty_state.dart → copiar (estado vacío elegante)
+     [ ] core/widgets/field/ → evaluar widgets de formulario
+
+5.2) MANTENER el diseño premium de flutterv2:
+     [ ] NO sobrescribir app_theme.dart de flutterv2
+     [ ] Los nuevos módulos deben usar AppTheme (renombrado de ClaroTheme)
+     [ ] Adaptar colores del viejo (AppColors) al nuevo tema (AppTheme)
+
+5.3) MAPEO DE COLORES (viejo → nuevo):
+     AppColors del viejo → AppTheme del nuevo:
+     - AppColors.primary    → AppTheme.primary (mismo rojo #DA291C)
+     - AppColors.surface    → Colors.white
+     - AppColors.background → AppTheme.slate50
+     - etc.
+
+
+================================================================================
+                  FASE 6: VERIFICACIÓN Y TESTING
+================================================================================
+
+6.1) DESPUÉS DE CADA MÓDULO MIGRADO:
+     [ ] flutter analyze (sin errores)
+     [ ] flutter build apk --debug (compila)
+     [ ] Probar login (que siga funcionando)
+     [ ] Probar navegación al módulo nuevo
+     [ ] Probar funcionalidad básica del módulo
+     [ ] Commit a git con mensaje descriptivo
+
+6.2) TESTING DE REGRESIÓN:
+     [ ] Login funciona
+     [ ] Dashboard de despacho funciona
+     [ ] Scanner funciona
+     [ ] Módulos nuevos abren sin crash
+
+
+================================================================================
+            PATRÓN DE MIGRACIÓN POR MÓDULO (RECETA)
+================================================================================
+
+Para CADA módulo que se migre, seguir estos pasos:
+
+PASO 1: Crear la estructura de carpetas en flutterv2
+       lib/features/{nombre_modulo}/
+       ├── data/         (repositorios, API calls)
+       ├── domain/       (modelos de datos)
+       ├── presentation/ (pantallas, controllers)
+       └── widgets/      (widgets específicos del módulo)
+
+PASO 2: Copiar modelos de datos (domain/)
+       - Son los más seguros, no dependen de estado
+       - Generalmente no tienen imports de Riverpod
+
+PASO 3: Copiar/Adaptar repositorio (data/)
+       - Cambiar ApiClient del viejo por ApiClient de flutterv2
+       - Quitar Riverpod providers
+       - Hacer clase normal o singleton
+
+PASO 4: Crear Controller con Provider (presentation/)
+       - NUEVO archivo: {modulo}_controller.dart
+       - Extender ChangeNotifier (como AuthController)
+       - Mover lógica de los Riverpod providers aquí
+
+PASO 5: Copiar/Adaptar pantalla (presentation/)
+       - Cambiar ConsumerWidget/ConsumerStatefulWidget por StatefulWidget
+       - Cambiar ref.watch() → context.watch<Controller>()
+       - Cambiar ref.read() → context.read<Controller>()
+       - Cambiar AppColors → AppTheme
+       - Cambiar go_router navigation → Navigator.push
+
+PASO 6: Registrar Provider en app.dart
+       - Agregar ChangeNotifierProvider al MultiProvider
+
+PASO 7: Agregar navegación desde HomeScreen
+       - Botón o card que lleve al módulo nuevo
+
+PASO 8: Probar y hacer commit
+
+
+================================================================================
+              RESUMEN DE DIFERENCIAS TÉCNICAS CLAVE
+================================================================================
+
++------------------+-----------------------+-----------------------+
+| Aspecto          | flutter (viejo)       | flutterv2 (nuevo)     |
++------------------+-----------------------+-----------------------+
+| Estado           | Riverpod              | Provider              |
+| Navegación       | GoRouter              | Navigator.push        |
+| HTTP Client      | ApiClient (Dio)       | ApiClient (Dio)       |
+| Auth Storage     | flutter_secure_store  | flutter_secure_store  |
+| Nombre package   | pino_mobile           | claro_despacho→pino   |
+| Tema             | AppTheme/AppColors    | ClaroTheme→AppTheme   |
+| Base de datos    | Drift (SQLite)        | Sin BD local          |
+| Módulos          | 17 features           | 2 features            |
+| Login            | NO funciona           | SÍ funciona           |
+| Diseño           | Bueno                 | Premium               |
+| API Base URL     | rhclaroni.com/api-dev | rhclaroni.com/api-dev |
++------------------+-----------------------+-----------------------+
+
+
+================================================================================
+                     ORDEN DE EJECUCIÓN RECOMENDADO
+================================================================================
+
+  SEMANA 1: FASE 0 (Rebranding) + FASE 1 (Infraestructura)
+  ----------------------------------------------------------
+  Día 1-2: Rebranding completo (quitar "Claro" de todo)
+  Día 3:   Agregar dependencias necesarias al pubspec.yaml
+  Día 4:   Servicio de conectividad
+  Día 5:   Verificar que todo sigue funcionando, commit
+
+  SEMANA 2: FASE 2 (Home) + FASE 3.1-3.2 (Pedidos, Entregas)
+  ------------------------------------------------------------
+  Día 1-2: Home Screen con tiendas asignadas
+  Día 3-4: Módulo de Pedidos
+  Día 5:   Módulo de Entregas
+
+  SEMANA 3: FASE 3.3-3.5 (Cobros, Catálogo, Clientes)
+  -----------------------------------------------------
+  Día 1-2: Cobros
+  Día 3:   Catálogo de productos
+  Día 4-5: Clientes
+
+  SEMANA 4: FASE 3.6-3.10 (Devoluciones, Bodega, etc.)
+  ------------------------------------------------------
+  Completar módulos de prioridad media
+
+  SEMANA 5: FASE 3.11-3.14 + FASE 4-5 (Preventa, Extras)
+  --------------------------------------------------------
+  Módulos de prioridad baja + utilidades + pulido final
+
+  SEMANA 6: FASE 6 (Testing completo)
+  ------------------------------------
+  Testing integral de todos los módulos
+
+
+================================================================================
+               REGLAS DE ORO (NO ROMPER NADA)
+================================================================================
+
+  1. NUNCA modificar auth_controller.dart ni auth_repository.dart de flutterv2
+     a menos que sea para agregar funcionalidad (NO cambiar lo que funciona)
+  
+  2. NUNCA modificar api_client.dart de flutterv2 en su lógica de 
+     autenticación. Solo agregar métodos si se necesitan.
+  
+  3. SIEMPRE hacer commit después de cada módulo migrado exitosamente.
+  
+  4. SIEMPRE probar login después de cada cambio importante.
+  
+  5. Si un módulo del viejo causa errores, SALTARLO y seguir con el siguiente.
+     Se puede regresar después.
+  
+  6. MANTENER el diseño premium de flutterv2. Los módulos nuevos deben 
+     adaptarse al tema existente, no al revés.
+  
+  7. NO copiar Firebase ni Drift a menos que sea estrictamente necesario.
+     El viejo tenía problemas parcialmente por estas dependencias pesadas.
+
+
+================================================================================
+                          FIN DEL PLAN
+================================================================================

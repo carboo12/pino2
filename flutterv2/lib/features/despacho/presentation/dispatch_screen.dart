@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -78,7 +78,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
     final ctrl = context.read<DespachoController>();
     HapticFeedback.mediumImpact();
 
-    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: ClaroTheme.primary)));
+    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: AppTheme.primary)));
     final found = await ctrl.buscarColaborador(carnet);
     if (mounted) {
       Navigator.pop(context);
@@ -87,7 +87,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
         await Navigator.push(context, MaterialPageRoute(builder: (_) => const DetailScreen()));
         _loadData(forceReload: true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ctrl.error ?? 'Colaborador no encontrado'), backgroundColor: ClaroTheme.error, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ctrl.error ?? 'Colaborador no encontrado'), backgroundColor: AppTheme.error, behavior: SnackBarBehavior.floating));
       }
     }
   }
@@ -95,7 +95,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
   void _navegarAFicha(String carnet) async {
     final ctrl = context.read<DespachoController>();
     HapticFeedback.mediumImpact();
-    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: ClaroTheme.primary)));
+    showDialog(context: context, barrierDismissible: false, builder: (_) => const Center(child: CircularProgressIndicator(color: AppTheme.primary)));
     final found = await ctrl.buscarColaborador(carnet);
     if (mounted) {
       Navigator.pop(context);
@@ -103,7 +103,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
         await Navigator.push(context, MaterialPageRoute(builder: (_) => const DetailScreen()));
         _loadData(forceReload: true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ctrl.error ?? 'Error'), backgroundColor: ClaroTheme.error, behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ctrl.error ?? 'Error'), backgroundColor: AppTheme.error, behavior: SnackBarBehavior.floating));
       }
     }
   }
@@ -121,15 +121,15 @@ class _DispatchScreenState extends State<DispatchScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: const Text('Despacho de Juguetes'),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.menu_rounded, color: ClaroTheme.slate800), onPressed: () => Scaffold.of(context).openDrawer()),
+        leading: IconButton(icon: const Icon(Icons.menu_rounded, color: AppTheme.slate800), onPressed: () => Scaffold.of(context).openDrawer()),
       ),
       body: RefreshIndicator(
-        color: ClaroTheme.primary,
+        color: AppTheme.primary,
         onRefresh: () => _loadData(forceReload: true),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -185,12 +185,12 @@ class _DispatchScreenState extends State<DispatchScreen> {
 
   Widget _buildDirectSearchPanel(DespachoController despacho) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: ClaroTheme.cardShadow, border: Border.all(color: ClaroTheme.slate200)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: AppTheme.cardShadow, border: Border.all(color: AppTheme.slate200)),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(children: [Icon(Icons.search_rounded, color: Color(0xFFDA291C), size: 18), SizedBox(width: 6), Text('Búsqueda Rápida por Carnet', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700, fontSize: 14, color: ClaroTheme.slate800))]),
+          const Row(children: [Icon(Icons.search_rounded, color: Color(0xFFDA291C), size: 18), SizedBox(width: 6), Text('Búsqueda Rápida por Carnet', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.slate800))]),
           const SizedBox(height: 12),
           TextField(
             controller: _directSearchCtrl,
@@ -202,7 +202,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
               hintText: 'Ingrese carnet para abrir Ficha Familiar...',
               hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              filled: true, fillColor: ClaroTheme.slate50,
+              filled: true, fillColor: AppTheme.slate50,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5E7EB))),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDA291C), width: 2.0)),
@@ -216,7 +216,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
 
   Widget _buildTabToggleSection() {
     return Container(
-      decoration: BoxDecoration(color: ClaroTheme.slate200, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(color: AppTheme.slate200, borderRadius: BorderRadius.circular(12)),
       padding: const EdgeInsets.all(4),
       child: Row(
         children: [
@@ -241,14 +241,14 @@ class _DispatchScreenState extends State<DispatchScreen> {
         ),
         padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
-        child: Text(label, style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: active ? FontWeight.w700 : FontWeight.w600, color: active ? ClaroTheme.slate900 : ClaroTheme.slate500)),
+        child: Text(label, style: TextStyle(fontFamily: 'Inter', fontSize: 13, fontWeight: active ? FontWeight.w700 : FontWeight.w600, color: active ? AppTheme.slate900 : AppTheme.slate500)),
       ),
     );
   }
 
   Widget _buildListSection(DespachoController despacho, bool isMobile) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: ClaroTheme.slate200), boxShadow: ClaroTheme.cardShadow),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.slate200), boxShadow: AppTheme.cardShadow),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -262,9 +262,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     onChanged: _onFilterChanged,
                     decoration: InputDecoration(
                       hintText: 'Filtrar por carnet o nombre...',
-                      prefixIcon: const Icon(Icons.search_rounded, color: ClaroTheme.slate400, size: 20),
+                      prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.slate400, size: 20),
                       suffixIcon: _listFilterCtrl.text.isNotEmpty
-                          ? IconButton(icon: const Icon(Icons.clear, color: ClaroTheme.slate400), onPressed: () { _listFilterCtrl.clear(); _onFilterChanged(''); })
+                          ? IconButton(icon: const Icon(Icons.clear, color: AppTheme.slate400), onPressed: () { _listFilterCtrl.clear(); _onFilterChanged(''); })
                           : null,
                     ),
                   ),
@@ -274,10 +274,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   SizedBox(
                     height: 48,
                     child: IconButton(
-                      icon: const Icon(Icons.refresh_rounded, color: ClaroTheme.primary),
+                      icon: const Icon(Icons.refresh_rounded, color: AppTheme.primary),
                       onPressed: () => _loadData(forceReload: true),
                       tooltip: 'Refrescar',
-                      style: IconButton.styleFrom(backgroundColor: ClaroTheme.slate50, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                      style: IconButton.styleFrom(backgroundColor: AppTheme.slate50, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
                     ),
                   ),
                 ],
@@ -285,7 +285,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
             ),
           ),
           if (despacho.loadingCenso)
-            const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator(color: ClaroTheme.primary)))
+            const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator(color: AppTheme.primary)))
           else if (despacho.censoItems.isEmpty)
             PremiumEmptyState(
               icon: _selectedTab == 'pendientes' ? Icons.check_circle_outline_rounded : Icons.info_outline_rounded,
@@ -302,7 +302,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 final item = despacho.censoItems[index];
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: ClaroTheme.slate200), boxShadow: ClaroTheme.cardShadow),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppTheme.slate200), boxShadow: AppTheme.cardShadow),
                   child: InkWell(
                     onTap: () => _navegarAFicha(item.carnet),
                     borderRadius: BorderRadius.circular(16),
@@ -316,12 +316,12 @@ class _DispatchScreenState extends State<DispatchScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item.carnet, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w800, color: ClaroTheme.primary)),
+                                Text(item.carnet, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, fontWeight: FontWeight.w800, color: AppTheme.primary)),
                                 const SizedBox(height: 2),
-                                Text(item.nombre, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: ClaroTheme.slate900)),
+                                Text(item.nombre, style: const TextStyle(fontFamily: 'Inter', fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.slate900)),
                                 if (item.gerencia != null && item.gerencia!.isNotEmpty) ...[
                                   const SizedBox(height: 2),
-                                  Text(item.gerencia!, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: ClaroTheme.slate500)),
+                                  Text(item.gerencia!, style: const TextStyle(fontFamily: 'Inter', fontSize: 12, color: AppTheme.slate500)),
                                 ],
                               ],
                             ),
@@ -370,7 +370,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
   Widget _buildAvatarCircle(String nombre) {
     return Container(
       width: 44, height: 44,
-      decoration: const BoxDecoration(color: ClaroTheme.slate100, shape: BoxShape.circle),
+      decoration: const BoxDecoration(color: AppTheme.slate100, shape: BoxShape.circle),
       child: Center(child: Text(nombre.isNotEmpty ? nombre[0].toUpperCase() : '?', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFFDA291C)))),
     );
   }
@@ -378,20 +378,20 @@ class _DispatchScreenState extends State<DispatchScreen> {
   Widget _buildPaginationRow(DespachoController despacho) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(border: Border(top: BorderSide(color: ClaroTheme.slate200))),
+      decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppTheme.slate200))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Pág $_pagina de ${despacho.censoTotalPaginas}\n(${despacho.censoTotal} ${_selectedTab == 'pendientes' ? 'pendientes' : 'completados'})', style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: ClaroTheme.slate500)),
+          Text('Pág $_pagina de ${despacho.censoTotalPaginas}\n(${despacho.censoTotal} ${_selectedTab == 'pendientes' ? 'pendientes' : 'completados'})', style: const TextStyle(fontFamily: 'Inter', fontSize: 11, color: AppTheme.slate500)),
           Row(
             children: [
               IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14), onPressed: _pagina > 1 ? () => _cambiarPagina(-1) : null,
                 style: IconButton.styleFrom(backgroundColor: Colors.white, disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: ClaroTheme.slate200)))),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppTheme.slate200)))),
               const SizedBox(width: 8),
               IconButton(icon: const Icon(Icons.arrow_forward_ios_rounded, size: 14), onPressed: _pagina < despacho.censoTotalPaginas ? () => _cambiarPagina(1) : null,
                 style: IconButton.styleFrom(backgroundColor: Colors.white, disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: ClaroTheme.slate200)))),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: const BorderSide(color: AppTheme.slate200)))),
             ],
           ),
         ],

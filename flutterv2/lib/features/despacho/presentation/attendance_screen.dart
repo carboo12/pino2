@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -117,7 +117,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           setState(() => _ninos = ctrl.lookupResult?.hijos.length ?? 0);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(ctrl.error ?? 'Colaborador no encontrado'), backgroundColor: ClaroTheme.error, behavior: SnackBarBehavior.floating),
+            SnackBar(content: Text(ctrl.error ?? 'Colaborador no encontrado'), backgroundColor: AppTheme.error, behavior: SnackBarBehavior.floating),
           );
         }
       }
@@ -131,7 +131,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(ctrl.error ?? 'No se encontraron colaboradores'),
-              backgroundColor: ClaroTheme.error,
+              backgroundColor: AppTheme.error,
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -186,7 +186,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ctrl.error ?? 'Error al registrar'),
-            backgroundColor: ClaroTheme.error,
+            backgroundColor: AppTheme.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -204,7 +204,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirmar', style: TextStyle(color: ClaroTheme.error)),
+            child: const Text('Confirmar', style: TextStyle(color: AppTheme.error)),
           ),
         ],
       ),
@@ -220,7 +220,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(ctrl.error ?? 'Error al reversar'),
-              backgroundColor: ClaroTheme.error,
+              backgroundColor: AppTheme.error,
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -284,12 +284,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: ClaroTheme.slate800),
+          icon: const Icon(Icons.menu_rounded, color: AppTheme.slate800),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
       body: RefreshIndicator(
-        color: ClaroTheme.primary,
+        color: AppTheme.primary,
         onRefresh: () async {
           await context.read<DespachoController>().cargarKPIs();
           await _loadAllAsistidos();

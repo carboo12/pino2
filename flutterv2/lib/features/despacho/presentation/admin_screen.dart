@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -51,7 +51,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Rol $nuevoRol asignado a $carnet con éxito.'),
-            backgroundColor: ClaroTheme.success,
+            backgroundColor: AppTheme.success,
           ),
         );
         setState(() {
@@ -62,7 +62,7 @@ class _AdminScreenState extends State<AdminScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ctrl.error ?? 'Error al asignar rol.'),
-            backgroundColor: ClaroTheme.error,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -74,13 +74,13 @@ class _AdminScreenState extends State<AdminScreen> {
     final despacho = context.watch<DespachoController>();
 
     return Scaffold(
-      backgroundColor: ClaroTheme.slate50,
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: const Text('Usuarios y Roles'),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: ClaroTheme.slate800),
+          icon: const Icon(Icons.menu_rounded, color: AppTheme.slate800),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
       ),
@@ -95,15 +95,15 @@ class _AdminScreenState extends State<AdminScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: ClaroTheme.slate200),
-                boxShadow: ClaroTheme.cardShadow,
+                border: Border.all(color: AppTheme.slate200),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.search_rounded, color: ClaroTheme.primary, size: 20),
+                      Icon(Icons.search_rounded, color: AppTheme.primary, size: 20),
                       SizedBox(width: 8),
                       Text(
                         'Buscar usuario en Portal Claro',
@@ -111,7 +111,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           fontFamily: 'Inter',
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: ClaroTheme.slate900,
+                          color: AppTheme.slate900,
                         ),
                       ),
                     ],
@@ -157,12 +157,12 @@ class _AdminScreenState extends State<AdminScreen> {
                   // Resultados de búsqueda
                   if (_showSearchResults) ...[
                     const SizedBox(height: 16),
-                    const Divider(height: 1, color: ClaroTheme.slate200),
+                    const Divider(height: 1, color: AppTheme.slate200),
                     const SizedBox(height: 12),
                     if (despacho.usuariosPortal.isEmpty)
                       const Text(
                         'No se encontraron usuarios en el portal.',
-                        style: TextStyle(color: ClaroTheme.slate400, fontStyle: FontStyle.italic),
+                        style: TextStyle(color: AppTheme.slate400, fontStyle: FontStyle.italic),
                       )
                     else
                       ListView.builder(
@@ -189,9 +189,9 @@ class _AdminScreenState extends State<AdminScreen> {
                             margin: const EdgeInsets.only(bottom: 10),
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: ClaroTheme.slate50,
+                              color: AppTheme.slate50,
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: ClaroTheme.slate200),
+                              border: Border.all(color: AppTheme.slate200),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,7 +207,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                             style: const TextStyle(
                                               fontWeight: FontWeight.w700,
                                               fontSize: 14,
-                                              color: ClaroTheme.slate900,
+                                              color: AppTheme.slate900,
                                             ),
                                           ),
                                           const SizedBox(height: 2),
@@ -215,7 +215,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                             '${user.carnet} ${user.gerencia != null ? '· ${user.gerencia}' : ''}',
                                             style: const TextStyle(
                                               fontSize: 12,
-                                              color: ClaroTheme.slate500,
+                                              color: AppTheme.slate500,
                                             ),
                                           ),
                                         ],
@@ -234,7 +234,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                           vertical: 3,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: ClaroTheme.primary.withValues(alpha: 0.1),
+                                          color: AppTheme.primary.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -242,7 +242,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                           style: const TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
-                                            color: ClaroTheme.primary,
+                                            color: AppTheme.primary,
                                           ),
                                         ),
                                       )
@@ -251,7 +251,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                         'Sin acceso al sistema',
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: ClaroTheme.slate400,
+                                          color: AppTheme.slate400,
                                           fontStyle: FontStyle.italic,
                                         ),
                                       ),
@@ -259,7 +259,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       hint: const Text('Asignar Rol', style: TextStyle(fontSize: 12)),
                                       underline: const SizedBox(),
                                       icon: const Icon(Icons.arrow_drop_down_rounded,
-                                          color: ClaroTheme.slate600),
+                                          color: AppTheme.slate600),
                                       items: _roles.map((rol) {
                                         return DropdownMenuItem<String>(
                                           value: rol,
@@ -292,8 +292,8 @@ class _AdminScreenState extends State<AdminScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: ClaroTheme.slate200),
-                boxShadow: ClaroTheme.cardShadow,
+                border: Border.all(color: AppTheme.slate200),
+                boxShadow: AppTheme.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -301,7 +301,7 @@ class _AdminScreenState extends State<AdminScreen> {
                   Row(
                     children: [
                       const Icon(Icons.admin_panel_settings_rounded,
-                          color: ClaroTheme.primary, size: 20),
+                          color: AppTheme.primary, size: 20),
                       const SizedBox(width: 8),
                       Text(
                         'Usuarios del Sistema (${despacho.usuariosSistema.length})',
@@ -309,7 +309,7 @@ class _AdminScreenState extends State<AdminScreen> {
                           fontFamily: 'Inter',
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: ClaroTheme.slate900,
+                          color: AppTheme.slate900,
                         ),
                       ),
                     ],
@@ -319,7 +319,7 @@ class _AdminScreenState extends State<AdminScreen> {
                     const Center(
                       child: Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(color: ClaroTheme.primary),
+                        child: CircularProgressIndicator(color: AppTheme.primary),
                       ),
                     )
                   else if (despacho.usuariosSistema.isEmpty)
@@ -329,7 +329,7 @@ class _AdminScreenState extends State<AdminScreen> {
                         'No hay usuarios registrados en el sistema.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: ClaroTheme.slate400,
+                          color: AppTheme.slate400,
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -339,7 +339,7 @@ class _AdminScreenState extends State<AdminScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: despacho.usuariosSistema.length,
-                      separatorBuilder: (_, _) => const Divider(color: ClaroTheme.slate100),
+                      separatorBuilder: (_, _) => const Divider(color: AppTheme.slate100),
                       itemBuilder: (context, idx) {
                         final u = despacho.usuariosSistema[idx];
 
@@ -360,7 +360,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 14,
-                                            color: ClaroTheme.slate900,
+                                            color: AppTheme.slate900,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -369,7 +369,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                           style: const TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
-                                            color: ClaroTheme.primary,
+                                            color: AppTheme.primary,
                                           ),
                                         ),
                                         if (u.correo != null && u.correo!.isNotEmpty) ...[
@@ -378,7 +378,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                             u.correo!,
                                             style: const TextStyle(
                                               fontSize: 11,
-                                              color: ClaroTheme.slate500,
+                                              color: AppTheme.slate500,
                                             ),
                                           ),
                                         ],
@@ -391,7 +391,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: u.activo ? ClaroTheme.successLight : ClaroTheme.errorLight,
+                                      color: u.activo ? AppTheme.successLight : AppTheme.errorLight,
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(
@@ -399,7 +399,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w700,
-                                        color: u.activo ? ClaroTheme.success : ClaroTheme.error,
+                                        color: u.activo ? AppTheme.success : AppTheme.error,
                                       ),
                                     ),
                                   ),
@@ -415,16 +415,16 @@ class _AdminScreenState extends State<AdminScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: ClaroTheme.slate100,
+                                      color: AppTheme.slate100,
                                       borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: ClaroTheme.slate200),
+                                      border: Border.all(color: AppTheme.slate200),
                                     ),
                                     child: Text(
                                       u.rol.toUpperCase(),
                                       style: const TextStyle(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w800,
-                                        color: ClaroTheme.slate700,
+                                        color: AppTheme.slate700,
                                       ),
                                     ),
                                   ),
@@ -432,7 +432,7 @@ class _AdminScreenState extends State<AdminScreen> {
                                     value: u.rol,
                                     underline: const SizedBox(),
                                     icon: const Icon(Icons.arrow_drop_down_rounded,
-                                        color: ClaroTheme.slate600),
+                                        color: AppTheme.slate600),
                                     items: _roles.map((rol) {
                                       return DropdownMenuItem<String>(
                                         value: rol,

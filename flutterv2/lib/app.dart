@@ -7,8 +7,8 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/despacho/presentation/despacho_controller.dart';
 import 'features/despacho/presentation/home_shell.dart';
 
-class AsistenciaApp extends StatelessWidget {
-  const AsistenciaApp({super.key});
+class PinoApp extends StatelessWidget {
+  const PinoApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +18,9 @@ class AsistenciaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DespachoController()),
       ],
       child: MaterialApp(
-        title: 'Claro Despacho',
+        title: 'Pino Mobile',
         debugShowCheckedModeBanner: false,
-        theme: ClaroTheme.theme,
+        theme: AppTheme.theme,
         home: const _AppRoot(),
       ),
     );
@@ -38,7 +38,7 @@ class _AppRoot extends StatelessWidget {
     // Splash / Loading
     if (!auth.initialized || auth.loading) {
       return Scaffold(
-        backgroundColor: ClaroTheme.slate50,
+        backgroundColor: AppTheme.slate50,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -47,7 +47,7 @@ class _AppRoot extends StatelessWidget {
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  gradient: ClaroTheme.heroGradient,
+                  gradient: AppTheme.heroGradient,
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: const Icon(
@@ -62,17 +62,17 @@ class _AppRoot extends StatelessWidget {
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: ClaroTheme.primary,
+                  color: AppTheme.primary,
                 ),
               ),
               const SizedBox(height: 16),
               const Text(
-                'Claro Despacho',
+                'Pino Mobile',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: ClaroTheme.slate900,
+                  color: AppTheme.slate900,
                 ),
               ),
               const SizedBox(height: 4),
@@ -81,7 +81,7 @@ class _AppRoot extends StatelessWidget {
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 13,
-                  color: ClaroTheme.slate400,
+                  color: AppTheme.slate400,
                 ),
               ),
             ],
