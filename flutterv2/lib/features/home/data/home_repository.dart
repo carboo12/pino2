@@ -29,11 +29,15 @@ class HomeRepository {
       debugPrint('[HomeRepository] Error al obtener tiendas asignadas: $e');
     }
 
-    // Fallback garantizado a la tienda principal si el backend no devuelve lista de tiendas
+    // Fallback garantizado si la llamada offline falla
     return const [
       StoreSummary(
         id: '9321856d-19ba-42b8-ba47-cf35c0d133dd',
-        name: 'Tienda Principal',
+        name: 'Supermercado Los Pinos',
+      ),
+      StoreSummary(
+        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        name: 'Distribuidora Los Pinos',
       ),
     ];
   }
