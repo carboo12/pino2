@@ -32,6 +32,13 @@ export class SalesController {
   }
 
   @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')
+  @Get('dashboard-stats')
+  @ApiOperation({ summary: 'Obtener estadísticas de ventas para el dashboard' })
+  getDashboardStats(@Query('storeId') storeId: string) {
+    return this.service.getDashboardStats(storeId);
+  }
+
+  @Roles('admin', 'auxiliar', 'inventory', 'gestor', 'rutero', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({
     summary: 'Listar ventas (Filtrable por tienda, turno, vendedor y fecha)',

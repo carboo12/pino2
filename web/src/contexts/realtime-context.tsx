@@ -39,6 +39,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     socket.on('connect', () => setConnected(true));
     socket.on('disconnect', () => setConnected(false));
+    socket.on('connect_error', (err) => {
+      console.warn('Realtime Socket warning:', err?.message || err);
+      setConnected(false);
+    });
     socket.on('sync_update', (data: any) => setLastEvent(data));
     socket.on('store_update', (data: any) => setLastEvent(data));
 
