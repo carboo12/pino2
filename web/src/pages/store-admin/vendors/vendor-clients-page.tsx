@@ -50,14 +50,18 @@ import { exportToExcel } from '@/lib/export-excel';
 interface Client {
   id: string;
   name: string;
+  idCard?: string;
   phone?: string;
   address?: string;
   vendorId?: string;
   zoneId?: string;
   isCreditClient?: boolean;
   limiteCredito?: number;
+  creditLimit?: number;
   diasCredito?: number;
+  creditDays?: number;
   saldoPendiente?: number;
+  currentBalance?: number;
   frecuenciaVisita?: string;
   diaVisita?: string;
   notasEntrega?: string;
