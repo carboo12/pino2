@@ -103,9 +103,11 @@ List<RoleAction> actionsForRole(AppRole role) {
       ];
     case AppRole.unknown:
       return const [
-        RoleAction(title: 'Catálogo', subtitle: 'Ver productos y precios.', icon: Icons.inventory_2_rounded, routeKey: RouteKey.catalog),
-        RoleAction(title: 'Clientes', subtitle: 'Consultar datos.', icon: Icons.people_alt_rounded, routeKey: RouteKey.clients),
-        RoleAction(title: 'Entregas', subtitle: 'Vista de operación.', icon: Icons.lock_open_rounded, routeKey: RouteKey.routeBoard),
+        RoleAction(title: 'Preventa', subtitle: 'Capturar pedido de cliente.', icon: Icons.flash_on_rounded, routeKey: RouteKey.quickOrder),
+        RoleAction(title: 'Clientes', subtitle: 'Buscar contactos y cartera.', icon: Icons.people_alt_rounded, routeKey: RouteKey.clients),
+        RoleAction(title: 'Catálogo', subtitle: 'Ver productos, stock y bultos.', icon: Icons.inventory_2_rounded, routeKey: RouteKey.catalog),
+        RoleAction(title: 'Cobros', subtitle: 'Pagos y cuentas por cobrar.', icon: Icons.payments_rounded, routeKey: RouteKey.collections),
+        RoleAction(title: 'Entregas', subtitle: 'Vista de operación y rutas.', icon: Icons.route_rounded, routeKey: RouteKey.routeBoard),
       ];
   }
 }

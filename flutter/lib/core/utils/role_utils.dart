@@ -23,15 +23,22 @@ String _normalizeRawRole(String? value) {
 }
 
 AppRole normalizeRole(String? value) {
-  switch (_normalizeRawRole(value)) {
+  final normalized = _normalizeRawRole(value);
+  switch (normalized) {
     case 'master-admin':
     case 'masteradmin':
+    case 'super-admin':
+    case 'superadmin':
+    case 'chain-admin':
+    case 'chainadmin':
       return AppRole.masterAdmin;
     case 'owner':
+    case 'propietario':
       return AppRole.owner;
     case 'store-admin':
     case 'store-administrator':
     case 'admin':
+    case 'administrador':
       return AppRole.storeAdmin;
     case 'cashier':
     case 'cajero':
@@ -43,16 +50,21 @@ AppRole normalizeRole(String? value) {
       return AppRole.inventory;
     case 'dispatcher':
     case 'despacho':
+    case 'despachador':
       return AppRole.dispatcher;
     case 'rutero':
+    case 'chofer':
+    case 'conductor':
       return AppRole.rutero;
     case 'vendor':
+    case 'vendedor':
     case 'vendedor-ambulante':
       return AppRole.vendor;
     case 'sales-manager':
     case 'gestor-de-ventas':
-      return AppRole.salesManager;
+    case 'gestor':
     case 'preventa':
+    case 'preventista':
       return AppRole.salesManager;
     case 'auxiliar':
     case 'auxiliar-administrativo':
