@@ -142,6 +142,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Sincronizar Datos',
+            icon: const Icon(Icons.sync_rounded),
+            onPressed: () {
+              _preloadOfflineData(storeId);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🔄 Sincronizando catálogo, clientes y pendientes...'),
+                  backgroundColor: Color(0xFF10B981),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
           if (_stores.length > 1)
             PopupMenuButton<StoreSummary>(
               icon: const Icon(Icons.store_rounded),
@@ -168,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           children: [
-            const SyncStatusBanner(),
+            SyncStatusBanner(storeId: storeId),
             const SizedBox(height: 12),
             _HeroCard(
               name: user.nombre,
