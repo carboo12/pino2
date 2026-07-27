@@ -1,0 +1,18 @@
+💳 2. Cajero de Distribuidora (Cobro y Facturación)
+
+Rol Canonical: DISTRIBUTOR_CASHIER / CASHIER
+
+Plataforma: Web POS (React 19)
+
+Objetivo: Buscar la comanda activa, procesar el pago del cliente y emitir la factura final que libera el despacho físico.
+
+✅ Lo que SÍ hace:
+- Procesar Comandas Pendientes: Busca en el sistema la comanda activa generada por la Despachadora (por código de barras, número o nombre de cliente).
+- Cobro y Facturación (cashier_id): Recibe el pago en efectivo, tarjeta, transferencia o crédito autorizado y factura el pedido, dejando su firma digital grabada como el cajero que cobró.
+- Control de Caja Registradora (cash-shifts): Abre y cierra su turno de caja, realiza arqueos de dinero en efectivo y reporta sobrantes/faltantes.
+- Impresión de Factura Oficial: Imprime el comprobante legal o ticket que le sirve al cliente para retirar su producto en el área de despacho.
+
+❌ Lo que NO hace:
+- No crea comandas iniciales: No toma pedidos en el mostrador (para mantener la agilidad de la fila de cobro).
+- No aprueba créditos por su cuenta: Solo puede procesar ventas a crédito si el cliente ya tiene una línea aprobada o si el Administrador autoriza el sobregiro.
+- No altera el Kárdex directamente: No puede realizar entradas, salidas o ajustes de inventario fuera de la venta facturada.
