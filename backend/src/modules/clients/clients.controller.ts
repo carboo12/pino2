@@ -34,7 +34,7 @@ export class ClientsController {
   @Roles('admin', 'gestor', 'inventory', 'rutero', 'auxiliar', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: 'Listar clientes de una tienda' })
-  findAll(
+  async findAll(
     @Query('storeId') storeId: string,
     @Query('search') search?: string,
     @Query('limit') limit?: string,
