@@ -78,9 +78,10 @@ export class AuthService {
 
   async login(email: string, password: string) {
     try {
+      const cleanEmail = (email || '').trim().toLowerCase();
       const resUser = await this.db.query(
-        'SELECT * FROM users WHERE email = $1 AND is_active = true',
-        [email],
+        'SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND is_active = true',
+        [cleanEmail],
       );
       if ((resUser.rowCount ?? 0) === 0)
         throw new UnauthorizedException('Credenciales inválidas');

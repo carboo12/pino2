@@ -53,8 +53,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
-      const { accessToken, user: userData } = response.data;
+      const response = await apiClient.post('/auth/login', {
+        email: email.trim(),
+        password: password.trim(),
+      });
+      const { data } = response;
+      const accessToken = data.access_token || data.accessToken || data.token;
+      const userData = data.user || data.usuario;
+
+      if (!accessToken) {
+        throw new Error('No se recibió un token de acceso válido.');
+      }
       
       localStorage.setItem('access_token', accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
