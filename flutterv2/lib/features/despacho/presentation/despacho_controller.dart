@@ -133,7 +133,7 @@ class DespachoController extends ChangeNotifier {
         'carnet': colaborador!.carnet,
         'adultos': adultos,
         'ninos': ninos,
-        if (asistioPor != null) 'asistioPor': asistioPor,
+        'asistioPor': asistioPor,
         if (nombreAsistente != null && nombreAsistente.isNotEmpty) 'nombreAsistente': nombreAsistente,
       });
 

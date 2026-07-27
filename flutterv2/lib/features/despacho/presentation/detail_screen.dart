@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -602,11 +602,12 @@ class _DetailScreenState extends State<DetailScreen> {
     );
     if (source == null) return;
     final picker = ImagePicker();
+    // ignore: use_build_context_synchronously
+    final despacho = context.read<DespachoController>();
     final xFile = await picker.pickImage(source: source, maxWidth: 1920, imageQuality: 85);
     if (xFile == null) return;
 
     final foto = File(xFile.path);
-    final despacho = context.read<DespachoController>();
     final success = await despacho.updateFotoEvidencia(hijoId: hijo.id, foto: foto);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

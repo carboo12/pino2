@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_theme.dart';
@@ -311,7 +311,7 @@ class ChildCard extends StatelessWidget {
                             label: const Text('Foto', style: TextStyle(fontSize: 11)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF4338CA),
-                              side: const BorderSide(color: const Color(0xFFC7D2FE)),
+                              side: const BorderSide(color: Color(0xFFC7D2FE)),
                               minimumSize: const Size(0, 40),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),

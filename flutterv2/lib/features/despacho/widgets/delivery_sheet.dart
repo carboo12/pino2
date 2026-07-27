@@ -535,6 +535,7 @@ class _DeliverySheetState extends State<DeliverySheet> {
           border: Border.all(color: AppTheme.slate200),
         ),
         child: DropdownButtonFormField<int>(
+          // ignore: deprecated_member_use
           value: _jugueteSeleccionado!.id,
           decoration: const InputDecoration(
             border: InputBorder.none,
