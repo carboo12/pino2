@@ -178,10 +178,20 @@ export default function VendorRoutesPage() {
             <CardContent className="p-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmitVisitPlan)} className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre de la Ruta *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej. Ruta Comercio Lunes" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+
                     <FormField control={form.control} name="vendorId" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Vendedor</FormLabel>
+                        <FormLabel>Vendedor / Responsable *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -196,22 +206,26 @@ export default function VendorRoutesPage() {
                       </FormItem>
                     )} />
 
-                    <FormField control={form.control} name="date" render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Fecha</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button variant={'outline'} className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                {field.value ? format(field.value, 'PPP', { locale: es }) : <span>Selecciona una fecha</span>}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={es} />
-                          </PopoverContent>
-                        </Popover>
+                    <FormField control={form.control} name="dayOfWeek" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Día Recurrente de Cobertura *</FormLabel>
+                        <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={String(field.value ?? 0)}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecciona el día" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="0">🔄 Recurrente Diario (Todos)</SelectItem>
+                            <SelectItem value="1">📅 Lunes</SelectItem>
+                            <SelectItem value="2">📅 Martes</SelectItem>
+                            <SelectItem value="3">📅 Miércoles</SelectItem>
+                            <SelectItem value="4">📅 Jueves</SelectItem>
+                            <SelectItem value="5">📅 Viernes</SelectItem>
+                            <SelectItem value="6">📅 Sábado</SelectItem>
+                            <SelectItem value="7">📅 Domingo</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )} />
