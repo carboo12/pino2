@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../core/network/connectivity_service.dart';
 import '../../../core/storage/offline_cache_service.dart';
 import '../../../core/storage/offline_sync_processor.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../clients/data/client_portfolio_repository.dart';
 
