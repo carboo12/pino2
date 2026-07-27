@@ -13,6 +13,7 @@ enum RouteKey {
   dailyClosing,
   vendorInventory,
   salesHistory,
+  expenses,
   preventaClients,
   preventaOrder,
   preventaRoute,

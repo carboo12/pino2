@@ -7,9 +7,14 @@ import '../../../auth/presentation/auth_controller.dart';
 import '../../../catalog/presentation/screens/product_catalog_screen.dart';
 import '../../../clients/presentation/screens/client_portfolio_screen.dart';
 import '../../../collections/presentation/screens/collections_screen.dart';
+import '../../../daily_closing/presentation/screens/daily_closing_screen.dart';
+import '../../../expenses/presentation/screens/expenses_screen.dart';
 import '../../../deliveries/presentation/screens/route_board_screen.dart';
 import '../../../orders/presentation/screens/quick_order_screen.dart';
 import '../../../returns/presentation/screens/returns_screen.dart';
+import '../../../sales_history/presentation/screens/sales_history_screen.dart';
+import '../../../vendor_inventory/presentation/screens/vendor_inventory_screen.dart';
+import '../../../warehouse/presentation/screens/inventory_adjustments_screen.dart';
 import '../../../warehouse/presentation/screens/warehouse_board_screen.dart';
 import '../../data/home_repository.dart';
 import '../../data/role_actions.dart';
@@ -250,6 +255,71 @@ class _HomeScreenState extends State<HomeScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => ReturnsScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.vendorInventory) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VendorInventoryScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.dailyClosing) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DailyClosingScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.salesHistory) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SalesHistoryScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.expenses) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ExpensesScreen(
+            storeId: storeId,
+            storeName: storeName,
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (action.routeKey == RouteKey.inventoryAdjustments) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InventoryAdjustmentsScreen(
             storeId: storeId,
             storeName: storeName,
           ),
