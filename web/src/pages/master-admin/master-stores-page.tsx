@@ -335,11 +335,11 @@ export default function MasterStoresPage() {
                       {((store as any).storeType || (store as any).store_type) && (
                         <Badge variant="outline" className={cn(
                           "font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border",
-                          ((store as any).storeType || (store as any).store_type) === 'DISTRIBUIDORA' ? "bg-purple-50 text-purple-700 border-purple-200" :
+                          (((store as any).storeType || (store as any).store_type) || '').startsWith('DISTRIB') ? "bg-purple-50 text-purple-700 border-purple-200" :
                           ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? "bg-blue-50 text-blue-700 border-blue-200" :
                           "bg-emerald-50 text-emerald-700 border-emerald-200"
                         )}>
-                          {((store as any).storeType || (store as any).store_type) === 'DISTRIBUIDORA' ? '🏢 Distribuidora' :
+                          {(((store as any).storeType || (store as any).store_type) || '').startsWith('DISTRIB') ? '🏢 Distribuidora' :
                            ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? '📦 Bodega Central' :
                            '🛒 Supermercado'}
                         </Badge>
