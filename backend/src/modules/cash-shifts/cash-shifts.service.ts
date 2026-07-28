@@ -83,11 +83,63 @@ export class CashShiftsService {
     return this.findOne(res.rows[0].id);
   }
 
+  async createOutflow(
+    shiftId: string,
+    storeId: string,
+    userId: string,
+    amount: number,
+    reason: string,
+  ) {
+    if (!shiftId || !storeId || amount <= 0 || !reason) {
+      throw new BadRequestException('Monto y motivo son obligatorios para el egreso');
+    }
+
+    const shiftRes = await this.db.query(
+      `SELECT id FROM cash_shifts WHERE id = $1 AND store_id = $2 AND status = 'OPEN'`,
+      [shiftId, storeId],
+    );
+    if (shiftRes.rowCount === 0) {
+      throw new BadRequestException('La sesión de caja no está activa o no pertenece a esta tienda');
+    }
+
+    const res = await this.db.query(
+      `INSERT INTO cash_outflows (session_id, amount, reason)
+       VALUES ($1, $2, $3) RETURNING *`,
+      [shiftId, amount, reason],
+    );
+
+    return {
+      id: res.rows[0].id,
+      sessionId: res.rows[0].session_id,
+      amount: Number(res.rows[0].amount),
+      reason: res.rows[0].reason,
+      receiptNumber: res.rows[0].receipt_number,
+      createdAt: res.rows[0].created_at,
+    };
+  }
+
+  async getOutflows(shiftId: string) {
+    const res = await this.db.query(
+      `SELECT * FROM cash_outflows WHERE session_id = $1 ORDER BY created_at ASC`,
+      [shiftId],
+    );
+    return res.rows.map((row) => ({
+      id: row.id,
+      sessionId: row.session_id,
+      amount: Number(row.amount),
+      reason: row.reason,
+      receiptNumber: row.receipt_number,
+      createdAt: row.created_at,
+    }));
+  }
+
   async closeShift(
     shiftId: string,
     storeId: string,
     userId: string,
     closingDenominations?: Record<string, number>,
+    actualCashOverride?: number,
+    actualUSDOverride?: number,
   ) {
     if (!shiftId || !storeId || !userId) {
       throw new BadRequestException(
@@ -104,20 +156,21 @@ export class CashShiftsService {
         throw new BadRequestException('Turno de caja no válido o ya cerrado');
       }
       const shift = shiftRes.rows[0];
-      if (shift.opened_by !== userId) {
-        throw new BadRequestException(
-          'Solo el cajero que abrió este turno puede cerrarlo',
-        );
-      }
 
       const txRes = await client.query(
         `SELECT
-           COALESCE(SUM(CASE WHEN payment_method IN ('CASH', 'EFECTIVO') THEN total ELSE 0 END), 0) as ventas_efectivo
+           COALESCE(SUM(CASE WHEN payment_method IN ('CASH', 'EFECTIVO') THEN total ELSE 0 END), 0) as ventas_efectivo,
+           COALESCE(SUM(CASE WHEN payment_method IN ('CARD', 'TARJETA') THEN total ELSE 0 END), 0) as ventas_tarjeta,
+           COALESCE(SUM(CASE WHEN payment_method IN ('USD', 'DO LARES') THEN total ELSE 0 END), 0) as ventas_usd,
+           COALESCE(SUM(total), 0) as total_ventas
          FROM sales
          WHERE cash_shift_id = $1 AND store_id = $2 AND deleted_at IS NULL`,
         [shiftId, storeId],
       );
       const ventasEfectivo = Number(txRes.rows[0]?.ventas_efectivo || 0);
+      const ventasTarjeta = Number(txRes.rows[0]?.ventas_tarjeta || 0);
+      const ventasUSD = Number(txRes.rows[0]?.ventas_usd || 0);
+      const totalVentas = Number(txRes.rows[0]?.total_ventas || 0);
 
       const collRes = await client.query(
         `SELECT COALESCE(SUM(amount), 0) as cobros_efectivo
@@ -127,17 +180,33 @@ export class CashShiftsService {
       );
       const cobrosEfectivo = Number(collRes.rows[0]?.cobros_efectivo || 0);
 
+      const outflowRes = await client.query(
+        `SELECT COALESCE(SUM(amount), 0) as total_egresos FROM cash_outflows WHERE session_id = $1`,
+        [shiftId],
+      );
+      const totalEgresos = Number(outflowRes.rows[0]?.total_egresos || 0);
+
+      const returnRes = await client.query(
+        `SELECT COALESCE(SUM(total_refund), 0) as total_returns FROM returns WHERE cash_shift_id = $1`,
+        [shiftId],
+      ).catch(() => ({ rows: [{ total_returns: 0 }] }));
+      const totalReturns = Number(returnRes.rows[0]?.total_returns || 0);
+
       const startingCash = Number(shift.starting_cash || 0);
-      const expectedCash = startingCash + ventasEfectivo + cobrosEfectivo;
+      // Fórmula de Caja: Esperado = Fondo Inicial + Ventas Efectivo + Cobros - Egresos - Devoluciones
+      const expectedCash = startingCash + ventasEfectivo + cobrosEfectivo - totalEgresos - totalReturns;
 
       let actualCash = expectedCash;
-      if (closingDenominations) {
+      if (actualCashOverride !== undefined && actualCashOverride !== null) {
+        actualCash = Number(actualCashOverride);
+      } else if (closingDenominations) {
         actualCash = Object.entries(closingDenominations).reduce(
           (sum, [denom, count]) => sum + Number(denom) * Number(count),
           0,
         );
       }
 
+      const actualUSD = actualUSDOverride ? Number(actualUSDOverride) : 0;
       const difference = actualCash - expectedCash;
       const denomJson = closingDenominations
         ? JSON.stringify(closingDenominations)
@@ -145,12 +214,20 @@ export class CashShiftsService {
 
       const res = await client.query(
         `UPDATE cash_shifts 
-         SET closed_by = $1, closed_at = NOW(), expected_cash = $2, actual_cash = $3, difference = $4, status = 'CLOSED', closing_denominations = $5
-         WHERE id = $6 AND store_id = $7 AND status = 'OPEN' RETURNING *`,
+         SET closed_by = $1, closed_at = NOW(), expected_cash = $2, actual_cash = $3, actual_usd = $4,
+             sales_cash = $5, sales_card = $6, sales_usd = $7, total_returns = $8, total_sales = $9,
+             difference = $10, status = 'CLOSED', closing_denominations = $11
+         WHERE id = $12 AND store_id = $13 AND status = 'OPEN' RETURNING *`,
         [
           userId,
           expectedCash,
           actualCash,
+          actualUSD,
+          ventasEfectivo,
+          ventasTarjeta,
+          ventasUSD,
+          totalReturns,
+          totalVentas,
           difference,
           denomJson,
           shiftId,
@@ -176,7 +253,10 @@ export class CashShiftsService {
     }
     sql += ` ORDER BY cs.opened_at DESC LIMIT 1`;
     const res = await this.db.query(sql, params);
-    return res.rowCount > 0 ? this.mapRow(res.rows[0]) : null;
+    if (res.rowCount === 0) return null;
+    const shift = this.mapRow(res.rows[0]);
+    shift.outflows = await this.getOutflows(shift.id);
+    return shift;
   }
 
   async findAll(storeId: string, status?: string, cashierId?: string, limit?: string) {
@@ -199,7 +279,9 @@ export class CashShiftsService {
     const sql = `${this.baseSelect()} WHERE cs.id = $1`;
     const res = await this.db.query(sql, [id]);
     if (res.rowCount === 0) return null;
-    return this.mapRow(res.rows[0]);
+    const shift = this.mapRow(res.rows[0]);
+    shift.outflows = await this.getOutflows(shift.id);
+    return shift;
   }
 
   async getShiftStats(shiftId: string) {
@@ -211,18 +293,26 @@ export class CashShiftsService {
       [shiftId],
     );
 
+    const outflowsRes = await this.db.query(
+      `SELECT COALESCE(SUM(amount), 0) as total_outflows FROM cash_outflows WHERE session_id = $1`,
+      [shiftId],
+    );
+
     const stats: any = {
       cashSales: 0,
       cardSales: 0,
+      usdSales: 0,
       totalSales: 0,
       salesCount: 0,
+      totalOutflows: Number(outflowsRes.rows[0]?.total_outflows || 0),
     };
 
     salesRes.rows.forEach((row) => {
       const val = parseFloat(row.total);
       const count = parseInt(row.count);
-      if (row.payment_method === 'CASH') stats.cashSales += val;
-      if (row.payment_method === 'CARD') stats.cardSales += val;
+      if (row.payment_method === 'CASH' || row.payment_method === 'EFECTIVO') stats.cashSales += val;
+      if (row.payment_method === 'CARD' || row.payment_method === 'TARJETA') stats.cardSales += val;
+      if (row.payment_method === 'USD' || row.payment_method === 'DOLARES') stats.usdSales += val;
       stats.totalSales += val;
       stats.salesCount += count;
     });
@@ -233,6 +323,7 @@ export class CashShiftsService {
   private mapRow(row: any): any {
     const startingCash = this.parseMoney(row.starting_cash);
     const actualCash = this.parseMoney(row.actual_cash, startingCash);
+    const actualUSD = this.parseMoney(row.actual_usd, 0);
     const expectedCash =
       row.expected_cash === null || row.expected_cash === undefined
         ? null
@@ -263,7 +354,8 @@ export class CashShiftsService {
       closed_by_name: closedByName,
       openedAt,
       opened_at: openedAt,
-      openingTimestamp: openedAt,
+      openingTime: openedAt,
+      closingTime: closedAt,
       closedAt,
       closed_at: closedAt,
       startingCash,
@@ -271,12 +363,20 @@ export class CashShiftsService {
       initialAmount: startingCash,
       actualCash,
       actual_cash: actualCash,
+      actualUSD,
+      actual_usd: actualUSD,
       expectedCash,
       expected_cash: expectedCash,
+      finalAmount: expectedCash,
+      salesCash: this.parseMoney(row.sales_cash),
+      salesCard: this.parseMoney(row.sales_card),
+      salesUSD: this.parseMoney(row.sales_usd),
+      totalSales: this.parseMoney(row.total_sales),
+      totalReturns: this.parseMoney(row.total_returns),
       difference,
       status: row.status,
       cashierId: row.opened_by,
-      cashierName: openedByName,
+      cashierName: openedByName || 'Cajero',
       user: row.opened_by
         ? {
             id: row.opened_by,

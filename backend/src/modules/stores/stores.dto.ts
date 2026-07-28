@@ -16,6 +16,10 @@ export class CreateStoreDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @IsString()
+  @IsOptional()
+  storeType?: string;
 }
 
 export class UpdateStoreDto {
@@ -34,6 +38,10 @@ export class UpdateStoreDto {
   @IsString()
   @IsOptional()
   chainId?: string;
+
+  @IsString()
+  @IsOptional()
+  storeType?: string;
 
   @IsBoolean()
   @IsOptional()

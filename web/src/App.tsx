@@ -90,6 +90,15 @@ const SupplierInvoicesPage = lazy(
 const CashRegisterPage = lazy(
   () => import("@/pages/store-admin/cash-register/cash-register-page"),
 );
+const CashOpenPage = lazy(
+  () => import("@/pages/store-admin/cash-register/cash-open-page"),
+);
+const CashHubPage = lazy(
+  () => import("@/pages/store-admin/cash-register/cash-hub-page"),
+);
+const CashClosePage = lazy(
+  () => import("@/pages/store-admin/cash-register/cash-close-page"),
+);
 const AuthorizationsPage = lazy(
   () => import("@/pages/store-admin/authorizations/authorizations-page"),
 );
@@ -688,6 +697,69 @@ function App() {
                             allowedRoles={CASHIER_ROLES}
                           >
                             <CashRegisterPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cash-register/open"
+                        element={
+                          <ProtectedRoute
+                            allowedRoles={CASHIER_ROLES}
+                          >
+                            <CashOpenPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/cash-register/open"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={CASHIER_ROLES}
+                          >
+                            <CashOpenPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cash-count"
+                        element={
+                          <ProtectedRoute
+                            allowedRoles={CASHIER_ROLES}
+                          >
+                            <CashHubPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/cash-count"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={CASHIER_ROLES}
+                          >
+                            <CashHubPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/cash-register/close"
+                        element={
+                          <ProtectedRoute
+                            allowedRoles={CASHIER_ROLES}
+                          >
+                            <CashClosePage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/cash-register/close"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={CASHIER_ROLES}
+                          >
+                            <CashClosePage />
                           </ProtectedRoute>
                         }
                       />

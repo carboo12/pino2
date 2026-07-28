@@ -8,9 +8,9 @@ export class StoresService {
 
   async create(dto: CreateStoreDto) {
     const res = await this.db.query(
-      `INSERT INTO stores (chain_id, name, address, phone) 
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [dto.chainId, dto.name, dto.address, dto.phone],
+      `INSERT INTO stores (chain_id, name, address, phone, store_type) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [dto.chainId, dto.name, dto.address, dto.phone, dto.storeType || 'SUPERMERCADO'],
     );
     return this.mapRow(res.rows[0]);
   }
@@ -25,7 +25,7 @@ export class StoresService {
     query += ' ORDER BY name ASC';
 
     const res = await this.db.query(query, params);
-    return res.rows.map(this.mapRow);
+    return res.rows.map(r => this.mapRow(r));
   }
 
   async findOne(id: string) {
@@ -40,6 +40,7 @@ export class StoresService {
       address: 'address',
       phone: 'phone',
       chainId: 'chain_id',
+      storeType: 'store_type',
       isActive: 'is_active',
     };
 
@@ -48,9 +49,9 @@ export class StoresService {
     let idx = 1;
 
     for (const [camel, snake] of Object.entries(fieldMap)) {
-      if (dto[camel] !== undefined) {
+      if ((dto as any)[camel] !== undefined) {
         sets.push(`${snake} = $${idx++}`);
-        params.push(dto[camel]);
+        params.push((dto as any)[camel]);
       }
     }
 
@@ -99,12 +100,14 @@ export class StoresService {
   }
 
   private mapRow(row: any): any {
+    if (!row) return null;
     return {
       id: row.id,
       chainId: row.chain_id,
       name: row.name,
       address: row.address,
       phone: row.phone,
+      storeType: row.store_type || 'SUPERMERCADO',
       settings: row.settings || {},
       isActive: row.is_active,
       createdAt: row.created_at,

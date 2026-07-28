@@ -16,7 +16,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { StoreAccessGuard } from '../../common/guards/store-access.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { OpenShiftDto, CloseShiftDto } from './cash-shifts.dto';
+import { OpenShiftDto, CloseShiftDto, CreateOutflowDto } from './cash-shifts.dto';
 
 @ApiTags('CashShifts')
 @ApiBearerAuth()
@@ -38,6 +38,19 @@ export class CashShiftsController {
   }
 
   @Roles('admin')
+  @Post('outflow')
+  @ApiOperation({ summary: 'Registrar un egreso o salida de efectivo de la caja' })
+  createOutflow(@Body() dto: CreateOutflowDto, @Req() req: any) {
+    return this.service.createOutflow(
+      dto.shiftId,
+      dto.storeId,
+      req.user?.sub,
+      dto.amount,
+      dto.reason,
+    );
+  }
+
+  @Roles('admin')
   @Post('close')
   @ApiOperation({ summary: 'Cerrar un turno de caja' })
   closeShift(@Body() dto: CloseShiftDto, @Req() req: any) {
@@ -49,6 +62,8 @@ export class CashShiftsController {
       dto.storeId,
       req.user?.sub || dto.userId,
       dto.closingDenominations,
+      dto.actualCash,
+      dto.actualUSD,
     );
   }
 
@@ -105,6 +120,8 @@ export class CashShiftsController {
       dto.storeId,
       req.user?.sub || dto.userId,
       dto.closingDenominations,
+      dto.actualCash,
+      dto.actualUSD,
     );
   }
 }
