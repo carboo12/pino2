@@ -17,6 +17,7 @@ export default function EditStorePage() {
     name: '',
     address: '',
     phone: '',
+    storeType: 'SUPERMERCADO',
   });
 
   useEffect(() => {
@@ -28,6 +29,7 @@ export default function EditStorePage() {
             name: res.data.name || '',
             address: res.data.address || '',
             phone: res.data.phone || '',
+            storeType: res.data.storeType || res.data.store_type || 'SUPERMERCADO',
           });
         }
       } catch (error) {
@@ -86,6 +88,22 @@ export default function EditStorePage() {
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-black uppercase text-xs text-slate-400 tracking-wider">Tipo de Negocio / Sucursal</Label>
+              <select
+                required
+                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-blue-200 text-blue-900"
+                value={formData.storeType}
+                onChange={(event) =>
+                  setFormData({ ...formData, storeType: event.target.value })
+                }
+              >
+                <option value="SUPERMERCADO">🛒 SUPERMERCADO (Venta Minorista / POS / Proveedores Directos)</option>
+                <option value="DISTRIBUIDORA">🏢 DISTRIBUIDORA (Venta Mayorista / Mostrador / Recibe SOLO de Bodega)</option>
+                <option value="BODEGA_CENTRAL">📦 BODEGA CENTRAL (Matriz / Logística / Rutas / Preventa)</option>
+              </select>
             </div>
             
             <div className="space-y-2">
