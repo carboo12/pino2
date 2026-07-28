@@ -110,6 +110,7 @@ cd web && npx tsc --noEmit
 
 | Documento | Descripción |
 |-----------|-------------|
+| [GUIA_INSTALACION_Y_EJECUCION_LOCAL.md](docs/GUIA_INSTALACION_Y_EJECUCION_LOCAL.md) | Guía de instalación y configuración local (NestJS + React) |
 | [API_REFERENCE.md](docs/API_REFERENCE.md) | Referencia completa de ~140 endpoints |
 | [06_BASE_DE_DATOS_ESTADO_ACTUAL.md](docs/06_BASE_DE_DATOS_ESTADO_ACTUAL.md) | Esquema de base de datos |
 | [04_FLUJOS_DE_TRABAJO.md](docs/04_FLUJOS_DE_TRABAJO.md) | Flujos operativos del sistema |
