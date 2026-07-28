@@ -105,7 +105,7 @@ describe('OrdersService', () => {
           rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }],
           rowCount: 1,
         };
-      if (sql.includes('UPDATE orders SET status'))
+      if (sql.includes('UPDATE orders'))
         return { rows: [{ ...mockOrder, status: 'CANCELADO' }], rowCount: 1 };
       if (sql.includes('INSERT INTO')) return { rowCount: 1 };
       return { rowCount: 0 };
@@ -121,7 +121,7 @@ describe('OrdersService', () => {
           rows: [{ store_id: 's1', status: 'RECIBIDO', vendor_id: null }],
           rowCount: 1,
         };
-      if (sql.includes('UPDATE orders SET status'))
+      if (sql.includes('UPDATE orders'))
         return {
           rows: [{ ...mockOrder, status: 'EN_PREPARACION' }],
           rowCount: 1,
