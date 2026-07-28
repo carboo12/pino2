@@ -7,10 +7,11 @@ export class StoresService {
   constructor(private readonly db: DatabaseService) {}
 
   async create(dto: CreateStoreDto) {
+    const storeTypeVal = (dto.storeType || 'SUPERMERCADO').toUpperCase();
     const res = await this.db.query(
       `INSERT INTO stores (chain_id, name, address, phone, store_type) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [dto.chainId, dto.name, dto.address, dto.phone, dto.storeType || 'SUPERMERCADO'],
+      [dto.chainId, dto.name, dto.address, dto.phone, storeTypeVal],
     );
     return this.mapRow(res.rows[0]);
   }

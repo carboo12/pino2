@@ -91,19 +91,27 @@ export default function EditStorePage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="font-black uppercase text-xs text-slate-400 tracking-wider">Tipo de Negocio / Sucursal</Label>
+              <Label className="font-black uppercase text-xs text-slate-400 tracking-wider">TIPO DE SUCURSAL *</Label>
               <select
                 required
-                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-blue-200 text-blue-900"
+                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-blue-300 text-blue-950 focus:border-blue-500"
                 value={formData.storeType}
                 onChange={(event) =>
                   setFormData({ ...formData, storeType: event.target.value })
                 }
               >
-                <option value="SUPERMERCADO">🛒 SUPERMERCADO (Venta Minorista / POS / Proveedores Directos)</option>
-                <option value="DISTRIBUIDORA">🏢 DISTRIBUIDORA (Venta Mayorista / Mostrador / Recibe SOLO de Bodega)</option>
-                <option value="BODEGA_CENTRAL">📦 BODEGA CENTRAL (Matriz / Logística / Rutas / Preventa)</option>
+                <option value="SUPERMERCADO">🛒 Supermercado (Venta Minorista / POS / Recibe de Bodega y Proveedores)</option>
+                <option value="DISTRIBUIDOR">🏢 Distribuidora (Venta Mayorista / Mostrador / Recibe SOLO de Bodega)</option>
+                <option value="BODEGA_CENTRAL">📦 Bodega Central (Matriz Logística / Rutas Campo / Preventa)</option>
               </select>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-black uppercase text-slate-400">Cadena Comercial Oficial</p>
+                <p className="text-sm font-black text-blue-700">Grupo Los Pinos</p>
+              </div>
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800">Oficial</span>
             </div>
             
             <div className="space-y-2">

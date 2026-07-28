@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsEnum } from 'class-validator';
 
 export class CreateStoreDto {
   @IsString()
@@ -17,9 +17,11 @@ export class CreateStoreDto {
   @IsOptional()
   phone?: string;
 
-  @IsString()
-  @IsOptional()
-  storeType?: string;
+  @IsEnum(['SUPERMERCADO', 'DISTRIBUIDOR', 'DISTRIBUIDORA', 'BODEGA_CENTRAL'], {
+    message: 'storeType debe ser SUPERMERCADO, DISTRIBUIDOR, DISTRIBUIDORA o BODEGA_CENTRAL',
+  })
+  @IsNotEmpty()
+  storeType!: string;
 }
 
 export class UpdateStoreDto {
@@ -39,7 +41,7 @@ export class UpdateStoreDto {
   @IsOptional()
   chainId?: string;
 
-  @IsString()
+  @IsEnum(['SUPERMERCADO', 'DISTRIBUIDOR', 'DISTRIBUIDORA', 'BODEGA_CENTRAL'])
   @IsOptional()
   storeType?: string;
 
