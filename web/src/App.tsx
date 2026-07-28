@@ -75,6 +75,9 @@ const InventoryAdjustmentsPage = lazy(
 const InventoryCountsPage = lazy(
   () => import("@/pages/store-admin/inventory/inventory-counts-page"),
 );
+const GondolaRestockPage = lazy(
+  () => import("@/pages/store-admin/inventory/gondola-restock-page"),
+);
 const SuppliersPage = lazy(
   () => import("@/pages/store-admin/suppliers/suppliers-page"),
 );
@@ -565,6 +568,27 @@ function App() {
                             allowedRoles={INVENTORY_ROLES}
                           >
                             <InventoryCountsPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/gondola-restock"
+                        element={
+                          <ProtectedRoute
+                            allowedRoles={INVENTORY_ROLES}
+                          >
+                            <GondolaRestockPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/store/:storeId/gondola-restock"
+                        element={
+                          <ProtectedRoute
+                            requireStoreAccess
+                            allowedRoles={INVENTORY_ROLES}
+                          >
+                            <GondolaRestockPage />
                           </ProtectedRoute>
                         }
                       />

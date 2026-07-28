@@ -31,6 +31,7 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
     const [amountStr, setAmountStr] = useState('');
     const [currency, setCurrency] = useState<'NIO' | 'USD'>('NIO');
     const [method, setMethod] = useState<'CASH' | 'CARD'>('CASH');
+    const [currentExchangeRate, setCurrentExchangeRate] = useState<number>(exchangeRate);
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -38,13 +39,15 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
             setAmountStr('');
             setCurrency('NIO');
             setMethod('CASH');
+            setCurrentExchangeRate(exchangeRate);
             setSubmitting(false);
         }
-    }, [open]);
+    }, [open, exchangeRate]);
 
-    const totalInCurrency = currency === 'NIO' ? total : total / exchangeRate;
+    const activeRate = currentExchangeRate > 0 ? currentExchangeRate : 36.62;
+    const totalInCurrency = currency === 'NIO' ? total : total / activeRate;
     const amountNum = parseFloat(amountStr) || 0;
-    const amountReceivedInNIO = currency === 'NIO' ? amountNum : amountNum * exchangeRate;
+    const amountReceivedInNIO = currency === 'NIO' ? amountNum : amountNum * activeRate;
     const change = Math.max(0, amountReceivedInNIO - total);
     const missing = Math.max(0, total - amountReceivedInNIO);
 
@@ -151,6 +154,22 @@ export function PaymentDialog({ total, open, onOpenChange, onConfirm, exchangeRa
                                         ))}
                                     </div>
                                 </div>
+
+                                {currency === 'USD' && (
+                                    <div className="flex items-center justify-between bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+                                        <span className="text-xs font-bold text-blue-900">Tasa de Cambio (C$ / $1 USD):</span>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs font-bold text-blue-700">C$</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                className="w-20 h-8 text-center text-xs font-black font-mono bg-white border border-blue-200 rounded-lg text-blue-900"
+                                                value={currentExchangeRate}
+                                                onChange={(e) => setCurrentExchangeRate(parseFloat(e.target.value) || 0)}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
                                 {method === 'CASH' && (
                                     <div className="space-y-4 pt-4 border-t-2 border-slate-50 border-dashed">
