@@ -14,6 +14,7 @@ enum RouteKey {
   vendorInventory,
   salesHistory,
   expenses,
+  cashShift,
   preventaClients,
   preventaOrder,
   preventaRoute,
@@ -43,6 +44,7 @@ List<RoleAction> actionsForRole(AppRole role) {
         RoleAction(title: 'Cobros', subtitle: 'Cartera y pagos pendientes.', icon: Icons.payments_rounded, routeKey: RouteKey.collections),
         RoleAction(title: 'Catálogo', subtitle: 'Stock, precios y bultos.', icon: Icons.inventory_2_rounded, routeKey: RouteKey.catalog),
         RoleAction(title: 'Entregas', subtitle: 'Estado de pedidos y rutas.', icon: Icons.route_rounded, routeKey: RouteKey.routeBoard),
+        RoleAction(title: 'Gestión de Caja', subtitle: 'Abrir, egresos y cerrar turno.', icon: Icons.countertops_rounded, routeKey: RouteKey.cashShift),
       ];
 
     case AppRole.storeAdmin:
@@ -89,6 +91,7 @@ List<RoleAction> actionsForRole(AppRole role) {
       ];
     case AppRole.cashier:
       return const [
+        RoleAction(title: 'Gestión de Caja', subtitle: 'Abrir, egresos y cerrar turno.', icon: Icons.countertops_rounded, routeKey: RouteKey.cashShift),
         RoleAction(title: 'Devoluciones', subtitle: 'Buscar ticket y devolver.', icon: Icons.assignment_return_rounded, routeKey: RouteKey.returns),
         RoleAction(title: 'Catálogo', subtitle: 'Confirmar producto y precio.', icon: Icons.inventory_2_rounded, routeKey: RouteKey.catalog),
         RoleAction(title: 'Clientes', subtitle: 'Datos del cliente.', icon: Icons.people_alt_rounded, routeKey: RouteKey.clients),
@@ -101,6 +104,7 @@ List<RoleAction> actionsForRole(AppRole role) {
       ];
     case AppRole.supervisorCaja:
       return const [
+        RoleAction(title: 'Gestión de Caja', subtitle: 'Abrir, egresos y cerrar turno.', icon: Icons.countertops_rounded, routeKey: RouteKey.cashShift),
         RoleAction(title: 'Cobros', subtitle: 'Validar pagos y cartera.', icon: Icons.payments_rounded, routeKey: RouteKey.collections),
         RoleAction(title: 'Cierre de Caja', subtitle: 'Auditar cierres.', icon: Icons.wallet_rounded, routeKey: RouteKey.dailyClosing),
         RoleAction(title: 'Catálogo', subtitle: 'Precios y productos.', icon: Icons.inventory_2_rounded, routeKey: RouteKey.catalog),

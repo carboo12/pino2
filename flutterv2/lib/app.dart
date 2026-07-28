@@ -5,6 +5,7 @@ import 'core/network/connectivity_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/auth_controller.dart';
 import 'features/auth/presentation/login_screen.dart';
+import 'features/cash_shift/presentation/cash_shift_controller.dart';
 import 'features/despacho/presentation/despacho_controller.dart';
 import 'features/home/presentation/screens/home_screen.dart';
 
@@ -16,6 +17,7 @@ class PinoApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()..initialize()),
+        ChangeNotifierProvider(create: (_) => CashShiftController()),
         ChangeNotifierProvider(create: (_) => DespachoController()),
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
       ],

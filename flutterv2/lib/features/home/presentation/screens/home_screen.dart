@@ -6,6 +6,7 @@ import '../../../../core/utils/role_utils.dart';
 import '../../../auth/presentation/auth_controller.dart';
 import '../../../catalog/data/catalog_repository.dart';
 import '../../../catalog/presentation/screens/product_catalog_screen.dart';
+import '../../../cash_shift/presentation/screens/cash_shift_screen.dart';
 import '../../../clients/data/client_portfolio_repository.dart';
 import '../../../clients/presentation/screens/client_portfolio_screen.dart';
 import '../../../collections/presentation/screens/collections_screen.dart';
@@ -559,6 +560,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 _MenuGridTile(
+                  title: 'Gestión de Caja',
+                  subtitle: 'Apertura y cierre',
+                  icon: Icons.countertops_rounded,
+                  color: const Color(0xFF10B981),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => CashShiftScreen(storeId: storeId, storeName: storeName)));
+                  },
+                ),
+                _MenuGridTile(
                   title: 'Cierre Diario',
                   subtitle: 'Rendición de caja',
                   icon: Icons.lock_clock_rounded,
@@ -707,6 +717,15 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context, MaterialPageRoute(builder: (_) => VendorInventoryScreen(storeId: storeId, storeName: storeName)));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.countertops_rounded, color: AppTheme.primary),
+            title: const Text('Gestión de Caja'),
+            subtitle: const Text('Abrir, egresos y cerrar turno', style: TextStyle(fontSize: 11)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => CashShiftScreen(storeId: storeId, storeName: storeName)));
             },
           ),
           ListTile(
