@@ -1,8 +1,6 @@
 name: CI MVP 10/10
 
 on:
-  push:
-    branches: [main, stabilization/mvp, hardening/mvp-10]
   pull_request:
     branches: [main]
 
