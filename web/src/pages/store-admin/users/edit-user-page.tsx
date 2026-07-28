@@ -61,8 +61,9 @@ const BODEGA_ROLES = [
 ] as const;
 
 const DISTRIBUIDORA_ROLES = [
-  { value: 'distributor-admin', label: '🏢 [DISTRIBUIDORA] Gerente / Administrador de Distribuidora' },
+  { value: 'distributor-admin', label: '🏢 [DISTRIBUIDORA] Administrador / Gerente de Tienda' },
   { value: 'distributor-seller', label: '📋 [DISTRIBUIDORA] Despachadora de Mostrador (Comandas)' },
+  { value: 'distributor-dispatcher', label: '📦 [DISTRIBUIDORA] Despachador de Distribuidora (Auxiliar de Bodega)' },
   { value: 'distributor-cashier', label: '💵 [DISTRIBUIDORA] Cajero de Distribuidora (Cobro/Factura)' },
 ] as const;
 
