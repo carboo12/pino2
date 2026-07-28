@@ -44,13 +44,28 @@ const userFormSchema = z.object({
   assignedStoreId: z.string().optional(),
 });
 
-const CANONICAL_ROLES = [
-  { value: 'admin', label: '1. JEFE / ENCARGADO DE BODEGA' },
-  { value: 'auxiliar', label: '2. AUXILIAR DE RECEPCIÓN Y DESPACHO' },
-  { value: 'inventory', label: '3. ANALISTA / AUDITOR DE INVENTARIO' },
-  { value: 'gestor', label: '4. GESTOR DE VENTAS (Móvil)' },
-  { value: 'rutero', label: '5. RUTERO / REPARTIDOR (Móvil)' },
-  { value: 'super-admin', label: '6. ADMINISTRADOR GENERAL' },
+const ALL_ROLES = [
+  // --- BODEGA CENTRAL (Matriz & Rutas) ---
+  { value: 'admin', label: '📦 [BODEGA CENTRAL] 1. Jefe / Encargado de Bodega' },
+  { value: 'auxiliar', label: '👷 [BODEGA CENTRAL] 2. Auxiliar de Recepción y Despacho' },
+  { value: 'inventory', label: '🕵️ [BODEGA CENTRAL] 3. Analista / Auditor de Inventario' },
+  { value: 'gestor', label: '📱 [BODEGA CENTRAL] 4. Gestor de Ventas (App Móvil)' },
+  { value: 'rutero', label: '🚚 [BODEGA CENTRAL] 5. Rutero / Repartidor (App Móvil)' },
+
+  // --- DISTRIBUIDORA (Venta Mayorista) ---
+  { value: 'distributor-admin', label: '🏢 [DISTRIBUIDORA] Gerente / Administrador de Distribuidora' },
+  { value: 'distributor-seller', label: '📋 [DISTRIBUIDORA] Despachadora de Mostrador (Comandas)' },
+  { value: 'distributor-cashier', label: '💵 [DISTRIBUIDORA] Cajero de Distribuidora (Cobro/Factura)' },
+
+  // --- SUPERMERCADO (Venta Minorista / POS) ---
+  { value: 'supermarket-admin', label: '🛒 [SUPERMERCADO] Gerente de Supermercado (CxP / Proveedores)' },
+  { value: 'supermarket-supervisor', label: '🔑 [SUPERMERCADO] Supervisor de Cajas (Arqueos / Pines)' },
+  { value: 'supermarket-cashier', label: '💳 [SUPERMERCADO] Cajero de Supermercado (POS Escáner)' },
+  { value: 'supermarket-warehouse', label: '📦 [SUPERMERCADO] Bodeguero / Auxiliar de Bodega' },
+  { value: 'supermarket-stocker', label: '🏷️ [SUPERMERCADO] Góndolero / Perchero' },
+
+  // --- ADMINISTRACIÓN GLOBAL ---
+  { value: 'super-admin', label: '👑 ADMINISTRADOR GENERAL GLOBAL' },
 ] as const;
 
 const GLOBAL_ROLES = new Set(['super-admin']);
@@ -64,7 +79,7 @@ export default function AddUserPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [stores, setStores] = useState<Array<{ id: string; name: string }>>([]);
 
-  const roleOptions = CANONICAL_ROLES;
+  const roleOptions = ALL_ROLES;
   const backHref = isMasterMode ? '/master-admin/users' : `/store/${storeId}/users`;
 
   const form = useForm<z.infer<typeof userFormSchema>>({

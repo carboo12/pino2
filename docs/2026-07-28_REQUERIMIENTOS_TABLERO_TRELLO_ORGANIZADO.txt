@@ -1,0 +1,173 @@
+Tablero de Trello "Los Pinos" — Información organizada y consolidada al 2026-07-28
+
+Fecha de actualización: 2026-07-28
+Board: Los Pinos (workspace de CARLOS LIRA) — trello.com/b/MdXmNcB9/los-pinos
+
+El tablero contiene 6 listas principales organizadas por contexto operativo de negocio: Bodega Central (Matriz), Distribuidora (Venta Mayorista) y Supermercado (Venta Minorista).
+
+================================================================================
+LISTA 1: "roles" (Bodega Central — Versión Resumida)
+================================================================================
+
+1. JEFE / ENCARGADO DE BODEGA
+✅ Acceso y control total a los 38 módulos del sistema backend y configuraciones globales.
+✅ Gestión de roles y usuarios (crear, editar, activar, desactivar, asignar contraseñas/roles).
+✅ Configuración de negocio (precios, facturación, impuestos, zonas geográficas).
+✅ Supervisión global (reportes consolidados de ventas, utilidades, inventarios, auditorías).
+✅ Sobrescribir autorizaciones (aprobar de emergencia cualquier transacción bloqueada).
+❌ No hace operación física directa (conteos en piso, despacho de camiones día a día).
+❌ No tiene ninguna restricción técnica en la plataforma.
+Comentario en la tarjeta: "este rol es el primer rol".
+
+2. Auxiliar de Recepción y Despacho
+✅ Registrar recepción física de mercancía de proveedores (bultos y unidades, escáner o teclado).
+✅ Armar cargas físicas (pallets/cajas) para subir al camión del Rutero.
+✅ Recibir devoluciones de campo (producto devuelto o no vendido que trae el Rutero).
+✅ Escaneo de código de barras (unidad suelta y bulto cerrado).
+❌ No ve costos/dinero (márgenes, costos de compra, valorización monetaria).
+❌ No autoriza ajustes (no da de baja producto dañado ni aprueba faltantes en el Kárdex).
+❌ No modifica reglas de empaque (no cambia el factor X de unidades por bulto).
+
+3. ANALISTA DE INVENTARIO (Bodeguero)
+✅ Auditoría de Kárdex (monitorea movimientos de entrada/salida y su conversión a bultos).
+✅ Ejecutar arqueos físicos (conteos ciegos o parciales por zonas/pasillos).
+✅ Solicitar ajustes de stock (genera solicitudes para que el Jefe de Bodega las autorice).
+✅ Monitorear errores e inconsistencias (logs de diferencias despachado vs. liquidado).
+❌ No auto-aprueba ajustes (separación de funciones para evitar fraudes).
+❌ No cobra ni maneja efectivo (no liquida dinero de los Ruteros).
+❌ No modifica el catálogo (no crea productos ni cambia precios).
+
+4. GESTOR DE VENTAS App mobile
+Perfil: Agente comercial de la Bodega Central que visita clientes y levanta pedidos en calle.
+Plataforma: App Móvil Android (Flutter + Drift/SQLite — 100% offline).
+✅ Levantar pedidos preventa (bultos y/o unidades directo en la app).
+✅ Consultar stock de bodega en tiempo real (o última sincronización).
+✅ Consultar cuentas por cobrar (saldo pendiente y límite de crédito del cliente).
+✅ Registrar visita a clientes (geolocalización / estado de visita).
+❌ No maneja inventario físico ni despacha pedidos.
+❌ No confirma facturas ni cobra directamente.
+❌ No modifica precios ni el factor X (unidades por bulto).
+
+5. RUTERO
+Perfil: Entregador logístico que transporta la carga de la Bodega Central, entrega al cliente y recauda el dinero.
+Plataforma: App Móvil Android (Flutter + Drift/SQLite — 100% offline).
+✅ Recepcionar carga asignada (inspecciona y acepta el inventario de su camión en bultos y unidades).
+✅ Entregar y facturar (confirma entrega física y convierte la orden en factura/ticket).
+✅ Procesar rechazos y devoluciones (si el cliente rechaza mercancía, se descuenta al instante).
+✅ Recaudar cobros (efectivo, transferencia, cheque) y emitir recibo por impresora Bluetooth.
+✅ Rendir liquidación diaria (entrega mercancía no vendida/rechazada y efectivo cobrado).
+❌ No levanta preventas nuevas fuera de su ruta asignada.
+❌ No modifica precios ni otorga descuentos adicionales.
+❌ No ajusta el inventario general de la Bodega Central (solo el de su camión).
+
+6. Administrador General — Tarjeta creada (Administración Master / Super Admin).
+
+================================================================================
+LISTA 2: "Proceso" (Bodega Central — Versión con Flujos Paso a Paso)
+================================================================================
+
+👑 1. ADMINISTRADOR — Plataforma Web (React 19), frecuencia eventual/diaria.
+Proceso A – Alta y configuración de personal: Entra a Configuración > Gestión de Usuarios → completa datos → asigna rol exacto (JEFE_BODEGA, AUXILIAR_DESPACHO, AUDITOR_INVENTARIO, GESTOR_VENTAS, RUTERO) → guarda.
+Proceso B – Autorización de emergencia: Recibe alerta de proceso bloqueado → revisa detalle → aprueba o rechaza (firma digital).
+
+📦 2. JEFE / ENCARGADO DE BODEGA CENTRAL — Plataforma Web (React 19), frecuencia diaria/continua.
+Proceso A – Configuración del factor X en productos: Catálogo > Nuevo Producto → SKU, nombre, costo, precio → activa "¿Se controla en bultos?" (handles_bulk) → define "Unidades por Bulto (X)" → guarda.
+Proceso B – Cierre de liquidación de ruta: Recibe al Rutero al final de la jornada → módulo Liquidaciones de Ruta → cruce teórico vs real → aprueba y cierra liquidación (el stock no vendido retorna al Kárdex).
+
+👷 3. AUXILIAR DE RECEPCIÓN Y DESPACHO — Web/Terminal de Almacén (React 19), diario/operación de piso.
+Proceso A – Recepción física de compras a proveedores: Ingreso de Inventario → selecciona proveedor/orden de compra → digita cantidades en Bultos y Unidades → escanea barras → confirma recepción.
+Proceso B – Armado y entrega de carga para Rutero: Abre orden consolidada por camión (cargas-camion) → retira mercancía de pasillos → checklist junto al Rutero → marca "Cargado y Entregado a Transportista".
+
+🕵️ 4. ANALISTA / AUDITOR DE INVENTARIOS — Plataforma Web (React 19), diario/periódico.
+Proceso A – Arqueo/conteo físico ciego: Arqueos de Inventario (zona/pasillo) → conteo ciego → compara contra movements → genera Reporte de Discrepancia.
+Proceso B – Solicitud de ajuste de Kárdex: Selecciona producto en Ajustes de Inventario → indica motivo → envía a solicitudes (autorizaciones).
+
+📱 5. GESTOR DE VENTAS (Preventista) — App Móvil Android (Flutter + Drift/SQLite, local-first), diario en campo.
+Proceso: Sincroniza catálogo/clientes/stock al iniciar el día → selecciona cliente en plan de ruta → muestra stock "X Bultos / Y Unidades" → guarda pedido (pending-orders) localmente y envía vía Outbox Pattern.
+
+🚚 6. RUTERO / REPARTIDOR — App Móvil Android (Flutter + Drift/SQLite + impresora Bluetooth), diario en campo.
+Proceso A – Recepción e inspección de carga: "Aceptar Carga del Día" → revisa resumen → firma recepción digital.
+Proceso B – Entrega, cobro y facturación: Selecciona cliente en pending-deliveries → entrega total o parcial → cobra y convierte a factura → imprime comprobante Bluetooth.
+Proceso C – Cierre de ruta: "Finalizar Ruta" → entrega mercancía no vendida al Auxiliar de Bodega y dinero al Cajero → envía resumen de liquidación.
+
+================================================================================
+LISTA 3: "Tareas" — Asignación de Rutas (Gestor de Ventas y Rutero)
+================================================================================
+
+Módulo de creación de rutas (Web Admin > Logística y Comercial > Definición de Rutas). Dos tipos de rutas:
+- Rutas de Ventas (Preventa): Agrupan clientes por cercanía/secuencia de visita.
+- Rutas de Reparto (Entrega): Agrupan sectores/municipios de entrega física.
+
+¿Quién asigna clientes al Gestor de Ventas? El Jefe de Bodega Central o el Supervisor Comercial desde la Web.
+Flujo: Crear Ruta Comercial → vincular clientes → asignar Gestor responsable → app Flutter descarga lista.
+Reasignación en tiempo real: "Gestión de Clientes > Reasignación Express" permite transferir cartera entre vendedores.
+
+¿Quién asigna rutas al Rutero? El Jefe de Bodega Central al consolidar pedidos para despacho.
+Flujo: Gestores levantan pedidos → Jefe de Bodega filtra por zona en "Despacho & Cargas Camión" → asigna a Carga de Camión → asigna a Rutero.
+
+Reglas clave:
+- Jefe de Bodega Central: SÍ crea/configura rutas, asigna clientes a Gestores, asigna cargas a Ruteros.
+- Gestor de Ventas: NO puede autoasignarse clientes.
+- Rutero: NO escoge qué pedidos entregar.
+
+================================================================================
+LISTA 4: "roles de distribuidora" (Venta Mayorista / Mostrador)
+================================================================================
+
+14. ADMINISTRADOR / GERENTE DE DISTRIBUIDORA — Rol DISTRIBUTOR_ADMIN — Web Admin (React 19).
+Objetivo: Supervisar operación comercial, administrativa y financiera de la distribuidora.
+✅ Solicitudes de reabastecimiento a Bodega Central cuando el stock esté bajo.
+✅ Aprobación de créditos y sobregiros locales.
+✅ Supervisión de cajas y arqueos (cortes de turno, notas de crédito, cierres).
+✅ Aprobación de mermas locales.
+❌ No gestiona la plataforma global ni modifica el catálogo general.
+
+15. DESPACHADOR DE DISTRIBUIDORA (Auxiliar de Bodega) — Rol AUXILIAR_DESPACHO — Web (React 19).
+Objetivo: Armar y entregar físicamente la carga al cliente contra factura pagada.
+✅ Verificación de factura pagada → armado de carga física → escaneo de bultos/unidades → confirmación de entrega.
+❌ No ve precios de costo ni dinero. No cobra.
+
+16. Despachadora de Mostrador — Rol DISTRIBUTOR_SELLER — Web POS/Mostrador (React 19).
+Objetivo: Atender cliente en sala de ventas, asesorar en empaques y generar comanda preliminar.
+✅ Toma de comandas/prefacturas (bultos y/o unidades) → asignación de cliente → emisión de tiquete de comanda.
+❌ No cobra dinero ni entrega mercancía física.
+
+17. CAJERO DE DISTRIBUIDORA — Rol DISTRIBUTOR_CASHIER — Web POS (React 19).
+Objetivo: Buscar comanda activa, procesar cobro y emitir factura oficial que libera el despacho físico.
+✅ Cobro y facturación de comandas pendientes → control de caja registradora (cash-shifts, arqueos) → impresión de factura.
+
+================================================================================
+LISTA 5: "roles de supermercado" (Venta Minorista / POS)
+================================================================================
+
+18. Supervisor de Cajas — Rol SUPERMARKET_SUPERVISOR — Web/POS Admin (React 19). (¡Agregado!)
+Objetivo: Supervisar piso de ventas, aperura/cierre de cajas y autorizaciones especiales.
+✅ Fondo inicial junto al cajero, cortes/arqueos, retiros parciales a caja fuerte, autorizaciones con clave/PIN (descuentos, precios especiales, anulaciones).
+
+19. Bodeguero / Auxiliar de Bodega de Supermercado — Rol SUPERMARKET_WAREHOUSE — Web (React 19). (¡Agregado!)
+Objetivo: Recepcionar mercancía entrante a la bodega física y despachar insumos a góndoleros.
+✅ Recepción de proveedores directos, recepción de traspasos centrales, despacho a góndoleros.
+
+20. Cajero de Supermercado — Rol SUPERMARKET_CASHIER — Web POS Rápido (React 19).
+Objetivo: Cobro minorista rápido en caja. Escaneo de productos, cobro (efectivo/tarjeta/transferencia), emisión de ticket.
+
+21. Góndolero / Perchero — Rol SUPERMARKET_STOCKER — App Móvil / Lectura.
+Objetivo: Exhibición y reabastecimiento de pasillos. Solicita ítems al Bodeguero, desempaca bultos a unidades sueltas, surte góndolas.
+
+22. Administrador / Gerente de Supermercado — Rol SUPERMARKET_ADMIN — Web Admin (React 19).
+Objetivo: Dirección general de la sucursal, compras locales, finanzas y Cuentas por Pagar (CxP).
+✅ Gestión de proveedores directos y CxP, planificación de compras/traspasos, supervisión de cierres consolidados.
+
+================================================================================
+LISTA 6: "Puntos Claves del Supermercado y Cuentas por Pagar (CxP)"
+================================================================================
+
+23. Proceso de CxP (Cuentas por Pagar):
+- Las CxP las gestiona el Administrador/Gerente de Supermercado (SUPERMARKET_ADMIN).
+- Fase 1 (Bodeguero): Recibe físicamente la mercancía de proveedores directos (bultos/unidades) e ingresa la recepción.
+- Fase 2 (Administrador): Audita la factura contra el reporte del bodeguero, confirma precios e impuestos, la aprueba y programa el pago en CxP.
+
+24. Asignación de Responsabilidades en Supermercado:
+- Catálogo de Proveedores: Administrador tiene acceso completo y alta de proveedores directos locales; Bodeguero solo lectura para recepciones.
+- Ingreso de Facturas de Proveedores: Bodeguero registra recepción física; Administrador aprueba para CxP.
+- Pedidos de Reabastecimiento Central: Góndolero genera solicitud inicial (sugerido); Administrador revisa y envía Orden de Traspaso a Bodega Central.

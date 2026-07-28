@@ -17,6 +17,7 @@ export default function AddStorePage() {
     address: '',
     phone: '',
     chainId: '',
+    storeType: 'SUPERMERCADO',
   });
 
   useEffect(() => {
@@ -77,6 +78,22 @@ export default function AddStorePage() {
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-black uppercase text-xs text-slate-500">Tipo de Negocio / Sucursal</Label>
+              <select
+                required
+                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-blue-200 text-blue-900"
+                value={formData.storeType}
+                onChange={(event) =>
+                  setFormData({ ...formData, storeType: event.target.value })
+                }
+              >
+                <option value="SUPERMERCADO">🛒 SUPERMERCADO (Venta Minorista / POS)</option>
+                <option value="DISTRIBUIDORA">🏢 DISTRIBUIDORA (Venta Mayorista / Mostrador)</option>
+                <option value="BODEGA_CENTRAL">📦 BODEGA CENTRAL (Matriz / Rutas / Preventa)</option>
+              </select>
             </div>
 
             <div className="space-y-2">
