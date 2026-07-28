@@ -228,13 +228,27 @@ const getAuxiliarNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Cuentas por Cobrar', href: `/store/${storeId}/cxc`, icon: HandCoins },
 ];
 
-const getSupervisorCajaNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Caja', href: `/store/${storeId}/work/cash`, icon: WalletCards },
-  { type: 'link', name: 'Finanzas', href: `/store/${storeId}/work/finance`, icon: Wallet },
+const getSupermarketSupervisorNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Arqueos & Control de Cajas', href: `/store/${storeId}/cash-register`, icon: DollarSign },
+  { type: 'link', name: 'Autorizaciones & Pines POS', href: `/store/${storeId}/authorizations`, icon: ShieldAlert },
 ];
 
-const getSupervisorPasilloNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Catálogo', href: `/store/${storeId}/work/catalog`, icon: Package },
+const getSupermarketWarehouseNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Recepción Proveedores Directos', href: `/store/${storeId}/supplier-invoices`, icon: ArrowDownRight },
+  { type: 'link', name: 'Kárdex & Traspasos Centrales', href: `/store/${storeId}/inventory/movements`, icon: FileText },
+  { type: 'link', name: 'Sugerido de Góndola & Despacho', href: `/store/${storeId}/gondola-restock`, icon: Layers },
+  { type: 'link', name: 'Catálogo Stock', href: `/store/${storeId}/products`, icon: Package },
+];
+
+const getSupermarketCashierNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'POS Cobro Minorista', href: `/store/${storeId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Caja & Turno Actual', href: `/store/${storeId}/cash-register`, icon: DollarSign },
+];
+
+const getSupermarketStockerNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Surtido de Góndola', href: `/store/${storeId}/gondola-restock`, icon: Layers },
+  { type: 'link', name: 'Conteos Ciegos Pasillo', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
+  { type: 'link', name: 'Consulta de Catálogo', href: `/store/${storeId}/products`, icon: Package },
 ];
 
 const getRuteroNav = (storeId: string): NavItem[] => [
@@ -609,6 +623,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         return getDistributorDispatcherNav(activeStore);
       case 'supermarket-admin':
         return getSupermarketNav(activeStore);
+      case 'supermarket-supervisor':
+        return getSupermarketSupervisorNav(activeStore);
+      case 'supermarket-warehouse':
+        return getSupermarketWarehouseNav(activeStore);
+      case 'supermarket-cashier':
+        return getSupermarketCashierNav(activeStore);
+      case 'supermarket-stocker':
+        return getSupermarketStockerNav(activeStore);
       case 'admin':
         // JEFE / ENCARGADO DE SUCURSAL: Navegación inteligente adaptada al storeType
         return getStoreAdminNav(activeStore, storeType);

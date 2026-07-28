@@ -89,9 +89,14 @@ export default function ProductsPage() {
   const storeId = (params.storeId as string) || user?.storeIds?.[0] || '9321856d-19ba-42b8-ba47-cf35c0d133dd';
   const navigate = useNavigate();
   const role = normalizeUserRole(user?.role);
-  const canManageCatalog = ["admin", "super-admin", "inventory"].includes(
-    role,
-  );
+  const canManageCatalog = [
+    "admin",
+    "super-admin",
+    "inventory",
+    "distributor-admin",
+    "supermarket-admin",
+    "supermarket-warehouse",
+  ].includes(role);
 
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);

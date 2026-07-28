@@ -38,8 +38,14 @@ export function getRedirectPath(user: User | null): string | null {
             return `/store/${effectiveStoreId}/dispatcher`;
         case 'supermarket-admin':
             return `/store/${effectiveStoreId}/dashboard`;
+        case 'supermarket-supervisor':
+            return `/store/${effectiveStoreId}/cash-register`;
         case 'supermarket-cashier':
             return `/store/${effectiveStoreId}/work/sales`;
+        case 'supermarket-warehouse':
+            return `/store/${effectiveStoreId}/supplier-invoices`;
+        case 'supermarket-stocker':
+            return `/store/${effectiveStoreId}/gondola-restock`;
         case 'inventory':
             return `/store/${effectiveStoreId}/inventory/movements`;
         case 'auxiliar':
