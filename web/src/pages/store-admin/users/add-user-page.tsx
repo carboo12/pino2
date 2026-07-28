@@ -44,29 +44,36 @@ const userFormSchema = z.object({
   assignedStoreId: z.string().optional(),
 });
 
-const ALL_ROLES = [
-  // --- BODEGA CENTRAL (Matriz & Rutas) ---
+const BODEGA_ROLES = [
   { value: 'admin', label: '📦 [BODEGA CENTRAL] 1. Jefe / Encargado de Bodega' },
   { value: 'auxiliar', label: '👷 [BODEGA CENTRAL] 2. Auxiliar de Recepción y Despacho' },
   { value: 'inventory', label: '🕵️ [BODEGA CENTRAL] 3. Analista / Auditor de Inventario' },
   { value: 'gestor', label: '📱 [BODEGA CENTRAL] 4. Gestor de Ventas (App Móvil)' },
   { value: 'rutero', label: '🚚 [BODEGA CENTRAL] 5. Rutero / Repartidor (App Móvil)' },
+] as const;
 
-  // --- DISTRIBUIDORA (Venta Mayorista) ---
+const DISTRIBUIDORA_ROLES = [
   { value: 'distributor-admin', label: '🏢 [DISTRIBUIDORA] Gerente / Administrador de Distribuidora' },
   { value: 'distributor-seller', label: '📋 [DISTRIBUIDORA] Despachadora de Mostrador (Comandas)' },
   { value: 'distributor-cashier', label: '💵 [DISTRIBUIDORA] Cajero de Distribuidora (Cobro/Factura)' },
+] as const;
 
-  // --- SUPERMERCADO (Venta Minorista / POS) ---
+const SUPERMERCADO_ROLES = [
   { value: 'supermarket-admin', label: '🛒 [SUPERMERCADO] Gerente de Supermercado (CxP / Proveedores)' },
   { value: 'supermarket-supervisor', label: '🔑 [SUPERMERCADO] Supervisor de Cajas (Arqueos / Pines)' },
   { value: 'supermarket-cashier', label: '💳 [SUPERMERCADO] Cajero de Supermercado (POS Escáner)' },
   { value: 'supermarket-warehouse', label: '📦 [SUPERMERCADO] Bodeguero / Auxiliar de Bodega' },
   { value: 'supermarket-stocker', label: '🏷️ [SUPERMERCADO] Góndolero / Perchero' },
-
-  // --- ADMINISTRACIÓN GLOBAL ---
-  { value: 'super-admin', label: '👑 ADMINISTRADOR GENERAL GLOBAL' },
 ] as const;
+
+const GLOBAL_ADMIN_ROLE = { value: 'super-admin', label: '👑 ADMINISTRADOR GENERAL GLOBAL' } as const;
+
+const ALL_ROLES = [
+  ...BODEGA_ROLES,
+  ...DISTRIBUIDORA_ROLES,
+  ...SUPERMERCADO_ROLES,
+  GLOBAL_ADMIN_ROLE,
+];
 
 const GLOBAL_ROLES = new Set(['super-admin']);
 
@@ -77,9 +84,9 @@ export default function AddUserPage() {
   const isMasterMode = location.pathname.startsWith('/master-admin/');
   const [isSaving, setIsSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [stores, setStores] = useState<Array<{ id: string; name: string }>>([]);
+  const [stores, setStores] = useState<Array<{ id: string; name: string; storeType: string }>>([]);
+  const [currentStoreType, setCurrentStoreType] = useState<string>('');
 
-  const roleOptions = ALL_ROLES;
   const backHref = isMasterMode ? '/master-admin/users' : `/store/${storeId}/users`;
 
   const form = useForm<z.infer<typeof userFormSchema>>({
@@ -94,19 +101,73 @@ export default function AddUserPage() {
   });
 
   useEffect(() => {
-    if (!isMasterMode) return;
+    if (isMasterMode) {
+      const fetchStores = async () => {
+        try {
+          const response = await apiClient.get('/stores');
+          setStores((response.data || []).map((store: any) => ({
+            id: store.id,
+            name: store.name,
+            storeType: store.storeType || store.store_type || 'SUPERMERCADO',
+          })));
+        } catch (error) {
+          toast.error('Error', 'No se pudieron cargar las tiendas para asignación.');
+        }
+      };
 
-    const fetchStores = async () => {
-      try {
-        const response = await apiClient.get('/stores');
-        setStores((response.data || []).map((store: any) => ({ id: store.id, name: store.name })));
-      } catch (error) {
-        toast.error('Error', 'No se pudieron cargar las tiendas para asignación.');
+      fetchStores();
+    } else if (storeId) {
+      apiClient.get(`/stores/${storeId}`).then((res) => {
+        if (res.data) {
+          setCurrentStoreType(res.data.storeType || res.data.store_type || 'SUPERMERCADO');
+        }
+      }).catch(() => {});
+    }
+  }, [isMasterMode, storeId]);
+
+  const selectedStoreId = form.watch('assignedStoreId');
+
+  const activeStoreType = useMemo(() => {
+    if (isMasterMode) {
+      const found = stores.find((s) => s.id === selectedStoreId);
+      return found ? (found.storeType || '').toUpperCase() : '';
+    }
+    return (currentStoreType || '').toUpperCase();
+  }, [isMasterMode, stores, selectedStoreId, currentStoreType]);
+
+  const roleOptions = useMemo(() => {
+    let roles: Array<{ value: string; label: string }> = [];
+
+    if (activeStoreType.includes('DISTRIB')) {
+      roles = [...DISTRIBUIDORA_ROLES];
+    } else if (activeStoreType.includes('SUPERMERCADO')) {
+      roles = [...SUPERMERCADO_ROLES];
+    } else if (activeStoreType.includes('BODEGA')) {
+      roles = [...BODEGA_ROLES];
+    } else {
+      roles = [
+        ...BODEGA_ROLES,
+        ...DISTRIBUIDORA_ROLES,
+        ...SUPERMERCADO_ROLES,
+      ];
+    }
+
+    if (isMasterMode) {
+      roles.push(GLOBAL_ADMIN_ROLE);
+    }
+
+    return roles;
+  }, [activeStoreType, isMasterMode]);
+
+  useEffect(() => {
+    if (roleOptions.length > 0) {
+      const currentRole = form.getValues('role');
+      const isValid = roleOptions.some((r) => r.value === currentRole);
+      if (!isValid) {
+        form.setValue('role', roleOptions[0].value);
       }
-    };
-
-    fetchStores();
-  }, [isMasterMode]);
+    }
+  }, [roleOptions, form]);
 
   async function onSubmit(values: z.infer<typeof userFormSchema>) {
     setIsSaving(true);
@@ -249,7 +310,7 @@ export default function AddUserPage() {
                        <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
                          <ShieldAlert className="h-4 w-4 text-primary" /> Nivel de Privilegios
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
                             <SelectValue placeholder="Selecciona un rol" />

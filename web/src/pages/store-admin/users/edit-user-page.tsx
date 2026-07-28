@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,16 +52,29 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'gestionar_usuarios', label: 'Gestionar usuarios' },
 ];
 
-const CANONICAL_ROLES = [
-  { value: 'admin', label: '1. JEFE / ENCARGADO DE BODEGA' },
-  { value: 'auxiliar', label: '2. AUXILIAR DE RECEPCIÓN Y DESPACHO' },
-  { value: 'inventory', label: '3. ANALISTA / AUDITOR DE INVENTARIO' },
-  { value: 'gestor', label: '4. GESTOR DE VENTAS (Móvil)' },
-  { value: 'rutero', label: '5. RUTERO / REPARTIDOR (Móvil)' },
-  { value: 'super-admin', label: '6. ADMINISTRADOR GENERAL' },
+const BODEGA_ROLES = [
+  { value: 'admin', label: '📦 [BODEGA CENTRAL] 1. Jefe / Encargado de Bodega' },
+  { value: 'auxiliar', label: '👷 [BODEGA CENTRAL] 2. Auxiliar de Recepción y Despacho' },
+  { value: 'inventory', label: '🕵️ [BODEGA CENTRAL] 3. Analista / Auditor de Inventario' },
+  { value: 'gestor', label: '📱 [BODEGA CENTRAL] 4. Gestor de Ventas (App Móvil)' },
+  { value: 'rutero', label: '🚚 [BODEGA CENTRAL] 5. Rutero / Repartidor (App Móvil)' },
 ] as const;
 
-const MASTER_ROLE_OPTIONS = CANONICAL_ROLES;
+const DISTRIBUIDORA_ROLES = [
+  { value: 'distributor-admin', label: '🏢 [DISTRIBUIDORA] Gerente / Administrador de Distribuidora' },
+  { value: 'distributor-seller', label: '📋 [DISTRIBUIDORA] Despachadora de Mostrador (Comandas)' },
+  { value: 'distributor-cashier', label: '💵 [DISTRIBUIDORA] Cajero de Distribuidora (Cobro/Factura)' },
+] as const;
+
+const SUPERMERCADO_ROLES = [
+  { value: 'supermarket-admin', label: '🛒 [SUPERMERCADO] Gerente de Supermercado (CxP / Proveedores)' },
+  { value: 'supermarket-supervisor', label: '🔑 [SUPERMERCADO] Supervisor de Cajas (Arqueos / Pines)' },
+  { value: 'supermarket-cashier', label: '💳 [SUPERMERCADO] Cajero de Supermercado (POS Escáner)' },
+  { value: 'supermarket-warehouse', label: '📦 [SUPERMERCADO] Bodeguero / Auxiliar de Bodega' },
+  { value: 'supermarket-stocker', label: '🏷️ [SUPERMERCADO] Góndolero / Perchero' },
+] as const;
+
+const GLOBAL_ADMIN_ROLE = { value: 'super-admin', label: '👑 ADMINISTRADOR GENERAL GLOBAL' } as const;
 
 export default function EditUserPage() {
   const { storeId, userId } = useParams();
@@ -70,9 +83,8 @@ export default function EditUserPage() {
   const isMasterMode = location.pathname.startsWith('/master-admin/');
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [assignedStores, setAssignedStores] = useState<Array<{ id: string; name: string }>>([]);
+  const [assignedStores, setAssignedStores] = useState<Array<{ id: string; name: string; storeType?: string; store_type?: string }>>([]);
 
-  const roleOptions = MASTER_ROLE_OPTIONS;
   const backHref = isMasterMode ? '/master-admin/users' : `/store/${storeId}/users`;
 
   const form = useForm<z.infer<typeof userFormSchema>>({
@@ -84,6 +96,32 @@ export default function EditUserPage() {
       permissions: [],
     },
   });
+
+  const activeStoreType = (assignedStores[0]?.storeType || assignedStores[0]?.store_type || '').toUpperCase();
+
+  const roleOptions = useMemo(() => {
+    let roles: Array<{ value: string; label: string }> = [];
+
+    if (activeStoreType.includes('DISTRIB')) {
+      roles = [...DISTRIBUIDORA_ROLES];
+    } else if (activeStoreType.includes('SUPERMERCADO')) {
+      roles = [...SUPERMERCADO_ROLES];
+    } else if (activeStoreType.includes('BODEGA')) {
+      roles = [...BODEGA_ROLES];
+    } else {
+      roles = [
+        ...BODEGA_ROLES,
+        ...DISTRIBUIDORA_ROLES,
+        ...SUPERMERCADO_ROLES,
+      ];
+    }
+
+    if (isMasterMode) {
+      roles.push(GLOBAL_ADMIN_ROLE);
+    }
+
+    return roles;
+  }, [activeStoreType, isMasterMode]);
 
   useEffect(() => {
     async function fetchUser() {
@@ -214,7 +252,7 @@ export default function EditUserPage() {
                        <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
                          <ShieldAlert className="h-4 w-4 text-primary" /> Nivel de Privilegios
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
                             <SelectValue placeholder="Selecciona un rol" />
