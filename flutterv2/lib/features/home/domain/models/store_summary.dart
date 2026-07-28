@@ -5,6 +5,7 @@ class StoreSummary {
     this.address,
     this.phone,
     this.chainId,
+    this.storeType,
   });
 
   final String id;
@@ -12,6 +13,7 @@ class StoreSummary {
   final String? address;
   final String? phone;
   final String? chainId;
+  final String? storeType;
 
   factory StoreSummary.fromJson(Map<String, dynamic> json) {
     return StoreSummary(
@@ -19,7 +21,8 @@ class StoreSummary {
       name: json['name']?.toString() ?? '',
       address: json['address']?.toString(),
       phone: json['phone']?.toString(),
-      chainId: json['chainId']?.toString(),
+      chainId: json['chainId']?.toString() ?? json['chain_id']?.toString(),
+      storeType: json['storeType']?.toString() ?? json['store_type']?.toString(),
     );
   }
 }

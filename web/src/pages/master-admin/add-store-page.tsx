@@ -23,7 +23,13 @@ export default function AddStorePage() {
   useEffect(() => {
     apiClient
       .get('/chains')
-      .then((response) => setChains(Array.isArray(response.data) ? response.data : []))
+      .then((response) => {
+        const list = Array.isArray(response.data) ? response.data : [];
+        setChains(list);
+        if (list.length > 0) {
+          setFormData((prev) => ({ ...prev, chainId: list[0].id }));
+        }
+      })
       .catch(() => toast.error('Error', 'No se pudieron cargar las cadenas.'));
   }, []);
 
@@ -61,20 +67,20 @@ export default function AddStorePage() {
       </div>
 
       <Card className="rounded-[40px] border-none shadow-2xl bg-white overflow-hidden">
-        <CardHeader className="bg-slate-50/50 p-8">
+        <CardHeader className="bg-slate-50/50 p-8 border-b border-slate-100">
           <CardTitle className="text-xl font-black uppercase text-slate-800">Datos de la Sucursal</CardTitle>
           <CardDescription className="text-slate-400 font-bold uppercase text-[10px] mt-1">
-            Información básica para el sistema y facturación
+            Información básica para la red comercial de Grupo Los Pinos
           </CardDescription>
         </CardHeader>
         <CardContent className="p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label className="font-black uppercase text-xs text-slate-500">Nombre de la Tienda</Label>
+              <Label className="font-black uppercase text-xs text-slate-500">Nombre de la Sucursal</Label>
               <Input 
                 required 
                 className="h-12 rounded-xl border-2 font-bold focus:border-blue-500" 
-                placeholder="Ej: Los Pinos - Central"
+                placeholder="Ej: Supermercado Los Pinos - Sucursal Rivas"
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
               />
@@ -90,23 +96,22 @@ export default function AddStorePage() {
                   setFormData({ ...formData, storeType: event.target.value })
                 }
               >
-                <option value="SUPERMERCADO">🛒 SUPERMERCADO (Venta Minorista / POS)</option>
-                <option value="DISTRIBUIDORA">🏢 DISTRIBUIDORA (Venta Mayorista / Mostrador)</option>
-                <option value="BODEGA_CENTRAL">📦 BODEGA CENTRAL (Matriz / Rutas / Preventa)</option>
+                <option value="SUPERMERCADO">🛒 SUPERMERCADO (Venta Minorista / POS / Proveedores Directos)</option>
+                <option value="DISTRIBUIDORA">🏢 DISTRIBUIDORA (Venta Mayorista / Mostrador / Recibe SOLO de Bodega)</option>
+                <option value="BODEGA_CENTRAL">📦 BODEGA CENTRAL (Matriz / Logística / Rutas / Preventa)</option>
               </select>
             </div>
 
             <div className="space-y-2">
-              <Label className="font-black uppercase text-xs text-slate-500">Cadena</Label>
+              <Label className="font-black uppercase text-xs text-slate-500">Cadena Comercial</Label>
               <select
                 required
-                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold"
+                className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-slate-200"
                 value={formData.chainId}
                 onChange={(event) =>
                   setFormData({ ...formData, chainId: event.target.value })
                 }
               >
-                <option value="">Seleccione una cadena...</option>
                 {chains.map((chain) => (
                   <option key={chain.id} value={chain.id}>{chain.name}</option>
                 ))}
