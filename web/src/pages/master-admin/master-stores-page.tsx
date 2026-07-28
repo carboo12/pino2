@@ -22,6 +22,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -327,9 +328,23 @@ export default function MasterStoresPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <CardTitle className="text-lg font-bold text-foreground">
-                      {store.name}
-                    </CardTitle>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CardTitle className="text-lg font-bold text-foreground">
+                        {store.name}
+                      </CardTitle>
+                      {((store as any).storeType || (store as any).store_type) && (
+                        <Badge variant="outline" className={cn(
+                          "font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border",
+                          ((store as any).storeType || (store as any).store_type) === 'DISTRIBUIDORA' ? "bg-purple-50 text-purple-700 border-purple-200" :
+                          ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                          "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        )}>
+                          {((store as any).storeType || (store as any).store_type) === 'DISTRIBUIDORA' ? '🏢 Distribuidora' :
+                           ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? '📦 Bodega Central' :
+                           '🛒 Supermercado'}
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       ID: <span className="font-mono text-[11px]">{store.id}</span>
                     </p>

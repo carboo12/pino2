@@ -14,7 +14,7 @@ import {
   ShoppingCart, ClipboardCheck, AreaChart, UsersRound, Truck, HandCoins,
   ShieldCheck, SendToBack, Route, DollarSign, ListOrdered, PackagePlus, ReceiptText, Boxes, Wallet, Undo2,
   ChevronDown, PanelLeftClose, PanelLeft, Command, TreePine, ShoppingBag, ArrowDownRight,
-  ShieldAlert, UserCheck, UserCog, FileCheck, Tag
+  ShieldAlert, UserCheck, UserCog, FileCheck, Tag, Layers
 } from 'lucide-react';
 
 // --- Nav Item Types ---
@@ -72,7 +72,7 @@ interface RealtimeEvent {
 }
 
 // ===================================================================
-// NAV DEFINITIONS — CONSOLIDATED WITH GROUPS
+// NAV DEFINITIONS — CONSOLIDATED WITH GROUPS BY STORE TYPE
 // ===================================================================
 
 const getChainAdminNav = (): NavItem[] => [
@@ -81,15 +81,15 @@ const getChainAdminNav = (): NavItem[] => [
 ];
 
 const getMasterAdminNav = (activeStoreId = '9321856d-19ba-42b8-ba47-cf35c0d133dd'): NavItem[] => [
-  { type: 'link', name: 'Panel', href: '/master-admin/dashboard', icon: LayoutDashboard },
+  { type: 'link', name: 'Panel Maestro', href: '/master-admin/dashboard', icon: LayoutDashboard },
   { type: 'link', name: 'Tiendas', href: '/master-admin/stores', icon: Store },
   { type: 'link', name: 'Usuarios', href: '/master-admin/users', icon: Users },
   { type: 'separator' },
-  { type: 'link', name: 'Bodega', href: `/store/${activeStoreId}/warehouse`, icon: Boxes },
-  { type: 'link', name: 'Rutas', href: `/store/${activeStoreId}/routes`, icon: Map },
-  { type: 'link', name: 'Ventas', href: `/store/${activeStoreId}/work/sales`, icon: Route },
-  { type: 'link', name: 'Finanzas', href: `/store/${activeStoreId}/work/finance`, icon: Wallet },
-  { type: 'link', name: 'Catálogo', href: `/store/${activeStoreId}/work/catalog`, icon: Package },
+  { type: 'link', name: 'Bodega Central', href: `/store/${activeStoreId}/warehouse`, icon: Boxes },
+  { type: 'link', name: 'Rutas & Campo', href: `/store/${activeStoreId}/routes`, icon: Map },
+  { type: 'link', name: 'Ventas Globales', href: `/store/${activeStoreId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Finanzas Globales', href: `/store/${activeStoreId}/work/finance`, icon: Wallet },
+  { type: 'link', name: 'Catálogo General', href: `/store/${activeStoreId}/work/catalog`, icon: Package },
   { type: 'separator' },
   { type: 'group', name: 'Monitor Global', icon: AreaChart, children: [
     { type: 'link', name: 'Monitor de Sincronización', href: '/master-admin/sync-monitor', icon: RefreshCw, section: 'ops' },
@@ -100,38 +100,101 @@ const getMasterAdminNav = (activeStoreId = '9321856d-19ba-42b8-ba47-cf35c0d133dd
   { type: 'link', name: 'Configuración', href: '/master-admin/config', icon: Settings },
 ];
 
-const getStoreAdminNav = (storeId: string): NavItem[] => [
-  { type: 'link', name: 'Panel Sucursal', href: `/store/${storeId}/dashboard`, icon: LayoutDashboard },
+// --- 🛒 1. SUPERMERCADO (Venta Minorista / POS / Proveedores Directos) ---
+const getSupermarketNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Panel Supermercado', href: `/store/${storeId}/dashboard`, icon: LayoutDashboard },
   { type: 'separator' },
-  { type: 'group', name: 'Ventas & Pedidos', icon: ShoppingCart, children: [
-    { type: 'link', name: 'Preventas & Flujo de Pedidos', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
-    { type: 'link', name: 'Ventas & Facturación', href: `/store/${storeId}/work/sales`, icon: Route },
-    { type: 'link', name: 'Clientes & Cartera', href: `/store/${storeId}/vendors/clients`, icon: Users },
-    { type: 'link', name: 'Promociones & Descuentos', href: `/store/${storeId}/promotions`, icon: Tag },
+  { type: 'group', name: 'Ventas & Cajas (POS)', icon: ShoppingCart, children: [
+    { type: 'link', name: 'POS Cobro Minorista', href: `/store/${storeId}/work/sales`, icon: Route },
+    { type: 'link', name: 'Arqueos & Control de Caja', href: `/store/${storeId}/cash-register`, icon: DollarSign },
+    { type: 'link', name: 'Promociones & Ofertas', href: `/store/${storeId}/promotions`, icon: Tag },
   ]},
-  { type: 'group', name: 'Inventario & Bodega', icon: Boxes, children: [
+  { type: 'group', name: 'Inventario & Góndolas', icon: Boxes, children: [
+    { type: 'link', name: 'Sugerido de Góndola', href: `/store/${storeId}/gondola-restock`, icon: Layers },
     { type: 'link', name: 'Catálogo & Factor X', href: `/store/${storeId}/products`, icon: Package },
     { type: 'link', name: 'Movimientos & Kárdex', href: `/store/${storeId}/inventory/movements`, icon: FileText },
     { type: 'link', name: 'Conteos Ciegos', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
-    { type: 'link', name: 'Ajustes de Inventario', href: `/store/${storeId}/inventory/adjustments`, icon: ShieldCheck },
+    { type: 'link', name: 'Ajustes de Stock', href: `/store/${storeId}/inventory/adjustments`, icon: ShieldCheck },
   ]},
-  { type: 'group', name: 'Logística & Campo', icon: Map, children: [
-    { type: 'link', name: 'Armado Carga Camión', href: `/store/${storeId}/routes`, icon: Truck },
-    { type: 'link', name: 'Control de Despacho', href: `/store/${storeId}/dispatcher`, icon: MapPin },
-    { type: 'link', name: 'Gestores de Venta', href: `/store/${storeId}/vendors`, icon: UserCheck },
-  ]},
-  { type: 'group', name: 'Finanzas & Compras', icon: Wallet, children: [
-    { type: 'link', name: 'Cuentas por Cobrar (CxC)', href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
-    { type: 'link', name: 'Proveedores & Compras', href: `/store/${storeId}/suppliers`, icon: Store },
+  { type: 'group', name: 'Proveedores & CxP', icon: Wallet, children: [
+    { type: 'link', name: 'Recepción Proveedores Directos', href: `/store/${storeId}/supplier-invoices`, icon: ArrowDownRight },
+    { type: 'link', name: 'Proveedores Locales', href: `/store/${storeId}/suppliers`, icon: Store },
     { type: 'link', name: 'Cuentas por Pagar (CxP)', href: `/store/${storeId}/finance/payables`, icon: WalletCards },
-    { type: 'link', name: 'Arqueos de Caja', href: `/store/${storeId}/cash-register`, icon: DollarSign },
-    { type: 'link', name: 'Liquidación de Rutas', href: `/store/${storeId}/daily-closing`, icon: FileCheck },
-    { type: 'link', name: 'Reportes de Negocio', href: `/store/${storeId}/reports`, icon: AreaChart },
+    { type: 'link', name: 'Reportes Venta Minorista', href: `/store/${storeId}/reports`, icon: AreaChart },
   ]},
   { type: 'separator' },
-  { type: 'link', name: 'Usuarios & Roles', href: `/store/${storeId}/users`, icon: UserCog },
+  { type: 'link', name: 'Usuarios & Personal', href: `/store/${storeId}/users`, icon: UserCog },
+  { type: 'link', name: 'Autorizaciones & Pines', href: `/store/${storeId}/authorizations`, icon: ShieldAlert },
+];
+
+// --- 🏢 2. DISTRIBUIDORA (Venta Mayorista / Mostrador / Recibe SOLO de Bodega Central) ---
+const getDistributorNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Panel Distribuidora', href: `/store/${storeId}/dashboard`, icon: LayoutDashboard },
+  { type: 'separator' },
+  { type: 'group', name: 'Ventas & Mostrador', icon: ShoppingCart, children: [
+    { type: 'link', name: 'Comandas de Mostrador', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
+    { type: 'link', name: 'Cobro & Facturación en Caja', href: `/store/${storeId}/work/sales`, icon: Route },
+    { type: 'link', name: 'Clientes & Cartera', href: `/store/${storeId}/vendors/clients`, icon: Users },
+    { type: 'link', name: 'Cuentas por Cobrar (CxC)', href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
+  ]},
+  { type: 'group', name: 'Almacén & Despacho', icon: Boxes, children: [
+    { type: 'link', name: 'Control Despacho Portón', href: `/store/${storeId}/dispatcher`, icon: MapPin },
+    { type: 'link', name: 'Solicitar a Bodega Central', href: `/store/${storeId}/inventory/adjustments`, icon: SendToBack },
+    { type: 'link', name: 'Inventario & Factor X', href: `/store/${storeId}/products`, icon: Package },
+    { type: 'link', name: 'Movimientos & Kárdex', href: `/store/${storeId}/inventory/movements`, icon: FileText },
+    { type: 'link', name: 'Conteos Ciegos', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
+  ]},
+  { type: 'group', name: 'Caja & Reportes', icon: Wallet, children: [
+    { type: 'link', name: 'Arqueos & Cortes de Caja', href: `/store/${storeId}/cash-register`, icon: DollarSign },
+    { type: 'link', name: 'Reportes Venta Mayorista', href: `/store/${storeId}/reports`, icon: AreaChart },
+  ]},
+  { type: 'separator' },
+  { type: 'link', name: 'Usuarios de Distribuidora', href: `/store/${storeId}/users`, icon: UserCog },
+  { type: 'link', name: 'Autorizaciones & Sobregiros', href: `/store/${storeId}/authorizations`, icon: ShieldAlert },
+];
+
+// --- 📦 3. BODEGA CENTRAL (Matriz / Rutas / Preventa / Cargas) ---
+const getWarehouseCentralNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Panel Bodega Central', href: `/store/${storeId}/dashboard`, icon: LayoutDashboard },
+  { type: 'separator' },
+  { type: 'group', name: 'Rutas & Preventa', icon: Map, children: [
+    { type: 'link', name: 'Preventas & Pedidos Campo', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
+    { type: 'link', name: 'Definición & Rutas Comercial', href: `/store/${storeId}/routes`, icon: MapPin },
+    { type: 'link', name: 'Gestores de Venta (Móvil)', href: `/store/${storeId}/vendors`, icon: UserCheck },
+    { type: 'link', name: 'Clientes & Cartera Global', href: `/store/${storeId}/vendors/clients`, icon: Users },
+  ]},
+  { type: 'group', name: 'Logística & Reparto', icon: Truck, children: [
+    { type: 'link', name: 'Armado Carga Camión', href: `/store/${storeId}/routes`, icon: Truck },
+    { type: 'link', name: 'Control Despacho Camiones', href: `/store/${storeId}/dispatcher`, icon: MapPin },
+    { type: 'link', name: 'Liquidación de Rutas', href: `/store/${storeId}/daily-closing`, icon: FileCheck },
+  ]},
+  { type: 'group', name: 'Inventario Masivo & Compras', icon: Boxes, children: [
+    { type: 'link', name: 'Catálogo General & Factor X', href: `/store/${storeId}/products`, icon: Package },
+    { type: 'link', name: 'Recepción Compras Proveedores', href: `/store/${storeId}/suppliers`, icon: Store },
+    { type: 'link', name: 'Movimientos & Kárdex General', href: `/store/${storeId}/inventory/movements`, icon: FileText },
+    { type: 'link', name: 'Conteos Ciegos', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
+    { type: 'link', name: 'Ajustes de Kárdex', href: `/store/${storeId}/inventory/adjustments`, icon: ShieldCheck },
+  ]},
+  { type: 'group', name: 'Finanzas & Supervisión', icon: Wallet, children: [
+    { type: 'link', name: 'Cuentas por Cobrar (CxC)', href: `/store/${storeId}/finance/receivables`, icon: HandCoins },
+    { type: 'link', name: 'Cuentas por Pagar (CxP)', href: `/store/${storeId}/finance/payables`, icon: WalletCards },
+    { type: 'link', name: 'Reportes Consolidados', href: `/store/${storeId}/reports`, icon: AreaChart },
+  ]},
+  { type: 'separator' },
+  { type: 'link', name: 'Usuarios & Privilegios', href: `/store/${storeId}/users`, icon: UserCog },
   { type: 'link', name: 'Autorizaciones Emergencia', href: `/store/${storeId}/authorizations`, icon: ShieldAlert },
 ];
+
+const getStoreAdminNav = (storeId: string, storeType = 'SUPERMERCADO'): NavItem[] => {
+  const normalizedType = (storeType || '').toUpperCase();
+  if (normalizedType.includes('DISTRIB')) {
+    return getDistributorNav(storeId);
+  }
+  if (normalizedType.includes('BODEGA') || normalizedType.includes('CENTRAL')) {
+    return getWarehouseCentralNav(storeId);
+  }
+  return getSupermarketNav(storeId);
+};
 
 // --- Simple role navs (already compact) ---
 const getBodegueroNav = (storeId: string): NavItem[] => [
@@ -520,12 +583,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     switch (roleId) {
       case 'admin':
-        // JEFE / ENCARGADO DE BODEGA: Acceso completo a módulos operativos de su bodega
-        return getStoreAdminNav(activeStore);
+        // JEFE / ENCARGADO DE SUCURSAL: Navegación inteligente adaptada al storeType
+        return getStoreAdminNav(activeStore, storeType);
       case 'super-admin':
-        // ADMINISTRADOR GENERAL: Acceso global maestro + operaciones directas de tienda activa
+        // ADMINISTRADOR GENERAL: Navegación de tienda activa si hay storeId seleccionado
         if (storeId) {
-          return getStoreAdminNav(storeId);
+          return getStoreAdminNav(storeId, storeType);
         }
         return getMasterAdminNav(activeStore);
       case 'inventory':
@@ -537,9 +600,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'auxiliar':
         return getAuxiliarNav(activeStore);
       default:
-        return getStoreAdminNav(activeStore);
+        return getStoreAdminNav(activeStore, storeType);
     }
-  }, [user, storeId, allStores]);
+  }, [user, storeId, storeType, allStores]);
 
   // Flatten for AppHeader (mobile hamburger menu still uses flat list)
   const flatNav = useMemo(() => flattenNavItems(navItems), [navItems]);
