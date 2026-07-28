@@ -736,7 +736,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           isSocketConnected={connected}
           stores={allStores}
           currentStoreId={storeId}
-          onStoreChange={(id) => navigate(`/store/${id}/work/cash`)}
+          onStoreChange={(id) => navigate(`/store/${id}/dashboard`)}
         />
         <main className={isWorkspace ? 'h-[calc(100dvh-4rem)] overflow-hidden p-0' : 'flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background overflow-x-hidden'}>
           {children}

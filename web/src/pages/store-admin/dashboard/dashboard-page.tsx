@@ -44,35 +44,97 @@ export default function DashboardPage() {
   const { data: storeData, isLoading: loading } = useStore(storeId);
   const storeName = (storeData as any)?.name || 'Tienda';
 
-  const quickActions = useMemo(
-    () => [
+  const storeType = (storeData as any)?.storeType || (storeData as any)?.store_type || 'SUPERMERCADO';
+
+  const quickActions = useMemo(() => {
+    const typeUpper = (storeType || '').toUpperCase();
+    
+    if (typeUpper.includes('DISTRIB')) {
+      return [
+        {
+          title: 'Comandas Mostrador',
+          description: 'Toma de comandas preliminares en sala de ventas.',
+          href: `/store/${storeId}/pending-orders`,
+          icon: ShoppingCart,
+        },
+        {
+          title: 'Cobro en Caja',
+          description: 'Cobrar comanda y emitir factura oficial (C$/USD).',
+          href: `/store/${storeId}/work/sales`,
+          icon: HandCoins,
+        },
+        {
+          title: 'Despacho Portón',
+          description: 'Verificar factura pagada y entregar carga física.',
+          href: `/store/${storeId}/dispatcher`,
+          icon: Truck,
+        },
+        {
+          title: 'Solicitar a Bodega',
+          description: 'Reabastecer inventario desde la Bodega Central.',
+          href: `/store/${storeId}/inventory/adjustments`,
+          icon: Boxes,
+        },
+      ];
+    }
+
+    if (typeUpper.includes('BODEGA') || typeUpper.includes('CENTRAL')) {
+      return [
+        {
+          title: 'Preventas Campo',
+          description: 'Monitorear pedidos levantados por gestores móviles.',
+          href: `/store/${storeId}/pending-orders`,
+          icon: ShoppingCart,
+        },
+        {
+          title: 'Cargas de Camión',
+          description: 'Armado de hojas de reparto y asignación a ruteros.',
+          href: `/store/${storeId}/routes`,
+          icon: Truck,
+        },
+        {
+          title: 'Recepción Compras',
+          description: 'Recibir compras masivas a proveedores de bodega.',
+          href: `/store/${storeId}/suppliers`,
+          icon: Boxes,
+        },
+        {
+          title: 'Liquidación Rutas',
+          description: 'Rendir cuentas y liquidar dinero/retornos de choferes.',
+          href: `/store/${storeId}/daily-closing`,
+          icon: HandCoins,
+        },
+      ];
+    }
+
+    // Default: SUPERMERCADO
+    return [
       {
-        title: 'Facturar',
-        description: 'Entrar directo a caja y registrar una venta.',
-        href: `/store/${storeId}/billing`,
+        title: 'POS Minorista',
+        description: 'Registrar ventas rápidas en caja escaneando código.',
+        href: `/store/${storeId}/work/sales`,
         icon: ShoppingCart,
       },
       {
-        title: 'Bodega',
-        description: 'Mover pedidos, alistar y cargar camiones.',
-        href: `/store/${storeId}/warehouse`,
+        title: 'Control de Caja',
+        description: 'Apertura, retiros, arqueos táctiles y cierre.',
+        href: `/store/${storeId}/cash-register`,
+        icon: HandCoins,
+      },
+      {
+        title: 'Sugerido Góndola',
+        description: 'Solicitud de insumos faltantes para percheros.',
+        href: `/store/${storeId}/gondola-restock`,
         icon: Boxes,
       },
       {
-        title: 'Despacho',
-        description: 'Ver pendientes y coordinar salida de pedidos.',
-        href: `/store/${storeId}/pending-orders`,
+        title: 'Proveedores Directos',
+        description: 'Recepción de facturas locales y gestión de CxP.',
+        href: `/store/${storeId}/supplier-invoices`,
         icon: Truck,
       },
-      {
-        title: 'Cobranza',
-        description: 'Entrar a cuentas por cobrar y seguimiento.',
-        href: `/store/${storeId}/finance/receivables`,
-        icon: HandCoins,
-      },
-    ],
-    [storeId],
-  );
+    ];
+  }, [storeId, storeType]);
 
   if (loading) {
     return (
