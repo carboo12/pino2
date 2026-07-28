@@ -20,24 +20,23 @@ async function seed() {
     await client.query('TRUNCATE TABLE sale_items, sales, cash_shifts, order_items, orders, invoice_items, invoices, products, departments, user_stores, users, stores, chains, clients, suppliers, authorizations, error_logs, config CASCADE');
 
     // 2. Chains
-    console.log('🔗 Insertando Cadenas...');
+    console.log('🔗 Insertando Cadena Única Oficial...');
     const chainRes = await client.query(`
       INSERT INTO chains (name, owner_name, owner_email, status)
       VALUES 
-        ('Corporación Los Pinos', 'Gustavo Lira', 'gustavo@lospinos.com', 'active'),
-        ('Tiendas Al Costo', 'Andrés Pérez', 'andres@alcosto.com', 'active')
+        ('Grupo Los Pinos', 'Carlos Lira', 'carlos@lospinos.com', 'active')
       RETURNING id, name
     `);
     const chainId = chainRes.rows[0].id;
 
     // 3. Stores
-    console.log('🏪 Insertando Tiendas...');
+    console.log('🏪 Insertando las 3 Sucursales Oficiales...');
     const storeRes = await client.query(`
-      INSERT INTO stores (chain_id, name, address, phone, is_active, settings)
+      INSERT INTO stores (chain_id, name, address, phone, store_type, is_active, settings)
       VALUES 
-        ($1, 'Los Pinos - Central', 'Managua, Nicaragua', '2222-1111', true, '{"taxRate": 15, "currency": "NIO", "exchangeRate": 36.5}'),
-        ($1, 'Los Pinos - Sur', 'Rivas, Nicaragua', '2222-2222', true, '{"taxRate": 15, "currency": "NIO", "exchangeRate": 36.5}'),
-        ($1, 'Los Pinos - Norte', 'Estelí, Nicaragua', '2222-3333', true, '{"taxRate": 15, "currency": "NIO", "exchangeRate": 36.5}')
+        ($1, 'Bodega Central Los Pinos', 'Managua, Nicaragua', '2222-1111', 'BODEGA_CENTRAL', true, '{"taxRate": 15, "currency": "NIO", "exchangeRate": 36.62}'),
+        ($1, 'Distribuidora Los Pinos', 'Rivas, Nicaragua', '2222-2222', 'DISTRIBUIDORA', true, '{"taxRate": 15, "currency": "NIO", "exchangeRate": 36.62}'),
+        ($1, 'Supermercado Los Pinos', 'Estelí, Nicaragua', '2222-3333', 'SUPERMERCADO', true, '{"taxRate": 15, "currency": "NIO", "exchangeRate": 36.62}')
       RETURNING id, name
     `, [chainId]);
     const storeId = storeRes.rows[0].id;
