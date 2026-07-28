@@ -36,7 +36,7 @@ export default function AddStorePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.chainId) {
-      toast.error('Cadena requerida', 'Seleccione la cadena a la que pertenece la tienda.');
+      toast.error('Tipo de negocio requerido', 'Seleccione el tipo de negocio al que pertenece la tienda.');
       return;
     }
     setLoading(true);
@@ -87,14 +87,14 @@ export default function AddStorePage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="font-black uppercase text-xs text-slate-500">CADENA *</Label>
+              <Label className="font-black uppercase text-xs text-slate-500">TIPO DE NEGOCIO *</Label>
               <select
                 required
                 className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-slate-200 focus:border-blue-500"
                 value={formData.chainId}
                 onChange={(e) => setFormData({ ...formData, chainId: e.target.value })}
               >
-                <option value="">Seleccione una cadena...</option>
+                <option value="">Seleccione tipo de negocio...</option>
                 {chains.map((chain) => (
                   <option key={chain.id} value={chain.id}>
                     {chain.name}

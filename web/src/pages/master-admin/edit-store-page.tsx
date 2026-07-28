@@ -108,7 +108,7 @@ export default function EditStorePage() {
 
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div>
-                <p className="text-xs font-black uppercase text-slate-400">Cadena Comercial Oficial</p>
+                <p className="text-xs font-black uppercase text-slate-400">Tipo de Negocio Oficial</p>
                 <p className="text-sm font-black text-blue-700">Grupo Los Pinos</p>
               </div>
               <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800">Oficial</span>
