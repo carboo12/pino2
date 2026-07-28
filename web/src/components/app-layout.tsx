@@ -196,7 +196,24 @@ const getStoreAdminNav = (storeId: string, storeType = 'SUPERMERCADO'): NavItem[
   return getSupermarketNav(storeId);
 };
 
-// --- Simple role navs (already compact) ---
+const getDistributorSellerNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Comandas de Mostrador', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
+  { type: 'link', name: 'Clientes & Cartera', href: `/store/${storeId}/vendors/clients`, icon: Users },
+  { type: 'link', name: 'Consulta de Stock', href: `/store/${storeId}/products`, icon: Package },
+];
+
+const getDistributorCashierNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Comandas Pendientes', href: `/store/${storeId}/pending-orders`, icon: ShoppingBag },
+  { type: 'link', name: 'Cobro & Facturación POS', href: `/store/${storeId}/work/sales`, icon: Route },
+  { type: 'link', name: 'Arqueos & Cortes de Caja', href: `/store/${storeId}/cash-register`, icon: DollarSign },
+];
+
+const getDistributorDispatcherNav = (storeId: string): NavItem[] => [
+  { type: 'link', name: 'Control Despacho Portón', href: `/store/${storeId}/dispatcher`, icon: MapPin },
+  { type: 'link', name: 'Armado Carga Física', href: `/store/${storeId}/routes`, icon: Truck },
+  { type: 'link', name: 'Catálogo Stock', href: `/store/${storeId}/products`, icon: Package },
+];
+
 const getBodegueroNav = (storeId: string): NavItem[] => [
   { type: 'link', name: 'Kárdex & Movimientos', href: `/store/${storeId}/inventory/movements`, icon: Boxes },
   { type: 'link', name: 'Arqueos (Conteo Ciego)', href: `/store/${storeId}/inventory/counts`, icon: ClipboardCheck },
@@ -582,6 +599,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const activeStore = storeId || user?.storeIds?.[0] || allStores?.[0]?.id || '9321856d-19ba-42b8-ba47-cf35c0d133dd';
 
     switch (roleId) {
+      case 'distributor-admin':
+        return getDistributorNav(activeStore);
+      case 'distributor-seller':
+        return getDistributorSellerNav(activeStore);
+      case 'distributor-cashier':
+        return getDistributorCashierNav(activeStore);
+      case 'distributor-dispatcher':
+        return getDistributorDispatcherNav(activeStore);
+      case 'supermarket-admin':
+        return getSupermarketNav(activeStore);
       case 'admin':
         // JEFE / ENCARGADO DE SUCURSAL: Navegación inteligente adaptada al storeType
         return getStoreAdminNav(activeStore, storeType);
@@ -598,7 +625,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       case 'gestor':
         return getGestorVentasNav(activeStore);
       case 'auxiliar':
-        return getAuxiliarNav(activeStore);
+        return getDistributorDispatcherNav(activeStore);
       default:
         return getStoreAdminNav(activeStore, storeType);
     }

@@ -27,18 +27,28 @@ export function getRedirectPath(user: User | null): string | null {
         return `/store/${effectiveStoreId}/dashboard`;
     }
 
-    // Roles específicos de tienda
     switch (role) {
+        case 'distributor-admin':
+            return `/store/${effectiveStoreId}/dashboard`;
+        case 'distributor-seller':
+            return `/store/${effectiveStoreId}/pending-orders`;
+        case 'distributor-cashier':
+            return `/store/${effectiveStoreId}/work/sales`;
+        case 'distributor-dispatcher':
+            return `/store/${effectiveStoreId}/dispatcher`;
+        case 'supermarket-admin':
+            return `/store/${effectiveStoreId}/dashboard`;
+        case 'supermarket-cashier':
+            return `/store/${effectiveStoreId}/work/sales`;
         case 'inventory':
-            return `/store/${effectiveStoreId}/warehouse`;
+            return `/store/${effectiveStoreId}/inventory/movements`;
         case 'auxiliar':
-            return `/store/${effectiveStoreId}/warehouse`;
+            return `/store/${effectiveStoreId}/dispatcher`;
         case 'gestor':
             return `/store/${effectiveStoreId}/vendors/dashboard`;
         case 'rutero':
             return `/store/${effectiveStoreId}/delivery-route`;
         default:
-            console.error(`[RedirectLogic] Unrecognized role: "${user.role}" -> "${role}"`);
             return `/store/${effectiveStoreId}/dashboard`;
     }
 }
