@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { 
@@ -125,14 +125,32 @@ export default function AddUserPage() {
     }
   }, [isMasterMode, storeId]);
 
-  const selectedStoreId = form.watch('assignedStoreId');
+  const selectedStoreId = useWatch({ control: form.control, name: 'assignedStoreId' });
 
   const activeStoreType = useMemo(() => {
+    let typeStr = '';
+    let nameStr = '';
+
     if (isMasterMode) {
       const found = stores.find((s) => s.id === selectedStoreId);
-      return found ? (found.storeType || '').toUpperCase() : '';
+      if (found) {
+        typeStr = (found.storeType || '').toUpperCase();
+        nameStr = (found.name || '').toUpperCase();
+      }
+    } else {
+      typeStr = (currentStoreType || '').toUpperCase();
     }
-    return (currentStoreType || '').toUpperCase();
+
+    if (typeStr.includes('DISTRIB') || nameStr.includes('DISTRIB')) {
+      return 'DISTRIBUIDOR';
+    }
+    if (typeStr.includes('BODEGA') || nameStr.includes('BODEGA')) {
+      return 'BODEGA_CENTRAL';
+    }
+    if (typeStr.includes('SUPER') || nameStr.includes('SUPER')) {
+      return 'SUPERMERCADO';
+    }
+    return typeStr;
   }, [isMasterMode, stores, selectedStoreId, currentStoreType]);
 
   const roleOptions = useMemo(() => {

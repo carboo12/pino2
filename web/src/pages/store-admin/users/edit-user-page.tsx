@@ -97,7 +97,22 @@ export default function EditUserPage() {
     },
   });
 
-  const activeStoreType = (assignedStores[0]?.storeType || assignedStores[0]?.store_type || '').toUpperCase();
+  const activeStoreType = useMemo(() => {
+    const store = assignedStores[0];
+    const typeStr = (store?.storeType || store?.store_type || '').toUpperCase();
+    const nameStr = (store?.name || '').toUpperCase();
+
+    if (typeStr.includes('DISTRIB') || nameStr.includes('DISTRIB')) {
+      return 'DISTRIBUIDOR';
+    }
+    if (typeStr.includes('BODEGA') || nameStr.includes('BODEGA')) {
+      return 'BODEGA_CENTRAL';
+    }
+    if (typeStr.includes('SUPER') || nameStr.includes('SUPER')) {
+      return 'SUPERMERCADO';
+    }
+    return typeStr;
+  }, [assignedStores]);
 
   const roleOptions = useMemo(() => {
     let roles: Array<{ value: string; label: string }> = [];
