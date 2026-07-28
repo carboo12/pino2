@@ -26,7 +26,6 @@ const allowedOrigins = (
     },
     credentials: true,
   },
-  namespace: 'events',
   path: '/socket.io',
 })
 @Injectable()

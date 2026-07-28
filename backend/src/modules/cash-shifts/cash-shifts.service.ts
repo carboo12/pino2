@@ -119,18 +119,22 @@ export class CashShiftsService {
   }
 
   async getOutflows(shiftId: string) {
-    const res = await this.db.query(
-      `SELECT * FROM cash_outflows WHERE session_id = $1 ORDER BY created_at ASC`,
-      [shiftId],
-    );
-    return res.rows.map((row) => ({
-      id: row.id,
-      sessionId: row.session_id,
-      amount: Number(row.amount),
-      reason: row.reason,
-      receiptNumber: row.receipt_number,
-      createdAt: row.created_at,
-    }));
+    try {
+      const res = await this.db.query(
+        `SELECT * FROM cash_outflows WHERE session_id = $1 ORDER BY created_at ASC`,
+        [shiftId],
+      );
+      return res.rows.map((row) => ({
+        id: row.id,
+        sessionId: row.session_id,
+        amount: Number(row.amount),
+        reason: row.reason,
+        receiptNumber: row.receipt_number,
+        createdAt: row.created_at,
+      }));
+    } catch (error) {
+      return [];
+    }
   }
 
   async closeShift(
@@ -245,21 +249,25 @@ export class CashShiftsService {
   }
 
   async getActiveShift(storeId: string, userId?: string) {
-    let sql = `
-      ${this.baseSelect()}
-      WHERE cs.store_id = $1 AND cs.status = 'OPEN'
-    `;
-    const params: any[] = [storeId];
-    if (userId) {
-      sql += ` AND cs.opened_by = $2`;
-      params.push(userId);
+    try {
+      let sql = `
+        ${this.baseSelect()}
+        WHERE cs.store_id::text = $1 AND cs.status = 'OPEN'
+      `;
+      const params: any[] = [storeId];
+      if (userId) {
+        sql += ` AND cs.opened_by::text = $2`;
+        params.push(userId);
+      }
+      sql += ` ORDER BY cs.opened_at DESC LIMIT 1`;
+      const res = await this.db.query(sql, params);
+      if (res.rowCount === 0) return null;
+      const shift = this.mapRow(res.rows[0]);
+      shift.outflows = await this.getOutflows(shift.id);
+      return shift;
+    } catch (error) {
+      return null;
     }
-    sql += ` ORDER BY cs.opened_at DESC LIMIT 1`;
-    const res = await this.db.query(sql, params);
-    if (res.rowCount === 0) return null;
-    const shift = this.mapRow(res.rows[0]);
-    shift.outflows = await this.getOutflows(shift.id);
-    return shift;
   }
 
   async findAll(storeId: string, status?: string, cashierId?: string, limit?: string) {
