@@ -156,6 +156,9 @@ export class CashShiftsService {
         throw new BadRequestException('Turno de caja no válido o ya cerrado');
       }
       const shift = shiftRes.rows[0];
+      if (shift.opened_by && userId && shift.opened_by !== userId) {
+        throw new BadRequestException('Solo el cajero que abrió este turno puede cerrarlo');
+      }
 
       const txRes = await client.query(
         `SELECT
