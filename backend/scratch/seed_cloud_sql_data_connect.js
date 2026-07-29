@@ -30,6 +30,7 @@ async function seedCloudSQL() {
 
     // 1. Agregar columnas requeridas por el backend a la tabla users de Cloud SQL
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text');
+    await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token_hash text');
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true');
     await client.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at timestamp DEFAULT NOW()');
 

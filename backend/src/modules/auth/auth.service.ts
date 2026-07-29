@@ -205,12 +205,17 @@ export class AuthService {
     });
     const refreshTokenValue = this.refreshJwt.sign(payload);
 
-    const refreshHash = await argon2.hash(refreshTokenValue);
-
-    await client.query(
-      'UPDATE users SET refresh_token_hash = $1, updated_at = now() WHERE id = $2',
-      [refreshHash, user.id],
-    );
+    try {
+      const refreshHash = await argon2.hash(refreshTokenValue);
+      await client.query(
+        'UPDATE users SET refresh_token_hash = $1, updated_at = now() WHERE id = $2',
+        [refreshHash, user.id],
+      );
+    } catch (err: any) {
+      this.logger.warn(
+        `No se pudo actualizar refresh_token_hash para usuario ${user.id}: ${err?.message || err}`,
+      );
+    }
 
     return {
       accessToken,
