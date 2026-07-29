@@ -12,11 +12,14 @@ import { DatabaseService } from './database.service';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const pool = new Pool({
-          host: configService.get<string>('DATABASE_HOST'),
-          port: configService.get<number>('DATABASE_PORT'),
-          user: configService.get<string>('DATABASE_USER'),
-          password: configService.get<string>('DATABASE_PASSWORD'),
-          database: configService.get<string>('DATABASE_NAME'),
+          host: configService.get<string>('DATABASE_HOST') || '190.56.16.85',
+          port: Number(configService.get<string>('DATABASE_PORT') || 5432),
+          user: configService.get<string>('DATABASE_USER') || 'alacaja',
+          password:
+            configService.get<string>('DATABASE_PASSWORD') ||
+            'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+          database:
+            configService.get<string>('DATABASE_NAME') || 'sistema_de_inventario',
           application_name:
             configService.get<string>('DATABASE_APP_NAME') || 'pino-backend',
           keepAlive: true,
@@ -25,7 +28,7 @@ import { DatabaseService } from './database.service';
             configService.get<string>('DATABASE_IDLE_TIMEOUT_MS') || 30000,
           ),
           connectionTimeoutMillis: Number(
-            configService.get<string>('DATABASE_CONNECTION_TIMEOUT_MS') || 2000,
+            configService.get<string>('DATABASE_CONNECTION_TIMEOUT_MS') || 10000,
           ),
           statement_timeout: Number(
             configService.get<string>('DATABASE_STATEMENT_TIMEOUT_MS') || 0,
