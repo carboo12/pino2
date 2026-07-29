@@ -89,10 +89,10 @@ async function bootstrap() {
   });
   // --------------------------------
 
-  const port = config.get('PORT') || 3010;
+  const port = Number(process.env.PORT) || Number(config.get('PORT')) || 3010;
 
-  // Important for Fastify: listen on 0.0.0.0 for external access (like Flutter app)
-  await app.listen(port, '0.0.0.0');
+  // Important for Fastify: listen on 0.0.0.0 for external access (like Cloud Run / Flutter app)
+  await app.listen({ port, host: '0.0.0.0' });
 
   console.log(
     `⚡ MultiTienda API (FASTIFY) running on http://localhost:${port}`,
