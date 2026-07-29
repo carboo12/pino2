@@ -91,7 +91,7 @@ export default function EditStorePage() {
             </div>
 
             <div className="space-y-2">
-              <Label className="font-black uppercase text-xs text-slate-400 tracking-wider">TIPO DE SUCURSAL *</Label>
+              <Label className="font-black uppercase text-xs text-slate-400 tracking-wider">TIPO DE NEGOCIO *</Label>
               <select
                 required
                 className="flex h-12 w-full rounded-xl border-2 bg-background px-3 py-2 text-sm font-bold border-blue-300 text-blue-950 focus:border-blue-500"
@@ -104,14 +104,6 @@ export default function EditStorePage() {
                 <option value="DISTRIBUIDOR">🏢 Distribuidora (Venta Mayorista / Mostrador / Recibe SOLO de Bodega)</option>
                 <option value="BODEGA_CENTRAL">📦 Bodega Central (Matriz Logística / Rutas Campo / Preventa)</option>
               </select>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-black uppercase text-slate-400">Tipo de Negocio Oficial</p>
-                <p className="text-sm font-black text-blue-700">Grupo Los Pinos</p>
-              </div>
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-100 text-blue-800">Oficial</span>
             </div>
             
             <div className="space-y-2">

@@ -2,8 +2,8 @@ import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsEnum } from 'class-valid
 
 export class CreateStoreDto {
   @IsString()
-  @IsNotEmpty()
-  chainId!: string;
+  @IsOptional()
+  chainId?: string;
 
   @IsString()
   @IsNotEmpty()

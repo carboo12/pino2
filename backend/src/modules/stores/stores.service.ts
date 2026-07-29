@@ -8,10 +8,19 @@ export class StoresService {
 
   async create(dto: CreateStoreDto) {
     const storeTypeVal = (dto.storeType || 'SUPERMERCADO').toUpperCase();
+    let chainIdVal = dto.chainId;
+    if (!chainIdVal) {
+      try {
+        const chainsRes = await this.db.query('SELECT id FROM chains LIMIT 1');
+        chainIdVal = chainsRes.rows[0]?.id || null;
+      } catch {
+        chainIdVal = null;
+      }
+    }
     const res = await this.db.query(
       `INSERT INTO stores (chain_id, name, address, phone, store_type) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [dto.chainId, dto.name, dto.address, dto.phone, storeTypeVal],
+      [chainIdVal, dto.name, dto.address, dto.phone, storeTypeVal],
     );
     return this.mapRow(res.rows[0]);
   }
