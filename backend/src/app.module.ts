@@ -53,11 +53,29 @@ import { ExpensesModule } from "./modules/expenses/expenses.module";
 import { VehiclesModule } from "./modules/vehicles/vehicles.module";
 import { ContractsModule } from "./modules/contracts/contracts.module";
 
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import * as fs from 'fs';
+
+const possibleWebDistPaths = [
+  join(process.cwd(), 'web', 'dist'),
+  join(process.cwd(), '..', 'web', 'dist'),
+  join(__dirname, '..', '..', 'web', 'dist'),
+  join(__dirname, '..', '..', '..', 'web', 'dist'),
+];
+const webDistPath =
+  possibleWebDistPaths.find((p) => fs.existsSync(p)) ||
+  join(process.cwd(), 'web', 'dist');
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.dev', '.env.production', '.env.local'],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: webDistPath,
+      exclude: ['/api/(.*)'],
     }),
     DatabaseModule,
     EventsModule,
