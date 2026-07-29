@@ -33,6 +33,7 @@ import { RoutesModule } from "./modules/routes/routes.module";
 import { PendingOrdersModule } from "./modules/pending-orders/pending-orders.module";
 import { ErrorsModule } from "./modules/errors/errors.module";
 import { EventsModule } from "./common/events.module";
+
 // Nuevos módulos (requerimiento.txt §6.5, §6.6, §12.3, §14.3)
 import { ReturnsModule } from "./modules/returns/returns.module";
 import { CollectionsModule } from "./modules/collections/collections.module";
@@ -67,15 +68,13 @@ const webDistPath =
   possibleWebDistPaths.find((p) => fs.existsSync(p)) ||
   join(process.cwd(), 'web', 'dist');
 
+console.log('🌐 [app.module.ts] webDistPath resolved to:', webDistPath, '| exists:', fs.existsSync(webDistPath));
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.dev', '.env.production', '.env.local'],
-    }),
-    ServeStaticModule.forRoot({
-      rootPath: webDistPath,
-      exclude: ['/api/(.*)'],
     }),
     DatabaseModule,
     EventsModule,

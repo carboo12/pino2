@@ -92,6 +92,48 @@ async function bootstrap() {
   });
   // --------------------------------
 
+  // --- SERVIR FRONTEND WEB SPA (REACT / VITE) ---
+  const possibleWebDistPaths = [
+    join(process.cwd(), 'web', 'dist'),
+    join(process.cwd(), '..', 'web', 'dist'),
+    join(__dirname, '..', '..', 'web', 'dist'),
+    join(__dirname, '..', '..', '..', 'web', 'dist'),
+  ];
+  const webDistPath =
+    possibleWebDistPaths.find((p) => fs.existsSync(p)) ||
+    join(process.cwd(), 'web', 'dist');
+
+  if (fs.existsSync(webDistPath)) {
+    console.log(`🌐 Serving React Frontend SPA from: ${webDistPath}`);
+    await app.register(fastifyStatic, {
+      root: webDistPath,
+      prefix: '/',
+      wildcard: false,
+    });
+
+    const indexPath = join(webDistPath, 'index.html');
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.addHook('onRequest', async (req: any, reply: any) => {
+      const url = req.raw?.url || req.url || '';
+      const method = req.raw?.method || req.method || 'GET';
+
+      // Interceptar peticiones de navegación SPA (/login, /dashboard, etc.)
+      if (
+        method === 'GET' &&
+        !url.startsWith('/api') &&
+        !url.startsWith('/docs') &&
+        !url.includes('.')
+      ) {
+        if (fs.existsSync(indexPath)) {
+          return reply.type('text/html').send(fs.readFileSync(indexPath, 'utf-8'));
+        }
+      }
+    });
+  } else {
+    console.log(`⚠️  Frontend web/dist directory not found, running API-only mode`);
+  }
+  // ----------------------------------------
+
   const port = Number(process.env.PORT) || Number(config.get('PORT')) || 3010;
 
   // Important for Fastify: listen on 0.0.0.0 for external access (like Cloud Run / Flutter app)
