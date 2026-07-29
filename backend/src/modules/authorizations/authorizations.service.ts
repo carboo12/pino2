@@ -27,23 +27,27 @@ export class AuthorizationsService {
   }
 
   async findAll(storeId?: string, status?: string, limit?: number) {
-    let q = 'SELECT * FROM authorizations WHERE 1=1';
-    const params: any[] = [];
-    if (storeId) {
-      params.push(storeId);
-      q += ` AND store_id = $${params.length}`;
+    try {
+      let q = 'SELECT * FROM authorizations WHERE 1=1';
+      const params: any[] = [];
+      if (storeId) {
+        params.push(storeId);
+        q += ` AND store_id = $${params.length}`;
+      }
+      if (status) {
+        params.push(status);
+        q += ` AND status = $${params.length}`;
+      }
+      q += ' ORDER BY created_at DESC';
+      if (limit) {
+        q += ` LIMIT $${params.length + 1}`;
+        params.push(limit);
+      }
+      const res = await this.db.query(q, params);
+      return res.rows || [];
+    } catch (err) {
+      return [];
     }
-    if (status) {
-      params.push(status);
-      q += ` AND status = $${params.length}`;
-    }
-    q += ' ORDER BY created_at DESC';
-    if (limit) {
-      q += ` LIMIT $${params.length + 1}`;
-      params.push(limit);
-    }
-    const res = await this.db.query(q, params);
-    return res.rows;
   }
 
   async updateStatus(
