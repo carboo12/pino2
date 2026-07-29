@@ -9,5 +9,8 @@
   "scripts": {
     "build": "npm --prefix backend run build && npm --prefix web run build",
     "start": "npm --prefix backend run start:prod"
+  },
+  "dependencies": {
+    "@fastify/static": "^9.3.0"
   }
 }

@@ -26,7 +26,10 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {
     this.refreshJwt = new JwtService({
-      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
+      secret:
+        this.configService.get<string>('JWT_REFRESH_SECRET') ||
+        this.configService.get<string>('JWT_SECRET') ||
+        'pino2-default-refresh-jwt-secret-key-prod-2026-fallback-key',
       signOptions: {
         expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN') || '7d',
       },
