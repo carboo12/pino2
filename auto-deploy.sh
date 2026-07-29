@@ -60,7 +60,7 @@ echo "$(date) ✅ Nginx deployed"
 
 # Web (Firebase)
 echo "$(date) 🔥 Building web (Firebase)..."
-VITE_API_URL=https://rhclaroni.com/api-dev npx vite build 2>&1 || { echo "$(date) ❌ Firebase build failed"; rm -f "$LOCKFILE"; exit 1; }
+VITE_API_URL=/api npx vite build 2>&1 || { echo "$(date) ❌ Firebase build failed"; rm -f "$LOCKFILE"; exit 1; }
 export GOOGLE_APPLICATION_CREDENTIALS=/opt/apps/pino2/web/firebase-service-account.json
 npx firebase deploy --only hosting 2>&1 || { echo "$(date) ❌ Firebase deploy failed"; rm -f "$LOCKFILE"; exit 1; }
 echo "$(date) ✅ Firebase deployed"

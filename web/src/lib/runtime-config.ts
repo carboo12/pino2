@@ -20,6 +20,10 @@ const resolveAgainstOrigin = (value: string, fallbackPath: string) => {
     return candidate;
   }
 
+  if (candidate.includes('rhclaroni.com')) {
+    return stripTrailingSlash(new URL('/api', window.location.origin).toString());
+  }
+
   if (/^https?:\/\//i.test(candidate)) {
     return stripTrailingSlash(candidate);
   }

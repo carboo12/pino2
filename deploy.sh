@@ -23,7 +23,7 @@ cp -r dist/* /var/www/dev/prueba/pino/
 
 echo ""
 echo "=== Web (Firebase) ==="
-VITE_API_URL=https://rhclaroni.com/api-dev npx vite build
+VITE_API_URL=/api npx vite build
 export GOOGLE_APPLICATION_CREDENTIALS=/opt/apps/pino2/web/firebase-service-account.json
 npx firebase deploy --only hosting
 
