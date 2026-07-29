@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../../database/database.service';
 import { CreateStoreDto, UpdateStoreDto } from './stores.dto';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class StoresService {
@@ -12,21 +13,24 @@ export class StoresService {
     if (!chainIdVal) {
       try {
         const chainsRes = await this.db.query('SELECT id FROM chains LIMIT 1');
-        chainIdVal = chainsRes.rows[0]?.id || null;
+        chainIdVal = chainsRes.rows[0]?.id || '1';
       } catch {
-        chainIdVal = null;
+        chainIdVal = '1';
       }
     }
+    const storeId = (dto as any).id || randomUUID();
+    const storeCode = (dto as any).code || `STO-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const res = await this.db.query(
-      `INSERT INTO stores (chain_id, name, address, phone, store_type) 
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [chainIdVal, dto.name, dto.address, dto.phone, storeTypeVal],
+      `INSERT INTO stores (id, code, chain_id, name, address, phone, store_type, active, is_active, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true, true, NOW()::text) RETURNING *`,
+      [storeId, storeCode, chainIdVal, dto.name, dto.address || '', dto.phone || '', storeTypeVal],
     );
     return this.mapRow(res.rows[0]);
   }
 
   async findAll(chainId?: string) {
-    let query = 'SELECT * FROM stores WHERE is_active = true';
+    let query = 'SELECT * FROM stores WHERE (is_active = true OR active = true)';
     const params: any[] = [];
     if (chainId) {
       query += ' AND chain_id = $1';
@@ -94,16 +98,16 @@ export class StoresService {
       return existing.rows[0];
     }
     const created = await this.db.query(
-      `INSERT INTO clients (store_id, name, phone, address, email, type)
-       VALUES ($1, 'VENTA MOSTRADOR', '', '', '', 'MOSTRADOR') RETURNING *`,
-      [storeId],
+      `INSERT INTO clients (id, store_id, name, phone, address, email, type)
+       VALUES ($1, $2, 'VENTA MOSTRADOR', '', '', '', 'MOSTRADOR') RETURNING *`,
+      [randomUUID(), storeId],
     );
     return created.rows[0];
   }
 
   async remove(id: string) {
     await this.db.query(
-      'UPDATE stores SET is_active = false, updated_at = NOW() WHERE id = $1',
+      'UPDATE stores SET is_active = false, active = false, updated_at = NOW() WHERE id = $1',
       [id],
     );
     return this.findOne(id);
@@ -113,13 +117,14 @@ export class StoresService {
     if (!row) return null;
     return {
       id: row.id,
+      code: row.code,
       chainId: row.chain_id,
       name: row.name,
       address: row.address,
       phone: row.phone,
       storeType: row.store_type || 'SUPERMERCADO',
       settings: row.settings || {},
-      isActive: row.is_active,
+      isActive: row.is_active ?? row.active ?? true,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
