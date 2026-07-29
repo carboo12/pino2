@@ -12,14 +12,15 @@ import { DatabaseService } from './database.service';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const pool = new Pool({
-          host: configService.get<string>('DATABASE_HOST') || '190.56.16.85',
+          host: configService.get<string>('DATABASE_HOST') || '34.31.112.238',
           port: Number(configService.get<string>('DATABASE_PORT') || 5432),
-          user: configService.get<string>('DATABASE_USER') || 'alacaja',
+          user: configService.get<string>('DATABASE_USER') || 'postgres',
           password:
             configService.get<string>('DATABASE_PASSWORD') ||
-            'HY1kE7TZsyCnfy7stfBhVZoczA02CWd8',
+            'Pino2CloudSQL2026!',
           database:
-            configService.get<string>('DATABASE_NAME') || 'sistema_de_inventario',
+            configService.get<string>('DATABASE_NAME') ||
+            'studio-9680180520-dbbe0-db',
           application_name:
             configService.get<string>('DATABASE_APP_NAME') || 'pino-backend',
           keepAlive: true,
