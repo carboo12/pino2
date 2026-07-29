@@ -1,0 +1,13 @@
+{
+  "name": "pino2-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix backend run start:prod"
+  }
+}
