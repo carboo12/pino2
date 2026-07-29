@@ -131,18 +131,9 @@ export default function AddUserPage() {
   const selectedStoreId = useWatch({ control: form.control, name: 'assignedStoreId' });
 
   const activeStoreType = useMemo(() => {
-    let typeStr = '';
-    let nameStr = '';
-
-    if (isMasterMode) {
-      const found = stores.find((s) => s.id === selectedStoreId);
-      if (found) {
-        typeStr = (found.storeType || '').toUpperCase();
-        nameStr = (found.name || '').toUpperCase();
-      }
-    } else {
-      typeStr = (currentStoreType || '').toUpperCase();
-    }
+    const found = stores.find((s) => s.id === selectedStoreId);
+    const typeStr = (found?.storeType || '').toUpperCase();
+    const nameStr = (found?.name || '').toUpperCase();
 
     if (typeStr.includes('DISTRIB') || nameStr.includes('DISTRIB')) {
       return 'DISTRIBUIDOR';
@@ -153,8 +144,8 @@ export default function AddUserPage() {
     if (typeStr.includes('SUPER') || nameStr.includes('SUPER')) {
       return 'SUPERMERCADO';
     }
-    return typeStr;
-  }, [isMasterMode, stores, selectedStoreId, currentStoreType]);
+    return typeStr || 'SUPERMERCADO';
+  }, [stores, selectedStoreId]);
 
   const roleOptions = useMemo(() => {
     let roles: Array<{ value: string; label: string }> = [];
@@ -194,7 +185,7 @@ export default function AddUserPage() {
     setIsSaving(true);
     
     try {
-      const assignedStoreId = isMasterMode ? values.assignedStoreId : storeId;
+      const assignedStoreId = values.assignedStoreId || storeId;
       if (!GLOBAL_ROLES.has(values.role) && !assignedStoreId) {
         toast.error('Error', 'Debes asignar una tienda para este usuario.');
         return;
@@ -329,12 +320,12 @@ export default function AddUserPage() {
                   render={({ field }) => (
                     <FormItem>
                        <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
-                         <ShieldAlert className="h-4 w-4 text-primary" /> Nivel de Privilegios
+                         <ShieldAlert className="h-4 w-4 text-primary" /> Tipo de Usuario *
                       </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
-                            <SelectValue placeholder="Selecciona un rol" />
+                            <SelectValue placeholder="Selecciona un tipo de usuario" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="rounded-2xl border-none shadow-xl">

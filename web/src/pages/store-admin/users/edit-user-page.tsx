@@ -265,9 +265,9 @@ export default function EditUserPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2 max-w-md">
-                       <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
-                         <ShieldAlert className="h-4 w-4 text-primary" /> Nivel de Privilegios
-                      </FormLabel>
+                        <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
+                          <ShieldAlert className="h-4 w-4 text-primary" /> Tipo de Usuario *
+                       </FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
