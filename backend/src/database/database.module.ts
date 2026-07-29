@@ -11,16 +11,35 @@ import { DatabaseService } from './database.service';
       provide: 'PG_CONNECTION',
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        const rawHost = configService.get<string>('DATABASE_HOST');
+        const rawUser = configService.get<string>('DATABASE_USER');
+        const rawDb = configService.get<string>('DATABASE_NAME');
+
+        const isCloudEnv =
+          !!process.env.K_SERVICE || process.env.NODE_ENV === 'production';
+        const isLocalHost =
+          !rawHost || rawHost === '127.0.0.1' || rawHost === 'localhost';
+
+        const host = isCloudEnv || isLocalHost ? '34.31.112.238' : rawHost;
+        const user =
+          isCloudEnv || !rawUser || rawUser === 'pino_app'
+            ? 'postgres'
+            : rawUser;
+        const password =
+          isCloudEnv || !configService.get<string>('DATABASE_PASSWORD')
+            ? 'Pino2CloudSQL2026!'
+            : configService.get<string>('DATABASE_PASSWORD');
+        const database =
+          isCloudEnv || !rawDb || rawDb === 'sistema_de_inventario'
+            ? 'studio-9680180520-dbbe0-db'
+            : rawDb;
+
         const pool = new Pool({
-          host: configService.get<string>('DATABASE_HOST') || '34.31.112.238',
+          host,
           port: Number(configService.get<string>('DATABASE_PORT') || 5432),
-          user: configService.get<string>('DATABASE_USER') || 'postgres',
-          password:
-            configService.get<string>('DATABASE_PASSWORD') ||
-            'Pino2CloudSQL2026!',
-          database:
-            configService.get<string>('DATABASE_NAME') ||
-            'studio-9680180520-dbbe0-db',
+          user,
+          password,
+          database,
           application_name:
             configService.get<string>('DATABASE_APP_NAME') || 'pino-backend',
           keepAlive: true,
