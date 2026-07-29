@@ -316,6 +316,36 @@ export default function AddUserPage() {
 
                 <FormField
                   control={form.control}
+                  name="assignedStoreId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
+                        <Building2 className="h-4 w-4 text-primary" /> Tienda Asignada *
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
+                            <SelectValue placeholder="Selecciona la tienda a vincular" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-2xl border-none shadow-xl">
+                          {stores.map((store) => (
+                            <SelectItem key={store.id} value={store.id} className="font-bold cursor-pointer rounded-xl">
+                              {store.name} ({store.storeType || 'SUPERMERCADO'})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-400 font-medium ml-2">
+                        Vincular al usuario a esta sucursal.
+                      </p>
+                      <FormMessage className="ml-2 font-bold italic" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="role"
                   render={({ field }) => (
                     <FormItem>
@@ -336,36 +366,6 @@ export default function AddUserPage() {
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage className="ml-2 font-bold italic" />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="assignedStoreId"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
-                        <Building2 className="h-4 w-4 text-primary" /> Tienda Asignada *
-                      </FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ''}>
-                        <FormControl>
-                          <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
-                            <SelectValue placeholder="Selecciona la tienda a vincular" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="rounded-2xl border-none shadow-xl">
-                          {stores.map((store) => (
-                            <SelectItem key={store.id} value={store.id} className="font-bold cursor-pointer rounded-xl">
-                              {store.name} ({store.storeType || 'SUPERMERCADO'})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-slate-400 font-medium ml-2">
-                        Vincular al usuario a esta sucursal. Al seleccionar la tienda, se cargarán automáticamente los roles de ese tipo de negocio.
-                      </p>
                       <FormMessage className="ml-2 font-bold italic" />
                     </FormItem>
                   )}

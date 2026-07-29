@@ -104,6 +104,16 @@ export default function MasterStoresPage() {
         };
       });
       setStores(storeList);
+
+      const missingAdminStores = storeList.filter(
+        (s: any) => !s.ownerEmail && !s.hasAdmin,
+      );
+      if (missingAdminStores.length > 0) {
+        toast.error(
+          '⚠️ ALERTA: Tienda Sin Administrador',
+          `Se detectaron ${missingAdminStores.length} sucursal(es) que no tienen un usuario administrador asignado. Tienen marco rojo de advertencia.`,
+        );
+      }
     } catch {
       setError('No se pudieron cargar las sucursales de la cadena.');
     } finally {
@@ -320,46 +330,58 @@ export default function MasterStoresPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredStores.map((store) => (
-            <Card
-              key={store.id}
-              className="rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <CardTitle className="text-lg font-bold text-foreground">
-                        {store.name}
-                      </CardTitle>
-                      {((store as any).storeType || (store as any).store_type) && (
-                        <Badge variant="outline" className={cn(
-                          "font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border",
-                          (((store as any).storeType || (store as any).store_type) || '').startsWith('DISTRIB') ? "bg-purple-50 text-purple-700 border-purple-200" :
-                          ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? "bg-blue-50 text-blue-700 border-blue-200" :
-                          "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        )}>
-                          {(((store as any).storeType || (store as any).store_type) || '').startsWith('DISTRIB') ? '🏢 Distribuidora' :
-                           ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? '📦 Bodega Central' :
-                           '🛒 Supermercado'}
-                        </Badge>
-                      )}
+          {filteredStores.map((store) => {
+            const hasNoAdmin = !store.ownerEmail && !(store as any).hasAdmin;
+            return (
+              <Card
+                key={store.id}
+                className={cn(
+                  "rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden",
+                  hasNoAdmin && "border-2 border-red-500 bg-red-50/20 shadow-lg shadow-red-100/50"
+                )}
+              >
+                <CardHeader className="pb-3">
+                  {hasNoAdmin && (
+                    <div className="mb-2">
+                      <Badge className="bg-red-600 hover:bg-red-700 text-white font-black gap-1 border-red-700 animate-pulse text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-lg">
+                        <AlertTriangle className="h-3.5 w-3.5" /> ⚠️ ATENCIÓN: SIN ADMINISTRADOR ASIGNADO
+                      </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      ID: <span className="font-mono text-[11px]">{store.id}</span>
-                    </p>
+                  )}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-lg font-bold text-foreground">
+                          {store.name}
+                        </CardTitle>
+                        {((store as any).storeType || (store as any).store_type) && (
+                          <Badge variant="outline" className={cn(
+                            "font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border",
+                            (((store as any).storeType || (store as any).store_type) || '').startsWith('DISTRIB') ? "bg-purple-50 text-purple-700 border-purple-200" :
+                            ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                            "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          )}>
+                            {(((store as any).storeType || (store as any).store_type) || '').startsWith('DISTRIB') ? '🏢 Distribuidora' :
+                             ((store as any).storeType || (store as any).store_type) === 'BODEGA_CENTRAL' ? '📦 Bodega Central' :
+                             '🛒 Supermercado'}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        ID: <span className="font-mono text-[11px]">{store.id}</span>
+                      </p>
+                    </div>
+                    {getStatusBadge(store.computedStatus)}
                   </div>
-                  {getStatusBadge(store.computedStatus)}
-                </div>
-              </CardHeader>
+                </CardHeader>
 
-              <CardContent className="space-y-4 text-xs">
-                {/* DETALLES DE CONTACTO */}
-                <div className="p-3 rounded-xl bg-muted/30 space-y-2">
-                  <div className="flex items-center gap-2 text-foreground font-medium">
-                    <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="truncate">{store.ownerEmail || 'Sin email registrado'}</span>
-                  </div>
+                <CardContent className="space-y-4 text-xs">
+                  {/* DETALLES DE CONTACTO */}
+                  <div className="p-3 rounded-xl bg-muted/30 space-y-2">
+                    <div className="flex items-center gap-2 text-foreground font-medium">
+                      <Mail className="h-3.5 w-3.5 text-primary shrink-0" />
+                      <span className="truncate">{store.ownerEmail || 'Sin email de administrador'}</span>
+                    </div>
                   {store.phone && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
@@ -452,7 +474,8 @@ export default function MasterStoresPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          );
+        })}
         </div>
       )}
     </div>
