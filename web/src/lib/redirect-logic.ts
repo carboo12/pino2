@@ -17,14 +17,9 @@ export function getRedirectPath(user: User | null): string | null {
     const DEFAULT_STORE_ID = '9321856d-19ba-42b8-ba47-cf35c0d133dd';
     const effectiveStoreId = storeId || DEFAULT_STORE_ID;
 
-    // Administrador General (Super-admin global al SaaS)
-    if (role === 'super-admin') {
-        return '/master-admin/dashboard';
-    }
-
-    // Jefe / Encargado de Bodega Central (admin) -> Panel de su Sucursal
-    if (role === 'admin') {
-        return `/store/${effectiveStoreId}/dashboard`;
+    // Administrador General (Super-admin global al SaaS o usuario maestro) -> Ambiente de la Consola Master
+    if (role === 'super-admin' || role === 'admin' || user.email === 'administrador.general@pino.local') {
+        return '/master-admin/stores';
     }
 
     switch (role) {
