@@ -55,7 +55,10 @@ import { ContractsModule } from "./modules/contracts/contracts.module";
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '.env.dev', '.env.production', '.env.local'],
+    }),
     DatabaseModule,
     EventsModule,
     AuthModule,

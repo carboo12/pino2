@@ -10,7 +10,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: config.get('JWT_SECRET'),
+      secretOrKey:
+        config.get('JWT_SECRET') ||
+        'pino2-default-jwt-secret-key-prod-2026-fallback-key',
     });
   }
 

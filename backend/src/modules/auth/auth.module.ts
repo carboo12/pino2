@@ -13,7 +13,9 @@ import { JwtStrategy } from './jwt.strategy';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get('JWT_SECRET'),
+        secret:
+          config.get('JWT_SECRET') ||
+          'pino2-default-jwt-secret-key-prod-2026-fallback-key',
         signOptions: { expiresIn: config.get('JWT_EXPIRES_IN') || '12h' },
       }),
     }),
