@@ -13,7 +13,8 @@ import {
   Mail,
   Lock,
   User as UserIcon,
-  ShieldAlert
+  ShieldAlert,
+  Building2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -102,29 +103,30 @@ export default function AddUserPage() {
   });
 
   useEffect(() => {
-    if (isMasterMode) {
-      const fetchStores = async () => {
-        try {
-          const response = await apiClient.get('/stores');
-          setStores((response.data || []).map((store: any) => ({
-            id: store.id,
-            name: store.name,
-            storeType: store.storeType || store.store_type || 'SUPERMERCADO',
-          })));
-        } catch (error) {
-          toast.error('Error', 'No se pudieron cargar las tiendas para asignación.');
-        }
-      };
+    const fetchStores = async () => {
+      try {
+        const response = await apiClient.get('/stores');
+        const list = (response.data || []).map((store: any) => ({
+          id: store.id,
+          name: store.name,
+          storeType: store.storeType || store.store_type || 'SUPERMERCADO',
+        }));
+        setStores(list);
 
-      fetchStores();
-    } else if (storeId) {
-      apiClient.get(`/stores/${storeId}`).then((res) => {
-        if (res.data) {
-          setCurrentStoreType(res.data.storeType || res.data.store_type || 'SUPERMERCADO');
+        const currentAssigned = form.getValues('assignedStoreId');
+        if (!currentAssigned) {
+          const defaultStore = list.find((s: any) => s.id === storeId) || list[0];
+          if (defaultStore) {
+            form.setValue('assignedStoreId', defaultStore.id);
+          }
         }
-      }).catch(() => {});
-    }
-  }, [isMasterMode, storeId]);
+      } catch (error) {
+        toast.error('Error', 'No se pudieron cargar las tiendas para asignación.');
+      }
+    };
+
+    fetchStores();
+  }, [storeId, form]);
 
   const selectedStoreId = useWatch({ control: form.control, name: 'assignedStoreId' });
 
@@ -348,37 +350,35 @@ export default function AddUserPage() {
                   )}
                 />
 
-                {isMasterMode && (
-                  <FormField
-                    control={form.control}
-                    name="assignedStoreId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
-                          <ShieldAlert className="h-4 w-4 text-primary" /> Tienda Inicial
-                        </FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
-                              <SelectValue placeholder="Selecciona una tienda si aplica" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="rounded-2xl border-none shadow-xl">
-                            {stores.map((store) => (
-                              <SelectItem key={store.id} value={store.id} className="font-bold cursor-pointer rounded-xl">
-                                {store.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-slate-400 font-medium ml-2">
-                          Obligatorio para usuarios operativos o administradores de tienda.
-                        </p>
-                        <FormMessage className="ml-2 font-bold italic" />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                <FormField
+                  control={form.control}
+                  name="assignedStoreId"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel className="flex items-center gap-2 text-xs font-black uppercase text-slate-500 tracking-widest ml-2">
+                        <Building2 className="h-4 w-4 text-primary" /> Tienda Asignada *
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <FormControl>
+                          <SelectTrigger className="h-14 rounded-2xl bg-white border-none shadow-[inset_4px_4px_8px_#ebeced,inset_-4px_-4px_8px_#ffffff] font-bold px-6 focus:ring-primary">
+                            <SelectValue placeholder="Selecciona la tienda a vincular" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="rounded-2xl border-none shadow-xl">
+                          {stores.map((store) => (
+                            <SelectItem key={store.id} value={store.id} className="font-bold cursor-pointer rounded-xl">
+                              {store.name} ({store.storeType || 'SUPERMERCADO'})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-slate-400 font-medium ml-2">
+                        Vincular al usuario a esta sucursal. Al seleccionar la tienda, se cargarán automáticamente los roles de ese tipo de negocio.
+                      </p>
+                      <FormMessage className="ml-2 font-bold italic" />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="pt-8 flex justify-end">
