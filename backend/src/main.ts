@@ -9,6 +9,9 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
+import fastifyStatic from '@fastify/static';
+import * as fs from 'fs';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -88,6 +91,40 @@ async function bootstrap() {
     timeWindow: '1 minute',
   });
   // --------------------------------
+
+  // --- SERVIR FRONTEND WEB SPA (REACT) ---
+  const possibleWebDistPaths = [
+    join(process.cwd(), 'web', 'dist'),
+    join(process.cwd(), '..', 'web', 'dist'),
+    join(__dirname, '..', '..', 'web', 'dist'),
+    join(__dirname, '..', '..', '..', 'web', 'dist'),
+  ];
+  const webDistPath = possibleWebDistPaths.find((p) => fs.existsSync(p));
+
+  if (webDistPath) {
+    console.log(`🌐 Serving React Frontend SPA from: ${webDistPath}`);
+    await app.register(fastifyStatic, {
+      root: webDistPath,
+      prefix: '/',
+      wildcard: false,
+    });
+
+    const fastifyInstance = app.getHttpAdapter().getInstance();
+    fastifyInstance.setNotFoundHandler((req: any, reply: any) => {
+      const url = req.raw.url || '';
+      if (!url.startsWith('/api')) {
+        return reply.sendFile('index.html');
+      }
+      reply.code(404).send({
+        statusCode: 404,
+        error: 'Not Found',
+        message: `Cannot ${req.raw.method} ${url}`,
+      });
+    });
+  } else {
+    console.log(`⚠️  Frontend web/dist directory not found, running API-only mode`);
+  }
+  // ----------------------------------------
 
   const port = Number(process.env.PORT) || Number(config.get('PORT')) || 3010;
 
