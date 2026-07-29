@@ -1,0 +1,5 @@
+connectorId: "pino2-connector"
+generate:
+  javascriptSdk:
+    outputDir: "../../web/src/lib/dataconnect-sdk"
+    package: "@pino2/dataconnect"

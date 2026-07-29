@@ -1,0 +1,46 @@
+# Consultas GraphQL para Firebase Data Connect - Pino2
+
+query ListStores @auth(level: USER) {
+  stores {
+    id
+    name
+    code
+    address
+    phone
+    active
+  }
+}
+
+query GetProducts @auth(level: USER) {
+  products {
+    id
+    code
+    barcode
+    name
+    price
+    unitMeasure
+    category
+    active
+  }
+}
+
+query GetStoreInventory($storeId: String!) @auth(level: USER) {
+  inventories(where: { storeId: { eq: $storeId } }) {
+    storeId
+    productId
+    stock
+    minStock
+    maxStock
+  }
+}
+
+query ListOrdersByStore($storeId: String!) @auth(level: USER) {
+  orders(where: { storeId: { eq: $storeId } }) {
+    id
+    orderNumber
+    total
+    status
+    paymentMethod
+    createdAt
+  }
+}

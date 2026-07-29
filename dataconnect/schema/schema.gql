@@ -1,0 +1,85 @@
+# Esquema GraphQL para Firebase Data Connect (PostgreSQL) - Sistema Pino2
+
+type User @table(name: "users", key: "id") {
+  id: String! @col(name: "id")
+  email: String! @col(name: "email")
+  name: String! @col(name: "name")
+  role: String! @col(name: "role")
+  storeId: String @col(name: "store_id")
+  active: Boolean! @col(name: "active")
+  createdAt: String! @col(name: "created_at")
+}
+
+type Store @table(name: "stores", key: "id") {
+  id: String! @col(name: "id")
+  name: String! @col(name: "name")
+  code: String! @col(name: "code")
+  address: String @col(name: "address")
+  phone: String @col(name: "phone")
+  active: Boolean! @col(name: "active")
+  createdAt: String! @col(name: "created_at")
+}
+
+type Product @table(name: "products", key: "id") {
+  id: String! @col(name: "id")
+  code: String! @col(name: "code")
+  barcode: String @col(name: "barcode")
+  name: String! @col(name: "name")
+  description: String @col(name: "description")
+  price: Float! @col(name: "price")
+  costPrice: Float @col(name: "cost_price")
+  unitMeasure: String! @col(name: "unit_measure")
+  category: String @col(name: "category")
+  active: Boolean! @col(name: "active")
+  createdAt: String! @col(name: "created_at")
+}
+
+type Inventory @table(name: "inventory", key: ["storeId", "productId"]) {
+  storeId: String! @col(name: "store_id")
+  productId: String! @col(name: "product_id")
+  stock: Float! @col(name: "stock")
+  minStock: Float @col(name: "min_stock")
+  maxStock: Float @col(name: "max_stock")
+  updatedAt: String! @col(name: "updated_at")
+}
+
+type Order @table(name: "orders", key: "id") {
+  id: String! @col(name: "id")
+  orderNumber: String! @col(name: "order_number")
+  storeId: String! @col(name: "store_id")
+  userId: String! @col(name: "user_id")
+  clientId: String @col(name: "client_id")
+  total: Float! @col(name: "total")
+  status: String! @col(name: "status")
+  paymentMethod: String! @col(name: "payment_method")
+  createdAt: String! @col(name: "created_at")
+}
+
+type OrderItem @table(name: "order_items", key: "id") {
+  id: String! @col(name: "id")
+  orderId: String! @col(name: "order_id")
+  productId: String! @col(name: "product_id")
+  quantity: Float! @col(name: "quantity")
+  unitPrice: Float! @col(name: "unit_price")
+  subtotal: Float! @col(name: "subtotal")
+}
+
+type Route @table(name: "routes", key: "id") {
+  id: String! @col(name: "id")
+  name: String! @col(name: "name")
+  storeId: String! @col(name: "store_id")
+  driverId: String @col(name: "driver_id")
+  status: String! @col(name: "status")
+  scheduledDate: String @col(name: "scheduled_date")
+  createdAt: String! @col(name: "created_at")
+}
+
+type Supplier @table(name: "suppliers", key: "id") {
+  id: String! @col(name: "id")
+  name: String! @col(name: "name")
+  contactName: String @col(name: "contact_name")
+  phone: String @col(name: "phone")
+  email: String @col(name: "email")
+  active: Boolean! @col(name: "active")
+  createdAt: String! @col(name: "created_at")
+}

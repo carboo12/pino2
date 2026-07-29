@@ -1,0 +1,50 @@
+# Mutaciones GraphQL para Firebase Data Connect - Pino2
+
+mutation CreateProduct(
+  $id: String!
+  $code: String!
+  $barcode: String
+  $name: String!
+  $price: Float!
+  $unitMeasure: String!
+  $category: String
+) @auth(level: USER) {
+  product_insert(
+    data: {
+      id: $id
+      code: $code
+      barcode: $barcode
+      name: $name
+      price: $price
+      unitMeasure: $unitMeasure
+      category: $category
+      active: true
+      createdAt: ""
+    }
+  )
+}
+
+mutation CreateOrder(
+  $id: String!
+  $orderNumber: String!
+  $storeId: String!
+  $userId: String!
+  $clientId: String
+  $total: Float!
+  $status: String!
+  $paymentMethod: String!
+) @auth(level: USER) {
+  order_insert(
+    data: {
+      id: $id
+      orderNumber: $orderNumber
+      storeId: $storeId
+      userId: $userId
+      clientId: $clientId
+      total: $total
+      status: $status
+      paymentMethod: $paymentMethod
+      createdAt: ""
+    }
+  )
+}

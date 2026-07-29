@@ -25,7 +25,13 @@ export class DatabaseService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.ensureOperationalTables();
+    try {
+      await this.ensureOperationalTables();
+    } catch (err: any) {
+      this.logger.warn(
+        `Initial operational tables check skipped/failed: ${err?.message || err}`,
+      );
+    }
   }
 
   /**

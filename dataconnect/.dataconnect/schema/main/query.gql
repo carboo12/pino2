@@ -1,0 +1,456 @@
+extend type Query {
+  """
+  ✨ Look up a single `Inventory` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  inventory(
+    """
+    The key used to identify the object.
+    """
+    key: Inventory_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Inventory_FirstRow
+  ): Inventory @fdc_generated(from: "Inventory", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Order` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  order(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Order_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Order_FirstRow
+  ): Order @fdc_generated(from: "Order", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `OrderItem` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  orderItem(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: OrderItem_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: OrderItem_FirstRow
+  ): OrderItem @fdc_generated(from: "OrderItem", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Product` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  product(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Product_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Product_FirstRow
+  ): Product @fdc_generated(from: "Product", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Route` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  route(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Route_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Route_FirstRow
+  ): Route @fdc_generated(from: "Route", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Store` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  store(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Store_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Store_FirstRow
+  ): Store @fdc_generated(from: "Store", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `Supplier` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  supplier(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: Supplier_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Supplier_FirstRow
+  ): Supplier @fdc_generated(from: "Supplier", purpose: QUERY_SINGLE)
+  """
+  ✨ Look up a single `User` based on `id`, `key` or `first` and return selected fields (or `null` if not found).
+  """
+  user(
+    """
+    The unique ID of the object.
+    """
+    id: String
+
+    """
+    ✨ `_expr` server value variant of `id` (The unique ID of the object.)
+    """
+    id_expr: String_Expr
+
+    """
+    The key used to identify the object.
+    """
+    key: User_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: User_FirstRow
+  ): User @fdc_generated(from: "User", purpose: QUERY_SINGLE)
+  """
+  ✨ List `Inventory` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  inventories(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Inventory_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Inventory_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Inventory_Having
+  ): [Inventory!]! @fdc_generated(from: "Inventory", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Order` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  orders(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Order_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Order_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Order_Having
+  ): [Order!]! @fdc_generated(from: "Order", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `OrderItem` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  orderItems(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: OrderItem_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [OrderItem_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: OrderItem_Having
+  ): [OrderItem!]! @fdc_generated(from: "OrderItem", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Product` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  products(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Product_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Product_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Product_Having
+  ): [Product!]! @fdc_generated(from: "Product", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Route` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  routes(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Route_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Route_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Route_Having
+  ): [Route!]! @fdc_generated(from: "Route", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Store` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  stores(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Store_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Store_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Store_Having
+  ): [Store!]! @fdc_generated(from: "Store", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `Supplier` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  suppliers(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: Supplier_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [Supplier_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: Supplier_Having
+  ): [Supplier!]! @fdc_generated(from: "Supplier", purpose: QUERY_MULTIPLE)
+  """
+  ✨ List `User` objects in the table and return selected fields, optionally filtered by `where` conditions
+  """
+  users(
+    """
+    Filter condition to narrow down the query results.
+    """
+    where: User_Filter
+
+    """
+    Order the query results by specific fields.
+    """
+    orderBy: [User_Order!]
+
+    """
+    Number of rows to skip before starting to return the results.
+    """
+    offset: Int
+
+    """
+    Maximum number of rows to return (defaults to 100 rows).
+    """
+    limit: Int = 100
+
+    """
+    Set to true to return distinct results.
+    """
+    distinct: Boolean = false
+
+    """
+    Filter condition to apply to the groups of aggregate queries.
+    """
+    having: User_Having
+  ): [User!]! @fdc_generated(from: "User", purpose: QUERY_MULTIPLE)
+}

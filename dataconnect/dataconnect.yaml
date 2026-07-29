@@ -1,0 +1,12 @@
+specVersion: "v1alpha"
+serviceId: "pino2-service"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "studio-9680180520-dbbe0-db"
+      cloudSql:
+        instanceId: "studio-9680180520-dbbe0-pg"
+connectorDirs:
+  - "./connector"

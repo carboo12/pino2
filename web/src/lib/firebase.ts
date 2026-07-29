@@ -2,14 +2,15 @@ import { initializeApp } from "firebase/app";
 import { getMessaging } from "firebase/messaging";
 import { getAnalytics } from "firebase/analytics";
 
-// Configuración de tu proyecto Pino
+// Configuración de proyecto Firebase (studio-9680180520-dbbe0)
 const firebaseConfig = {
-  apiKey: "AIzaSyB6Z6JhiVTUZiKmT4mh5I3Pt8hTToD0UDs",
-  authDomain: "pino-5fe44.firebaseapp.com",
-  projectId: "pino-5fe44",
-  storageBucket: "pino-5fe44.firebasestorage.app",
-  messagingSenderId: "708518383868",
-  appId: "1:708518383868:web:5e960224ca73e3f3eb0779"
+  apiKey: "AIzaSyBpkjdNmpPtsVuu_63OQLz_UnROkeJR-Zk",
+  authDomain: "studio-9680180520-dbbe0.firebaseapp.com",
+  projectId: "studio-9680180520-dbbe0",
+  storageBucket: "studio-9680180520-dbbe0.firebasestorage.app",
+  messagingSenderId: "104051514611",
+  appId: "1:104051514611:web:a56b0a2ec514aebf18eb86",
+  measurementId: "G-CS50QV7T5F"
 };
 
 // Inicializar Firebase
@@ -20,3 +21,4 @@ export const messaging = typeof window !== 'undefined' ? getMessaging(app) : nul
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 export default app;
+
