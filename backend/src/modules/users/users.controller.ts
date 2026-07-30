@@ -58,4 +58,11 @@ export class UsersController {
   assignToStore(@Param('id') id: string, @Param('storeId') storeId: string) {
     return this.service.assignToStore(id, storeId);
   }
+
+  @Delete(':id')
+  @Roles('admin', 'chain-admin', 'super-admin')
+  @ApiOperation({ summary: 'Eliminar un usuario' })
+  remove(@Param('id') id: string) {
+    return this.service.remove(id);
+  }
 }

@@ -204,10 +204,17 @@ export default function AddUserPage() {
     } catch (error: any) {
       console.error(error);
       let errorMessage = 'No se pudo crear el usuario.';
-      if (error.response?.data?.message === 'El correo ya está registrado') {
-          errorMessage = 'El correo electrónico ya está en uso.';
+      const serverMsg = error.response?.data?.message;
+      if (Array.isArray(serverMsg)) {
+        errorMessage = serverMsg.join(', ');
+      } else if (typeof serverMsg === 'string' && serverMsg) {
+        if (serverMsg.includes('registrado') || serverMsg.includes('Email') || serverMsg.includes('email')) {
+          errorMessage = 'El correo electrónico ya está registrado en el sistema. Por favor utiliza uno diferente.';
+        } else {
+          errorMessage = serverMsg;
+        }
       }
-      toast.error('Error', errorMessage);
+      toast.error('Error al Registrar', errorMessage);
     } finally {
       setIsSaving(false);
     }
