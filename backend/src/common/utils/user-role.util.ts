@@ -46,6 +46,15 @@ const ROLE_ALIASES: Record<string, CanonicalUserRole> = {
   'ayudante-de-bodega': 'auxiliar',
   'auxiliar-de-recepcion-y-despacho': 'auxiliar',
   'auxiliar-administrativo': 'auxiliar',
+  'distributor-admin': 'admin',
+  'distributor-seller': 'gestor',
+  'distributor-dispatcher': 'auxiliar',
+  'distributor-cashier': 'auxiliar',
+  'supermarket-admin': 'admin',
+  'supermarket-supervisor': 'admin',
+  'supermarket-cashier': 'auxiliar',
+  'supermarket-warehouse': 'inventory',
+  'supermarket-stocker': 'auxiliar',
 };
 
 const normalizeRawRole = (value?: string | null) =>
