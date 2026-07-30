@@ -1,6 +1,5 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging } from "firebase/messaging";
-import { getAnalytics } from "firebase/analytics";
 
 // Configuración de proyecto Firebase (studio-9680180520-dbbe0)
 const firebaseConfig = {
@@ -18,7 +17,6 @@ const app = initializeApp(firebaseConfig);
 
 // Inicializar servicios opcionales
 export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null;
-export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 export default app;
 
