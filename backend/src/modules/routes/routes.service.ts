@@ -26,7 +26,7 @@ export class RoutesService {
        WHERE r.store_id = $1`;
     const params: any[] = [storeId];
     if (vendorId) sql += ` AND r.vendor_id = $${params.push(vendorId)}`;
-    sql += ' GROUP BY r.id ORDER BY r.route_date DESC, r.created_at DESC';
+    sql += ' GROUP BY r.id ORDER BY r.created_at DESC';
     const res = await this.db.query(sql, params);
     return res.rows.map(this.mapRow);
   }

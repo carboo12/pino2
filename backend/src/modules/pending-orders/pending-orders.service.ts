@@ -25,13 +25,21 @@ export class PendingOrdersService {
     }));
   }
 
-  async findAll(storeId: string, status?: string) {
+  async findAll(storeId?: string, status?: string) {
     let sql = `SELECT po.*, COALESCE(c.name, po.client_name) as client_name 
                FROM pending_orders po 
-               LEFT JOIN clients c ON po.client_id = c.id 
-               WHERE po.store_id = $1`;
-    const params: any[] = [storeId];
-    if (status) sql += ` AND po.status = $${params.push(status)}`;
+               LEFT JOIN clients c ON po.client_id = c.id`;
+    const params: any[] = [];
+    const conditions: string[] = [];
+    if (storeId) {
+      conditions.push(`po.store_id = $${params.push(storeId)}`);
+    }
+    if (status) {
+      conditions.push(`po.status = $${params.push(status)}`);
+    }
+    if (conditions.length > 0) {
+      sql += ' WHERE ' + conditions.join(' AND ');
+    }
     sql += ' ORDER BY po.created_at DESC';
     const res = await this.db.query(sql, params);
     return res.rows.map((row) => this.mapRow(row));

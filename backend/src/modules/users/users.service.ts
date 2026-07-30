@@ -47,10 +47,13 @@ export class UsersService {
     const conditions: string[] = [];
 
     if (storeId) {
-      conditions.push(`EXISTS (
-        SELECT 1
-        FROM user_stores usf
-        WHERE usf.user_id = u.id AND usf.store_id = $${params.push(storeId)}
+      conditions.push(`(
+        EXISTS (
+          SELECT 1
+          FROM user_stores usf
+          WHERE usf.user_id = u.id AND usf.store_id = $${params.push(storeId)}
+        )
+        OR u.store_id = $${params.length}
       )`);
     }
     if (role) {
@@ -117,13 +120,14 @@ export class UsersService {
           throw new ConflictException('Email ya registrado');
         }
 
+        const primaryStoreId = storeIds[0] || null;
         const userId = crypto.randomUUID();
         const passwordHash = await bcrypt.hash(dto.password, 10);
         const resUser = await client.query(
-          `INSERT INTO users (id, email, password_hash, name, role, active, is_active, created_at)
-           VALUES ($1, $2, $3, $4, $5, true, true, NOW()::text)
+          `INSERT INTO users (id, email, password_hash, name, role, store_id, active, is_active, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, true, true, NOW()::text)
            RETURNING *`,
-          [userId, dto.email, passwordHash, dto.name, canonicalRole],
+          [userId, dto.email, passwordHash, dto.name, canonicalRole, primaryStoreId],
         );
         const user = resUser.rows[0];
 
