@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from '@/lib/swalert';
 import apiClient from '@/services/api-client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const userFormSchema = z.object({
   name: z.string().min(3, 'El nombre es requerido.'),
@@ -88,6 +89,7 @@ export default function AddUserPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [stores, setStores] = useState<Array<{ id: string; name: string; storeType: string }>>([]);
   const [currentStoreType, setCurrentStoreType] = useState<string>('');
+  const queryClient = useQueryClient();
 
   const backHref = isMasterMode ? '/master-admin/users' : `/store/${storeId}/users`;
 
@@ -209,6 +211,7 @@ export default function AddUserPage() {
         }
       }
       
+      await queryClient.invalidateQueries({ queryKey: ['users'] });
       toast.success('Usuario Creado', 'El colaborador ha sido agregado al sistema.');
       navigate(backHref);
     } catch (error: any) {

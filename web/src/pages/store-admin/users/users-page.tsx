@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { FloatingActionButton } from "@/components/floating-action-button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Users } from "lucide-react";
-import { useState } from "react";
+import { Users, Store } from "lucide-react";
+import { useEffect, useState } from "react";
 import apiClient from '@/services/api-client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,9 +13,17 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from "@/components/ui/badge";
 import { useParams, Link } from "react-router-dom";
 import { toast, alert as swalert } from '@/lib/swalert';
+import { useAuth } from '@/contexts/auth-context';
 
 interface User {
   uid: string;
@@ -25,21 +33,44 @@ interface User {
   id?: string;
 }
 
+const GLOBAL_ADMIN_ROLES = new Set(['master-admin', 'super-admin']);
+
 export default function StoreUsersPage() {
   const params = useParams();
-  const storeId = params.storeId as string;
+  const storeIdFromUrl = params.storeId as string;
+  const { user: authUser } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(storeIdFromUrl);
+  const [stores, setStores] = useState<Array<{ id: string; name: string }>>([]);
+
+  const isGlobalAdmin = GLOBAL_ADMIN_ROLES.has(authUser?.role || '');
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const res = await apiClient.get('/stores');
+        setStores(res.data || []);
+      } catch {
+        console.error('Error fetching stores');
+      }
+    };
+    fetchStores();
+  }, []);
+
+  const effectiveStoreId = isGlobalAdmin ? selectedStoreId : storeIdFromUrl;
 
   const { data: users = [], isLoading: loading, error } = useQuery({
-    queryKey: ['users', storeId],
+    queryKey: ['users', effectiveStoreId],
     queryFn: async () => {
-      const response = await apiClient.get('/users', { params: { storeId } });
+      const params: Record<string, string> = {};
+      if (effectiveStoreId) params.storeId = effectiveStoreId;
+      const response = await apiClient.get('/users', { params });
       return response.data as User[];
     },
-    enabled: !!storeId,
+    enabled: isGlobalAdmin || !!storeIdFromUrl,
   });
 
-  const refetchUsers = () => queryClient.invalidateQueries({ queryKey: ['users', storeId] });
+  const refetchUsers = () => queryClient.invalidateQueries({ queryKey: ['users'] });
 
   const renderContent = () => {
     if (loading) {
@@ -68,7 +99,9 @@ export default function StoreUsersPage() {
           <Users className="h-4 w-4" />
           <AlertTitle>No hay usuarios</AlertTitle>
           <AlertDescription>
-            Aún no has agregado ningún usuario a esta tienda.
+            {effectiveStoreId
+              ? 'Aún no has agregado ningún usuario a esta tienda.'
+              : 'No hay usuarios registrados en el sistema.'}
           </AlertDescription>
         </Alert>
       );
@@ -96,7 +129,7 @@ export default function StoreUsersPage() {
                     </p>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link to={`/store/${storeId}/users/edit/${userId}`}>
+                        <Link to={`/store/${storeIdFromUrl}/users/edit/${userId}`}>
                           Editar
                         </Link>
                       </Button>
@@ -132,8 +165,27 @@ export default function StoreUsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Usuarios</h1>
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <h1 className="text-2xl font-bold tracking-tight">Usuarios</h1>
+        <div className="flex items-center gap-2">
+          <Store className="h-4 w-4 text-muted-foreground" />
+          <Select
+            value={effectiveStoreId || '__all__'}
+            onValueChange={(val) => setSelectedStoreId(val === '__all__' ? '' : val)}
+          >
+            <SelectTrigger className="w-[220px]">
+              <SelectValue placeholder="Filtrar por tienda" />
+            </SelectTrigger>
+            <SelectContent>
+              {isGlobalAdmin && (
+                <SelectItem value="__all__">Todas las tiendas</SelectItem>
+              )}
+              {stores.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <Card>
         <CardHeader>
@@ -143,7 +195,7 @@ export default function StoreUsersPage() {
           {renderContent()}
         </CardContent>
       </Card>
-      <FloatingActionButton href={`/store/${storeId}/users/add`} />
+      <FloatingActionButton href={`/store/${storeIdFromUrl}/users/add`} />
     </div>
   );
 }
