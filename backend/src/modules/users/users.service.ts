@@ -101,9 +101,7 @@ export class UsersService {
       const missing = storeIds.filter((id) => !foundIds.has(id));
 
       if (missing.length > 0) {
-        throw new BadRequestException(
-          `La(s) tienda(s) con ID [${missing.join(', ')}] no existe(n)`,
-        );
+        throw new BadRequestException('La tienda seleccionada no existe');
       }
     }
     // ─────────────────────────────────────────────────────────────────────────
@@ -148,9 +146,7 @@ export class UsersService {
 
         if (pgCode === PG_ERRORS.FOREIGN_KEY_VIOLATION) {
           this.logger.warn(`FK violation creating user: ${err.detail}`);
-          throw new BadRequestException(
-            'La tienda seleccionada no existe (FK violation)',
-          );
+          throw new BadRequestException('La tienda seleccionada no existe');
         }
 
         if (pgCode === PG_ERRORS.UNIQUE_VIOLATION) {

@@ -3,6 +3,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { onRequest } from 'firebase-functions/v2/https';
 import { ValidationPipe } from '@nestjs/common';
+import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 import express from 'express';
 
 const expressServer = express();
@@ -15,11 +16,13 @@ const bootstrapNestApp = async () => {
       new ExpressAdapter(expressServer),
     );
     app.setGlobalPrefix('api');
+    app.useGlobalFilters(new ApiExceptionFilter());
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
+        transformOptions: { enableImplicitConversion: false },
       }),
     );
     app.enableCors({
