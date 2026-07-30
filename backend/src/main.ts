@@ -12,6 +12,7 @@ import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
 import * as fs from 'fs';
 import { join } from 'path';
+import { ApiExceptionFilter } from './common/filters/api-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -27,12 +28,17 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix(config.get('API_PREFIX') || 'api');
 
+  // Global exception filter — maps PG errors (23503, 22P02, etc.) to HTTP 400/409
+  app.useGlobalFilters(new ApiExceptionFilter());
+
   // Validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      // Enable @Transform decorators in DTOs (needed for store_id → storeId alias)
+      transformOptions: { enableImplicitConversion: false },
     }),
   );
 
@@ -91,6 +97,16 @@ async function bootstrap() {
     timeWindow: '1 minute',
   });
   // --------------------------------
+
+  // CSP response hook: garantiza connect-src para Firebase, Analytics y WebSockets
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+  fastifyInstance.addHook('onSend', async (_request: any, reply: any, payload: any) => {
+    reply.header(
+      'Content-Security-Policy',
+      "connect-src 'self' https://*.firebase.googleapis.com https://*.googleapis.com https://*.google-analytics.com https://*.google.com wss: ws: https: http:;",
+    );
+    return payload;
+  });
 
   // --- SERVIR FRONTEND WEB SPA (REACT / VITE) ---
   const possibleWebDistPaths = [

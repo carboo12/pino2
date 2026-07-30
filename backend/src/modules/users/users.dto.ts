@@ -1,4 +1,15 @@
-import { IsString, IsOptional, IsBoolean, IsEmail } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsEmail,
+  IsNotEmpty,
+  IsArray,
+  IsUUID,
+  ArrayNotEmpty,
+  ValidateIf,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class UpdateUserDto {
   @IsString()
@@ -18,8 +29,6 @@ export class UpdateUserDto {
   isActive?: boolean;
 }
 
-import { IsNotEmpty, IsArray } from 'class-validator';
-
 export class CreateUserDto {
   @IsEmail()
   @IsNotEmpty()
@@ -37,12 +46,25 @@ export class CreateUserDto {
   @IsNotEmpty()
   role!: string;
 
-  @IsString()
+  /**
+   * storeId (snake_case alias accepted from frontend: store_id → storeId).
+   * Validated as UUID to prevent FK errors before hitting the DB.
+   */
+  @ValidateIf((o) => o.storeId !== undefined && o.storeId !== null && o.storeId !== '')
+  @IsUUID('4', { message: 'storeId debe ser un UUID v4 válido' })
   @IsOptional()
+  @Transform(({ obj, value }) => {
+    // Accept snake_case alias sent by older frontend versions
+    return value ?? obj['store_id'] ?? undefined;
+  })
   storeId?: string;
 
-  @IsArray()
-  @IsString({ each: true })
+  /**
+   * storeIds: array of UUID v4 strings.
+   * ArrayNotEmpty is NOT enforced — an empty array is allowed (user without store).
+   */
+  @IsArray({ message: 'storeIds debe ser un arreglo' })
+  @IsUUID('4', { each: true, message: 'Cada storeId en storeIds debe ser un UUID v4 válido' })
   @IsOptional()
   storeIds?: string[];
 }
