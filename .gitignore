@@ -18,3 +18,4 @@ key.properties
 web/firebase-service-account.json
 opencode.json
 .agent/
+scripts/
