@@ -162,7 +162,9 @@ export class UsersService {
         }
 
         this.logger.error(`Unexpected error in createUser: ${err.message}`, err.stack);
-        throw new InternalServerErrorException('Error interno al crear el usuario');
+        throw new InternalServerErrorException(
+          `Error interno al crear el usuario: ${err.message || String(err)}`,
+        );
       }
     });
   }
