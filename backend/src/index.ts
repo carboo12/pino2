@@ -3,7 +3,7 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import { onRequest } from 'firebase-functions/v2/https';
 import { ValidationPipe } from '@nestjs/common';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
-import express from 'express';
+import express = require('express');
 
 const expressServer = express();
 let isAppInitialized = false;
