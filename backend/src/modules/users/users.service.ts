@@ -54,6 +54,7 @@ export class UsersService {
           WHERE usf.user_id = u.id AND usf.store_id = $${params.push(storeId)}
         )
         OR u.store_id = $${params.length}
+        OR u.role IN ('master-admin', 'super-admin', 'owner')
       )`);
     }
     if (role) {
