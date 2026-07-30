@@ -69,7 +69,7 @@ export class UsersService {
     }
 
     const res = await this.db.query(sql, params);
-    return res.rows.map(this.mapRow);
+    return res.rows.map((row: any) => this.mapRow(row));
   }
 
   async createUser(dto: {

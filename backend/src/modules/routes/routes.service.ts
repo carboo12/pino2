@@ -28,7 +28,7 @@ export class RoutesService {
     if (vendorId) sql += ` AND r.vendor_id = $${params.push(vendorId)}`;
     sql += ' GROUP BY r.id ORDER BY r.created_at DESC';
     const res = await this.db.query(sql, params);
-    return res.rows.map(this.mapRow);
+    return res.rows.map((row) => this.mapRow(row));
   }
 
   async findOne(id: string) {
