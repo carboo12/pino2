@@ -73,7 +73,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
       );
     }
 
-    response.status(status).json(ApiErrorResponse.fromError(code, message));
+    // Fastify uses .send() — NOT .json() (which is an Express-only method)
+    response.status(status).send(ApiErrorResponse.fromError(code, message));
   }
 
   private friendlyPgMessage(code: string, err: any): string {
