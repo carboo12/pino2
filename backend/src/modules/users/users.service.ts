@@ -117,12 +117,13 @@ export class UsersService {
           throw new ConflictException('Email ya registrado');
         }
 
+        const userId = crypto.randomUUID();
         const passwordHash = await bcrypt.hash(dto.password, 10);
         const resUser = await client.query(
-          `INSERT INTO users (email, password_hash, name, role)
-           VALUES ($1, $2, $3, $4)
+          `INSERT INTO users (id, email, password_hash, name, role)
+           VALUES ($1, $2, $3, $4, $5)
            RETURNING *`,
-          [dto.email, passwordHash, dto.name, canonicalRole],
+          [userId, dto.email, passwordHash, dto.name, canonicalRole],
         );
         const user = resUser.rows[0];
 
