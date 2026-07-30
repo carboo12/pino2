@@ -31,9 +31,30 @@ const resolveAgainstOrigin = (value: string, fallbackPath: string) => {
   return stripTrailingSlash(new URL(candidate, window.location.origin).toString());
 };
 
+/**
+ * Resolves the WebSocket server URL.
+ * Unlike resolveAgainstOrigin, this function preserves external URLs (e.g. rhclaroni.com)
+ * as-is instead of rewriting them to window.location.origin, since socket connections
+ * must reach the actual backend server, not Firebase Hosting.
+ */
+const resolveSocketUrl = (value: string, fallbackPath: string): string => {
+  const candidate = (value || fallbackPath).trim();
+
+  // Always use absolute external URLs as-is
+  if (/^https?:\/\//i.test(candidate)) {
+    return stripTrailingSlash(candidate);
+  }
+
+  if (typeof window === 'undefined') {
+    return candidate;
+  }
+
+  return stripTrailingSlash(new URL(candidate, window.location.origin).toString());
+};
+
 export const APP_BASENAME = normalizeBasePath(import.meta.env.VITE_APP_BASENAME);
 export const API_BASE_URL = resolveAgainstOrigin(import.meta.env.VITE_API_URL || '/api', '/api');
-export const SOCKET_URL = resolveAgainstOrigin(import.meta.env.VITE_SOCKET_URL || '/', '/');
+export const SOCKET_URL = resolveSocketUrl(import.meta.env.VITE_SOCKET_URL || '/', '/');
 export const SOCKET_PATH = ensureLeadingSlash(import.meta.env.VITE_SOCKET_PATH || '/socket.io');
 
 export const withAppBase = (path = '/') => {

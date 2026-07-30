@@ -26,10 +26,10 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    const namespaceUrl = `${SOCKET_URL}/events`.replace(/\/\//g, '/').replace(':/', '://');
-
-    const socket = io(namespaceUrl, {
-      transports: ['polling', 'websocket'],
+    // The backend gateway uses the root namespace (/) — do NOT append /events
+    // SOCKET_URL = 'https://rhclaroni.com', SOCKET_PATH = '/api-dev/socket.io'
+    const socket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
       autoConnect: true,
       path: SOCKET_PATH,
       auth: { token },
