@@ -22,14 +22,14 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class PendingOrdersController {
   constructor(private readonly service: PendingOrdersService) {}
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero', 'chain-admin', 'super-admin')
   @Get()
   @ApiOperation({ summary: 'Listar pedidos pendientes de despacho' })
   findAll(@Query('storeId') storeId: string, @Query('status') status?: string) {
     return this.service.findAll(storeId, status);
   }
 
-  @Roles('admin')
+  @Roles('admin', 'gestor', 'inventory', 'auxiliar', 'rutero', 'chain-admin', 'super-admin')
   @Post()
   @ApiOperation({ summary: 'Crear pedido de despacho' })
   create(
