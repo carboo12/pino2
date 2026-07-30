@@ -191,13 +191,23 @@ export default function AddUserPage() {
         return;
       }
 
-      await apiClient.post('/auth/register', {
+      const payload = {
         name: values.name,
         email: values.email,
         password: values.password,
         role: values.role,
         storeIds: assignedStoreId ? [assignedStoreId] : [],
-      });
+      };
+
+      try {
+        await apiClient.post('/users', payload);
+      } catch (err: any) {
+        if (err.response?.status === 404 || err.response?.status === 405) {
+          await apiClient.post('/auth/register', payload);
+        } else {
+          throw err;
+        }
+      }
       
       toast.success('Usuario Creado', 'El colaborador ha sido agregado al sistema.');
       navigate(backHref);

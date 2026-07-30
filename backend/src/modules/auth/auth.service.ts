@@ -206,7 +206,12 @@ export class AuthService {
     const refreshTokenValue = this.refreshJwt.sign(payload);
 
     try {
-      const refreshHash = await argon2.hash(refreshTokenValue);
+      let refreshHash: string;
+      try {
+        refreshHash = await argon2.hash(refreshTokenValue);
+      } catch {
+        refreshHash = await bcrypt.hash(refreshTokenValue, 10);
+      }
       await client.query(
         'UPDATE users SET refresh_token_hash = $1, updated_at = now() WHERE id = $2',
         [refreshHash, user.id],
