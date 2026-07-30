@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import { AppModule } from './app.module';
 import { onRequest } from 'firebase-functions/v2/https';
 import { ValidationPipe } from '@nestjs/common';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
@@ -11,6 +10,7 @@ let isAppInitialized = false;
 
 const bootstrapNestApp = async () => {
   if (!isAppInitialized) {
+    const { AppModule } = require('./app.module');
     const app = await NestFactory.create(
       AppModule,
       new ExpressAdapter(expressServer),
