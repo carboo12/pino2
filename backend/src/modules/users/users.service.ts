@@ -120,8 +120,8 @@ export class UsersService {
         const userId = crypto.randomUUID();
         const passwordHash = await bcrypt.hash(dto.password, 10);
         const resUser = await client.query(
-          `INSERT INTO users (id, email, password_hash, name, role)
-           VALUES ($1, $2, $3, $4, $5)
+          `INSERT INTO users (id, email, password_hash, name, role, active, is_active, created_at)
+           VALUES ($1, $2, $3, $4, $5, true, true, NOW()::text)
            RETURNING *`,
           [userId, dto.email, passwordHash, dto.name, canonicalRole],
         );
